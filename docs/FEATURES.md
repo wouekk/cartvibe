@@ -128,6 +128,7 @@ in by hand and the AI is retried later.
 | WARR-02 | Warranty period | In user preferences a person picks their region and a period of 1, 2, 3 or 5 years; *Automatic* is 2 years in the EU and 1 year elsewhere. | 0.13.0 | released |
 | WARR-03 | Warranty reminder | Everyone who can see the receipt is reminded once at 09:00, the chosen number of days ahead (30 unless changed; 0 is the day itself). The reminder names the shop, never the amount. It shows in the app's notifications and, if allowed, as a notification on the device. | 0.13.0 | released |
 | WARR-04 | Warranties list and tiles | A Warranties tile and a *Warranties ending soon* panel (the next two months, with days left) open the full list of running warranties, nearest expiry first. | 0.13.0 | released |
+| WARR-05 | Edit or remove a warranty from the list | Each receipt in the Warranties list and the *Warranties ending soon* panel has a menu (⋮) with *Edit*, which changes the warranty's last day, and *Remove*, which asks first and then takes the warranty off the receipt; the receipt and its photos stay. The reminder follows the new date or goes with the warranty. Only someone who may change the receipt sees the menu. | – | unreleased |
 
 ## Product check (FOOD)
 
@@ -155,14 +156,16 @@ in by hand and the AI is retried later.
 | APP-07 | Smooth changes | Moving between pages is a short fade. When the device is set to reduce motion, animations across the app stop; spinners and progress bars only slow down. | 0.8.0 | released |
 | APP-08 | Save button halo | A Save button on a form with unsaved changes wears a soft halo until saved; it stays still with reduced motion. | 0.16.0 | released |
 | APP-09 | Licence and credits page | About lists the project, its credits and the licence texts of what it ships. | 0.2.0 | released |
+| APP-10 | Settings menu | The sidebar's Settings menu lists, in this order and each only for those allowed to open it: System Settings, Management, User Settings, AI, Theme and Language. | – | unreleased |
 
 ## Households and accounts (HH)
 
 | ID | Feature | Behaviour and acceptance | Since | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| HH-01 | Household | A household holds its members, receipts and shopping lists. An admin, or someone allowed to, can rename it. | 0.1.0 | released |
+| HH-01 | Household | A household holds its members, receipts and shopping lists. An admin, or someone allowed to, renames it with *Edit* in the household's row menu (⋮) under Settings → Management → Households, on a phone too. Every receipt photo stays reachable after a rename, and new accounts still join the renamed household. | 0.1.0 (row menu since the next release) | released |
 | HH-02 | Everyone adds things | Every family member can add receipts and list items. Nothing is split between members; the person who adds a receipt is recorded as who added it. | 0.6.0 | released |
 | HH-03 | Household currency | One main currency for the household (EUR, PLN, USD, GBP or CHF to start), chosen by an admin. | 0.6.0 | released |
+| HH-06 | Profile photo | Under Settings → User Settings a person takes a photo with the camera or picks a picture (JPEG, PNG, WebP, GIF, HEIC or TIFF, up to 8 MB; a large photo is shrunk on the device first). It shows wherever their initials showed (the sidebar, comments) for everyone who can see them, and only to people signed in. *Remove photo* brings the initials back. | – | unreleased |
 
 ## Running the server (ADM)
 

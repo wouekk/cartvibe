@@ -26,6 +26,12 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 - **Date format (ADM-13).** System Settings → General now starts with a date format for the household: DD/MM/YYYY (the
   default), MM/DD/YYYY, YYYY/MM/DD, DD.MM.YYYY or YYYY-MM-DD. Every date in the app follows it, the Dashboard and
   reports included. The time zone comes next and the currency moves to the bottom of the tab.
+- **Profile photo (HH-06).** Settings → User Settings has a Photo card: take a photo or pick a picture, and it shows
+  instead of your initials in the sidebar and next to your comments. A large photo is shrunk on the phone before it goes
+  up; *Remove photo* brings the initials back. The photo is kept on your server and shown only to people signed in.
+- **Edit or remove a warranty from the list (WARR-05).** Each receipt on the Warranties page and in the Dashboard's
+  *Warranties ending soon* panel has a ⋮ menu: *Edit* changes the last day of the warranty, *Remove* (after asking)
+  takes the warranty off the receipt and keeps the receipt. Reminders follow.
 - **A feature registry** ([docs/FEATURES.md](docs/FEATURES.md)): every feature in plain words, with a stable ID, the version
   that introduced it and how to tell it works; [CONTRIBUTING.md](CONTRIBUTING.md) and a feature request form; a Platforms
   section in the README.
@@ -34,6 +40,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   live install.
 
 ### Changed
+- **Renaming a household works from a phone (HH-01).** Households under Settings → Management have a ⋮ menu with *Edit*
+  and *Delete*, in reach without scrolling sideways (the dates give way on a phone). A rename moves the household's
+  photo folder with it, or is refused and changes nothing if the folder cannot move, and new accounts keep joining the
+  renamed household.
+- **Settings menu order (APP-10):** System Settings, Management, User Settings, AI, Theme, then Language.
 - **A clone of the repository used for a deployment ignores its `.env`, `data` and `sqlite` folders**, so a stray
   `git add -A` can no longer commit the keys or the database.
 - **The last upstream names are gone from the code.**

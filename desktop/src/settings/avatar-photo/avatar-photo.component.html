@@ -1,0 +1,54 @@
+<app-settings-section
+  title="Photo"
+  description="Shown instead of your initials, to everyone in the household."
+  testId="avatar-photo-section"
+>
+  <div class="cv-section">
+    <div class="flex flex-wrap items-center gap-4">
+      <app-avatar [user]="me()"></app-avatar>
+
+      @if (canEdit()) {
+        <div class="flex flex-wrap items-center gap-2">
+          <label
+            [class]="primaryButtonClass"
+            class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50"
+            [class.pointer-events-none]="saving()"
+            [class.opacity-50]="saving()"
+          >
+            <input type="file" accept="image/*" capture="user" class="sr-only" data-testid="avatar-take-photo" (change)="selected($event)" />
+            <app-icon name="photo_camera"></app-icon>
+            <span>{{ 'Take a photo' | t }}</span>
+          </label>
+          <label
+            [class]="outlineButtonClass"
+            class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50"
+            [class.pointer-events-none]="saving()"
+            [class.opacity-50]="saving()"
+          >
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/tiff,.heic,.heif"
+              class="sr-only"
+              data-testid="avatar-choose-file"
+              (change)="selected($event)"
+            />
+            <app-icon name="image"></app-icon>
+            <span>{{ 'Choose a file' | t }}</span>
+          </label>
+          @if (hasPhoto()) {
+            <button
+              hlmBtn
+              variant="destructive"
+              type="button"
+              data-testid="avatar-remove"
+              [disabled]="saving()"
+              (click)="remove()"
+            >
+              {{ 'Remove photo' | t }}
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</app-settings-section>

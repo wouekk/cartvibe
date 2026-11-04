@@ -44,6 +44,15 @@ describe("downscaleImageForUpload", () => {
     expect(close).toHaveBeenCalled();
   });
 
+  it("takes a smaller long side and no size floor for an avatar", async () => {
+    blobSize = 40_000;
+
+    const result = await downscaleImageForUpload(fileOf(300_000, "image/jpeg"), { maxSide: 512, minBytes: 0 });
+
+    expect(drawn).toEqual({ width: 512, height: 384 });
+    expect(result.size).toBe(40_000);
+  });
+
   it("re-encodes a large photo that is already small enough in pixels without enlarging it", async () => {
     (globalThis as any).createImageBitmap = vi.fn().mockResolvedValue({ width: 1200, height: 1600, close });
 
