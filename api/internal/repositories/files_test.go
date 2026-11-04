@@ -297,6 +297,42 @@ func TestValidateFileType_AcceptsJpg(t *testing.T) {
 	}
 }
 
+// The upload check accepts exactly the receipt formats docker/imagemagick/policy.xml lets ImageMagick read, detected
+// from the bytes; every other image format is refused before it reaches a decoder.
+func TestValidateFileType_AcceptsOnlyReceiptFormats(t *testing.T) {
+	repository := NewFileRepository(ImplicitCell(), nil)
+	heic := append([]byte{0, 0, 0, 0x18}, []byte("ftypheic\x00\x00\x00\x00mif1heic")...)
+
+	accepted := map[string][]byte{
+		"image/jpeg":      readTestJpgBytes(t),
+		"image/png":       []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\x0dIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00"),
+		"image/gif":       []byte("GIF89a\x01\x00\x01\x00\x00\x00\x00;"),
+		"image/webp":      []byte("RIFF\x24\x00\x00\x00WEBPVP8 \x18\x00\x00\x00"),
+		"image/tiff":      []byte("II*\x00\x08\x00\x00\x00\x00\x00"),
+		"image/heic":      heic,
+		"application/pdf": []byte("%PDF-1.4\n%\xe2\xe3\xcf\xd3\n1 0 obj\n<<>>\nendobj\n"),
+	}
+	for want, data := range accepted {
+		got, err := repository.ValidateFileType(data)
+		if err != nil || got != want {
+			t.Errorf("ValidateFileType(%s) = %q, %v; want %q accepted", want, got, err, want)
+		}
+	}
+
+	refused := map[string][]byte{
+		"BMP":       append([]byte("BM"), make([]byte, 52)...),
+		"PSD":       []byte("8BPS\x00\x01\x00\x00\x00\x00\x00\x00\x00\x03"),
+		"SVG":       []byte(`<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>`),
+		"ICO":       []byte("\x00\x00\x01\x00\x01\x00\x10\x10\x00\x00\x01\x00\x20\x00"),
+		"JPEG 2000": []byte("\x00\x00\x00\x0cjP  \r\n\x87\n\x00\x00\x00\x14ftypjp2 "),
+	}
+	for name, data := range refused {
+		if got, err := repository.ValidateFileType(data); err == nil {
+			t.Errorf("ValidateFileType(%s) accepted it as %q; want it refused", name, got)
+		}
+	}
+}
+
 func TestValidateFileType_RejectsText(t *testing.T) {
 	repository := NewFileRepository(ImplicitCell(), nil)
 

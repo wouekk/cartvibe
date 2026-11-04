@@ -42,6 +42,22 @@ if magick -size 40x40 xc:white check.eps 2>/dev/null; then
   fail "ImageMagick policy.xml allows EPS"
 fi
 
+# docker/imagemagick/policy.xml: the receipt formats round-trip, everything else and oversized images are refused,
+# and the limits are the ones the file sets (not Debian's).
+magick -size 40x40 xc:white check.tiff && magick check.tiff tiff.png || fail "a TIFF does not convert"
+magick -size 40x40 xc:white check.webp && magick check.webp webp.png || fail "a WebP does not convert"
+if magick -size 40x40 xc:white check.psd 2>/dev/null; then
+  fail "ImageMagick policy.xml allows PSD (only receipt formats may be read or written)"
+fi
+if magick -size 40x40 xc:white check.bmp 2>/dev/null; then
+  fail "ImageMagick policy.xml allows BMP (only receipt formats may be read or written)"
+fi
+if magick -size 17000x10 xc:white wide.png 2>/dev/null; then
+  fail "ImageMagick policy.xml allows an image wider than 16K pixels"
+fi
+magick -list policy > policy.txt 2>&1
+grep -q "16KP" policy.txt || { cat policy.txt >&2; fail "ImageMagick is not using docker/imagemagick/policy.xml"; }
+
 # Chromium renders report HTML to a PDF (no sandbox, as the API runs it by default) and ghostscript finds the text in it.
 chromium --version >/dev/null || fail "Chromium is missing"
 cat > page.html <<'HTML'

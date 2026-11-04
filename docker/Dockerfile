@@ -73,14 +73,9 @@ RUN apt-get update \
 RUN useradd --system --uid 10001 --user-group --create-home --home-dir /home/cartvibe --shell /usr/sbin/nologin cartvibe
 
 # ImageMagick picks a decoder from a file's content, not its name, so an upload could reach any library it links.
-# Allow PDF conversion, and refuse what receipts never are: EXR, vector and script formats (SVG, MVG, MSL,
-# PostScript, XPS), remote URLs and reading a file named after "@". Photos (JPEG, PNG, WebP, HEIC, TIFF, GIF) and
-# PDF stay; the check below converts a PDF so a policy that breaks it fails the build.
-RUN POLICY_FILE="/etc/ImageMagick-7/policy.xml"; \
-    test -f "$POLICY_FILE" \
-    && sed -i 's|<policy domain="coder" rights="none" pattern="PDF" />|<policy domain="coder" rights="read\|write" pattern="PDF" />|g' "$POLICY_FILE" \
-    && sed -i 's|</policymap>|  <policy domain="coder" rights="none" pattern="{EXR,SVG,SVGZ,MSVG,RSVG,MVG,MSL,PS,PS2,PS3,EPS,EPI,EPSF,EPSI,EPT,XPS,PCL,URL,HTTP,HTTPS,FTP,TEXT,SHOW,WIN,X}" />\n  <policy domain="path" rights="none" pattern="@*" />\n</policymap>|' "$POLICY_FILE" \
-    && grep -q 'pattern="{EXR,' "$POLICY_FILE"
+# Our own policy replaces Debian's: only receipt formats (JPEG, PNG, WebP, GIF, HEIC, TIFF, PDF), Ghostscript as the
+# only external program, resource limits sized for phone photos, and no risky paths. The check below proves it.
+COPY docker/imagemagick/policy.xml /etc/ImageMagick-7/policy.xml
 
 WORKDIR /app/cartvibe-api
 COPY --from=api-build /app/cartvibe-api /app/cartvibe-api

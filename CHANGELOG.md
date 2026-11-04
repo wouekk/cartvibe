@@ -64,6 +64,14 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   - Disabled controls no longer show a "not allowed" cursor.
   - Settings section titles are muted capitals, as designed.
   - On desktop, text in form fields is 14px; phones keep 16px.
+- **Receipt files are limited to receipt formats (RCPT-02).**
+  - A photo can be JPEG, PNG, WebP, GIF, HEIC or TIFF, and a document a PDF. Other image formats (BMP, PSD, ICO,
+    JPEG 2000 and the rest) are refused when uploaded.
+  - The image ships its own ImageMagick policy (`docker/imagemagick/policy.xml`), following ImageMagick's security
+    guidance: only those formats, Ghostscript as the only helper program, size and memory limits sized for phone
+    photos (up to 16,000 pixels a side), and no reading from pipes, file lists or system folders.
+- **Manual image rebuilds can skip the cache** (`no-cache` on a manual run of *Publish image*), so a Debian security
+  fix reaches `:latest` without waiting for the weekly rebuild. go-jose is updated to 4.1.5.
 - **Reduced motion everywhere (APP-07).** With reduced motion turned on in the system, animations stop across the app;
   spinners and the progress bar only slow down.
 

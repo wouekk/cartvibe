@@ -54,7 +54,7 @@ running the server, so it has no meaning outside a self-hosted instance) · `ret
 | ID | Feature | Behaviour and acceptance | Since | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | RCPT-01 | Add a receipt by hand | A receipt has a name, a date, a total, who added it (always the signed-in person) and a status. Any family member can add one. The shop shown is the one the AI read, otherwise the name. | 0.1.0 | released |
-| RCPT-02 | Receipt photo or PDF | A photo or PDF can be attached. The photo has a menu to preview, rename or remove it. Phone photos in common formats, rotated or very large, are turned into a normal upright image first. | 0.1.0 | released |
+| RCPT-02 | Receipt photo or PDF | A photo (JPEG, PNG, WebP, GIF, HEIC or TIFF) or a PDF can be attached; other formats are refused. The photo has a menu to preview, rename or remove it. Phone photos in common formats, rotated or very large, are turned into a normal upright image first. | 0.1.0 | released |
 | RCPT-03 | Products on a receipt | A receipt's lines are its products: name, quantity and amount. Products can be added, changed and removed right on the receipt page without pressing Edit, and this does not change a settled receipt's total or status. | 0.1.0 | released |
 | RCPT-04 | Category and tags per product | Each product has one category and any number of tags, chosen next to its quantity and amount. A new category or tag can be picked at once. | 0.5.0 | released |
 | RCPT-05 | Not-yet-split notice | A receipt with no products says to add them there; a partly split one says how much of the total is not covered yet. That part counts as Uncategorized on the Dashboard and in reports. | 0.9.0 | released |
