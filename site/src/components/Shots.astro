@@ -54,8 +54,7 @@ const phoneWidths = [260, 390];
               fetchpriority={eager && mode === "light" ? "high" : undefined}
               width={img.width}
               height={img.height}
-              alt={mode === "light" ? alt : ""}
-              aria-hidden={mode === "dark" ? "true" : undefined}
+              alt={alt}
               loading={loading}
               decoding="async"
             />
@@ -85,8 +84,7 @@ const phoneWidths = [260, 390];
               sizes={phoneSizes}
               width={img.width}
               height={img.height}
-              alt={mode === "light" ? (desktop ? "The same screen on a phone" : alt) : ""}
-              aria-hidden={mode === "dark" ? "true" : undefined}
+              alt={desktop ? "The same screen on a phone" : alt}
               loading={loading}
               decoding="async"
             />

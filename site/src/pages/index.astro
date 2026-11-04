@@ -145,11 +145,12 @@ const faq = [
   { q: "Can the whole family use it?", a: "Yes. Accounts are either Admin or User, everyone in the household can add receipts and list items, and nobody has to split bills or approve anything." },
 ];
 
-// Search and sharing (docs/site.md): the page's title and description, and one JSON-LD @graph that ties this site and the
-// GitHub repository together as one piece of software. The FAQPage is built from `faq`, so it always matches the page.
-const title = "CartVibe — Household Receipts, Shared Shopping Lists & Spending Insights";
+// Search and sharing (docs/site.md): the title (70 characters at most) and description (25-160, Bing's limits; written for
+// people, as the snippet under the link), and one JSON-LD @graph that ties this site and the GitHub repository together
+// as one piece of software. The FAQPage is built from `faq`, so it always matches the page.
+const title = "CartVibe — Household Receipts, Shopping Lists & Spending Insights";
 const description =
-  "Self-hosted and open-source (AGPL-3.0) app for household receipts, AI receipt OCR, shared shopping lists, warranty tracking, and spending insights. CartVibe for iPhone coming soon.";
+  "Scan receipts, share live shopping lists and see where your household's money goes. Free, open source (AGPL-3.0) and self-hosted. iPhone app coming soon.";
 const home = new URL("/", Astro.site).href;
 const agpl = "https://www.gnu.org/licenses/agpl-3.0.html";
 const jsonLd = {
