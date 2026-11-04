@@ -14,6 +14,7 @@ import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.
 import { SystemSettingsState } from "../store/system-settings.state";
 import { todayInZone } from "../utils/app-time-zone";
 import { WarrantyRow, warrantyRows } from "../utils/warranty-period";
+import { WarrantyMenuComponent } from "./warranty-menu/warranty-menu.component";
 
 /**
  * The Warranties list: every receipt the person can see whose warranty ends today or later, nearest end first, one
@@ -23,7 +24,7 @@ import { WarrantyRow, warrantyRows } from "../utils/warranty-period";
   selector: "app-warranties-page",
   templateUrl: "./warranties-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, PluralPipe, PipesModule, SharedUiModule, AppIconComponent, ShopMonogramComponent, ...HlmTableImports],
+  imports: [RouterLink, TranslatePipe, PluralPipe, PipesModule, SharedUiModule, AppIconComponent, ShopMonogramComponent, WarrantyMenuComponent, ...HlmTableImports],
 })
 export class WarrantiesPageComponent {
   private readonly receiptService = inject(ReceiptService);
@@ -56,4 +57,9 @@ export class WarrantiesPageComponent {
 
   /** undefined while loading, so the empty state shows only once the list came back empty. */
   public readonly rows = this.warranties.value;
+
+  /** After an Edit or Remove: the list loads again (a removed warranty drops out, an edited one moves). */
+  public reload(): void {
+    this.warranties.reload();
+  }
 }

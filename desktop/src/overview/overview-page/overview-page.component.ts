@@ -364,13 +364,20 @@ export class OverviewPageComponent {
   /** Today in the app time zone, "yyyy-MM-dd": the warranty panel counts its days left from it. */
   private readonly appToday = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
 
+  /** Bumped after a warranty row's Edit or Remove, so the panel loads again. */
+  private readonly warrantyReload = signal(0);
+
+  public reloadWarranties(): void {
+    this.warrantyReload.update((count) => count + 1);
+  }
+
   /**
    * The receipts whose warranty ends in the next two months, nearest first, whatever the period picked: what is still
    * covered and soon will not be. The tile counts them; the panel lists their products.
    */
   public readonly warrantiesEndingSoon = toSignal(
-    toObservable(computed(() => (this.request() ? this.groupId() : undefined))).pipe(
-      switchMap((groupId) => {
+    toObservable(computed(() => ({ groupId: this.request() ? this.groupId() : undefined, reload: this.warrantyReload() }))).pipe(
+      switchMap(({ groupId }) => {
         if (groupId === undefined) {
           return of([] as Receipt[]);
         }

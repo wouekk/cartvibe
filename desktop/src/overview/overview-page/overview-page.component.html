@@ -572,6 +572,7 @@
                             <th hlmTh scope="col">{{ 'Product' | t }}</th>
                             <th hlmTh scope="col" class="w-32 max-sm:hidden">{{ 'Warranty until' | t }}</th>
                             <th hlmTh scope="col" class="w-20 text-right sm:w-24">{{ 'Days left' | t }}</th>
+                            <th hlmTh scope="col" class="w-12"><span class="sr-only">{{ 'Actions' | t }}</span></th>
                           </tr>
                         </thead>
                         <tbody hlmTBody>
@@ -604,6 +605,17 @@
                                   } @else {
                                     {{ row.daysLeft }} {{ row.daysLeft | plural: 'day' : 'days' }}
                                   }
+                                }
+                              </td>
+                              <td hlmTd class="text-right">
+                                @if (row.first) {
+                                  <app-warranty-menu
+                                    [receiptId]="row.receiptId"
+                                    [groupId]="row.groupId"
+                                    [shop]="row.shop"
+                                    [warrantyUntil]="row.warrantyUntil"
+                                    (changed)="reloadWarranties()"
+                                  ></app-warranty-menu>
                                 }
                               </td>
                             </tr>
