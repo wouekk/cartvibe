@@ -11,6 +11,12 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+### Fixed
+- **An admin can edit every household (HH-01).** An admin who joined the original household as a member, which is
+  the usual case when the household was created by the install's first `admin` account, had no Edit on it. Admins now
+  edit any household, its name, look and receipt settings, whatever their role inside it (the new app permission
+  `app.groups.update`, given to admin roles at the next start). Other people still need their household role to allow it.
+
 ## [0.17.0] - 2026-11-04
 
 Export and import a household, a household date format, profile photos and household icons, the AI in your language, a

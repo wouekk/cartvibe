@@ -148,6 +148,18 @@ describe("GroupTableComponent", () => {
       expect(navigate).toHaveBeenCalledWith("/groups/5/details/edit");
     });
 
+    it("offers Edit to an app admin who only joined the household as a Member", () => {
+      store.dispatch(new SetPermissions([Permission.AppGroupsUpdate], { 5: [Permission.GroupView] }));
+
+      expect(component.canEdit(group)).toBe(true);
+    });
+
+    it("offers no Edit to a Member without the app permission", () => {
+      store.dispatch(new SetPermissions([], { 5: [Permission.GroupView] }));
+
+      expect(component.canEdit(group)).toBe(false);
+    });
+
     it("never offers Edit or Delete on the synthetic All group", () => {
       store.dispatch(new SetPermissions([Permission.AppGroupsDelete], { 5: [Permission.GroupUpdate, Permission.GroupDelete] }));
       const all = { ...group, isAllGroup: true } as Group;

@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from "@angular/core";
 import { Group, Permission } from "../../open-api";
-import { hasAll } from "../../utils/permission.utils";
+import { hasAll, hasAny } from "../../utils/permission.utils";
 
 @Pipe({
     name: "groupTableEditButton",
@@ -13,7 +13,10 @@ export class GroupTableEditButtonPipe implements PipeTransform {
     appPermissions: string[],
     groupPermissions: { [id: number]: string[] }
   ): string {
-    if (hasAll(groupPermissions?.[group.id] ?? [], Permission.GroupUpdate)) {
+    if (
+      hasAny(appPermissions ?? [], Permission.AppGroupsUpdate) ||
+      hasAll(groupPermissions?.[group.id] ?? [], Permission.GroupUpdate)
+    ) {
       return `/groups/${group.id}/details/edit`;
     }
 

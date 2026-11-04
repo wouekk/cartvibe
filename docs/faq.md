@@ -15,8 +15,8 @@ Short answers for running a [CartVibe](https://cartvibe.app/) household. Setup, 
 
 1. Sign in as an admin, or as someone allowed to update that household.
 2. Open **Management** in the sidebar and choose the **Households** tab.
-3. Press the pencil (**Edit group**) on the household's row.
-4. Change **Group Name** and press **Save**.
+3. Press **Edit** on the household's row (the pencil on a computer, the ⋮ menu on a phone).
+4. Change the name (and, if you like, its icon and colour) and press **Save**.
 
 Receipts, shopping lists and members stay with the household; only its name changes.
 

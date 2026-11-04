@@ -155,7 +155,12 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   );
 
   public canEdit(group: Group): boolean {
-    return !group.isAllGroup && hasAll(this.groupPermissions()?.[group.id] ?? [], Permission.GroupUpdate);
+    // An app admin (app.groups.update) edits any household, also one they only joined as a Member.
+    return (
+      !group.isAllGroup &&
+      (hasAny(this.appPermissions() ?? [], Permission.AppGroupsUpdate) ||
+        hasAll(this.groupPermissions()?.[group.id] ?? [], Permission.GroupUpdate))
+    );
   }
 
   public canDelete(group: Group): boolean {

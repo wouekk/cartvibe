@@ -80,7 +80,7 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     this.setFormConfigFromRoute(this.activatedRoute);
     this.setOriginalGroup();
     this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate)
+      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate])
     );
     // Always editable for anyone who may update (Save in the card footer), like the other settings pages.
     if (this.formConfig.mode === FormMode.view && this.canEdit) {
