@@ -742,7 +742,7 @@ func (service ReceiptProductExtractionService) applyReadResult(
 		return err
 	}
 
-	// Stamps the resolved date and settles the receipt's items, as every other way of resolving does.
+	// Stamps the resolved date, as every other way of resolving does.
 	return repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).AfterReceiptUpdated(&receipt)
 }
 

@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shopspring/decimal"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
@@ -340,59 +339,6 @@ func TestDeleteAccountWithAConfirmationCode(t *testing.T) {
 		t.Fatalf("expected the account to be deleted")
 	}
 }
-
-// ---------------------------------------------------------------------------
-// GetAmountOwedForUser tests
-// ---------------------------------------------------------------------------
-
-func setupAmountOwedTest(t *testing.T) {
-	repositories.CreateTestGroupWithUsers()
-	// GetAmountOwedForUser is gated on group.receipts.read; authorize user 1 in
-	// group 1 (the group the positive cases query).
-	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead)
-}
-
-func assertOwed(t *testing.T, result map[uint]decimal.Decimal, otherUserId uint, expected float64) {
-	t.Helper()
-	exp := decimal.NewFromFloat(expected)
-	got, ok := result[otherUserId]
-	if !ok {
-		t.Errorf("expected entry for user %d (=%s) but none found; result=%v", otherUserId, exp.String(), result)
-		return
-	}
-	if !got.Equal(exp) {
-		t.Errorf("expected resultMap[%d] == %s, got %s", otherUserId, exp.String(), got.String())
-	}
-}
-
-// setupIsolatedAmountOwedTest seeds group 1 as an isolated group where user 1 is
-// the (restricted) caller, user 3 is a visible supervisor, and user 2 is an
-// invisible peer.
-func setupIsolatedAmountOwedTest(t *testing.T) {
-	repositories.CreateTestGroupWithUsers()
-	grantGroupPerms(t, 1, 1, permissions.GroupReceiptsRead)
-	isolateGroupWithSupervisor(t, 1, 3)
-}
-
-// --- Member isolation ---------------------------------------------------
-
-// --- A. Authorization ---------------------------------------------------
-
-// --- B. Empty / baseline ------------------------------------------------
-
-// --- C. Basic positive (single receipt) ---------------------------------
-
-// --- D. Multi-user / multi-receipt aggregation --------------------------
-
-// --- E. Negative (refund) coverage --------------------------------------
-
-// --- F. Zero amount -----------------------------------------------------
-
-// --- G. Status filter ---------------------------------------------------
-
-// --- H. All-group expansion --------------------------------------------
-
-// --- I. receiptIds parameter -------------------------------------------
 
 func TestShouldNotAllowUserToGetPagedUsers(t *testing.T) {
 	defer tearDownUserTest()
