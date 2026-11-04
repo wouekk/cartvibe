@@ -14,11 +14,11 @@ import { marker } from "../../i18n/marker";
         @for (tab of tabs(); track tab.value) {
           <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value" [attr.data-testid]="tab.testId ?? null">
             @if (tab.icon) {
-              <app-icon class="size-[17px] text-[17px]" [name]="tab.icon"></app-icon>
+              <app-icon class="size-[1.0625rem] text-[1.0625rem]" [name]="tab.icon"></app-icon>
             }
             {{ tab.label | t }}
             @if (tab.count !== undefined) {
-              <span class="pill rounded-full bg-secondary px-2 py-px text-[11px] font-semibold text-secondary-foreground">{{ tab.count }}</span>
+              <span class="pill rounded-full bg-secondary px-2 py-px text-[0.6875rem] font-semibold text-secondary-foreground">{{ tab.count }}</span>
             }
           </button>
         }

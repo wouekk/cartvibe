@@ -151,7 +151,7 @@ in by hand and the AI is retried later.
 | APP-03 | Languages | The whole interface in English, Polish, German, French and Spanish. A missing translation shows the English text. The language is saved with the account and follows it to every device. Until sign-in the interface is in English. | 0.3.0 (German, French, Spanish since 0.7.0) | released |
 | APP-04 | Welcome | At the first sign-in a new account picks its language and theme, and an admin the household currency. | 0.6.0 | released |
 | APP-05 | Install on the phone | CartVibe can be added to the home screen and opens full-screen like an app, keeping the pages on the device. It picks up a new version the next time a page opens. Receipts and lists are always read from the server. | 0.8.0 | released |
-| APP-06 | Phone-first layout | Every page fits phone widths without sideways scrolling, with inputs large enough not to trigger zoom. | 0.2.0 | released |
+| APP-06 | Phone-first layout | Every page fits phone widths without sideways scrolling, with inputs large enough not to trigger zoom. On a screen wider than 1920 pixels the whole app grows with the window, text included, and fills most of it, as if zoomed; smaller screens are unchanged. | 0.2.0 | released |
 | APP-07 | Smooth changes | Moving between pages is a short fade. When the device is set to reduce motion, animations across the app stop; spinners and progress bars only slow down. | 0.8.0 | released |
 | APP-08 | Save button halo | A Save button on a form with unsaved changes wears a soft halo until saved; it stays still with reduced motion. | 0.16.0 | released |
 | APP-09 | Licence and credits page | About lists the project, its credits and the licence texts of what it ships. | 0.2.0 | released |

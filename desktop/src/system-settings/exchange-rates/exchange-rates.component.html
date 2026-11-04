@@ -7,9 +7,9 @@
   </p>
 
   @if (!loaded()) {
-    <p class="m-0 text-[13px] text-muted-foreground">{{ 'Loading…' | t }}</p>
+    <p class="m-0 text-[0.8125rem] text-muted-foreground">{{ 'Loading…' | t }}</p>
   } @else if (!enabled()) {
-    <p class="m-0 text-[13px] text-muted-foreground" data-testid="exchange-rates-disabled">
+    <p class="m-0 text-[0.8125rem] text-muted-foreground" data-testid="exchange-rates-disabled">
       {{ 'Choose a named currency above (Euro, Zloty, Pound, Franc or Dollar) to convert other currencies into it.' | t }}
     </p>
   } @else {

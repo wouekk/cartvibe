@@ -29,7 +29,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Brand: `--brand-*` only for the logo/icon/loader components. Never reuse them in UI. The wordmark's "Vibe" (`cartvibe-logo`) matches the project site: brand emerald in Zinc (`#16C976` at night, `#047857` by day, since the brand green is 2.1:1 on the light canvas), the palette's `--primary` in Blue, Indigo, Emerald and Violet.
 
 ## Scale
-- Spacing: Tailwind 4px steps; gaps 2/3/4/6 (8/12/16/24px). Page gutter `p-4 sm:p-6`; content width `--page-max` 1240px (set once in the shell).
+- Spacing: Tailwind 4px steps; gaps 2/3/4/6 (8/12/16/24px). Page gutter `p-4 sm:p-6`; content width `--page-max` 77.5rem (1240px; set once in the shell). Wide screens: from 1920px the root size grows with the window (`calc(100vw / 120)`, 32px at 3840) and `--page-max` becomes 98rem, so the app fills about 82% of the window at the same proportions, like browser zoom. Sizes are in rem (no fixed `[Npx]` except 1-2px hairlines) so they scale; chart text uses `chartFontSize()`.
 - Radius (`--radius` 10px): buttons/inputs `rounded-md` (8), field boxes/insets `rounded-lg` (10), cards/panels/dialogs `rounded-xl` (14), pills/counts `rounded-full`.
 - Controls: buttons, inputs, selects, tab strips `h-9` (36px); `size="sm"` h-8; icon button `size-9`. Row targets on touch lists `min-h-11`..`min-h-14`.
 - Motion: `duration-150` default, 200ms for emphasis; enter = `animate-in fade-in-0` (+ `slide-in-from-bottom-2`). Always add `motion-reduce:` / `prefers-reduced-motion`; a base-layer rule in `tailwind.css` also stills every animation and transition under reduced motion (spinners and `.app-progress-indeterminate` only slow down). Press: buttons get `active:scale-[0.98]` from helm.

@@ -365,7 +365,7 @@
                       <div class="donut flex flex-wrap items-center gap-8">
                         <div class="flex w-full flex-col items-center gap-4 @md:w-auto @md:flex-none">
                           <app-chart
-                            class="donut__chart size-[220px] flex-none"
+                            class="donut__chart size-[13.75rem] flex-none"
                             data-testid="overview-donut"
                             [options]="donutOptions"
                             [activeIndex]="activeSegmentIndex()"
@@ -466,7 +466,7 @@
                       @if (bars().length > chartBars().length) {
                         <p class="mb-1 text-xs text-muted-foreground" data-testid="overview-chart-capped">{{ 'Showing the latest {count} months.' | t: { count: chartBars().length } }}</p>
                       }
-                      <div class="min-h-[260px] flex-1">
+                      <div class="min-h-[16.25rem] flex-1">
                         <app-chart
                           class="h-full"
                           data-testid="overview-bars"

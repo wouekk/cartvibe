@@ -64,6 +64,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   - Disabled controls no longer show a "not allowed" cursor.
   - Settings section titles are muted capitals, as designed.
   - On desktop, text in form fields is 14px; phones keep 16px.
+- **Big screens use the space (APP-06).** On a window wider than 1920 pixels the whole app grows with it, text and
+  charts included, and fills about 82% of it, like browser zoom: a 4K screen at 100% scaling looks like a laptop at
+  200%. Phones, tablets and laptops are unchanged. If you already zoom the browser for CartVibe, set it back to 100%.
 - **Reduced motion everywhere (APP-07).** With reduced motion turned on in the system, animations stop across the app;
   spinners and the progress bar only slow down.
 

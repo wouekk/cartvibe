@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, ElementRef, inject, input, signal, viewChild } from "@angular/core";
 import type { Chart, ChartConfiguration, ChartOptions } from "chart.js";
 import { ChartColors, readChartColors } from "./chart-colors";
+import { chartFontSize, uiScale } from "./chart-scale";
 import { syncActive } from "./chart-plugins";
 import { hideChartTooltip, removeChartTooltip } from "./chart-tooltip";
 
@@ -57,6 +58,22 @@ export class ChartComponent {
     const motion = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : undefined;
     motion?.addEventListener("change", bump);
 
+    // On a wide screen the interface scale follows the window width: redraw once it settles at a new scale, so the
+    // chart's text keeps up with the page around it.
+    let drawnScale = uiScale();
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+    const onResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const scale = uiScale();
+        if (scale !== drawnScale) {
+          drawnScale = scale;
+          bump();
+        }
+      }, 150);
+    };
+    window.addEventListener("resize", onResize);
+
     // Touch has no mouse-out: a tap outside the chart would leave the tooltip and the emphasis behind.
     const onOutsideTap = (event: PointerEvent) => {
       const chart = this.chart;
@@ -76,6 +93,8 @@ export class ChartComponent {
       this.destroyed = true;
       observer.disconnect();
       motion?.removeEventListener("change", bump);
+      window.removeEventListener("resize", onResize);
+      clearTimeout(resizeTimer);
       document.removeEventListener("pointerdown", onOutsideTap, true);
       if (this.chart) {
         removeChartTooltip(this.chart);
@@ -120,7 +139,12 @@ export class ChartComponent {
     const themeChanged = theme !== this.drawnTheme;
     this.drawnTheme = theme;
     const calm = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const options = { ...spec.options, font: { ...spec.options?.font, family }, animation: calm ? false : spec.options?.animation } as ChartOptions;
+    const options = {
+      ...spec.options,
+      // Chart.js draws 12px text unless told otherwise; on a wide screen the interface is scaled up, so is the chart.
+      font: { size: chartFontSize(12), ...spec.options?.font, family },
+      animation: calm ? false : spec.options?.animation,
+    } as ChartOptions;
 
     if (this.chart) {
       // A data change updates the chart in place and animates. A recolor (a theme change) lands at once, without

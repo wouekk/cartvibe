@@ -47,6 +47,7 @@ import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
 import { centerTextPlugin, goalLinePlugin, pointerPlugin } from "../../shared-ui/chart/chart-plugins";
 import { ChartColors } from "../../shared-ui/chart/chart-colors";
+import { chartFontSize } from "../../shared-ui/chart/chart-scale";
 import { ChartSpec } from "../../shared-ui/chart/chart.component";
 import { htmlTooltip, tooltipCard } from "../../shared-ui/chart/chart-tooltip";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -622,7 +623,7 @@ export class OverviewPageComponent {
             grid: { display: false },
             border: { color: colors.border },
             // Months are all labelled, slanted when they do not fit; the labels of up to 31 days are thinned out.
-            ticks: { color: colors.mutedForeground, font: { size: 12 }, autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
+            ticks: { color: colors.mutedForeground, font: { size: chartFontSize(12) }, autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
           },
           y: {
             stacked: true,
@@ -630,7 +631,7 @@ export class OverviewPageComponent {
             // Chart.js 4 takes the dash of the grid lines from the axis border.
             border: { display: false, dash: [3, 3] },
             grid: { color: colors.border, lineWidth: 1, drawTicks: false },
-            ticks: { color: colors.mutedForeground, font: { size: 11 }, maxTicksLimit: 6, padding: 6, callback: (value) => money(Number(value)) },
+            ticks: { color: colors.mutedForeground, font: { size: chartFontSize(11) }, maxTicksLimit: 6, padding: 6, callback: (value) => money(Number(value)) },
           },
         },
         plugins: {

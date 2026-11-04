@@ -1,4 +1,5 @@
 import type { Chart, ChartType, Plugin } from "chart.js";
+import { uiScale } from "./chart-scale";
 
 /** What a plugin reads from `options.plugins.<id>`: Chart.js cannot swap a plugin on an update, so they stay module-level. */
 export interface CenterTextOptions {
@@ -58,15 +59,16 @@ export const centerTextPlugin: Plugin<"doughnut", CenterTextOptions> = {
     }
     const { label, value } = options.text();
     const { ctx } = chart;
+    const s = uiScale();
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = options.valueColor;
-    ctx.font = `600 20px ${fontFamily(chart)}`;
-    ctx.fillText(value, arc.x, arc.y - 8);
+    ctx.font = `600 ${20 * s}px ${fontFamily(chart)}`;
+    ctx.fillText(value, arc.x, arc.y - 8 * s);
     ctx.fillStyle = options.labelColor;
-    ctx.font = `400 12px ${fontFamily(chart)}`;
-    ctx.fillText(label, arc.x, arc.y + 14);
+    ctx.font = `400 ${12 * s}px ${fontFamily(chart)}`;
+    ctx.fillText(label, arc.x, arc.y + 14 * s);
     ctx.restore();
   },
 };
@@ -94,7 +96,7 @@ export const goalLinePlugin: Plugin<"bar", GoalLineOptions> = {
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = options.color;
-    ctx.font = `400 10px ${fontFamily(chart)}`;
+    ctx.font = `400 ${10 * uiScale()}px ${fontFamily(chart)}`;
     ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
     ctx.fillText(options.label, chartArea.left + 4, y - 3);

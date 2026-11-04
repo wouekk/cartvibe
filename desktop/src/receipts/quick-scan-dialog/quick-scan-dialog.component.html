@@ -18,9 +18,9 @@
       (drop)="onDrop($event)"
     >
       @if (images.length === 0) {
-        <app-icon class="size-10 text-[40px] text-primary" name="receipt_long"></app-icon>
+        <app-icon class="size-10 text-[2.5rem] text-primary" name="receipt_long"></app-icon>
         <strong>{{ 'Add photos of your receipts' | t }}</strong>
-        <span class="text-[13px] text-muted-foreground">{{ 'Drop them here or choose them. The AI reads each photo as its own receipt, one by one.' | t }}</span>
+        <span class="text-[0.8125rem] text-muted-foreground">{{ 'Drop them here or choose them. The AI reads each photo as its own receipt, one by one.' | t }}</span>
       }
       <app-button
         icon="upload"

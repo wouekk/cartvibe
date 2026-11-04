@@ -11,7 +11,7 @@ import { TranslatePipe } from "../i18n/translate.pipe";
   imports: [TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <footer class="border-t border-border/70 px-4 py-4 text-center text-[13px] text-muted-foreground sm:px-6" data-testid="demo-footer">
+    <footer class="border-t border-border/70 px-4 py-4 text-center text-[0.8125rem] text-muted-foreground sm:px-6" data-testid="demo-footer">
       <p class="m-0">
         {{ 'Free software under the GNU AGPL-3.0' | t }} · {{ 'Upstream credits in' | t }}
         <a

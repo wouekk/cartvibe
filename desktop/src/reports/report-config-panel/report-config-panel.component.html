@@ -16,7 +16,7 @@
         @for (chip of scopeChips(); track chip.index) {
           <span class="inline-flex h-8 items-center gap-2 rounded-full border border-border bg-muted/40 pl-1 pr-1 text-sm font-medium text-foreground">
             <span
-              class="inline-flex size-6 items-center justify-center rounded-full text-[11px] font-semibold text-card"
+              class="inline-flex size-6 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-card"
               [style.background]="chip.color"
               aria-hidden="true"
             >{{ chip.initials }}</span>
@@ -162,7 +162,7 @@
             @if (column.disabled) {
               <div class="text-xs leading-snug text-warning-text">{{ column.disabledReason }}</div>
             } @else {
-              <div class="truncate font-mono text-[11px] text-muted-foreground">{{ column.description }}</div>
+              <div class="truncate font-mono text-[0.6875rem] text-muted-foreground">{{ column.description }}</div>
             }
           </div>
           <app-badge [text]="column.kindLabel" [tone]="column.kindTone"></app-badge>
@@ -195,12 +195,12 @@
   <app-input [label]="'Title' | t" [inputFormControl]="form() | formGet: 'document.title'"></app-input>
   <app-textarea [label]="'Intro / preamble' | t" [inputFormControl]="form() | formGet: 'document.intro'"></app-textarea>
   <div class="flex flex-col gap-1.5">
-    <span class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{{ 'Insert a variable' | t }}</span>
+    <span class="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">{{ 'Insert a variable' | t }}</span>
     <div class="flex flex-wrap gap-1.5">
       @for (token of documentVariables; track token) {
         <button
           type="button"
-          class="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 font-mono text-[11px] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          class="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 font-mono text-[0.6875rem] text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           (click)="insertVariable(token)"
         >{{ token }}</button>
       }
