@@ -7,7 +7,8 @@
 # The weekly publish run builds without the cache, so the apt layers pick up Debian's security updates.
 
 # ---- Desktop: dependencies, then source
-FROM node:lts-alpine AS node
+# The Node major CI builds with (ci.yml node-version); the weekly no-cache rebuild picks up its patch releases.
+FROM node:24-alpine AS node
 WORKDIR /app/cartvibe-desktop
 
 COPY desktop/package.json desktop/package-lock.json ./
@@ -118,3 +119,9 @@ COPY --from=node /app/cartvibe-desktop/dist/cartvibe/3rdpartylicenses.txt /usr/s
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]
 EXPOSE 80
+
+# Healthy when nginx answers and the API behind it serves the public feature config (no login needed). The image has
+# no curl or wget, so bash's /dev/tcp sends the request (runtime-check.sh proves bash can). Metadata only: it adds no
+# layer, so it sits at the end.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD ["bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/80 && printf 'GET /api/featureConfig HTTP/1.0\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && read -r _ code _ <&3 && [ \"$code\" = 200 ]"]

@@ -38,8 +38,9 @@ services:
       - "80"
     environment:
       - TZ=${TZ:-Europe/Paris}
-      - SECRET_KEY=${SECRET_KEY}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      # Required: the deploy stops with this message when one is missing.
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:?ENCRYPTION_KEY must be set}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
       # The app finds Valkey as "valkey" on port 6379; only the password is needed.
@@ -107,8 +108,10 @@ services:
   caddy:
     image: caddy:2.11.7-alpine
     restart: unless-stopped
+    # The image's HEALTHCHECK: Caddy starts once the app answers, so the first visitors never see a 502.
     depends_on:
-      - cartvibe
+      cartvibe:
+        condition: service_healthy
     ports:
       - "80:80"
       - "443:443"
