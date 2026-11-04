@@ -1,18 +1,16 @@
 import { computed, Injectable, signal } from "@angular/core";
+import { readStorageKey } from "../utils/storage-key-migration";
 import { DEFAULT_PALETTE, findPalette, isThemeMode, SYSTEM_MODE, ThemeMode } from "./themes";
 
-/** "system", "light" (day) or "dark" (night). The same key and values as before palettes existed. */
-export const THEME_MODE_STORAGE_KEY = "rw_theme_mode";
+/** "system", "light" (day) or "dark" (night). */
+export const THEME_MODE_STORAGE_KEY = "cartvibe.themeMode";
 
 /** The key of a palette in the registry (themes.ts). */
-export const THEME_PALETTE_STORAGE_KEY = "rw_theme_palette";
+export const THEME_PALETTE_STORAGE_KEY = "cartvibe.themePalette";
 
+/** Reads a theme key, moving a value stored under its old upstream name first. */
 function read(key: string): string | null {
-  try {
-    return window.localStorage.getItem(key);
-  } catch {
-    return null;
-  }
+  return readStorageKey(key);
 }
 
 function write(key: string, value: string): void {

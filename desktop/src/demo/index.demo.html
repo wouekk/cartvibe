@@ -22,9 +22,9 @@
         var palette = "zinc";
         var dark = false;
         try {
-          var mode = window.localStorage.getItem(prefix + "rw_theme_mode");
+          var mode = window.localStorage.getItem(prefix + "cartvibe.themeMode");
           dark = mode === "dark" || (mode !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          var stored = window.localStorage.getItem(prefix + "rw_theme_palette");
+          var stored = window.localStorage.getItem(prefix + "cartvibe.themePalette");
           if (stored && /^[a-z]+$/.test(stored)) {
             palette = stored;
           }

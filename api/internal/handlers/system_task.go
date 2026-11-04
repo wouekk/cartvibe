@@ -10,7 +10,7 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/wranglerasynq"
+	"cartvibe/api/internal/jobs"
 	"errors"
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -60,7 +60,7 @@ func GetSystemTasks(w http.ResponseWriter, r *http.Request) {
 			// member of; the flag is resolved per caller so it never advertises a
 			// file the source-file endpoints would refuse to serve them.
 			token := structs.GetClaims(r)
-			err = wranglerasynq.SetSystemTaskHasSourceFile(systemTasks, groupSourceFileReader(token.UserId))
+			err = jobs.SetSystemTaskHasSourceFile(systemTasks, groupSourceFileReader(token.UserId))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -137,7 +137,7 @@ func GetActivitiesForGroups(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			err = wranglerasynq.SetActivityFlags(&activities)
+			err = jobs.SetActivityFlags(&activities)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -202,12 +202,12 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			queueName, err := wranglerasynq.SystemTaskToQueueName(systemTask.Type)
+			queueName, err := jobs.SystemTaskToQueueName(systemTask.Type)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			inspector, err := wranglerasynq.GetAsynqInspector()
+			inspector, err := jobs.GetAsynqInspector()
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -223,7 +223,7 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 			// so the rule lives here. A completed task can still be
 			// rerun by mistake, so without this a rerun would process the
 			// same upload twice. See CanRerunTask.
-			if !wranglerasynq.CanRerunTask(taskInfo) {
+			if !jobs.CanRerunTask(taskInfo) {
 				utils.WriteCustomErrorResponse(w, "Only a failed activity can be rerun.", http.StatusBadRequest)
 				return 0, nil
 			}
@@ -232,7 +232,7 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 			// is gone, but the endpoint stays callable. A rerun reads its upload
 			// first, so without this it would fail deep in the pipeline instead of
 			// saying what is wrong.
-			if !wranglerasynq.RerunSourceFilesPresent(systemTask.Type, taskInfo.Payload) {
+			if !jobs.RerunSourceFilesPresent(systemTask.Type, taskInfo.Payload) {
 				utils.WriteCustomErrorResponse(w, "The file this activity needs is no longer available.", http.StatusBadRequest)
 				return 0, nil
 			}
@@ -458,26 +458,26 @@ func authorizeAndResolveSourceFile(
 	r *http.Request,
 	systemTask models.SystemTask,
 	errorMsg string,
-) (wranglerasynq.SystemTaskSourceFile, bool) {
+) (jobs.SystemTaskSourceFile, bool) {
 	if denied := enforceActivityActorVisible(w, r, systemTask, errorMsg); denied {
-		return wranglerasynq.SystemTaskSourceFile{}, false
+		return jobs.SystemTaskSourceFile{}, false
 	}
 
-	sourceFile, err := wranglerasynq.ResolveSystemTaskSourceFile(systemTask)
+	sourceFile, err := jobs.ResolveSystemTaskSourceFile(systemTask)
 	if err != nil {
-		if errors.Is(err, wranglerasynq.ErrSourceFileUnsupportedTask) {
+		if errors.Is(err, jobs.ErrSourceFileUnsupportedTask) {
 			utils.WriteCustomErrorResponse(w, "This activity type has no source file.", http.StatusBadRequest)
-			return wranglerasynq.SystemTaskSourceFile{}, false
+			return jobs.SystemTaskSourceFile{}, false
 		}
 
-		if errors.Is(err, wranglerasynq.ErrSourceFileUnavailable) {
+		if errors.Is(err, jobs.ErrSourceFileUnavailable) {
 			utils.WriteCustomErrorResponse(w, "The source file is no longer available.", http.StatusNotFound)
-			return wranglerasynq.SystemTaskSourceFile{}, false
+			return jobs.SystemTaskSourceFile{}, false
 		}
 
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
 		utils.WriteCustomErrorResponse(w, errorMsg, http.StatusInternalServerError)
-		return wranglerasynq.SystemTaskSourceFile{}, false
+		return jobs.SystemTaskSourceFile{}, false
 	}
 
 	return sourceFile, true

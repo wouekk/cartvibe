@@ -189,6 +189,7 @@
     [selectionCheckboxes]="true"
     [page]="$any(page()) - 1"
     [pageSize]="pageSize() ?? 50"
+    [emptyText]="loaded() ? emptyText() : ''"
     (sorted)="sort($event)"
     (pageChange)="updatePageData($event)"
   ></app-table>
@@ -221,7 +222,7 @@
 </ng-template>
 
 <ng-template #amountCell let-element="element">
-  {{ element.amount | customCurrency }}
+  <app-money [value]="element.amount"></app-money>
   <app-receipt-currency-note [receipt]="element"></app-receipt-currency-note>
 </ng-template>
 

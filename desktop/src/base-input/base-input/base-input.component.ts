@@ -8,8 +8,7 @@ import { InputErrorMessage } from "./input-error-message";
 
 @Component({
     selector: "app-base-input",
-    templateUrl: "./base-input.component.html",
-    styleUrls: ["./base-input.component.scss"],
+    template: "", // a base class: subclasses bring their own template
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })

@@ -1,10 +1,11 @@
 /*
   Tailwind CSS v4, built with the app: no CDN, no prefix (Bootstrap is gone), and the spartan/ui (shadcn) helm components
-  in src/ui are plain Tailwind classes. Layers are declared in order so the unlayered styles of Angular Material still
-  win over the reset while it is being phased out.
+  in src/ui are plain Tailwind classes. Layers are declared in order (theme, base, components, utilities) and every
+  global rule here, in styles.scss and in skin.css sits in one of them, so a utility on the element always wins. Only the
+  palette tokens (src/themes) and the third-party pretty-print-json sheet stay unlayered.
 
-  The tokens (--background, --card, --primary, ...) are defined in src/skin.css for the light page and for `.dark`
-  (spartan's zinc palette); the @theme block below teaches Tailwind to read them.
+  The tokens (--background, --card, --primary, ...) are defined per palette in src/themes/*.css for the light page and
+  for `.dark`; the @theme block below teaches Tailwind to read them.
 */
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
@@ -39,6 +40,11 @@
   --color-nutri-c: var(--nutri-c);
   --color-nutri-d: var(--nutri-d);
   --color-nutri-e: var(--nutri-e);
+  --color-nutri-a-foreground: var(--nutri-a-foreground);
+  --color-nutri-b-foreground: var(--nutri-b-foreground);
+  --color-nutri-c-foreground: var(--nutri-c-foreground);
+  --color-nutri-d-foreground: var(--nutri-d-foreground);
+  --color-nutri-e-foreground: var(--nutri-e-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
@@ -64,80 +70,160 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* An icon is 1.125rem unless a class on it says otherwise (element selector: lowest specificity). */
-app-icon {
-  font-size: 1.125rem;
-  width: 1em;
-  height: 1em;
-  line-height: 1;
+
+/* Element defaults: in the base layer, so a utility class on the element wins (DESIGN.md: no unlayered global CSS). */
+@layer base {
+  /* An icon is 1.125rem unless a class on it says otherwise. */
+  app-icon {
+    font-size: 1.125rem;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+  }
+
+  /* Form fields: one rhythm for every app-* control (the old Material fields carried it in their subscript). */
+  app-input,
+  app-select,
+  app-textarea,
+  app-datepicker,
+  app-autocomlete,
+  app-color-picker,
+  app-category-autocomplete,
+  app-tag-autocomplete,
+  app-user-autocomplete,
+  app-group-autocomplete {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  app-checkbox label span {
+    white-space: nowrap;
+  }
+
+  /* Digits line up in tables, cards and charts. */
+  table,
+  .tile,
+  .card,
+  app-money,
+  canvas.cv-chart {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* One page on every screen: no zoom jump on rotation, the real viewport height on phones (dvh), and room for notches. */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Wide screens: a little more type, so a 4K monitor is not a sea of small text; a phone keeps 16px for readable inputs. */
+  @media (min-width: 1920px) {
+    html {
+      font-size: 17px;
+    }
+  }
+
+  @media (min-width: 2560px) {
+    html {
+      font-size: 19px;
+    }
+  }
+
+  /* Native fields without a size class: 16px (iOS Safari zooms into smaller inputs), the surrounding text from 768px
+     up. A size utility on the field (the helm's `text-base md:text-sm`) wins over both; skin.css keeps phones at 16px. */
+  input,
+  textarea,
+  select {
+    font-size: max(1rem, 16px);
+  }
+
+  @media (min-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: inherit;
+    }
+  }
+
+  /* Less motion when the system asks for it: one switch for every transition and animation in the app, whatever
+     component or utility set it (`motion-reduce:` variants stay welcome where a component wants a different fallback).
+     Important in the base layer, so no utility outranks it. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    /* The only signs of work keep moving, slowly: a spinner and the indeterminate progress bar. */
+    .animate-spin {
+      animation-duration: 1.5s !important;
+      animation-iteration-count: infinite !important;
+    }
+
+    .app-progress-indeterminate::after {
+      animation-duration: 3s !important;
+      animation-iteration-count: infinite !important;
+    }
+  }
 }
 
-/* Dialogs (src/dialog/app-dialog.ts): the popover surface of the theme, over a dimmed, softly blurred page. */
-.app-dialog-backdrop {
-  @apply bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-150;
-}
+/* Dialogs (src/dialog/app-dialog.ts): the popover surface of the theme, over a dimmed, softly blurred page. An overlay
+   keeps the overlay shadow of the helm menus (`shadow-lg`) with its hairline ring. */
+@layer components {
+  .app-dialog-backdrop {
+    @apply bg-black/60 backdrop-blur-[2px] animate-in fade-in-0 duration-150 motion-reduce:animate-none;
+  }
 
-.app-dialog-panel {
-  @apply overflow-hidden rounded-xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/10 animate-in fade-in-0 zoom-in-95 duration-150;
-}
+  .app-dialog-panel {
+    @apply overflow-hidden rounded-xl bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/10 animate-in fade-in-0 zoom-in-95 duration-150 motion-reduce:animate-none;
+  }
 
-.app-dialog-panel > .cdk-dialog-container {
-  @apply block max-h-[inherit] overflow-y-auto outline-none;
-}
+  .app-dialog-panel > .cdk-dialog-container {
+    @apply block max-h-[inherit] overflow-y-auto outline-none;
+  }
 
-/* Form fields: one rhythm for every app-* control (the old Material fields carried it in their subscript). */
-app-input,
-app-select,
-app-textarea,
-app-datepicker,
-app-autocomlete,
-app-color-picker,
-app-category-autocomplete,
-app-tag-autocomplete,
-app-user-autocomplete,
-app-group-autocomplete {
-  display: block;
-  margin-bottom: 1rem;
-}
+  /* An indeterminate progress bar: a thin track with a bar sweeping across it (slower under reduced motion, still
+     moving, since it is the only sign of work). */
+  .app-progress-indeterminate {
+    position: relative;
+    height: 3px;
+    width: 100%;
+    overflow: hidden;
+    background: color-mix(in oklab, var(--primary) 15%, transparent);
+  }
 
-app-checkbox label span {
-  white-space: nowrap;
-}
-
-/* An indeterminate progress bar: a thin track with a bar sweeping across it. */
-.app-progress-indeterminate {
-  position: relative;
-  height: 3px;
-  width: 100%;
-  overflow: hidden;
-  background: color-mix(in oklab, var(--primary) 15%, transparent);
-}
-
-.app-progress-indeterminate::after {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 40%;
-  border-radius: 999px;
-  background: var(--primary);
-  animation: app-progress-sweep 1.2s ease-in-out infinite;
+  .app-progress-indeterminate::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    border-radius: 999px;
+    background: var(--primary);
+    animation: app-progress-sweep 1.2s ease-in-out infinite;
+  }
 }
 
 @keyframes cv-unsaved-halo {
   50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--ring) 18%, transparent); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .cv-unsaved:not(:disabled, :focus-visible) { animation: none; }
-}
-
 @keyframes app-progress-sweep {
   from { transform: translateX(-100%); }
   to { transform: translateX(260%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-progress-indeterminate::after { animation-duration: 3s; }
 }
 
 /* Charts (Chart.js, `app-chart`): the tooltip card is our own HTML on <body>, so it needs no box of the library around
@@ -160,121 +246,66 @@ app-checkbox label span {
   }
 }
 
-/* Digits line up in tables, cards and charts. */
-table,
-.tile,
-.card,
-app-money,
-canvas.cv-chart {
-  font-variant-numeric: tabular-nums;
-}
+@layer components {
+  /* The sign-in page's backdrop: the project site's hairline grid and soft spotlight (site/src/styles/global.css,
+     .bg-canvas), the glow in the brand emerald whatever the palette, faded to --background at the edges. Tokens only, so
+     Day and Night follow. It is still: no scroll on a login page, and nothing to switch off for reduced motion. The rest
+     of the app keeps a plain --background (DESIGN.md). */
+  .cv-auth-bg {
+    --glow-strength: 6%;
+  }
+  .dark .cv-auth-bg {
+    --glow-strength: 9%;
+  }
+  .cv-auth-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(ellipse 85% 65% at 50% 35%, transparent 15%, var(--background) 80%),
+      radial-gradient(circle at 50% 30%, color-mix(in oklab, var(--brand-bar-bottom) var(--glow-strength), transparent), transparent 65%),
+      linear-gradient(to right, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px);
+    background-size: auto, auto, 48px 48px, 48px 48px;
+  }
 
-/* The sign-in page's backdrop: the project site's hairline grid and soft spotlight (site/src/styles/global.css,
-   .bg-canvas), the glow in the brand emerald whatever the palette, faded to --background at the edges. Tokens only, so
-   Day and Night follow. It is still: no scroll on a login page, and nothing to switch off for reduced motion. The rest of
-   the app keeps a plain --background (DESIGN.md). */
-.cv-auth-bg {
-  --glow-strength: 6%;
-}
-.dark .cv-auth-bg {
-  --glow-strength: 9%;
-}
-.cv-auth-bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(ellipse 85% 65% at 50% 35%, transparent 15%, var(--background) 80%),
-    radial-gradient(circle at 50% 30%, color-mix(in oklab, var(--brand-bar-bottom) var(--glow-strength), transparent), transparent 65%),
-    linear-gradient(to right, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px);
-  background-size: auto, auto, 48px 48px, 48px 48px;
-}
+  /* Cards and tiles (Dashboard and elsewhere): the shadcn card, rising in one after the other. */
+  .cv-tile {
+    @apply flex flex-col gap-1.5 rounded-xl bg-card p-5 text-card-foreground no-underline shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both motion-reduce:animate-none;
+  }
 
-/* Cards and tiles (Dashboard and elsewhere): the shadcn card, rising in one after the other. */
-.cv-tile {
-  @apply flex flex-col gap-1.5 rounded-xl bg-card p-5 text-card-foreground no-underline shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both;
-}
+  .cv-tile-link {
+    @apply transition-shadow duration-150 hover:shadow-md hover:ring-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none;
+  }
 
-.cv-tile-link {
-  @apply transition-shadow duration-150 hover:shadow-md hover:ring-foreground/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
-}
-
-.cv-panel {
-  @apply flex min-w-0 flex-col gap-4 rounded-xl bg-card px-6 py-5 text-card-foreground shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both;
-}
-
-.cv-panel-header {
-  @apply flex items-center justify-between gap-2 [&_h2]:m-0 [&_h2]:text-base [&_h2]:font-bold;
-}
-
-.cv-panel-footer {
-  @apply mt-auto flex items-center justify-between gap-2 border-t border-border pt-4 text-sm text-muted-foreground;
-}
-
-.cv-link {
-  @apply inline-flex items-center gap-1 font-medium text-primary no-underline [&_app-icon]:text-[1.125rem] [&_app-icon]:transition-transform hover:[&_app-icon]:translate-x-0.5;
-}
-
-.cv-pill {
-  @apply inline-flex items-center gap-1 rounded-full border border-border py-0.5 pr-2.5 pl-1.5 text-xs font-medium text-muted-foreground [&_app-icon]:text-sm;
-}
-
-.cv-pill-up {
-  @apply border-warning-text/35 bg-warning-text/10 text-warning-text;
-}
-
-.cv-pill-down {
-  @apply border-success-text/35 bg-success-text/10 text-success-text;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cv-tile,
   .cv-panel {
-    animation: none;
+    @apply flex min-w-0 flex-col gap-4 rounded-xl bg-card px-6 py-5 text-card-foreground shadow-xs ring-1 ring-foreground/10 animate-in fade-in-0 slide-in-from-bottom-2 duration-500 fill-mode-both motion-reduce:animate-none;
   }
-}
 
-/* One page on every screen: no zoom jump on rotation, the real viewport height on phones (dvh), and room for notches. */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
-}
-
-/* Wide screens: a little more type, so a 4K monitor is not a sea of small text; a phone keeps 16px for readable inputs. */
-@media (min-width: 1920px) {
-  html {
-    font-size: 17px;
+  .cv-panel-header {
+    @apply flex items-center justify-between gap-2 [&_h2]:m-0 [&_h2]:text-base [&_h2]:font-bold;
   }
-}
 
-@media (min-width: 2560px) {
-  html {
-    font-size: 19px;
+  .cv-panel-footer {
+    @apply mt-auto flex items-center justify-between gap-2 border-t border-border pt-4 text-sm text-muted-foreground;
   }
-}
 
-input,
-textarea,
-select {
-  /* iOS Safari zooms into inputs under 16px */
-  font-size: max(1rem, 16px);
-}
+  .cv-link {
+    @apply inline-flex items-center gap-1 font-medium text-primary no-underline [&_app-icon]:text-[1.125rem] [&_app-icon]:transition-transform [&_app-icon]:motion-reduce:transition-none hover:[&_app-icon]:translate-x-0.5;
+  }
 
-@media (min-width: 768px) {
-  input,
-  textarea,
-  select {
-    font-size: inherit;
+  .cv-pill {
+    @apply inline-flex items-center gap-1 rounded-full border border-border py-0.5 pr-2.5 pl-1.5 text-xs font-medium text-muted-foreground [&_app-icon]:text-sm;
+  }
+
+  .cv-pill-up {
+    @apply border-warning-text/35 bg-warning-text/10 text-warning-text;
+  }
+
+  .cv-pill-down {
+    @apply border-success-text/35 bg-success-text/10 text-success-text;
   }
 }
 
@@ -365,6 +396,9 @@ select {
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
     animation: cv-unsaved-halo 2.4s ease-in-out infinite;
   }
+  @media (prefers-reduced-motion: reduce) {
+    .cv-unsaved:not(:disabled, :focus-visible) { animation: none; }
+  }
   .cv-card--destructive {
     @apply border-destructive/40;
   }
@@ -433,12 +467,12 @@ select {
     animation-duration: 160ms;
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none !important;
+    }
   }
 }

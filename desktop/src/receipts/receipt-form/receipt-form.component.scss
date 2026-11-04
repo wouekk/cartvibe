@@ -1,6 +1,3 @@
-@use "../../variables.scss" as variables;
-@use "sass:map";
-
 // The Images pane is the same height as the Details pane beside it, so the two
 // columns move together instead of a short image box floating next to a tall
 // form. Bootstrap's .row is already display:flex with the initial

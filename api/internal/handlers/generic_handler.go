@@ -61,7 +61,7 @@ func HandleRequest(handler structs.Handler) {
 		return
 	}
 
-	if !handler.SkipPaidByVisibilityCheck && !enforcePaidByVisibility(handler, receiptsToCheck) {
+	if !enforcePaidByVisibility(handler, receiptsToCheck) {
 		return
 	}
 

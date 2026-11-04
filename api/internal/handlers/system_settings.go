@@ -8,7 +8,7 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/wranglerasynq"
+	"cartvibe/api/internal/jobs"
 	"net/http"
 	"strings"
 )
@@ -142,7 +142,7 @@ func RestartTaskServer(w http.ResponseWriter, r *http.Request) {
 		Request:        r,
 		AppPermissions: []string{permissions.AppSystemSettingsRestartTaskServer},
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			err := wranglerasynq.RestartEmbeddedAsynqServer()
+			err := jobs.RestartEmbeddedAsynqServer()
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

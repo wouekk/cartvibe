@@ -53,7 +53,7 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
    provisions a group and looks like a test bug.
 7. **Run from `api/`** (`logs/`, `data/`, `sqlite/` are relative to the working directory):
    ```bash
-   DB_ENGINE=sqlite DB_FILENAME=wrangler.db ENCRYPTION_KEY=dev SECRET_KEY=dev \
+   DB_ENGINE=sqlite DB_FILENAME=cartvibe.db ENCRYPTION_KEY=dev SECRET_KEY=dev \
    VALKEY_HOST=127.0.0.1 go run main.go
    ```
    The two keys only need to be non-empty (`env.CheckRequiredEnvironmentVariables`). `dev/switch-to-sqlite.sh` exports

@@ -19,13 +19,13 @@ describe("DemoSession", () => {
     const restart = vi.spyOn(session, "restart").mockImplementation(() => undefined);
     const resetBackend = vi.spyOn(session.backend, "reset");
     window.localStorage.setItem("receiptTable", "{}");
-    window.localStorage.setItem("rw_theme_mode", "dark");
+    window.localStorage.setItem("cartvibe.themeMode", "dark");
 
     session.reset();
 
     expect(resetBackend).toHaveBeenCalled();
     expect(window.localStorage.getItem("receiptTable")).toBeNull();
-    expect(window.localStorage.getItem("rw_theme_mode")).toBe("dark");
+    expect(window.localStorage.getItem("cartvibe.themeMode")).toBe("dark");
     expect(restart).toHaveBeenCalledTimes(1);
     expect(DEMO_STORAGE_PREFIX).toBe("cartvibe-demo:");
   });

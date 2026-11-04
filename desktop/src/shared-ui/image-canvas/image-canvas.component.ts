@@ -83,7 +83,10 @@ type Drag =
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   host: {
-    class: "cv-image-canvas",
+    // The stage: a fixed, clipped viewport with a visible edge (the image is panned around inside it); a touch drag
+    // pans the image instead of scrolling the page.
+    class:
+      "cv-image-canvas relative block cursor-grab touch-none overflow-hidden rounded-lg border border-border bg-foreground/3 select-none [&.cv-image-canvas--pan]:cursor-grabbing",
     "[style.height]": "stageHeight()",
     "(pointerdown)": "onPanStart($event)",
     "(wheel)": "onWheel($event)",

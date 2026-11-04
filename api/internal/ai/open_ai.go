@@ -1,16 +1,22 @@
 package ai
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"strings"
+	"time"
 
+	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 
 	"github.com/sashabaranov/go-openai"
-	"golang.org/x/net/context"
 )
+
+// openAiTimeout bounds one call, like the other providers' AiHttpTimeout; tests shorten it.
+var openAiTimeout time.Duration = constants.AiHttpTimeout
 
 type OpenAiClient struct {
 	BaseClient
@@ -43,6 +49,7 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	if len(openAi.ReceiptProcessingSettings.Url) > 0 {
 		config.BaseURL = openAi.ReceiptProcessingSettings.Url
 	}
+	config.HTTPClient = &http.Client{Timeout: openAiTimeout}
 	client := openai.NewClientWithConfig(config)
 
 	openAiMessages := make([]openai.ChatCompletionMessage, len(openAi.Options.Messages))
@@ -101,10 +108,9 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		}
 	}
 
-	resp, err := client.CreateChatCompletion(
-		context.Background(),
-		request,
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), openAiTimeout)
+	defer cancel()
+	resp, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
 		responseBytes, _ := json.Marshal(resp)
 		result.RawResponse = string(responseBytes)

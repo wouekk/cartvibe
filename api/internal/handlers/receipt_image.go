@@ -252,6 +252,28 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+const (
+	magicFillNoAiMessage     = "No AI is set up. An admin can choose one on the AI page."
+	magicFillAiFailedMessage = "The AI could not read this receipt. Try again later, or fill it in by hand."
+)
+
+// writeMagicFillError answers a Magic Fill the AI could not do with a status and errorMsg the form shows, instead
+// of a bare 500: 409 when no AI is configured (nothing was called), 502 when the AI was asked and failed or answered
+// something unreadable. Anything else (reading the image, the database) stays a 500.
+func writeMagicFillError(w http.ResponseWriter, metadata commands.ReceiptProcessingMetadata, err error) (int, error) {
+	switch {
+	case services.IsNoAiConfigured(err):
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "magic fill: "+err.Error())
+		utils.WriteCustomErrorResponse(w, magicFillNoAiMessage, http.StatusConflict)
+		return 0, nil
+	case metadata.ReceiptProcessingSettingsIdRan > 0:
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "magic fill: "+err.Error())
+		utils.WriteCustomErrorResponse(w, magicFillAiFailedMessage, http.StatusBadGateway)
+		return 0, nil
+	}
+	return http.StatusInternalServerError, err
+}
+
 func MagicFillFromImage(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error performing magic fill.",
@@ -292,7 +314,7 @@ func MagicFillFromImage(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if err != nil {
-					return http.StatusInternalServerError, err
+					return writeMagicFillError(w, metadata, err)
 				}
 
 				receiptCommand = command
@@ -338,7 +360,7 @@ func MagicFillFromImage(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if err != nil {
-					return http.StatusInternalServerError, err
+					return writeMagicFillError(w, metadata, err)
 				}
 
 				receiptCommand = command

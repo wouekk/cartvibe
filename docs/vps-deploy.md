@@ -42,12 +42,15 @@ Litestream only covers the SQLite database. The files go through restic, so you 
    VAPID_SUBJECT=mailto:you@example.com
    ```
 
-   No `$` in any value: compose reads it as a variable. `openssl rand -hex 32` gives a safe 64-character value. Keep
+   No `$` in any value: compose reads it as a variable. `SECRET_KEY` and `ENCRYPTION_KEY` are required: compose stops
+   with "must be set" when either is missing. `openssl rand -hex 32` gives a safe 64-character value. Keep
    `ENCRYPTION_KEY` and `RESTIC_PASSWORD` somewhere other than the server too: a restore needs them.
 4. **Folders:** `mkdir -p data/sqlite data/files data/logs && chown -R 10001:10001 data`. The app and Litestream run as
    uid 10001; set `PUID` / `PGID` in `.env` if you use another owner.
 5. **Start:** `docker compose -f docker-compose.vps.yml up -d`, then follow
-   `docker compose -f docker-compose.vps.yml logs -f cartvibe` until the API logs `sqlite journal mode: wal`.
+   `docker compose -f docker-compose.vps.yml logs -f cartvibe` until the API logs `sqlite journal mode: wal`. Caddy
+   starts once the app's health check passes, so `docker compose -f docker-compose.vps.yml ps` shows `cartvibe` as
+   `healthy` first.
 6. **In the app** (System Settings): switch **Secure cookies** on (the site is HTTPS only now) and set the public URL
    fields to `https://<your domain>`.
 
@@ -60,6 +63,10 @@ each visitor's real address behind Caddy.
 that changes the schema, take a snapshot by hand as well:
 `docker compose -f docker-compose.vps.yml exec litestream litestream snapshots -config /etc/litestream.yml /data/sqlite/app.db`
 shows the latest one. Litestream has every change up to a second ago anyway.
+
+To roll back, or to stay on a known version, replace `:latest` in the compose file with the `:sha-<commit>` tag of
+that build (each published image carries both; the About page shows the one you run), then `up -d` again. A rollback
+across a schema change also needs the database from before it.
 
 ## Restore drill (do it once after setup, then every few months)
 

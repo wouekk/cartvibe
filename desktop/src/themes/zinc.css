@@ -21,6 +21,12 @@
   --nutri-c: #fecb02;
   --nutri-d: #ee8100;
   --nutri-e: #e63e11;
+  /* Text on a Nutri-Score grade: the official grades are the same by day and night, so is their text. */
+  --nutri-a-foreground: oklch(1 0 0);
+  --nutri-b-foreground: oklch(0 0 0);
+  --nutri-c-foreground: oklch(0 0 0);
+  --nutri-d-foreground: oklch(1 0 0);
+  --nutri-e-foreground: oklch(1 0 0);
   --warning: oklch(0.84 0.16 84);
   --warning-foreground: oklch(0.28 0.07 46);
   --foreground: oklch(0.145 0 0);
@@ -79,6 +85,12 @@
   --nutri-c: #fecb02;
   --nutri-d: #ee8100;
   --nutri-e: #e63e11;
+  /* Text on a Nutri-Score grade: the official grades are the same by day and night, so is their text. */
+  --nutri-a-foreground: oklch(1 0 0);
+  --nutri-b-foreground: oklch(0 0 0);
+  --nutri-c-foreground: oklch(0 0 0);
+  --nutri-d-foreground: oklch(1 0 0);
+  --nutri-e-foreground: oklch(1 0 0);
   --warning: oklch(0.41 0.11 46);
   --warning-foreground: oklch(0.99 0.02 95);
   --foreground: oklch(0.985 0 0);

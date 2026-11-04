@@ -6,7 +6,7 @@ import (
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/routers"
 	"cartvibe/api/internal/services"
-	"cartvibe/api/internal/wranglerasynq"
+	"cartvibe/api/internal/jobs"
 	"errors"
 	"fmt"
 	"net/http"
@@ -73,22 +73,22 @@ func main() {
 	}
 	defer repositories.ShutdownAsynqClient()
 
-	err = wranglerasynq.StartEmbeddedAsynqServer()
+	err = jobs.StartEmbeddedAsynqServer()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("asynq worker error: %w", err))
 	}
-	defer wranglerasynq.ShutDownEmbeddedAsynqServer()
+	defer jobs.ShutDownEmbeddedAsynqServer()
 
-	err = wranglerasynq.StartEmbeddedAsynqScheduler()
+	err = jobs.StartEmbeddedAsynqScheduler()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("asynq server error: %w", err))
 	}
-	defer wranglerasynq.ShutDownEmbeddedAsynqScheduler()
+	defer jobs.ShutDownEmbeddedAsynqScheduler()
 
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Initializing Imagick...")
 	imagick.Initialize()
 	defer imagick.Terminate()
-	err = wranglerasynq.StartSystemCleanUpTasks()
+	err = jobs.StartSystemCleanUpTasks()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 	}
@@ -112,8 +112,8 @@ func main() {
 
 	<-stop
 
-	wranglerasynq.ShutDownEmbeddedAsynqServer()
-	wranglerasynq.ShutDownEmbeddedAsynqScheduler()
+	jobs.ShutDownEmbeddedAsynqServer()
+	jobs.ShutDownEmbeddedAsynqScheduler()
 	repositories.ShutdownAsynqClient()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

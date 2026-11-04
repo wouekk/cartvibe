@@ -4,6 +4,7 @@ import { Component, computed, DestroyRef, effect, inject, input, output, signal,
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { catchError, concatMap, EMPTY, filter, Subject, Subscription, switchMap, take, timer } from "rxjs";
@@ -52,7 +53,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   host: { class: "block" },
   templateUrl: "./receipt-products.component.html",
   standalone: true,
-  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, MoneyComponent, PipesModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],

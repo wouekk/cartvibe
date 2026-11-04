@@ -8,8 +8,7 @@ import { FormCommand } from "../interfaces/form-command";
 
 @Component({
     selector: "app-base-form",
-    templateUrl: "./base-form.component.html",
-    styleUrls: ["./base-form.component.scss"],
+    template: "", // a base class: subclasses bring their own template
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })

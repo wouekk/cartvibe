@@ -26,6 +26,7 @@
     "Receipt scan failed",
     "The receipt: {name} has been read by the AI. Check it out!",
     "The AI could not read {name}. Check the activity and add the receipt by hand.",
+    "The AI could not read the photo: {name}. It is saved as a receipt for you to fill in.",
     "New shopping list",
     "Shopping list updated",
     "Going shopping",
@@ -37,6 +38,10 @@
     "{user} is going shopping. Add what you need to the lists in {group}."
   ],
   "Nutrient levels (product check: the tooltip of a nutrition row)": ["low", "moderate", "high"],
+  "Answers of the API (api/internal/handlers/receipt_image.go: sent as errorMsg, translated by SnackbarService)": [
+    "No AI is set up. An admin can choose one on the AI page.",
+    "The AI could not read this receipt. Try again later, or fill it in by hand."
+  ],
   "Answers of the demo backend (src/demo/backend: sent as errorMsg, translated by SnackbarService)": [
     "Sign up is switched off in the demo.",
     "The sample account cannot be deleted in the demo.",

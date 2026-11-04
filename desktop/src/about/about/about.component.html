@@ -8,7 +8,7 @@
       <div class="flex flex-col m-2">
         @for (link of links; track link["url"]) {
           <span>
-          {{ link.label | t }}: <a class="text-primary underline-offset-4 hover:underline" [href]="link.url" target="_blank" rel="noopener">{{ link.url }}</a>
+          {{ link.label | t }}: <a class="text-primary underline-offset-4 hover:underline" [href]="link.url" [attr.data-testid]="link.testId" target="_blank" rel="noopener">{{ link.url }}</a>
         </span>
         }
       </div>
@@ -20,30 +20,30 @@
     >
       <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits">
         {{ 'CartVibe is a fork of' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="originalProjectUrl" target="_blank" rel="noopener">Receipt Wrangler</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="originalProjectUrl" data-testid="about-upstream-link" target="_blank" rel="noopener">Receipt Wrangler</a>
         {{ 'by' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="originalAuthorUrl" target="_blank" rel="noopener">Noah Hall (@Noah231515)</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="originalAuthorUrl" data-testid="about-upstream-author-link" target="_blank" rel="noopener">Noah Hall (@Noah231515)</a>
         {{ 'and contributors, under the AGPL-3.0.' | t }}
       </p>
       <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-logos">
         {{ 'Shop logos:' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="logoDevUrl" target="_blank" rel="noopener">Logo.dev</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="logoDevUrl" data-testid="about-logo-dev-link" target="_blank" rel="noopener">Logo.dev</a>
       </p>
       <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-product-data">
         {{ 'Product check (ODbL):' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="openFoodFactsUrl" target="_blank" rel="noopener">Open Food Facts</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="openFoodFactsUrl" data-testid="about-open-food-facts-link" target="_blank" rel="noopener">Open Food Facts</a>
       </p>
       <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-libraries">
         {{ 'Built with:' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="geistUrl" target="_blank" rel="noopener">Geist</a>,
-        <a class="text-primary underline-offset-4 hover:underline" [href]="lucideUrl" target="_blank" rel="noopener">Lucide</a>,
-        <a class="text-primary underline-offset-4 hover:underline" [href]="spartanUrl" target="_blank" rel="noopener">spartan/ui</a>,
-        <a class="text-primary underline-offset-4 hover:underline" [href]="chartJsUrl" target="_blank" rel="noopener">Chart.js</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="geistUrl" data-testid="about-geist-link" target="_blank" rel="noopener">Geist</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="lucideUrl" data-testid="about-lucide-link" target="_blank" rel="noopener">Lucide</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="spartanUrl" data-testid="about-spartan-link" target="_blank" rel="noopener">spartan/ui</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="chartJsUrl" data-testid="about-chartjs-link" target="_blank" rel="noopener">Chart.js</a>
       </p>
       <p class="m-2 text-sm text-muted-foreground" data-testid="about-credits-licences">
         {{ 'Licence texts:' | t }}
-        <a class="text-primary underline-offset-4 hover:underline" [href]="packageLicencesUrl" target="_blank" rel="noopener">{{ 'Packages' | t }}</a>,
-        <a class="text-primary underline-offset-4 hover:underline" [href]="noticesUrl" target="_blank" rel="noopener">{{ 'Font, icons and UI' | t }}</a>
+        <a class="text-primary underline-offset-4 hover:underline" [href]="packageLicencesUrl" data-testid="about-package-licences-link" target="_blank" rel="noopener">{{ 'Packages' | t }}</a>,
+        <a class="text-primary underline-offset-4 hover:underline" [href]="noticesUrl" data-testid="about-notices-link" target="_blank" rel="noopener">{{ 'Font, icons and UI' | t }}</a>
       </p>
     </app-form-section>
   </div>

@@ -2,13 +2,6 @@ package structs
 
 import "cartvibe/api/internal/models"
 
-type EmailSettings struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-}
-
 type AiSettings struct {
 	AiType     models.AiClientType `json:"type"`
 	Key        string              `json:"key"`
@@ -38,12 +31,8 @@ type FeatureConfig struct {
 	WebPushPublicKey string `json:"webPushPublicKey"`
 }
 
+// DatabaseConfig is the SQLite file the app opens; sqlite is the only engine.
 type DatabaseConfig struct {
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
 	Engine   string `json:"engine"`
 	Filename string `json:"filename"`
 }
@@ -60,10 +49,9 @@ type DebugConfig struct {
 }
 
 type Config struct {
-	SecretKey     string          `json:"secretKey"`
-	AiSettings    AiSettings      `json:"aiSettings"`
-	EmailSettings []EmailSettings `json:"emailSettings"`
-	Features      FeatureConfig   `json:"features"`
-	Database      DatabaseConfig  `json:"database"`
-	Debug         DebugConfig     `json:"debug"`
+	SecretKey  string         `json:"secretKey"`
+	AiSettings AiSettings     `json:"aiSettings"`
+	Features   FeatureConfig  `json:"features"`
+	Database   DatabaseConfig `json:"database"`
+	Debug      DebugConfig    `json:"debug"`
 }

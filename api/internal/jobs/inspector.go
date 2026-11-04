@@ -1,0 +1,15 @@
+package jobs
+
+import (
+	config "cartvibe/api/internal/env"
+	"github.com/hibiken/asynq"
+)
+
+func GetAsynqInspector() (*asynq.Inspector, error) {
+	opts, err := config.GetAsynqClientOptions()
+	if err != nil {
+		return nil, err
+	}
+
+	return asynq.NewInspector(opts), nil
+}

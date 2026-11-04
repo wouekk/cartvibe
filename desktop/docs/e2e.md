@@ -107,8 +107,7 @@ Needs Docker Desktop only. From `desktop/` in Git Bash (the script sets `MSYS_NO
    `http://localhost:8081`). It signs in as the first-start `admin` / `admin`, creates `e2e-admin` (Legacy Admin, display
    name `E2E Admin`) and `e2e-user` (Legacy User, display name exactly **`E2E User`**: the provisioning helpers pick the
    member by that option text) through the API, and switches their welcome dialog off. It leaves existing accounts alone.
-3. Export the `E2E_*` variables each run: `source api/dev/switch-to-sqlite.sh` (the MariaDB / PostgreSQL scripts
-   export the same defaults).
+3. Export the `E2E_*` variables each run: `source api/dev/switch-to-sqlite.sh` (SQLite is the only engine).
 4. Start the Go API yourself; Playwright's `webServer` only starts `npm start`, and only when `E2E_BASE_URL` is
    localhost (it reuses a running dev server outside CI).
 5. `npm run e2e` (or `npm run e2e:ui`). A remote `E2E_BASE_URL` skips the `webServer` block.

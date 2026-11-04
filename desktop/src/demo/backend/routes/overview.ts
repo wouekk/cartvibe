@@ -82,6 +82,35 @@ function categoryName(db: DemoDb, product: ReceiptProduct): { id?: number; name:
   return { name: label ? label.replace(/\b\w/g, (letter) => letter.toUpperCase()) : UNCATEGORIZED };
 }
 
+/**
+ * The API's receiptsource.AllocateToReceipt in cents: lines that fit inside the receipt keep their amounts and leave a
+ * rest; otherwise the receipt is divided in proportion to the lines (largest remainder, ties to the earlier line) and
+ * nothing is left.
+ */
+export function allocateToReceipt(amount: number, lines: number[]): { shares: number[]; rest: number } {
+  const sum = lines.reduce((total, line) => total + line, 0);
+  if (sum === 0 || (Math.sign(sum) === Math.sign(amount) && Math.abs(sum) <= Math.abs(amount))) {
+    return { shares: [...lines], rest: amount - sum };
+  }
+
+  const parts = lines.map((line) => {
+    const exact = (amount * line) / sum;
+    const whole = Math.trunc(exact);
+    return { whole, residual: Math.abs(exact - whole) };
+  });
+  let left = amount - parts.reduce((total, part) => total + part.whole, 0);
+  const step = Math.sign(left);
+  const order = parts.map((_, index) => index).sort((a, b) => parts[b].residual - parts[a].residual || a - b);
+  for (const index of order) {
+    if (left === 0) {
+      break;
+    }
+    parts[index].whole += step;
+    left -= step;
+  }
+  return { shares: parts.map((part) => part.whole), rest: 0 };
+}
+
 function sumCategories(db: DemoDb, receipts: Receipt[]): GroupOverviewCategory[] {
   const totals = new Map<string, { id?: number; name: string; cents: number }>();
   const add = (id: number | undefined, name: string, cents: number): void => {
@@ -92,20 +121,18 @@ function sumCategories(db: DemoDb, receipts: Receipt[]): GroupOverviewCategory[]
   };
 
   for (const receipt of receipts) {
-    const products = productsOf(db, receipt.id);
-    let accounted = 0;
-    for (const product of products) {
-      if (product.amount === undefined || product.amount === "") {
-        continue;
-      }
+    const priced = productsOf(db, receipt.id).filter((product) => product.amount !== undefined && product.amount !== "");
+    const { shares, rest } = allocateToReceipt(
+      parseCents(receipt.amount),
+      priced.map((product) => parseCents(product.amount))
+    );
+    priced.forEach((product, index) => {
       const { id, name } = categoryName(db, product);
-      const cents = parseCents(product.amount);
-      add(id, name, cents);
-      accounted += cents;
-    }
-    const rest = parseCents(receipt.amount) - accounted;
-    // What the lines do not cover (or a receipt with no lines) is Uncategorized; a discount never goes negative.
-    if (products.length === 0 || rest > 0) {
+      add(id, name, shares[index]);
+    });
+    // What the lines do not cover (a refund's rest may be negative) or a receipt with no lines is Uncategorized, so
+    // the slices always add up to the total, as on the real Dashboard.
+    if (priced.length === 0 || rest !== 0) {
       add(undefined, UNCATEGORIZED, rest);
     }
   }

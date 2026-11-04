@@ -60,7 +60,7 @@ test('keeps its own storage keys under the demo prefix', async ({ page }) => {
   const keys = await page.evaluate(() => Object.keys(window.localStorage));
   expect(keys.length).toBeGreaterThan(0);
   expect(keys.every((key) => key.startsWith('cartvibe-demo:'))).toBe(true);
-  expect(keys).toContain('cartvibe-demo:rw_theme_mode');
+  expect(keys).toContain('cartvibe-demo:cartvibe.themeMode');
 });
 
 test('an unhealthy tile opens the lines behind it', async ({ page }) => {

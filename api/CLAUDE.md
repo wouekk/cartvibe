@@ -22,7 +22,7 @@ handle).
 - The test DB enforces foreign keys, so a cleanup test passes on `ON DELETE CASCADE` alone. To prove an explicit delete,
   run under `repositories.UseTestDbWithoutForeignKeysForTests()` and defer its restore. A failed run can leave `app.db`
   in a test package directory; delete those, never anything under `sqlite/`.
-- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`RW_USERNAME` / `RW_PASSWORD` from the environment).
+- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`CV_USERNAME` / `CV_PASSWORD` from the environment).
 
 ## 2. Conventions and gotchas
 
@@ -198,6 +198,13 @@ which day an instant falls on and what "today" means.
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage
   but backs off in memory (`outageBackoff`). Guessing "unplanned" on an incomplete trip answer is forbidden (it would
   overstate spend). Primary processing settings are tried, then the fallback.
+- **Quick Scan never loses the upload:** the queue calls `QuickScanKeepingThePhoto`; when the AI cannot read the photo
+  the receipt is saved with it ("Receipt <today>", today, no total, the configured status and payer), a FAILED
+  `QUICK_SCAN` task says why, and the task is not retried. `QuickScan` (shopping trips) still returns the AI error.
+  Magic Fill answers 409 (no AI) or 502 (the AI failed) with an `errorMsg`, never a bare 500.
+- Every provider call is bounded by `constants.AiHttpTimeout` (HTTP client and context). The frequent sweeps are
+  scheduled with `sweepOptions()` (`asynq.Unique` + `asynq.Timeout`, 30 min like the claim lease) and their handlers
+  honour a cancelled context. A product read is stored in one transaction against the receipt as it is then.
 - **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, ```json fences stripped, a refusal is an
   error so the backup takes over), ChatGPT (`OPEN_AI`, JSON mode), OpenAI-compatible servers and Ollama. SDK retries are
   off everywhere: the sweeps count every try. A stored key is used only for the provider it was saved under.
@@ -268,3 +275,5 @@ The database is fresh-only since the clean-schema rework; these are gone from co
   import/export, the template render endpoint.
 - The Flutter mobile app, its client and the OIDC mobile branch.
 - The old one-time data migrations and `GroupMember.GroupRole`.
+- The MySQL/MariaDB and PostgreSQL engines, their drivers and `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME`:
+  `DB_ENGINE` must be `sqlite`, and any other value (or none) stops the boot with an error naming the fix.

@@ -480,8 +480,8 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 // TestQuickScan_ValidationFailureRecordsFailedSystemTask covers the "missing system task" gap: a
 // failure AFTER AI processing succeeds but BEFORE the receipt is created (here receipt validation) used
 // to vanish into the log, leaving the AI tasks marked SUCCEEDED and no record of why no receipt
-// appeared. The AI JSON parses (so the QUICK_SCAN task is SUCCEEDED), then fails validation (no name);
-// QuickScan now records a FAILED RECEIPT_UPLOADED task and flips the QUICK_SCAN parent to FAILED.
+// appeared. The AI JSON parses (so the QUICK_SCAN task is SUCCEEDED), then fails validation (a comment with no
+// author); QuickScan now records a FAILED RECEIPT_UPLOADED task and flips the QUICK_SCAN parent to FAILED.
 func TestQuickScan_ValidationFailureRecordsFailedSystemTask(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
@@ -492,8 +492,8 @@ func TestQuickScan_ValidationFailureRecordsFailedSystemTask(t *testing.T) {
 		nil,
 		nil,
 		func(u models.User, g models.Group) string {
-			// Parses fine (QUICK_SCAN succeeds) but has no name -> validation fails after AI processing.
-			return `{"amount": 12.34, "date": "2024-01-01T00:00:00Z"}`
+			// Parses fine (QUICK_SCAN succeeds) but its comment has no user -> validation fails after AI processing.
+			return `{"name": "Shop", "amount": 12.34, "date": "2024-01-01T00:00:00Z", "comments": [{"comment": "hi"}]}`
 		},
 	)
 	if err == nil {

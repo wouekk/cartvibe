@@ -35,6 +35,10 @@ else
     generator="typescript"
 fi
 
+# The generator never deletes a file it no longer produces, so a model dropped from swagger.yml would stay behind.
+# Start the generated folders empty; .openapi-generator-ignore and the other root files are kept.
+rm -rf "$output_dir/api" "$output_dir/model"
+
 # Execute the OpenAPI generator command
 npx @openapitools/openapi-generator-cli generate \
     -i swagger.yml \

@@ -190,7 +190,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   digit. No API and no permission.
 - No name search on purpose: Open Food Facts answers cross-site search requests with 503 and no CORS header, and a
   server relay was rejected. `OpenFoodFactsService` is on `HttpBackend`; a 404 is "not found"; a stale answer is
-  dropped. The last 10 products are in `localStorage` (`rw_recent_products`, every access guarded).
+  dropped. The last 10 products are in `localStorage` (`cartvibe.recentProducts`, every access guarded).
 - The live scanner needs `canUseCamera()` (`isSecureContext` + `getUserMedia`). Photo inputs are native `<label>`s
   around hidden file inputs, never a button calling `input.click()` (mobile browsers ignore a click made after an
   `await`). `BarcodeImageService` shrinks to 1280px, tries `BarcodeDetector`, then zxing (loaded on demand).
@@ -210,6 +210,11 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `{placeholders}`, never template literals or concatenation (`i18n:check` fails). Pure helpers take an optional
   `TranslateFn`. A noun counted in TypeScript is `pluralMarker("bottle", "bottles")` (the twin of `| plural:`) and is
   picked with `TranslationService.plural()`; countable shopping units use it, so "2 butelki" / "5 butelek" are right.
+- Stored data (category, report and receipt names) is never piped through `| t`, which also matches `{placeholder}`
+  patterns ("Edit Milk" would turn into "Edytuj Milk"). Use `| tData` (`TranslationService.data()`): a text that is
+  exactly a catalogue key (a starter category, "Uncategorized") reads in the language, anything else as written. The
+  headers of `app-dialog` and `app-form-header` and a confirmation's `dialogContent` go through `tData`, so callers pass
+  either a key (`marker("Discard changes")`) or text they built with `translation.t(…, { name })`, never translated twice.
 - A `{name}` can't take a grammatical case: put it after a colon or a noun ("Usuń: {name}", "kategorię „{name}”"), and
   keep counts in a form that reads right at 1, 2 and 5 ("Wybrano: {count}"). An English text change is a key change:
   carry each language's value over to the new key.
@@ -219,14 +224,14 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The language is never taken from the browser: English signed out, `UserPreferences.language` signed in
   (`LanguageSyncService`; `localStorage` only caches it). Chosen on `/language`, applied at once.
 - After adding text: `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s. A new language
-  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`../../api/CLAUDE.md` → 8. Reporting). Backend error messages stay English and are translated by `SnackbarService`; texts only data
+  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`../../api/CLAUDE.md` → 8. Reporting). Backend error messages stay English and are translated by `SnackbarService` (`success`, `error`, `info`, `hint`: the extractor reads a literal passed to any of them); texts only data
   reveals go in `scripts/i18n/extra-keys.json`. Dev builds collect misses in `window.__i18nMissing`.
 
 ## Identity and themes
 
 - The look is a palette (Blue, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
-  (System, Day, Night). `ThemeService` keeps `mode` (`rw_theme_mode`: `system|light|dark`) and `palette`
-  (`rw_theme_palette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
+  (System, Day, Night). `ThemeService` keeps `mode` (`cartvibe.themeMode`: `system|light|dark`) and `palette`
+  (`cartvibe.themePalette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
   follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`). The
   header has a palette menu (`palette-menu`, `app-palette-swatch` items) left of the day/night toggle (`theme-toggle`,
   which leaves System); Settings → Theme has the Appearance (`theme-mode-*`) and Colour palette (`theme-palette-*`)

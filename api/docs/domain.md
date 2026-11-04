@@ -85,9 +85,15 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   of whole months before, else the same number of days. Trend is daily under 28 days, else monthly (≤24). Receipt dates
   are bucketed in UTC; "current" uses the app zone. Every month in the window is seeded and arrays are never null.
 - `categories` are grouped by the lines' `category_id` (current names; the uncovered rest and unread receipts are
-  Uncategorized). `unhealthyTotal` and `unplannedTotal` sum priced lines; `tags[]` gives a tile per tag with
-  `showOnDashboard` (a line counts toward each of its tags). `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|
-  FOODGROUP|TAG` lists the lines behind a tile. Open receipts are OPEN, NEEDS_ATTENTION and DRAFT.
+  Uncategorized, a name the desktop matches and translates, so it stays English). Every line counts as its share of
+  the receipt, divided as reports do (`receiptsource.AllocateToReceipt`: lines over the receipt or pointing the other
+  way are scaled to it), so the slices always add up to `total`. `unhealthyTotal`, `unplannedTotal` and `tags[]` add
+  the same shares; `tags[]` gives a tile per tag with `showOnDashboard` (a line counts toward each of its tags).
+  `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|FOODGROUP|TAG` lists the lines behind a tile. Open
+  receipts are OPEN, NEEDS_ATTENTION and DRAFT.
+- Category/tag grants apply per receipt group (`overviewGrants`): a hidden line category becomes the `(Restricted)`
+  slice; a hidden tag gets no tile (a tile needs the tag visible in the group, or for All in one readable real group)
+  and its lines do not count; a drill-down by a hidden category or tag id lists nothing.
 - `GET/PUT /dashboardLayout`: one row per user; `layout` is a client-owned JSON document. The API checks only the
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
@@ -236,22 +242,34 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 
 ## Sweeps and quick scan
 
-- **Quick scan** (`HandleQuickScanTask`): one scan at a time (package mutex), 3 tries then archived; the uploader is
-  notified "ready" or, on the last try only, "failed" (`isFinalAttempt`). It reads the receipt and its products in one AI
-  call (`IncludeProducts` → `InlineProductPrompt`), then `ApplyInlineRead` stores the products after claiming the
-  extraction (`ClaimPendingExtraction`), so the sweep never applies twice. It removes its upload only after the receipt
-  commits. `ReceiptService.QuickScan` takes `QuickScanParams`.
+- **Quick scan** (`HandleQuickScanTask`): one scan at a time (`quickScanSlot`, a channel; a waiting scan gives up when
+  its task is cancelled). It re-reads the uploader's `group.receipts.quick-scan` from the database first (the payload's
+  claims are not trusted; a refusal is not retried). It reads the receipt and its products in one AI call
+  (`IncludeProducts` → `InlineProductPrompt`), then `ApplyInlineRead` stores the products after claiming the extraction
+  (`ClaimPendingExtraction`), so the sweep never applies twice. When the AI cannot read the photo,
+  `QuickScanKeepingThePhoto` saves the receipt anyway ("Receipt <today>", today in the app zone, amount 0, the resolved
+  status and payer, the person's picks and comment), records a FAILED `QUICK_SCAN` task (created when no AI ran), and the
+  uploader is told to fill it in; the task succeeds, so the AI is not asked again. Only other errors are retried (3 tries,
+  then archived, "failed" on the last one: `isFinalAttempt`). A missing name or date in a read is filled the same way
+  (`fillQuickScanDefaults`). It removes its upload only after the receipt commits. `ReceiptService.QuickScan` (used by
+  shopping trips) takes `QuickScanParams` and still returns the AI error with nothing saved.
 - Quick-scan ingress (`ResolveQuickScanFields`) enforces only the comment (group config, role requirement,
   `MaxCommentLength` 500 counted in runes) and the All-group refusal, synchronously before enqueue; paid-by falls back to
   the configured default then the uploader, status to the default then OPEN. A comment from a caller without
   `group.comments.create` is dropped, not refused. Picked categories/tags are grant-checked (403). AI-returned category
-  ids are resolved to names; unknown or out-of-grant ids are dropped (an id-only category would blank the category's
-  name on save). Failures before the create transaction record a FAILED `RECEIPT_UPLOADED` child
-  (`recordEarlyQuickScanFailure`).
-- **Sweeps** (`wranglerasynq/clean_up.go`): product extraction every 30 s (5 receipts), food classification every 1 min
-  (60 products + 60 list items, batched per group and purchase month), shopping trips every 1 min (5 trips), temp files
-  hourly, refresh tokens and OIDC sessions daily. Rows are claimed with a conditional UPDATE and a 30-minute lease
+  ids are resolved to names; unknown, out-of-grant and switched-off (`skipped`, unless the person picked it too) ids are
+  dropped (an id-only category would blank the category's name on save). Failures before the create transaction, and a
+  failed `CreateReceipt` (the transaction is rolled back first, never committed half-written), record a FAILED
+  `RECEIPT_UPLOADED` child (`recordEarlyQuickScanFailure`).
+- **Sweeps** (`jobs/clean_up.go`): product extraction every 30 s (5 receipts), food classification every 1 min
+  (60 products + 60 list items, batched per group and purchase month), shopping trips every 1 min (5 trips), warranty
+  reminders every 1 min, temp files hourly, refresh tokens and OIDC sessions daily. The frequent ones carry
+  `sweepOptions()` (`asynq.Unique` and `asynq.Timeout`, 30 min), so a hung AI cannot pile up copies; a cancelled task
+  stops (the product sweep before its next receipt). Rows are claimed with a conditional UPDATE and a 30-minute lease
   (`claimDue`), so overlapping sweeps never double-process and a dead sweep's row returns.
+- A product read is stored in one transaction against the receipt re-read after the AI call (`applyProducts`): a
+  receipt deleted meanwhile gets nothing, and it is moved to Done only if its status is still the one before the call
+  and it has a total.
 
 ## Roles in detail
 

@@ -53,6 +53,26 @@ type ReceiptSearchMatch struct {
 	Amount *decimal.Decimal `json:"amount"`
 }
 
+// MarshalJSON keeps categories, tags, image files and comments arrays on every response, loaded or
+// not (the paged list without fullReceipts preloads none of them): the contract marks them required
+// arrays, and lists never serialize as null.
+func (r Receipt) MarshalJSON() ([]byte, error) {
+	type plainReceipt Receipt
+	if r.Categories == nil {
+		r.Categories = []Category{}
+	}
+	if r.Tags == nil {
+		r.Tags = []Tag{}
+	}
+	if r.ImageFiles == nil {
+		r.ImageFiles = []FileData{}
+	}
+	if r.Comments == nil {
+		r.Comments = []Comment{}
+	}
+	return json.Marshal(plainReceipt(r))
+}
+
 func (r *Receipt) ToString() (string, error) {
 	bytes, err := json.Marshal(r)
 	if err != nil {

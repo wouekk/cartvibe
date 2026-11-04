@@ -355,6 +355,14 @@ double-counts *across* different buckets, never *within* one.
 the receipt's product lines instead (`receiptsource/lines.go`, `allocateProportionally`), so each line's money lands
 in its own bucket and the totals stay exact. See `api/CLAUDE.md` → "8. Reporting".
 
+**A record split into rows counts once per bucket.** A producer that turns one record into several rows names
+the field saying which record a row belongs to (`FieldCatalog.WithRecordIdentity`; `receiptsource` names
+`receipt_id`). `COUNT` then counts each identity once per bucket, at every level, while `SUM` still adds every
+row: an uncategorized line and the rest of the same receipt both land in `(None)` and count one receipt there,
+and a tag cut counts a receipt once per tag (and once in the grand total) while a line with two tags still adds
+its money to both. Rows without an identity count one each, and `RecordCount` stays the number of rows. Owned by
+`TestRun_RecordIdentityCountsARecordOncePerBucket` and `TestRowsWithLines_CountsAReceiptOncePerBucket`.
+
 **A multi-valued field cannot be measured.** `SUM` over a field that resolves to several values would
 silently read the first and drop the rest, so `Validate` refuses it with `ErrMeasureIsMultiValued`. A
 `Multi` field remains a perfectly good dimension and a perfectly good display label.

@@ -11,6 +11,7 @@ import (
 	"cartvibe/api/internal/utils"
 	"strings"
 	"testing"
+	"time"
 )
 
 type capturedOpenAiRequest struct {
@@ -207,6 +208,41 @@ func TestOpenAiGetChatCompletion_HttpError500(t *testing.T) {
 	// RawResponse should carry a marshaled (possibly empty) response struct.
 	if result.RawResponse == "" {
 		utils.PrintTestError(t, "empty RawResponse on error", "non-empty marshaled response")
+	}
+}
+
+func TestOpenAiGetChatCompletion_HangingServerTimesOut(t *testing.T) {
+	release := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-release:
+		case <-r.Context().Done():
+		}
+	}))
+	t.Cleanup(server.Close)
+	t.Cleanup(func() { close(release) })
+
+	previous := openAiTimeout
+	openAiTimeout = 200 * time.Millisecond
+	t.Cleanup(func() { openAiTimeout = previous })
+
+	client := newOpenAiClient(server.URL, "gpt-4o-mini", "test-key", false, []structs.AiClientMessage{
+		{Role: "user", Content: "hi"},
+	})
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := client.GetChatCompletion()
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err == nil {
+			utils.PrintTestError(t, err, "a timeout error from a hanging server")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("GetChatCompletion did not give up on a hanging server")
 	}
 }
 

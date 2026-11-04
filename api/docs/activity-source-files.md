@@ -6,7 +6,7 @@ Purpose: how a failed quick scan's upload is kept, previewed, downloaded, rerun 
 
 `temp/` holds quick-scan uploads (one per file), short-lived scratch with its own `defer os.Remove`, and the `DebugOcr`
 dumps (`services/ocr.go`), which nothing else removes. `HandleTempFileCleanUpTask`
-(`wranglerasynq/temp_file_cleanup_handler.go`, `@every 1h` on the clean-up queue) is the only thing that reclaims them.
+(`jobs/temp_file_cleanup_handler.go`, `@every 1h` on the clean-up queue) is the only thing that reclaims them.
 
 Classification, in order (the order is the behaviour):
 
@@ -70,6 +70,6 @@ matches; assert a fix across every denial pairing.
 ## Hydration traps
 
 - `GetPagedActivities` must `Omit("can_be_restarted", "has_source_file")` (GORM infers the SELECT from the destination).
-- The hydrators live in `wranglerasynq` (it imports `repositories`; the reverse is a cycle).
+- The hydrators live in `jobs` (it imports `repositories`; the reverse is a cycle).
 - On the admin system-task table the flags are resolved per caller through a `canReadGroup` predicate.
 - Nothing here fails a request: an aged-out task or unreadable payload leaves both flags false.

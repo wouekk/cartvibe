@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/structs"
 	"testing"
 )
 
@@ -61,31 +62,21 @@ func TestGetCategoriesStringUnrestrictedForSystemProcessing(t *testing.T) {
 	}
 }
 
-func TestGetTagsStringRestrictedToUserGrants(t *testing.T) {
+// The AI never assigns tags, so building the prompt never reads the household's tags (a failure to read them
+// once failed the whole read).
+func TestPromptVariablesCarryNoTags(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
+	makeTag(t, "Reimbursable")
 
-	grantedTag := makeTag(t, "Reimbursable")
-	makeTag(t, "Personal")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-ai-tag", nil, []uint{grantedTag})
-
-	service := ReceiptProcessingService{
-		Group:  models.Group{BaseModel: models.BaseModel{ID: groupId}},
-		UserId: userId,
-	}
-
-	result, err := service.getTagsString()
+	result, err := ReceiptProcessingService{}.buildTemplateVariableMap("")
 	if err != nil {
-		t.Fatalf("getTagsString: %v", err)
+		t.Fatalf("buildTemplateVariableMap: %v", err)
 	}
-
-	var tags []models.Tag
-	if err := json.Unmarshal([]byte(result), &tags); err != nil {
-		t.Fatalf("unmarshal tags: %v", err)
+	if _, hasTags := result[structs.TAGS]; hasTags {
+		t.Errorf("expected no @tags in the prompt variables, got %q", result[structs.TAGS])
 	}
-	if len(tags) != 1 || tags[0].ID != grantedTag {
-		t.Errorf("expected the AI prompt to see only the granted tag, got %v", tags)
+	if strings.Contains(DefaultReceiptPrompt, string(structs.TAGS)) {
+		t.Errorf("the default prompt should not ask for @tags")
 	}
 }
 

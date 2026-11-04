@@ -7,8 +7,7 @@ import { TableColumn } from "../../table/table-column.interface";
 
 @Component({
     selector: "app-base-table",
-    templateUrl: "./base-table.component.html",
-    styleUrl: "./base-table.component.scss",
+    template: "", // a base class: subclasses bring their own template
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })

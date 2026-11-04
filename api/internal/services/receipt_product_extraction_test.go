@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"cartvibe/api/internal/models"
@@ -128,7 +129,7 @@ func TestProductExtractionWaitsOutAMissingAi(t *testing.T) {
 		t.Fatalf("queue: %v", err)
 	}
 
-	processed, err := NewReceiptProductExtractionService(nil).ProcessDueExtractions()
+	processed, err := NewReceiptProductExtractionService(nil).ProcessDueExtractions(context.Background())
 	if err != nil || processed != 1 {
 		t.Fatalf("expected one receipt processed, got %d (%v)", processed, err)
 	}
@@ -145,7 +146,7 @@ func TestProductExtractionWaitsOutAMissingAi(t *testing.T) {
 	}
 
 	// Not due again yet, so the next sweep leaves it alone.
-	processed, _ = NewReceiptProductExtractionService(nil).ProcessDueExtractions()
+	processed, _ = NewReceiptProductExtractionService(nil).ProcessDueExtractions(context.Background())
 	if processed != 0 {
 		t.Errorf("expected nothing due, processed %d", processed)
 	}
@@ -158,7 +159,7 @@ func TestProductExtractionFailsAReceiptWithoutImages(t *testing.T) {
 		t.Fatalf("queue: %v", err)
 	}
 
-	if _, err := NewReceiptProductExtractionService(nil).ProcessDueExtractions(); err != nil {
+	if _, err := NewReceiptProductExtractionService(nil).ProcessDueExtractions(context.Background()); err != nil {
 		t.Fatalf("process: %v", err)
 	}
 

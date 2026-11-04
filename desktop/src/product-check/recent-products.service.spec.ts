@@ -68,4 +68,14 @@ describe("RecentProductsService", () => {
     expect(service.products()).toEqual([]);
     expect(localStorage.getItem(RECENT_PRODUCTS_KEY)).toBe("[]");
   });
+
+  it("moves a list stored under the old upstream key", () => {
+    localStorage.setItem("rw_recent_products", JSON.stringify([product("7")]));
+
+    const service = TestBed.inject(RecentProductsService);
+
+    expect(service.products().map((item) => item.code)).toEqual(["7"]);
+    expect(localStorage.getItem("rw_recent_products")).toBeNull();
+    expect(localStorage.getItem(RECENT_PRODUCTS_KEY)).not.toBeNull();
+  });
 });

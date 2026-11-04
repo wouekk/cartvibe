@@ -72,7 +72,7 @@ func TestBuildGroupPathString_RejectsTraversal(t *testing.T) {
 // The centralized data-file helpers must refuse any path outside the data dir
 // and leave an out-of-tree target untouched.
 func TestDataFileHelpers_RejectPathsOutsideDataDir(t *testing.T) {
-	sentinel := filepath.Join(os.TempDir(), "rw_utils_out_sentinel")
+	sentinel := filepath.Join(os.TempDir(), "cv_utils_out_sentinel")
 	if err := os.MkdirAll(sentinel, 0o755); err != nil {
 		t.Fatalf("setup sentinel: %v", err)
 	}
@@ -91,7 +91,7 @@ func TestDataFileHelpers_RejectPathsOutsideDataDir(t *testing.T) {
 	assertRejected("MakeDataDirectory", MakeDataDirectory(filepath.Join(sentinel, "child")))
 	assertRejected("RemoveDataPath", RemoveDataPath(marker))
 	assertRejected("RemoveAllInDataDir", RemoveAllInDataDir(sentinel))
-	assertRejected("RenameDataPath(dst-outside)", RenameDataPath(marker, filepath.Join(os.TempDir(), "rw_utils_out_moved")))
+	assertRejected("RenameDataPath(dst-outside)", RenameDataPath(marker, filepath.Join(os.TempDir(), "cv_utils_out_moved")))
 	assertRejected("WriteDataFile", WriteDataFile(filepath.Join(sentinel, "w.txt"), []byte("x")))
 	assertRejected("EnsureDataDirectory", EnsureDataDirectory(filepath.Join(sentinel, "d")))
 	_, readErr := ReadDataFile(marker)
@@ -118,7 +118,7 @@ func TestDataFileHelpers_AllowPathsInsideDataDir(t *testing.T) {
 		defer os.RemoveAll(dataDir)
 	}
 
-	dir := filepath.Join(dataDir, "rw_utils_in_dir")
+	dir := filepath.Join(dataDir, "cv_utils_in_dir")
 	defer os.RemoveAll(dir)
 	if err := MakeDataDirectory(dir); err != nil {
 		t.Fatalf("MakeDataDirectory in data dir failed: %v", err)
@@ -127,7 +127,7 @@ func TestDataFileHelpers_AllowPathsInsideDataDir(t *testing.T) {
 		t.Fatalf("expected directory to be created")
 	}
 
-	renamed := filepath.Join(dataDir, "rw_utils_in_dir_renamed")
+	renamed := filepath.Join(dataDir, "cv_utils_in_dir_renamed")
 	defer os.RemoveAll(renamed)
 	if err := RenameDataPath(dir, renamed); err != nil {
 		t.Fatalf("RenameDataPath in data dir failed: %v", err)
@@ -141,7 +141,7 @@ func TestDataFileHelpers_AllowPathsInsideDataDir(t *testing.T) {
 	}
 
 	// WriteDataFile + ReadDataFile round-trip inside the data dir.
-	file := filepath.Join(dataDir, "rw_utils_in_file.txt")
+	file := filepath.Join(dataDir, "cv_utils_in_file.txt")
 	defer os.RemoveAll(file)
 	if err := WriteDataFile(file, []byte("hello")); err != nil {
 		t.Fatalf("WriteDataFile in data dir failed: %v", err)

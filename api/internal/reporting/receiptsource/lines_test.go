@@ -344,7 +344,10 @@ func TestAllocateProportionally(t *testing.T) {
 // rest shows as (None), and COUNT still counts each receipt once per bucket.
 func TestRowsWithLines_FeedTheEngine(t *testing.T) {
 	source := mustNew(t)
-	receipts := []models.Receipt{{Amount: dec("10.00")}, {Amount: dec("5.00")}}
+	receipts := []models.Receipt{
+		{BaseModel: models.BaseModel{ID: 1}, Amount: dec("10.00")},
+		{BaseModel: models.BaseModel{ID: 2}, Amount: dec("5.00")},
+	}
 	lines := [][]Line{
 		{{Amount: dec("4.00"), Category: "Dairy"}, {Amount: dec("4.00"), Category: "Dairy"}},
 		{{Amount: dec("5.00"), Category: "Dairy"}},
@@ -391,6 +394,79 @@ func TestRowsWithLines_FeedTheEngine(t *testing.T) {
 	if cell(model.GrandTotals, "Total") != "15" {
 		t.Errorf("grand total = %s, want 15", cell(model.GrandTotals, "Total"))
 	}
+}
+
+// An uncategorized line and the rest of the same receipt both land in (None);
+// the receipt still counts once there, so Avg/Receipt is not halved. A tag cut
+// counts a receipt once per tag bucket, and once in the grand total.
+func TestRowsWithLines_CountsAReceiptOncePerBucket(t *testing.T) {
+	source := mustNew(t)
+	receipts := []models.Receipt{
+		{BaseModel: models.BaseModel{ID: 1}, Amount: dec("10.00")},
+		{BaseModel: models.BaseModel{ID: 2}, Amount: dec("5.00")},
+	}
+	lines := [][]Line{
+		{
+			{Amount: dec("4.00"), Category: "Dairy", Tags: []string{"Kids"}},
+			{Amount: dec("2.00"), Tags: []string{"Kids", "Party"}},
+			{Amount: dec("1.00"), Tags: []string{"Party"}},
+		},
+		nil,
+	}
+
+	spec := func(groupBy reporting.FieldKey) reporting.ReportSpec {
+		return reporting.ReportSpec{
+			GroupBy: []reporting.FieldKey{groupBy},
+			Columns: []reporting.Column{
+				{Name: "Count", Kind: reporting.ColumnAggregate, AggSrc: "COUNT()"},
+				{Name: "Total", Kind: reporting.ColumnAggregate, AggSrc: "SUM(amount)"},
+				{Name: "Avg", Kind: reporting.ColumnArithmetic, Expr: "Total / Count"},
+			},
+			Subtotals:   true,
+			GrandTotals: true,
+		}
+	}
+	cell := func(cells []reporting.Cell, column string) string {
+		for _, candidate := range cells {
+			if candidate.Column == column {
+				return candidate.Value().String()
+			}
+		}
+		t.Fatalf("no %s cell", column)
+		return ""
+	}
+	check := func(name string, cells []reporting.Cell, count string, total string) {
+		t.Helper()
+		if cell(cells, "Count") != count || cell(cells, "Total") != total {
+			t.Errorf("%s = %s over %s receipts, want %s over %s", name, cell(cells, "Total"), cell(cells, "Count"), total, count)
+		}
+	}
+
+	rows, _ := source.RowsWithLines(receipts, lines, LineDimensions{Category: true})
+	model, err := reporting.Run(spec(KeyCategory), source.Catalog(), rows, reporting.MetaInput{})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	dairy, none := model.Root.Children[0], model.Root.Children[1]
+	check("Dairy", dairy.Subtotals, "1", "4")
+	// Receipt 1's uncategorized lines (3.00) and rest (3.00), receipt 2 whole (5.00).
+	check("(None)", none.Subtotals, "2", "11")
+	if got := cell(none.Subtotals, "Avg"); got != "5.5" {
+		t.Errorf("(None) average = %s, want 5.5", got)
+	}
+	check("grand total", model.GrandTotals, "2", "15")
+
+	rows, _ = source.RowsWithLines(receipts, lines, LineDimensions{Tag: true})
+	model, err = reporting.Run(spec(KeyTag), source.Catalog(), rows, reporting.MetaInput{})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	kids, party, untagged := model.Root.Children[0], model.Root.Children[1], model.Root.Children[2]
+	check("Kids", kids.Subtotals, "1", "6")
+	check("Party", party.Subtotals, "1", "3")
+	check("(None) tag", untagged.Subtotals, "2", "8")
+	// The tag fan-out still adds the shared line to both tags; the receipts count once.
+	check("tag grand total", model.GrandTotals, "2", "17")
 }
 
 // A source built for a German reader names its fields and the words a value is

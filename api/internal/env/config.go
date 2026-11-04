@@ -7,7 +7,6 @@ import (
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 	"strconv"
 	"strings"
 )
@@ -23,26 +22,10 @@ func GetSecretKey() string {
 	return os.Getenv(string(constants.SecretKey))
 }
 
+// GetDatabaseConfig reads the SQLite settings. repositories.Connect refuses every DB_ENGINE but sqlite
+// (the MySQL/MariaDB and PostgreSQL engines and their DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME were removed).
 func GetDatabaseConfig() (structs.DatabaseConfig, error) {
-	dbEngine := os.Getenv(string(constants.DbEngine))
-	port := os.Getenv(string(constants.DbPort))
-	portToUse := 0
-
-	if dbEngine == "postgresql" || dbEngine == "mariadb" || dbEngine == "mysql" {
-		parsedPort, err := utils.StringToInt(port)
-		if err != nil {
-			return structs.DatabaseConfig{}, err
-		}
-
-		portToUse = parsedPort
-	}
-
 	return structs.DatabaseConfig{
-		User:     os.Getenv(string(constants.DbUser)),
-		Password: os.Getenv(string(constants.DbPassword)),
-		Name:     os.Getenv(string(constants.DbName)),
-		Host:     os.Getenv(string(constants.DbHost)),
-		Port:     portToUse,
 		Engine:   os.Getenv(string(constants.DbEngine)),
 		Filename: os.Getenv(string(constants.DbFileName)),
 	}, nil
@@ -146,8 +129,8 @@ func setEnv() {
 }
 
 // basePathDirNames are the directory names that mark the API root when BASE_PATH
-// is not set: the image's folder, and the pre-rename one older installs still use.
-var basePathDirNames = []string{"cartvibe-api", "receipt-wrangler-api"}
+// is not set: the image's folder.
+var basePathDirNames = []string{"cartvibe-api"}
 
 func setBasePath() {
 	cwd, _ := os.Getwd()

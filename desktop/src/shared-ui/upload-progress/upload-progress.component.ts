@@ -25,7 +25,7 @@ import { marker } from "../../i18n/marker";
           [attr.aria-label]="'Uploading' | t"
         >
           <div
-            class="h-full rounded-full bg-primary transition-[width] duration-200 ease-out motion-reduce:transition-none"
+            class="h-full rounded-full bg-primary transition-[width] duration-200 ease-out motion-reduce:animate-none motion-reduce:transition-none"
             [class.animate-pulse]="current.stage === 'saving'"
             [style.width.%]="width()"
             data-testid="upload-progress-fill"

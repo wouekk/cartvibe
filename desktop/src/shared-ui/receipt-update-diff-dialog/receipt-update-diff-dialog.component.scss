@@ -1,16 +1,13 @@
-@use "sass:color";
-@use "sass:map";
-@use "../../variables.scss" as variables;
-
-// Tints carry the default dark text. The line tints are the palettes' 50 shade
-// lightened further so a long diff stays readable; the stronger inline mark is
-// the 200 shade, which still gives the dark text well over 4.5:1.
+// Tints carry the default text, so they work by day and at night: the line tints
+// are faint so a long diff stays readable; the stronger inline mark still keeps
+// the text well over 4.5:1.
 $removed-line: color-mix(in oklab, var(--destructive) 8%, transparent);
 $removed-mark: color-mix(in oklab, var(--destructive) 25%, transparent);
 $added-line: color-mix(in oklab, var(--success-text) 12%, transparent);
 $added-mark: color-mix(in oklab, var(--success-text) 30%, transparent);
 $empty-side: var(--muted);
 $divider: var(--border);
+$quiet-text: var(--muted-foreground);
 
 // The diff scrolls in its own box rather than in mat-dialog-content, for two
 // reasons: a sticky header pins to its scroll container's padding edge, and
@@ -21,13 +18,6 @@ $divider: var(--border);
 .receipt-diff-scroll {
   max-height: calc(65vh - 6rem);
   overflow: auto;
-}
-
-// Sits above the table inside the scroll box, so it scrolls away while reading
-// rather than eating into the diff's height.
-.receipt-diff__notice {
-  margin-bottom: 0.75rem;
-  font-size: 13px;
 }
 
 .receipt-diff {
@@ -61,7 +51,7 @@ $divider: var(--border);
 
 .receipt-diff__number {
   padding: 0 0.5rem;
-  color: variables.$basic-gray;
+  color: $quiet-text;
   text-align: right;
   user-select: none;
 }
@@ -78,7 +68,7 @@ $divider: var(--border);
 
 .receipt-diff__timestamp {
   margin-left: 0.5rem;
-  color: variables.$basic-gray;
+  color: $quiet-text;
   font-weight: 400;
 }
 
@@ -114,7 +104,7 @@ $divider: var(--border);
 .receipt-diff__collapsed td {
   padding: 0.25rem 0.5rem;
   background: $empty-side;
-  color: variables.$basic-gray;
+  color: $quiet-text;
   font-style: italic;
   text-align: center;
 }

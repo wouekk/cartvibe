@@ -32,7 +32,8 @@ are offered; the UI ships in five languages.
 - The AI answers in one language for the household.
 - Reports cut by a line field count a receipt once per bucket it falls into (totals stay exact).
 - Do not rename lightly: the JWT issuer/audience `https://cartvibe.app` (since 2026-11-02; a change signs everyone out
-  and breaks MCP tokens) and the `wranglerasynq` name. The container paths are
+  and breaks MCP tokens). Upstream Receipt Wrangler names are gone from code (2026-11-04); only the credits in
+  `LICENSE`, `NOTICE.md`, the READMEs, the About page and `site/` keep them. The container paths are
   `/app/cartvibe-api/...` (the image, the root compose file and the README guide must agree).
 
 ## Visual identity

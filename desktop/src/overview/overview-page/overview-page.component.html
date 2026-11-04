@@ -101,7 +101,7 @@
               @for (entry of group.entries; track entry.id) {
                 <label class="flex min-h-11 cursor-pointer items-center justify-between gap-3 border-t border-border/60 py-2 text-sm first-of-type:border-t-0" [attr.data-testid]="'dashboard-library-' + entry.id">
                   <span class="min-w-0 truncate">{{ entry.label }}</span>
-                  <hlm-switch [checked]="entry.visible" [aria-label]="entry.label" (checkedChange)="setPanelVisible(entry.id, $event)"></hlm-switch>
+                  <hlm-switch [attr.data-testid]="'dashboard-library-toggle-' + entry.id" [checked]="entry.visible" [aria-label]="entry.label" (checkedChange)="setPanelVisible(entry.id, $event)"></hlm-switch>
                 </label>
               }
             </div>
@@ -412,11 +412,11 @@
                                     data-testid="overview-category-open"
                                     (click)="openCategory(segment); $event.stopPropagation()"
                                   >
-                                    {{ segment.name | t }}
+                                    {{ segment.name | tData }}
                                   </button>
                                   </div>
                                 </td>
-                                <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums">{{ segment.total | displayCurrency }}</td>
+                                <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums"><app-money [value]="segment.total" [display]="true"></app-money></td>
                               </tr>
                             }
                           </tbody>
@@ -441,7 +441,7 @@
                     </div>
                     @if (!rangeTooLongForChart() && chartBars().length > 0) {
                       <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-3xl font-bold tracking-tight">{{ overview()?.total ?? 0 | displayCurrency }}</span>
+                        <span class="text-3xl font-bold tracking-tight"><app-money [value]="overview()?.total ?? 0" [display]="true"></app-money></span>
                         @if (change(); as change) {
                           <span class="cv-pill" [class.cv-pill-up]="changeIsIncrease()" [class.cv-pill-down]="!changeIsIncrease()">
                             <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
@@ -536,7 +536,7 @@
                                 </td>
                                 <td hlmTd>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
                                 <td hlmTd><app-status-chip [status]="receipt.status"></app-status-chip></td>
-                                <td hlmTd class="text-right font-semibold">{{ receipt.amount | displayCurrency }}</td>
+                                <td hlmTd class="text-right font-semibold"><app-money [value]="receipt.amount" [display]="true"></app-money></td>
                               </tr>
                             }
                           </tbody>

@@ -118,7 +118,7 @@ Decisions worth knowing:
 
 ### Design note: the quick-scan mutex as a per-cell semaphore (not built)
 
-`wranglerasynq.quickScanMutex` is one process-wide `sync.Mutex`: quick scans run one at a time, so five photos are read in
+`jobs.quickScanMutex` is one process-wide `sync.Mutex`: quick scans run one at a time, so five photos are read in
 the order queued instead of five AI calls at once, which is also what the provider's rate limit prefers. In a multi-cell
 process that serialises every household behind the slowest scan, and the lock is held across the AI call. The design when a
 cell worker exists:

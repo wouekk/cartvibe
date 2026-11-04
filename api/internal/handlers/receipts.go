@@ -10,7 +10,7 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/wranglerasynq"
+	"cartvibe/api/internal/jobs"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -504,7 +504,7 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 					return http.StatusInternalServerError, err
 				}
 
-				payload := wranglerasynq.QuickScanTaskPayload{
+				payload := jobs.QuickScanTaskPayload{
 					Token:            token,
 					PaidByUserId:     resolvedFields[i].PaidByUserId,
 					GroupId:          quickScanCommand.GroupIds[i],
@@ -521,9 +521,9 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 					return http.StatusInternalServerError, err
 				}
 
-				task := asynq.NewTask(wranglerasynq.QuickScan, payloadBytes)
+				task := asynq.NewTask(jobs.QuickScan, payloadBytes)
 
-				_, err = wranglerasynq.EnqueueTask(task, models.QuickScanQueue)
+				_, err = jobs.EnqueueTask(task, models.QuickScanQueue)
 				if err != nil {
 					return http.StatusInternalServerError, err
 				}

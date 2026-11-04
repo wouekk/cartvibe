@@ -7,7 +7,7 @@ something outside CI. GitHub Actions is the real build and test machine either w
 
 - **Go** is installed but not on the bash PATH: `export PATH="$PATH:/c/Program Files/Go/bin"`.
   `api/scripts/go-without-cgo.sh vet ./...` (or `test <pkg>`, `build -o <path> .`) stubs the ImageMagick and Tesseract
-  cgo bindings. The services package's ImageMagick tests and some wranglerasynq temp-path tests fail here only.
+  cgo bindings. The services package's ImageMagick tests and some jobs temp-path tests fail here only.
 - **PDF tests:** `api/scripts/install-test-chromium.sh` once, then `api/scripts/test-pdf.sh`.
 - **Node 24.22.1 + npm 11.19.1** (CI's versions) in `tools\node-v24.22.1-win-x64`, not on the PATH:
   `export PATH="/c/Users/Marcin/tools/node-v24.22.1-win-x64:$PATH"`. `npm ci`, `npx ng test --include "<glob>"` and `npx ng build`

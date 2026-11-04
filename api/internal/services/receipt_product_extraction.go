@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -173,6 +174,11 @@ const (
 // errNoAiConfigured marks the "nothing to call" outage, which is retried like any other.
 var errNoAiConfigured = errors.New("no AI is configured in the receipt processing settings")
 
+// IsNoAiConfigured reports whether err means no AI is chosen on the AI page, so nothing was called.
+func IsNoAiConfigured(err error) bool {
+	return errors.Is(err, errNoAiConfigured)
+}
+
 type ReceiptProductExtractionService struct {
 	BaseService
 }
@@ -187,12 +193,13 @@ func NewReceiptProductExtractionService(tx *gorm.DB) ReceiptProductExtractionSer
 
 // ProcessDueExtractions reads the products of up to a batch of receipts that are due, one at a time.
 // It is what the periodic sweep runs. A failure on one receipt is recorded on that receipt and never
-// stops the batch; only a database error does.
-func (service ReceiptProductExtractionService) ProcessDueExtractions() (int, error) {
+// stops the batch; only a database error does. A cancelled ctx (the task's timeout, a shutdown) stops it
+// before the next receipt is claimed.
+func (service ReceiptProductExtractionService) ProcessDueExtractions(ctx context.Context) (int, error) {
 	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
 	processed := 0
 
-	for processed < productExtractionBatchSize {
+	for processed < productExtractionBatchSize && ctx.Err() == nil {
 		extraction, ok, err := repository.ClaimDueExtraction(time.Now())
 		if err != nil {
 			return processed, err
@@ -254,7 +261,9 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return service.recordBadAnswer(extraction, answerErr)
 	}
 
-	return service.applyProducts(receipt, products, shopName, currency, resolver, corrections)
+	// The AI call can take minutes: applyProducts decides from the receipt as it is now, and receipt.Status is
+	// what it was before the call, so a status a person set meanwhile is kept.
+	return service.applyProducts(receipt.ID, receipt.Status, products, shopName, currency, resolver, corrections)
 }
 
 // ApplyInlineRead applies the products a quick scan's own answer carried, so a scanned receipt needs one AI
@@ -294,48 +303,26 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 		return false, err
 	}
 
-	return true, service.applyProducts(receipt, products, parseShopName(cleaned), parseCurrency(cleaned), resolver, corrections)
+	return true, service.applyProducts(receipt.ID, receipt.Status, products, parseShopName(cleaned), parseCurrency(cleaned), resolver, corrections)
 }
 
 // applyProducts stores a finished read: amounts converted like the receipt's, corrections and categories
-// applied, then the receipt itself updated (applyReadResult).
+// applied, then the receipt itself updated (applyReadResult). statusBefore is the receipt's status before the
+// AI was asked; the rest is decided from the receipt as it is when the read is stored, in one transaction, so
+// an edit made while the AI was thinking is neither lost nor overwritten.
 func (service ReceiptProductExtractionService) applyProducts(
-	receipt models.Receipt,
+	receiptId uint,
+	statusBefore models.ReceiptStatus,
 	products []models.ReceiptProduct,
 	shopName string,
 	currency string,
 	resolver *foodGroupResolver,
 	corrections map[string]string,
 ) error {
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
-
-	// An invoice that prints its line prices before VAT and adds the tax at the bottom: the lines become what was
-	// paid, so the VAT does not end up as an "uncovered" Uncategorized rest. Compared in the currency the lines were
-	// read in (the receipt's original amount when it was converted), so before the conversion below.
-	readTotal := receipt.Amount
-	if receipt.OriginalAmount != nil {
-		readTotal = *receipt.OriginalAmount
-	}
-	GrossUpNetLines(products, readTotal)
-
-	// A receipt in another currency has its product amounts converted at the same rate as the receipt
-	// (Phase 3 currencies): the rate it already carries, else the table's. Without a rate they stay as read.
-	currencies, currencyErr := loadCurrencyContext()
-	if currencyErr != nil {
-		return currencyErr
-	}
-	currency, rate := currencies.receiptRate(receipt, currency)
-	if rate != nil {
-		for i := range products {
-			if products[i].Amount != nil {
-				converted := ConvertAmount(*products[i].Amount, *rate)
-				products[i].Amount = &converted
-			}
-		}
-	}
-
+	// Categories first, outside the transaction: the resolver may add a category on its own connection, which
+	// would wait on the transaction's write lock.
 	for i := range products {
-		products[i].ReceiptId = receipt.ID
+		products[i].ReceiptId = receiptId
 		products[i].Position = i
 
 		// A product the answer classified is finished: the household's earlier corrections win over
@@ -350,12 +337,52 @@ func (service ReceiptProductExtractionService) applyProducts(
 		}
 	}
 
-	err := repository.ReplaceProducts(receipt.ID, products)
-	if err != nil {
-		return err
+	currencies, currencyErr := loadCurrencyContext()
+	if currencyErr != nil {
+		return currencyErr
 	}
 
-	return service.applyReadResult(receipt, shopName, currencies, currency, rate)
+	return service.GetDB().Transaction(func(tx *gorm.DB) error {
+		txService := NewReceiptProductExtractionService(tx)
+		repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), tx)
+
+		receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), tx).GetReceiptById(utils.UintToString(receiptId))
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Deleted while the AI was reading it.
+			return repository.DeleteReceiptProducts(receiptId)
+		}
+		if err != nil {
+			return err
+		}
+
+		// An invoice that prints its line prices before VAT and adds the tax at the bottom: the lines become what
+		// was paid, so the VAT does not end up as an "uncovered" Uncategorized rest. Compared in the currency the
+		// lines were read in (the receipt's original amount when it was converted), so before the conversion below.
+		readTotal := receipt.Amount
+		if receipt.OriginalAmount != nil {
+			readTotal = *receipt.OriginalAmount
+		}
+		GrossUpNetLines(products, readTotal)
+
+		// A receipt in another currency has its product amounts converted at the same rate as the receipt
+		// (Phase 3 currencies): the rate it already carries, else the table's. Without a rate they stay as read.
+		receiptCurrency, rate := currencies.receiptRate(receipt, currency)
+		if rate != nil {
+			for i := range products {
+				if products[i].Amount != nil {
+					converted := ConvertAmount(*products[i].Amount, *rate)
+					products[i].Amount = &converted
+				}
+			}
+		}
+
+		err = repository.ReplaceProducts(receipt.ID, products)
+		if err != nil {
+			return err
+		}
+
+		return txService.applyReadResult(receipt, statusBefore, shopName, currencies, receiptCurrency, rate)
+	})
 }
 
 func (service ReceiptProductExtractionService) recordOutage(extraction models.ReceiptProductExtraction, aiErr error) error {
@@ -645,9 +672,11 @@ func parseShopName(cleanedResponse string) string {
 // applyReadResult is what a finished read does to the receipt itself (Phase 3 feedback): it fills in the
 // shop name when the receipt has none, and a receipt still "To check" becomes Done, since the AI has
 // read it. A person's own shop name is never overwritten, and a receipt already Done or Declined keeps
-// its status.
+// its status. So does a receipt whose status changed since statusBefore (a person set it while the AI was
+// reading), and one with no total yet (a Quick Scan the AI could not read): it still needs a person.
 func (service ReceiptProductExtractionService) applyReadResult(
 	receipt models.Receipt,
+	statusBefore models.ReceiptStatus,
 	shopName string,
 	currencies currencyContext,
 	currency string,
@@ -703,6 +732,9 @@ func (service ReceiptProductExtractionService) applyReadResult(
 	if receipt.Status != models.OPEN && receipt.Status != models.NEEDS_ATTENTION && receipt.Status != models.DRAFT {
 		return nil
 	}
+	if receipt.Status != statusBefore || receipt.Amount.IsZero() {
+		return nil
+	}
 
 	receipt.Status = models.RESOLVED
 	err := db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("status", models.RESOLVED).Error
@@ -710,7 +742,7 @@ func (service ReceiptProductExtractionService) applyReadResult(
 		return err
 	}
 
-	// Stamps the resolved date and settles the receipt's items, as every other way of resolving does.
+	// Stamps the resolved date, as every other way of resolving does.
 	return repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).AfterReceiptUpdated(&receipt)
 }
 

@@ -10,8 +10,10 @@ import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
+	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"cartvibe/api/internal/utils"
 	"gorm.io/gorm"
 
 	"github.com/shopspring/decimal"
@@ -154,27 +156,43 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	periodProducts, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
+	grants, err := service.newOverviewGrants(userId, receipts)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
-	err = service.nameProductCategories(periodProducts)
+
+	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	periodProducts, err := productRepository.GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
+	previousProducts, err := productRepository.GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, previous))
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+	err = service.nameProductCategories(periodProducts, grants)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+	periodShares := lineShares(receipts, periodProducts)
+	previousShares := lineShares(receipts, previousProducts)
 
 	overview := foldGroupOverview(receipts, period, previous, groupProductsByReceipt(periodProducts))
 
-	overview.UnhealthyTotal, overview.UnplannedTotal, err = service.sumProductKinds(receipts, period)
+	overview.UnhealthyTotal, overview.UnplannedTotal, err = service.sumProductKinds(receipts, period, periodShares)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
-	overview.PreviousUnhealthyTotal, overview.PreviousUnplannedTotal, err = service.sumProductKinds(receipts, previous)
+	overview.PreviousUnhealthyTotal, overview.PreviousUnplannedTotal, err = service.sumProductKinds(receipts, previous, previousShares)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
 
-	overview.Tags, err = service.sumDashboardTags(receipts, period, previous)
+	tileGroupIds, err := service.dashboardGroupIds(userId, groupId)
+	if err != nil {
+		return structs.GroupOverview{}, err
+	}
+	overview.Tags, err = service.sumDashboardTags(receipts, period, previous, periodShares, previousShares, grants, tileGroupIds)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
@@ -215,9 +233,115 @@ func (service GroupOverviewService) countActiveWarranties(userId uint, groupId s
 	return count, err
 }
 
+// overviewGrants answers whether the caller may see a category or tag on a receipt, in the receipt's own
+// group: the same role ceiling ∩ member grants (and app-level bypass) every other read applies, resolved
+// once per group. A receipt in the "All" view is judged in its real group.
+type overviewGrants struct {
+	filter        *receiptGrantFilter
+	receiptGroups map[uint]uint
+}
+
+func (service GroupOverviewService) newOverviewGrants(userId uint, receipts []models.Receipt) (overviewGrants, error) {
+	filter, err := NewPermissionService(service.TX).newReceiptGrantFilter(userId)
+	if err != nil {
+		return overviewGrants{}, err
+	}
+
+	receiptGroups := make(map[uint]uint, len(receipts))
+	for _, receipt := range receipts {
+		receiptGroups[receipt.ID] = receipt.GroupId
+	}
+	return overviewGrants{filter: filter, receiptGroups: receiptGroups}, nil
+}
+
+// categoryVisible reports whether the caller may see categoryId on the given receipt.
+func (grants overviewGrants) categoryVisible(receiptId uint, categoryId uint) (bool, error) {
+	if grants.filter.bypassCategories {
+		return true, nil
+	}
+	groupGrants, err := grants.filter.grantsForGroup(grants.receiptGroups[receiptId])
+	if err != nil || groupGrants.categoryUnrestricted {
+		return err == nil, err
+	}
+	_, allowed := groupGrants.categoryAllowed[categoryId]
+	return allowed, nil
+}
+
+// tagVisibleInGroup reports whether the caller may see tagId in a group.
+func (grants overviewGrants) tagVisibleInGroup(groupId uint, tagId uint) (bool, error) {
+	if grants.filter.bypassTags {
+		return true, nil
+	}
+	groupGrants, err := grants.filter.grantsForGroup(groupId)
+	if err != nil || groupGrants.tagUnrestricted {
+		return err == nil, err
+	}
+	_, allowed := groupGrants.tagAllowed[tagId]
+	return allowed, nil
+}
+
+// productMatchVisible reports whether a line picked by a category or tag drill-down may be listed: the
+// caller must see that category or tag in the line's receipt group. Other kinds pick by health or plan
+// and are always listed.
+func (grants overviewGrants) productMatchVisible(receiptId uint, filter repositories.ProductKindFilter) (bool, error) {
+	switch {
+	case filter.Kind == "FOODGROUP" && filter.CategoryId != nil:
+		return grants.categoryVisible(receiptId, *filter.CategoryId)
+	case filter.Kind == "TAG" && filter.TagId != nil:
+		return grants.tagVisible(receiptId, *filter.TagId)
+	}
+	return true, nil
+}
+
+// tagVisible reports whether the caller may see tagId on the given receipt.
+func (grants overviewGrants) tagVisible(receiptId uint, tagId uint) (bool, error) {
+	return grants.tagVisibleInGroup(grants.receiptGroups[receiptId], tagId)
+}
+
+// dashboardGroupIds are the real groups the Dashboard describes: the group itself, or for the "All"
+// group every real group the caller may read receipts in (the same gate the receipts list applies).
+func (service GroupOverviewService) dashboardGroupIds(userId uint, groupId string) ([]uint, error) {
+	uintGroupId, err := utils.StringToUint(groupId)
+	if err != nil {
+		return nil, err
+	}
+	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), service.TX)
+	isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
+	if err != nil || !isAllGroup {
+		return []uint{uintGroupId}, err
+	}
+
+	memberGroupIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX).GetGroupIdsByUserId(utils.UintToString(userId))
+	if err != nil {
+		return nil, err
+	}
+
+	permissionService := NewPermissionService(service.TX)
+	groupIds := make([]uint, 0, len(memberGroupIds))
+	for _, memberGroupId := range memberGroupIds {
+		isAll, err := groupRepository.IsAllGroup(memberGroupId)
+		if err != nil {
+			return nil, err
+		}
+		if isAll {
+			continue
+		}
+		readable, err := permissionService.HasGroupPermissions(userId, memberGroupId, permissions.GroupReceiptsRead)
+		if err != nil {
+			return nil, err
+		}
+		if readable {
+			groupIds = append(groupIds, memberGroupId)
+		}
+	}
+	return groupIds, nil
+}
+
 // nameProductCategories puts each product's current category name in FoodGroup, so a renamed category
-// shows under its new name whatever the line still carries.
-func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct) error {
+// shows under its new name whatever the line still carries. A category the caller may not see in the
+// receipt's group becomes the (Restricted) slice, as on every other aggregation: its spend still counts,
+// its name does not show.
+func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct, grants overviewGrants) error {
 	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX).GetAllCategories("id, name")
 	if err != nil {
 		return err
@@ -232,20 +356,41 @@ func (service GroupOverviewService) nameProductCategories(products []models.Rece
 		if products[i].CategoryId == nil {
 			continue
 		}
-		if name, found := names[*products[i].CategoryId]; found {
-			products[i].FoodGroup = name
-		} else {
+		name, found := names[*products[i].CategoryId]
+		if !found {
 			products[i].CategoryId = nil
 			products[i].FoodGroup = ""
+			continue
 		}
+
+		visible, err := grants.categoryVisible(products[i].ReceiptId, *products[i].CategoryId)
+		if err != nil {
+			return err
+		}
+		if !visible {
+			products[i].CategoryId = nil
+			products[i].FoodGroup = restrictedCategoryTagName
+			continue
+		}
+		products[i].FoodGroup = name
 	}
 	return nil
 }
 
 // sumDashboardTags builds the tiles of the tags shown on the Dashboard: what the priced product lines
-// carrying each tag cost in the period and in the previous one, on the receipts the caller can see. A line
-// with two such tags counts toward both tiles.
-func (service GroupOverviewService) sumDashboardTags(receipts []models.Receipt, period OverviewPeriod, previous OverviewPeriod) ([]structs.GroupOverviewTag, error) {
+// carrying each tag account for in the period and in the previous one, on the receipts the caller can see
+// (each line's share of its receipt, as in reports). A line with two such tags counts toward both tiles.
+// A tag gets a tile only when the caller may see it in one of the groups the Dashboard describes, and a
+// line counts toward it only where the caller may see the tag in the line's group.
+func (service GroupOverviewService) sumDashboardTags(
+	receipts []models.Receipt,
+	period OverviewPeriod,
+	previous OverviewPeriod,
+	periodShares map[uint]decimal.Decimal,
+	previousShares map[uint]decimal.Decimal,
+	grants overviewGrants,
+	groupIds []uint,
+) ([]structs.GroupOverviewTag, error) {
 	tiles := []structs.GroupOverviewTag{}
 
 	tags := []models.Tag{}
@@ -254,33 +399,110 @@ func (service GroupOverviewService) sumDashboardTags(receipts []models.Receipt, 
 		return tiles, err
 	}
 
-	tagIds := make([]uint, len(tags))
+	tagIds := make([]uint, 0, len(tags))
 	index := make(map[uint]int, len(tags))
-	for i, tag := range tags {
-		tagIds[i] = tag.ID
-		index[tag.ID] = i
+	for _, tag := range tags {
+		visible := false
+		for _, groupId := range groupIds {
+			visible, err = grants.tagVisibleInGroup(groupId, tag.ID)
+			if err != nil {
+				return nil, err
+			}
+			if visible {
+				break
+			}
+		}
+		if !visible {
+			continue
+		}
+		tagIds = append(tagIds, tag.ID)
+		index[tag.ID] = len(tiles)
 		tiles = append(tiles, structs.GroupOverviewTag{TagId: tag.ID, Name: tag.Name, Total: decimal.Zero, PreviousTotal: decimal.Zero})
+	}
+	if len(tagIds) == 0 {
+		return tiles, nil
 	}
 
 	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+
+	add := func(rows []repositories.PricedProductTag, shares map[uint]decimal.Decimal, previousPeriod bool) error {
+		for _, row := range rows {
+			visible, err := grants.tagVisible(row.ReceiptId, row.TagId)
+			if err != nil {
+				return err
+			}
+			if !visible {
+				continue
+			}
+			share, found := shares[row.ReceiptProductId]
+			if !found {
+				share = row.Amount
+			}
+			tile := &tiles[index[row.TagId]]
+			if previousPeriod {
+				tile.PreviousTotal = tile.PreviousTotal.Add(share)
+			} else {
+				tile.Total = tile.Total.Add(share)
+			}
+		}
+		return nil
+	}
 
 	rows, err := repository.GetPricedProductTags(receiptIdsInPeriod(receipts, period), tagIds)
 	if err != nil {
 		return nil, err
 	}
-	for _, row := range rows {
-		tiles[index[row.TagId]].Total = tiles[index[row.TagId]].Total.Add(row.Amount)
+	if err := add(rows, periodShares, false); err != nil {
+		return nil, err
 	}
 
 	rows, err = repository.GetPricedProductTags(receiptIdsInPeriod(receipts, previous), tagIds)
 	if err != nil {
 		return nil, err
 	}
-	for _, row := range rows {
-		tiles[index[row.TagId]].PreviousTotal = tiles[index[row.TagId]].PreviousTotal.Add(row.Amount)
+	if err := add(rows, previousShares, true); err != nil {
+		return nil, err
 	}
 
 	return tiles, nil
+}
+
+// lineShares says what each priced product line accounts for of its receipt's amount, the way reports
+// divide a receipt (receiptsource.AllocateToReceipt): a line's own amount, unless the lines add up to more
+// than the receipt or point the other way, when they are scaled to it. Keyed by product id.
+func lineShares(receipts []models.Receipt, products []models.ReceiptProduct) map[uint]decimal.Decimal {
+	amounts := make(map[uint]decimal.Decimal, len(receipts))
+	for _, receipt := range receipts {
+		amounts[receipt.ID] = receipt.Amount
+	}
+
+	shares := make(map[uint]decimal.Decimal, len(products))
+	for receiptId, lines := range groupProductsByReceipt(products) {
+		amount, found := amounts[receiptId]
+		if !found {
+			continue
+		}
+		priced, lineAmounts := pricedLines(lines)
+		lineShares, _ := receiptsource.AllocateToReceipt(amount, lineAmounts)
+		for i, product := range priced {
+			shares[product.ID] = lineShares[i]
+		}
+	}
+	return shares
+}
+
+// pricedLines keeps the products that carry an amount, with those amounts alongside.
+func pricedLines(products []models.ReceiptProduct) ([]models.ReceiptProduct, []decimal.Decimal) {
+	priced := make([]models.ReceiptProduct, 0, len(products))
+	amounts := make([]decimal.Decimal, 0, len(products))
+	for _, product := range products {
+		if product.Amount == nil {
+			continue
+		}
+		priced = append(priced, product)
+		amounts = append(amounts, *product.Amount)
+	}
+	return priced, amounts
 }
 
 func earliest(a time.Time, b time.Time) time.Time {
@@ -301,8 +523,9 @@ func receiptIdsInPeriod(receipts []models.Receipt, period OverviewPeriod) []uint
 }
 
 // sumProductKinds adds up the period's priced products rated unhealthy, and those marked as not on
-// the shopping list, on the receipts the caller can see.
-func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, period OverviewPeriod) (decimal.Decimal, decimal.Decimal, error) {
+// the shopping list, on the receipts the caller can see: each line's share of its receipt (shares, from
+// lineShares), so a tile never claims more than the receipts cost.
+func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, period OverviewPeriod, shares map[uint]decimal.Decimal) (decimal.Decimal, decimal.Decimal, error) {
 	unhealthy, unplanned := decimal.Zero, decimal.Zero
 
 	receiptIds := receiptIdsInPeriod(receipts, period)
@@ -317,9 +540,7 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 		return unhealthy, unplanned, err
 	}
 	for _, product := range unhealthyProducts {
-		if product.Amount != nil {
-			unhealthy = unhealthy.Add(*product.Amount)
-		}
+		unhealthy = unhealthy.Add(shareOf(product, shares))
 	}
 
 	unplannedProducts, err := productRepository.GetPricedUnplannedProducts(receiptIds)
@@ -327,12 +548,21 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 		return unhealthy, unplanned, err
 	}
 	for _, product := range unplannedProducts {
-		if product.Amount != nil {
-			unplanned = unplanned.Add(*product.Amount)
-		}
+		unplanned = unplanned.Add(shareOf(product, shares))
 	}
 
 	return unhealthy, unplanned, nil
+}
+
+// shareOf is a priced line's share of its receipt, or its own amount when no share was worked out.
+func shareOf(product models.ReceiptProduct, shares map[uint]decimal.Decimal) decimal.Decimal {
+	if share, found := shares[product.ID]; found {
+		return share
+	}
+	if product.Amount != nil {
+		return *product.Amount
+	}
+	return decimal.Zero
 }
 
 // GetOverviewProducts lists the product lines behind a Dashboard tile or slice for the period (see
@@ -359,8 +589,23 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 		return nil, err
 	}
 
+	grants, err := service.newOverviewGrants(userId, receipts)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]structs.GroupOverviewProduct, 0, len(products))
 	for _, product := range products {
+		// A category or tag the caller may not see in the receipt's group lists nothing, as a list filter
+		// narrowed to the caller's grants does: the lines behind it never show, and an id cannot be probed.
+		visible, err := grants.productMatchVisible(product.ReceiptId, filter)
+		if err != nil {
+			return nil, err
+		}
+		if !visible {
+			continue
+		}
+
 		receipt := byId[product.ReceiptId]
 		name := product.DisplayName
 		if name == "" {
@@ -562,6 +807,9 @@ func foldGroupOverview(
 	return overview
 }
 
+// uncategorizedFoodGroup names the slice of what no category covers. It stays English on the wire on
+// purpose: the desktop recognises the slice by this exact name (to drill into it with an empty foodGroup)
+// and translates it for display, so translating it here would break that match.
 const uncategorizedFoodGroup = "Uncategorized"
 
 func groupProductsByReceipt(products []models.ReceiptProduct) map[uint][]models.ReceiptProduct {
@@ -602,23 +850,20 @@ func productCategoryKey(product models.ReceiptProduct) overviewCategoryKey {
 }
 
 // addReceiptToFoodGroups spreads a receipt's spend over the categories of its product lines (Phase 3 3c,
-// by category id since item-level categories): each priced line adds its amount to its category, and what
-// the lines do not account for, or the whole amount of a receipt without products yet, lands in
-// Uncategorized. Lines adding up to more than the receipt (a discount line) leave nothing over rather than
-// going negative.
+// by category id since item-level categories), dividing the receipt the way reports do
+// (receiptsource.AllocateToReceipt): each priced line adds its amount to its category, and what the lines
+// do not account for, or the whole amount of a receipt without products yet, lands in Uncategorized.
+// Lines adding up to more than the receipt, or pointing the other way (a refund), are scaled to it, so the
+// slices always add up to the receipts' total.
 func addReceiptToFoodGroups(totals map[overviewCategoryKey]decimal.Decimal, receipt models.Receipt, products []models.ReceiptProduct) {
-	accounted := decimal.Zero
-	for _, product := range products {
-		if product.Amount == nil {
-			continue
-		}
+	priced, amounts := pricedLines(products)
+	shares, rest := receiptsource.AllocateToReceipt(receipt.Amount, amounts)
+	for i, product := range priced {
 		key := productCategoryKey(product)
-		totals[key] = totals[key].Add(*product.Amount)
-		accounted = accounted.Add(*product.Amount)
+		totals[key] = totals[key].Add(shares[i])
 	}
 
-	rest := receipt.Amount.Sub(accounted)
-	if len(products) == 0 || rest.IsPositive() {
+	if len(priced) == 0 || !rest.IsZero() {
 		uncategorized := overviewCategoryKey{name: uncategorizedFoodGroup}
 		totals[uncategorized] = totals[uncategorized].Add(rest)
 	}

@@ -71,8 +71,8 @@ for (const [vpName, vp] of Object.entries(VIEWPORTS)) {
     // The demo reads its look under its own storage prefix (desktop/docs/demo.md).
     await context.addInitScript((m) => {
       try {
-        localStorage.setItem("cartvibe-demo:rw_theme_mode", m);
-        localStorage.setItem("cartvibe-demo:rw_theme_palette", "zinc");
+        localStorage.setItem("cartvibe-demo:cartvibe.themeMode", m);
+        localStorage.setItem("cartvibe-demo:cartvibe.themePalette", "zinc");
       } catch {}
     }, mode);
     const page = await context.newPage();

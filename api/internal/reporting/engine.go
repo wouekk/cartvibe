@@ -234,11 +234,33 @@ func (e engineRun) newAccumulators() []accumulator {
 }
 
 // addRow folds one row into a set of accumulators. COUNT's field is empty, which
-// reads as null, so it contributes to the record count and nothing else.
+// reads as null, so it contributes to the record count and nothing else. When
+// the catalog names a record identity and the row carries one, COUNT counts
+// that record once per bucket however many of its rows land there.
 func (e engineRun) addRow(accumulators []accumulator, row Row) {
+	identity, identified := e.recordIdentity(row)
 	for slot, index := range e.compiled.aggregateIndexes {
-		accumulators[slot].add(row.Measure(e.compiled.columns[index].agg.Field))
+		value := row.Measure(e.compiled.columns[index].agg.Field)
+		if identified {
+			accumulators[slot].addIdentified(value, identity)
+			continue
+		}
+		accumulators[slot].add(value)
 	}
+}
+
+// recordIdentity is the bucket key of the record a row belongs to, when the
+// catalog names an identity field and the row has a value for it.
+func (e engineRun) recordIdentity(row Row) (string, bool) {
+	key := e.compiled.catalog.RecordIdentity()
+	if key == "" {
+		return "", false
+	}
+	values := row.Get(key)
+	if len(values) == 0 || values[0].IsNull() {
+		return "", false
+	}
+	return bucketKey(values[0]), true
 }
 
 func mergeAccumulators(into []accumulator, from []accumulator) {

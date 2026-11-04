@@ -125,7 +125,28 @@ func (f FieldRef) Role() Role { return RoleForDataType(f.DataType) }
 // the fields the rows carry.
 type FieldCatalog struct {
 	fields map[FieldKey]FieldRef
+
+	// recordIdentity, when set, names the field that says which record a row
+	// belongs to. A producer that splits one record into several rows (a receipt
+	// cut by its product lines) sets it, so COUNT counts a record once per
+	// bucket however many of its rows land there. Empty means every row is its
+	// own record.
+	recordIdentity FieldKey
 }
+
+// WithRecordIdentity returns the catalog with key as the record identity (see
+// FieldCatalog.recordIdentity). The key must be a field of the catalog.
+func (c FieldCatalog) WithRecordIdentity(key FieldKey) (FieldCatalog, error) {
+	if _, exists := c.fields[key]; !exists {
+		return FieldCatalog{}, fmt.Errorf("%w: %s", ErrUnknownField, key)
+	}
+	c.recordIdentity = key
+	return c, nil
+}
+
+// RecordIdentity is the field COUNT counts distinct values of, or "" when COUNT
+// counts rows.
+func (c FieldCatalog) RecordIdentity() FieldKey { return c.recordIdentity }
 
 // NewFieldCatalog builds a catalog, rejecting keyless, unnameable and duplicated
 // fields.

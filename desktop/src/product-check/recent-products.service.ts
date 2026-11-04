@@ -1,7 +1,8 @@
 import { Injectable, signal } from "@angular/core";
+import { readStorageKey } from "../utils/storage-key-migration";
 import { CheckedProduct } from "./product-check.models";
 
-export const RECENT_PRODUCTS_KEY = "rw_recent_products";
+export const RECENT_PRODUCTS_KEY = "cartvibe.recentProducts";
 export const RECENT_PRODUCTS_LIMIT = 10;
 
 /**
@@ -29,7 +30,7 @@ export class RecentProductsService {
 
   private read(): CheckedProduct[] {
     try {
-      const parsed = JSON.parse(globalThis.localStorage?.getItem(RECENT_PRODUCTS_KEY) ?? "[]");
+      const parsed = JSON.parse(readStorageKey(RECENT_PRODUCTS_KEY) ?? "[]");
 
       return Array.isArray(parsed)
         ? parsed.filter((item) => item && typeof item.code === "string" && typeof item.name === "string").slice(0, RECENT_PRODUCTS_LIMIT)

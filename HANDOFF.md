@@ -5,6 +5,16 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Current state
 
+- **`feature/audit-fixes` (2026-11-04, not merged):**
+  - Contents: the audit sprint (upstream names removed, Quick Scan keeps the photo when the AI fails, Dashboard grants and
+    totals, report counts, CSS layers, translations, CI pins and gates, image healthcheck, SQLite only); the CHANGELOG
+    `[Unreleased]` lists it.
+  - Merges into `preview` and `:preview` once CI is green; `main` waits for the owner.
+  - On the NAS before `:latest`: make sure the stack sets `DB_ENGINE=sqlite` and both keys (the server now refuses to
+    start otherwise).
+  - Not looked at in a browser yet (day/night, phone, accent palette): the shadows, section titles, icon sizes and
+    desktop input size all changed.
+
 - Last release v0.16.0 (2026-11-02); `[Unreleased]` holds the scanner fix (#11), the feature registry and two FAQ answers.
   `i18n-audit-en-pl.md` and `docs/plans/backlog-review-2026-11-03.md` (untracked) are the owner's.
 - **No hosted plan (2026-11-02):** `wouekk/cartvibe-cloud` is frozen (ADR 0014 there); the iPhone app keeps its data on the

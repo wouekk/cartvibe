@@ -19,6 +19,8 @@ export type BadgeTone = "slate" | "blue" | "green";
   selector: "app-badge",
   templateUrl: "./badge.component.html",
   styleUrl: "./badge.component.scss",
+  // The flex item is the host, not the span inside it, so "don't shrink me" lives here.
+  host: { class: "inline-block flex-none" },
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslatePipe],

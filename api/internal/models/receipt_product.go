@@ -15,8 +15,8 @@ const (
 )
 
 // ReceiptProduct is one purchased product line read off a receipt by the AI ("LAIT DEMI-ECR 1L",
-// €1.09). It is distinct from Item, which is a bill-splitting share. Products are always replaced as a
-// whole set when a receipt is (re-)read.
+// €1.09), or one a person added. Products are always replaced as a whole set when a receipt is
+// (re-)read.
 type ReceiptProduct struct {
 	BaseModel
 	Receipt   Receipt `json:"-"`

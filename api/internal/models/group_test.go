@@ -116,7 +116,7 @@ func TestGroup_AfterDelete_RejectsPathTraversalName(t *testing.T) {
 	// resolves to (10 "../" climb out of <cwd>/data to the filesystem root, then
 	// into /tmp), so the "not deleted" assertion is meaningful: without the guard
 	// AfterDelete's recursive remove would wipe this directory.
-	sentinel := "/tmp/rw_model_afterdelete_sentinel"
+	sentinel := "/tmp/cv_model_afterdelete_sentinel"
 	if err := os.MkdirAll(sentinel, 0o755); err != nil {
 		t.Fatalf("setup sentinel: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestGroup_AfterDelete_RejectsPathTraversalName(t *testing.T) {
 
 	group := Group{
 		BaseModel: BaseModel{ID: 999999},
-		Name:      "../../../../../../../../../../tmp/rw_model_afterdelete_sentinel",
+		Name:      "../../../../../../../../../../tmp/cv_model_afterdelete_sentinel",
 	}
 
 	if err := group.AfterDelete(nil); err == nil {

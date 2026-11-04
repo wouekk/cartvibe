@@ -1,144 +1,52 @@
-/* Tokens every theme shares, and the legacy aliases the older component styles read. The colors themselves are
-   per theme: src/themes/*.css (see docs/themes.md). */
-:root {
-  --radius: 0.625rem;
-
-  /* Legacy aliases (component styles written before the redesign). */
-  --accent-color: var(--primary);
-  --accent-hover: color-mix(in oklch, var(--primary) 85%, var(--foreground));
-  --accent-light: var(--muted-foreground);
-  --accent-soft: var(--accent);
-  --accent-button: var(--primary);
-  --accent-button-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground));
-  --shell-bg: var(--background);
-  --chart-good: var(--chart-2);
-  --sidebar-bg: var(--sidebar);
-  --sidebar-raised: var(--sidebar-accent);
-  --sidebar-active: var(--sidebar-accent);
-}
-
-/* ---------- Phones (iOS Safari first): nothing wider than the screen, comfortable targets ---------- */
-html {
-  -webkit-text-size-adjust: 100%;
-}
-body {
-  min-height: 100dvh;
-}
-@media (max-width: 767.98px) {
-  /* 16px inputs: Safari zooms the page when a smaller field is focused. */
-  input:not([type="checkbox"]):not([type="radio"]),
-  select,
-  textarea {
-    font-size: 16px !important;
-  }
-
-  /* The top bar: menu, search that shrinks, bell, logo; safe area for the notch. */
-  app-header .header-container {
-    padding: 8px 12px;
-    padding-top: max(8px, env(safe-area-inset-top));
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-    gap: 4px;
-  }
-  app-header .header-container > .col {
-    flex: 0 0 auto;
-    width: auto;
-  }
-  app-header .header-container > .col-auto {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-  app-header .nav-button,
-  app-header .notifications-bell {
-    width: 44px;
-    height: 44px;
-    margin: 0;
-  }
-  app-header app-cartvibe-logo {
-    margin-left: 4px !important;
-    margin-right: 0 !important;
-    flex: 0 0 auto;
-  }
-  app-header app-button {
-    margin-left: 0 !important;
-  }
-
-  /* Page headers (title + actions + filters) wrap instead of running off the screen. */
-  app-table-header > div,
-  app-table-header > div > div.d-flex {
-    flex-wrap: wrap;
-    gap: 8px;
-    min-width: 0;
-  }
-  app-table-header h1 {
-    flex: 1 1 100%;
-  }
-
-  /* Tabs and filter bars scroll sideways inside their own box. */
-  .filter-bar,
-  app-tabs nav.mat-mdc-tab-nav-bar {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .filter-bar::-webkit-scrollbar {
-    display: none;
-  }
-  .filter-tab,
-  .mat-mdc-tab-link {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    min-height: 40px;
-  }
-
-  /* Wide tables scroll inside their own container. */
-  .table-container,
-  app-table > div {
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .drawer-outlet {
-    min-width: 0;
-  }
-  .mat-drawer-content {
-    overflow-x: hidden;
-  }
-}
-
-@media (max-width: 767.98px) {
-  .receipts-toolbar {
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-    min-width: 0;
-  }
-  .receipts-toolbar > * {
-    margin-right: 0 !important;
-  }
-}
-
-/* ---------- Base typography (what Bootstrap's reboot used to give, in shadcn proportions) ---------- */
+/* Tokens every theme shares, the legacy aliases the older component styles read, and the element defaults. The colors
+   themselves are per theme: src/themes/*.css (see docs/themes.md). Everything here is layered (DESIGN.md: no unlayered
+   global CSS), so a utility class on the element wins; this file comes after Tailwind's preflight, so its base rules
+   win over the reset. */
 @layer base {
+  :root {
+    --radius: 0.625rem;
+
+    /* Legacy aliases (component styles written before the redesign). */
+    --accent-color: var(--primary);
+    --accent-hover: color-mix(in oklch, var(--primary) 85%, var(--foreground));
+    --accent-light: var(--muted-foreground);
+    --accent-soft: var(--accent);
+    --accent-button: var(--primary);
+    --accent-button-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground));
+    --shell-bg: var(--background);
+    --chart-good: var(--chart-2);
+    --sidebar-bg: var(--sidebar);
+    --sidebar-raised: var(--sidebar-accent);
+    --sidebar-active: var(--sidebar-accent);
+  }
+
+  /* ---------- Base typography (what Bootstrap's reboot used to give, in shadcn proportions) ---------- */
+  html,
+  body {
+    height: 100%;
+  }
   html {
     font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     line-height: 1.5;
     color: var(--foreground);
+    scroll-behavior: smooth;
   }
   body {
     margin: 0;
     font-size: 1rem;
+    line-height: 1.6;
     color: var(--foreground);
     background-color: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
     line-height: 1.2;
+    color: var(--foreground);
   }
   h1 { font-size: 2rem; }
   h2 { font-size: 1.5rem; }
@@ -152,52 +60,51 @@ body {
   label { display: inline-block; }
   img, svg, video { vertical-align: middle; }
   [hidden] { display: none !important; }
+  hr {
+    color: var(--border);
+    width: 100%;
+  }
+
+  /* Phones (iOS Safari first): 16px inputs, since Safari zooms the page when a smaller field is focused. Important in
+     the base layer, so it holds over the helm's `md:text-sm` and any utility below 768px. */
+  @media (max-width: 767.98px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
-.settings-card ul:not([class]),
-.mat-mdc-dialog-content ul:not([class]),
-.mat-mdc-dialog-content ol:not([class]) {
-  padding-left: 1.5rem;
-  list-style: revert;
-}
+/* ---------- Phones: nothing wider than the screen ---------- */
+@layer components {
+  @media (max-width: 767.98px) {
+    /* Page headers (title + actions + filters) wrap instead of running off the screen. */
+    app-table-header > div {
+      flex-wrap: wrap;
+      gap: 8px;
+      min-width: 0;
+    }
+    app-table-header h1 {
+      flex: 1 1 100%;
+    }
 
-/* Material icons inside the spartan buttons (the helm sizes ng-icon, which this app does not use). */
-button[hlmBtn] mat-icon,
-a[hlmBtn] mat-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  font-size: 1.25rem;
-  line-height: 1.25rem;
-}
+    /* Tabs keep their width inside the sideways-scrolling strip (`app-settings-tabs`, `cv-scroll-x`). */
+    .filter-tab {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
 
-/* Material icons inside the spartan sidebar (the helm sizes ng-icon, which this app does not use). */
-[data-slot="sidebar-menu-button"] mat-icon,
-[data-slot="sidebar-menu-sub-button"] mat-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  font-size: 1.125rem;
-  line-height: 1.125rem;
-  flex: none;
-}
+    /* Wide tables scroll inside their own container. */
+    .table-container,
+    app-table > div {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
-/* Base typography and colors (this was the head of the old legacy bridge). */
-html {
-  font-family: "Geist Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4 {
-  color: var(--foreground);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.muted,
-.text-muted {
-  color: var(--muted-foreground);
+    .drawer-outlet {
+      min-width: 0;
+    }
+  }
 }

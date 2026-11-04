@@ -17,8 +17,8 @@
 
     <!--
       The stored look, applied before the first paint so the page does not flash. ThemeService (src/theme) writes the
-      same keys and keeps them in step afterwards: rw_theme_mode is "system", "light" (day) or "dark" (night), and
-      rw_theme_palette the palette's key, so this needs no copy of the palette list (an unknown key just shows zinc).
+      same keys and keeps them in step afterwards: cartvibe.themeMode is "system", "light" (day) or "dark" (night), and
+      cartvibe.themePalette the palette's key, so this needs no copy of the palette list (an unknown key just shows zinc).
       Changing this script changes its hash: update the script-src hash in docker/default.conf.
     -->
     <script>
@@ -27,9 +27,9 @@
         var palette = "zinc";
         var dark = false;
         try {
-          var mode = window.localStorage.getItem("rw_theme_mode");
+          var mode = window.localStorage.getItem("cartvibe.themeMode");
           dark = mode === "dark" || (mode !== "light" && !!window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-          var stored = window.localStorage.getItem("rw_theme_palette");
+          var stored = window.localStorage.getItem("cartvibe.themePalette");
           if (stored && /^[a-z]+$/.test(stored)) {
             palette = stored;
           }

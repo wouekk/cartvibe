@@ -8,7 +8,7 @@ import { marker } from "../../i18n/marker";
 
 @Component({
   selector: "app-table",
-  host: { class: "block overflow-hidden rounded-xl border border-border bg-card shadow-md" },
+  host: { class: "block overflow-hidden rounded-xl border border-border bg-card" },
   templateUrl: "./table.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false

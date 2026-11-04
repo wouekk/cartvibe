@@ -9,7 +9,7 @@ import (
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/wranglerasynq"
+	"cartvibe/api/internal/jobs"
 	"encoding/json"
 	"errors"
 	"io"
@@ -224,7 +224,7 @@ func StartBackupImport(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			if err := wranglerasynq.EnqueueBackupImport(job.ID); err != nil {
+			if err := jobs.EnqueueBackupImport(job.ID); err != nil {
 				logging.LogStd(logging.LOG_LEVEL_ERROR, "household import: enqueue: "+err.Error())
 				db.Model(&models.BackupImportJob{}).Where("id = ?", job.ID).
 					Updates(map[string]any{"status": models.BackupImportPreviewed})
@@ -249,12 +249,12 @@ func GetBackupImports(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppBackupImport},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			var jobs []models.BackupImportJob
-			if err := repositories.GetDB().Order("id DESC").Limit(5).Find(&jobs).Error; err != nil {
+			var importJobs []models.BackupImportJob
+			if err := repositories.GetDB().Order("id DESC").Limit(5).Find(&importJobs).Error; err != nil {
 				return http.StatusInternalServerError, err
 			}
-			views := make([]backup.JobView, 0, len(jobs))
-			for _, job := range jobs {
+			views := make([]backup.JobView, 0, len(importJobs))
+			for _, job := range importJobs {
 				views = append(views, backup.ViewOf(job))
 			}
 			return writeBackupJson(w, http.StatusOK, views)

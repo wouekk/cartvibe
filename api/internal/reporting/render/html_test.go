@@ -528,7 +528,7 @@ func TestHTML_AuthoredIntroAndFooter(t *testing.T) {
 
 	out, err := HTML(model, paidByDimension(), DocumentChrome{
 		Intro:  "Period Covering: 2026-Q2",
-		Footer: "Generated Jul 13, 2026 · Receipt Wrangler",
+		Footer: "Generated Jul 13, 2026 · CartVibe",
 	})
 	if err != nil {
 		t.Fatalf("HTML: %v", err)
@@ -538,7 +538,7 @@ func TestHTML_AuthoredIntroAndFooter(t *testing.T) {
 	if !strings.Contains(rendered, `<p class="intro">Period Covering: 2026-Q2</p>`) {
 		t.Errorf("authored intro missing:\n%s", rendered)
 	}
-	if !strings.Contains(rendered, "<footer>Generated Jul 13, 2026 · Receipt Wrangler</footer>") {
+	if !strings.Contains(rendered, "<footer>Generated Jul 13, 2026 · CartVibe</footer>") {
 		t.Errorf("authored footer missing:\n%s", rendered)
 	}
 	// The authored footer replaces the automatic generated-at footer.

@@ -6,6 +6,7 @@
   [length]="totalCount()"
   [page]="((tableService.page$ | async)  || 1 ) - 1"
   [pageSize]="(tableService.pageSize$ | async) || 10"
+  [emptyText]="loaded() ? emptyText : ''"
   [expandedRowTemplate]="expandedRowTemplate()"
   [rowExpandable]="rowExpandable"
   (sorted)="sorted($event)"
@@ -29,7 +30,7 @@
 </ng-template>
 
 <ng-template let-element="element" #ranByUserIdCell>
-  {{ (element.ranByUserId | user)?.displayName ?? "System" }}
+  {{ (element.ranByUserId | user)?.displayName ?? ('System' | t) }}
 </ng-template>
 
 <ng-template let-element="element" #resultDescriptionCell>
@@ -37,11 +38,11 @@
   @if (receiptUpdate) {
     <div class="flex items-center gap-2">
       <div class="line-clamp-2 max-w-[40ch] break-words" data-testid="receipt-update-summary">
-        {{
-          receiptUpdate.changedKeys.length
-            ? "Changed: " + receiptUpdate.changedKeys.join(", ")
-            : "No changes"
-        }}
+        @if (receiptUpdate.changedKeys.length) {
+          {{ 'Changed: {fields}' | t: { fields: receiptUpdate.changedKeys.join(", ") } }}
+        } @else {
+          {{ 'No changes' | t }}
+        }
       </div>
       <app-button
         data-testid="receipt-update-diff-open"
@@ -69,6 +70,7 @@
         icon="open_in_new"
         matButtonType="iconButton"
         [tooltip]="'View full description' | t"
+        data-testid="system-task-description-open"
         (clicked)="openDescriptionDialog(element)"
       ></app-button>
     </div>
