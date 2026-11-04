@@ -276,7 +276,7 @@ describe("ReceiptsTableComponent", () => {
       setFilter({ date: { operation: FilterOperation.WithinCurrentMonth, value: null } });
 
       expect(component.filterChips()).toEqual([
-        { key: "date", label: "Receipt Date within current month" },
+        { key: "date", label: "Receipt Date: within current month" },
       ]);
     });
 
@@ -289,9 +289,9 @@ describe("ReceiptsTableComponent", () => {
       });
 
       expect(component.filterChips()).toEqual([
-        { key: "name", label: "Name contains whole" },
-        { key: "categories", label: "Categories contains Groceries" },
-        { key: "status", label: "Status contains To check" },
+        { key: "name", label: "Name: contains whole" },
+        { key: "categories", label: "Categories: contains Groceries" },
+        { key: "status", label: "Status: contains To check" },
       ]);
     });
 

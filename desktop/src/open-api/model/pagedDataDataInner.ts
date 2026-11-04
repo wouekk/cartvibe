@@ -142,6 +142,14 @@ export interface PagedDataDataInner {
      */
     isolateMembers?: boolean;
     /**
+     * The household\'s icon: home, add_home, apartment, group, favorite, child_care, dog, cat, pets, directions_car, flight, shopping_cart, restaurant, local_cafe, work, school, park, sunny or star; \"\" shows the initial. Never set on the \"All\" group.
+     */
+    icon?: string;
+    /**
+     * The household\'s colour: slate, red, orange, amber, green, teal, blue, indigo, violet or pink; \"\" is the default look.
+     */
+    color?: string;
+    /**
      * Number of receipt product lines carrying the tag
      */
     numberOfProducts?: number;
@@ -217,6 +225,10 @@ export interface PagedDataDataInner {
      * Id of the modern app role assigned to the user
      */
     appRoleId?: number;
+    /**
+     * When the person last uploaded an avatar photo (GET /user/{id}/avatar); null shows the initials
+     */
+    avatarUpdatedAt?: string;
 }
 export namespace PagedDataDataInner {
 }

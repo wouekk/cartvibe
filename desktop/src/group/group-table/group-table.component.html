@@ -17,7 +17,7 @@
     <app-table
       [dataSource]="dataSource()"
       [columns]="columns"
-      [displayedColumns]="displayedColumns"
+      [displayedColumns]="columns.length ? visibleColumns() : []"
       [pagination]="true"
       [length]="totalCount()"
       [page]="((baseTableService.page$ | async) || 1) - 1"
@@ -30,9 +30,12 @@
 </app-settings-page>
 
 <ng-template #nameCell let-element="element" let-index="index">
-  <a [routerLink]="['/groups/' + element.id + '/details/view']">
-    {{ element.name }}
-  </a>
+  <span class="flex min-w-0 items-center gap-2">
+    <app-avatar class="shrink-0" size="sm" [group]="element"></app-avatar>
+    <a class="truncate" [routerLink]="['/groups/' + element.id + '/details/view']">
+      {{ element.name }}
+    </a>
+  </span>
 </ng-template>
 
 <ng-template #numberOfMembersCell let-element="element" let-index="index">
@@ -46,22 +49,14 @@
 <ng-template #updatedAtCell let-element="element" let-index="index">
   {{ element.updatedAt | appDate : "short" }}
 </ng-template>
-
+<!-- DESIGN.md, Rows: inline icon buttons on a wider screen, a more_vert menu on a phone (app-row-actions). Edit opens
+     the household's page, where its name and look change; the synthetic "All" group is never listed here. -->
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="flex">
-    <app-edit-button
-      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate }"
-      data-testid="group-edit"
-      color="accent"
-      [tooltip]="'Edit group' | t"
-      [buttonRouterLink]="[element | groupTableEditButton: appPermissions() : groupPermissions()]"
-    ></app-edit-button>
-    <app-delete-button
-      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupDelete, orApp: [Permission.AppGroupsDelete] }"
-      data-testid="group-delete"
-      [tooltip]="'Delete Household' | t"
-      [disabled]="deleteDisabled()"
-      (clicked)="deleteGroup(index)"
-    ></app-delete-button>
-  </div>
+  <app-row-actions
+    menuTestId="group-menu"
+    [menuLabel]="'Household actions' | t"
+    [actions]="rowActions"
+    [row]="element"
+    (run)="rowAction($event, element, index)"
+  ></app-row-actions>
 </ng-template>

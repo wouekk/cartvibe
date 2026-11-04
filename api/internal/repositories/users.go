@@ -126,10 +126,17 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 					IsDefaultGroup: true,
 				}
 
-				_, err := groupRepository.CreateGroup(groupCommand, user.ID)
+				created, err := groupRepository.CreateGroup(groupCommand, user.ID)
 				if err != nil {
 					repository.ClearTransaction()
 					return err
+				}
+				if isFirstUser {
+					err = tx.Model(&models.Group{}).Where("id = ?", created.ID).Update("is_household", true).Error
+					if err != nil {
+						repository.ClearTransaction()
+						return err
+					}
 				}
 			}
 		}
@@ -348,9 +355,7 @@ func (repository UserRepository) IsFirstAdminToLogin() (bool, error) {
 // it did. It is a no-op (false) when there is no such group, which is every install created before
 // Phase 3 M5: those keep their groups and their new users still get a personal one.
 func (repository UserRepository) joinHouseholdGroup(tx *gorm.DB, userId uint) (bool, error) {
-	var household models.Group
-	err := tx.Where("name = ? AND (is_all_group IS NULL OR is_all_group = ?)", HouseholdGroupName, false).
-		Order("id").Limit(1).Find(&household).Error
+	household, err := FindHouseholdGroup(tx)
 	if err != nil {
 		return false, err
 	}

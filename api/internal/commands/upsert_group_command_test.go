@@ -180,3 +180,26 @@ func TestUpsertGroupCommand_Validate_AllowsNormalNames(t *testing.T) {
 		})
 	}
 }
+
+func TestUpsertGroupCommand_Validate_Look(t *testing.T) {
+	str := func(value string) *string { return &value }
+	base := func(icon, color *string) UpsertGroupCommand {
+		return UpsertGroupCommand{Name: "Home", Status: models.GROUP_ACTIVE, Icon: icon, Color: color}
+	}
+
+	for name, command := range map[string]UpsertGroupCommand{
+		"omitted":       base(nil, nil),
+		"default look":  base(str(""), str("")),
+		"listed values": base(str("dog"), str("teal")),
+	} {
+		if errs := command.Validate(true); len(errs.Errors) > 0 {
+			t.Errorf("%s: unexpected errors %v", name, errs.Errors)
+		}
+	}
+
+	invalid := base(str("rocket"), str("#ff0000"))
+	errs := invalid.Validate(true)
+	if errs.Errors["icon"] == "" || errs.Errors["color"] == "" {
+		t.Errorf("unlisted icon and colour accepted: %v", errs.Errors)
+	}
+}

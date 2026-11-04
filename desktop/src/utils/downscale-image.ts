@@ -7,6 +7,13 @@ export const UPLOAD_IMAGE_QUALITY = 0.85;
 /** Files below this go up as they are: re-encoding saves little and costs a generation of JPEG loss. */
 export const UPLOAD_IMAGE_MIN_BYTES = 1_500_000;
 
+/** Overrides for a smaller picture than a receipt photo (an avatar). */
+export interface DownscaleOptions {
+  maxSide?: number;
+  minBytes?: number;
+  quality?: number;
+}
+
 // HEIC decodes only where the browser can (Safari); elsewhere it goes up as it is and the server converts it.
 const DOWNSCALABLE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
 
@@ -15,8 +22,11 @@ const DOWNSCALABLE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic
  * cannot improve (a PDF, a small file, a format the browser cannot decode, a result that is not smaller) is returned
  * unchanged, so a failure here never stops an upload.
  */
-export async function downscaleImageForUpload(file: File): Promise<File> {
-  if (!DOWNSCALABLE_TYPES.includes(file.type) || file.size < UPLOAD_IMAGE_MIN_BYTES) {
+export async function downscaleImageForUpload(file: File, options: DownscaleOptions = {}): Promise<File> {
+  const maxSide = options.maxSide ?? UPLOAD_IMAGE_MAX_SIDE;
+  const minBytes = options.minBytes ?? UPLOAD_IMAGE_MIN_BYTES;
+  const quality = options.quality ?? UPLOAD_IMAGE_QUALITY;
+  if (!DOWNSCALABLE_TYPES.includes(file.type) || file.size < minBytes) {
     return file;
   }
   if (typeof createImageBitmap !== "function" || typeof document === "undefined") {
@@ -31,7 +41,7 @@ export async function downscaleImageForUpload(file: File): Promise<File> {
   }
 
   try {
-    const scale = Math.min(1, UPLOAD_IMAGE_MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
 
@@ -47,7 +57,7 @@ export async function downscaleImageForUpload(file: File): Promise<File> {
     context.fillRect(0, 0, width, height);
     context.drawImage(bitmap, 0, 0, width, height);
 
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", UPLOAD_IMAGE_QUALITY));
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
     if (!blob || blob.size >= file.size) {
       return file;
     }

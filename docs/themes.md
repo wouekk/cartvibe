@@ -7,7 +7,7 @@ token values**. There is no per-component theme code.
 
 The look is two independent choices, remembered per browser (localStorage, no API):
 
-- **Palette** (`cartvibe.themePalette`, default `zinc`): **Blue**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
+- **Palette** (`cartvibe.themePalette`, default `zinc`): **Zinc** (listed first), **Blue**, **Indigo**, **Emerald**, **Violet**. It is
   `data-palette="<key>"` on `<html>`.
 - **Mode** (`cartvibe.themeMode`): **System**, **Day** (`light`) or **Night** (`dark`). Night puts the `dark` class on `<html>`
   (what Tailwind's `dark:` variants, the spartan components and the night token blocks key off); System follows the
@@ -21,7 +21,8 @@ first-sign-in welcome pick a palette and a mode; the look itself is described in
 
 ## Files and selectors (`desktop/src/themes/`)
 
-- `zinc.css` is the base: every token (surfaces, primary, status, Nutri-Score, charts, sidebar, `--brand-*`). The other
+- `zinc.css` is the base: every token (surfaces, primary, status, Nutri-Score, charts, sidebar, household colours
+  `--household-*`, `--brand-*`). The other
   palette files override only what differs from it. `themes.css` imports them all, zinc first.
 - Day: `:root` (zinc only, so the page is right before a palette is applied) and `[data-palette="<key>"]`.
 - Night: `.dark` (zinc only) and `.dark[data-palette="<key>"], .dark [data-palette="<key>"]`. The descendant form lets a

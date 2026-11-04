@@ -143,6 +143,29 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `UpcastReceiptUpdateDescriptions` from the nearest earlier complete copy, never rewritten.
 - `ReceiptRepository.UpdateReceipt` skips zero values, so an omitted `shopName` is never blanked.
 
+## Avatars
+
+- `PUT /user/avatar` (multipart `file`, `app.account.update`) stores the caller's photo at `data/avatars/<userId>`
+  (`utils.BuildAvatarPathString`, numeric id only) after `FileRepository.ValidateFileType`; HEIC/HEIF, TIFF and PDF are
+  converted to a JPEG, so the stored file is JPEG, PNG, WebP or GIF. 8 MB cap (`services.MaxAvatarBytes`, 413).
+  `users.avatar_updated_at` (nil = initials) is on `User` and `UserView` and versions the address.
+- `GET /user/{id}/avatar` needs a session and answers 404 both for no photo and for a person the viewer may not see
+  (`GetVisibleUserIdsForUser`, member isolation). `DELETE /user/avatar` clears it; `DeleteUser` removes the file after
+  its transaction. Avatars are not in the household export.
+
+## Households and renames
+
+- A household's look is `groups.icon` / `groups.color`: "" (the initial on the primary colour) or one of
+  `models.GroupIcons` / `GroupColors`, kept in step with the desktop's `constants/group-look.ts`. On the command they
+  are pointers: omitted keeps the stored value, "" clears it; never written on the "All" group.
+
+- The household new accounts join is flagged `groups.is_household` (set for the first account's group; old installs by
+  the data migration `mark-household-group-v1`). `FindHouseholdGroup` reads the flag, then falls back to the name
+  "Household" (a database an import wrote).
+- A rename moves `data/<id>-<name>/` inside `GroupRepository.UpdateGroup`'s transaction (`groupFolderMove`, its last
+  step): no folder is nothing to move, a taken target folder refuses the rename, a failed move rolls the update back and
+  a failed commit moves the folder back. The old `Group.BeforeUpdate` hook (which ignored a failed move) is gone.
+
 ## Warranties
 
 - `receipts.warranty_until` is a calendar day as text (`yyyy-MM-dd`), so `>= today` is a string compare on SQLite. It

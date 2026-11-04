@@ -202,7 +202,7 @@ test.describe('System tasks filter', () => {
 
     const chip = page.getByTestId('system-task-filter-chip-type');
     await expect(chip).toBeVisible();
-    await expect(chip).toContainText('Type contains Receipt Uploaded');
+    await expect(chip).toContainText('Type: contains Receipt Uploaded');
 
     // Every visible row is the filtered type.
     const typeCells = page.locator('table tbody tr:not(.example-detail-row) td:nth-child(3)');
@@ -214,7 +214,7 @@ test.describe('System tasks filter', () => {
     // Persisted to localStorage, so it has to come back after a reload.
     await page.reload();
     await expect(page.getByTestId('system-task-filter-chip-type')).toContainText(
-      'Type contains Receipt Uploaded',
+      'Type: contains Receipt Uploaded',
     );
 
     // A chip clears its own condition and nothing else.

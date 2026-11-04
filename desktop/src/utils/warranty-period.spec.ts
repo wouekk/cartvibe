@@ -53,15 +53,15 @@ describe("warranty period", () => {
   it("makes a row per product, the shop and dates on the receipt's first row", () => {
     const rows = warrantyRows(
       [
-        { id: 1, name: "Apple", shopName: "Apple", date: "2026-10-07T00:00:00Z", warrantyUntil: "2026-11-08", warrantyProducts: ["Apple MacBook", "Apple MacBook cable"] },
-        { id: 2, name: "Lamp", date: "2026-01-02T00:00:00Z", warrantyUntil: "2026-12-01" },
+        { id: 1, groupId: 3, name: "Apple", shopName: "Apple", date: "2026-10-07T00:00:00Z", warrantyUntil: "2026-11-08", warrantyProducts: ["Apple MacBook", "Apple MacBook cable"] },
+        { id: 2, groupId: 4, name: "Lamp", date: "2026-01-02T00:00:00Z", warrantyUntil: "2026-12-01" },
       ],
       "2026-10-29"
     );
-    expect(rows.map((row) => [row.receiptId, row.shop, row.product, row.daysLeft, row.first])).toEqual([
-      [1, "Apple", "Apple MacBook", 10, true],
-      [1, "Apple", "Apple MacBook cable", 10, false],
-      [2, "Lamp", "", 33, true],
+    expect(rows.map((row) => [row.receiptId, row.groupId, row.shop, row.product, row.daysLeft, row.first])).toEqual([
+      [1, 3, "Apple", "Apple MacBook", 10, true],
+      [1, 3, "Apple", "Apple MacBook cable", 10, false],
+      [2, 4, "Lamp", "", 33, true],
     ]);
   });
 

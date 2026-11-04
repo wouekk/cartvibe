@@ -290,12 +290,19 @@ export class SidebarComponent {
   );
 
   /**
-   * Everything under "Settings": the household's catalogues, the AI, the person's own settings, then the pages only an
-   * admin may open. Each entry sits behind its own read permission; Language and Theme need none.
+   * Everything under "Settings": System Settings, Management, User Settings, AI, Theme, then Language last. Each entry
+   * sits behind its own read permission; Language and Theme need none.
    */
   public readonly manageNavItems = computed(() => {
     const has = (permission: string) => hasAll(this.appPermissions(), permission);
     const items: ManageNavItem[] = [];
+
+    // Order: System Settings, Management, User Settings, AI, Theme, Language.
+    // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
+    // forms. The roles page stays at /roles.
+    if (this.canViewSystemSettings()) {
+      items.push({ label: "System Settings", icon: "settings", link: ["/system-settings"], testId: "nav-system-settings" });
+    }
 
     // Categories, Tags, Users and Households are one page with tabs; the entry opens the first tab the user may read
     // and stays highlighted on all four (their pages keep their own addresses).
@@ -309,20 +316,14 @@ export class SidebarComponent {
         activeUnder: managementTabs.map((tab) => tab.link),
       });
     }
-    if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
-      items.push({ label: "AI", icon: "smart_toy", link: ["/ai"], testId: "nav-ai" });
-    }
     if (this.canViewUserSettings()) {
       items.push({ label: marker("User Settings"), icon: "manage_accounts", link: ["/settings"], testId: "nav-user-settings" });
     }
-    items.push({ label: marker("Language"), icon: "translate", link: ["/language"], testId: "nav-language" });
-    items.push({ label: marker("Theme"), icon: "palette", link: ["/theme"], testId: "nav-theme" });
-
-    // No "Manage Roles" (Phase 3 M4): a household has Admin and User, picked on the user and member
-    // forms. The roles page stays at /roles.
-    if (this.canViewSystemSettings()) {
-      items.push({ label: "System Settings", icon: "settings", link: ["/system-settings"], testId: "nav-system-settings" });
+    if (has(Permission.AppReceiptProcessingSettingsUpdate)) {
+      items.push({ label: "AI", icon: "smart_toy", link: ["/ai"], testId: "nav-ai" });
     }
+    items.push({ label: marker("Theme"), icon: "palette", link: ["/theme"], testId: "nav-theme" });
+    items.push({ label: marker("Language"), icon: "translate", link: ["/language"], testId: "nav-language" });
 
     return items;
   });

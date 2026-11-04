@@ -42,5 +42,9 @@ export interface User {
      */
     appRoleId?: number;
     lastLoginDate?: string;
+    /**
+     * When the person last uploaded an avatar photo (GET /user/{id}/avatar); null shows the initials
+     */
+    avatarUpdatedAt?: string;
 }
 

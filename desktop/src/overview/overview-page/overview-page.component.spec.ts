@@ -1,3 +1,4 @@
+import { WarrantyMenuComponent } from "../../warranties/warranty-menu/warranty-menu.component";
 import { SnackbarService } from "../../services";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
@@ -110,7 +111,7 @@ describe("OverviewPageComponent", () => {
 
     await TestBed.configureTestingModule({
       declarations: [OverviewPageComponent],
-      imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
+      imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

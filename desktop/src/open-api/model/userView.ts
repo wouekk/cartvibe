@@ -37,5 +37,9 @@ export interface UserView {
      * Id of the modern app role assigned to the user
      */
     appRoleId?: number;
+    /**
+     * When the person last uploaded an avatar photo (GET /user/{id}/avatar); null shows the initials
+     */
+    avatarUpdatedAt?: string;
 }
 

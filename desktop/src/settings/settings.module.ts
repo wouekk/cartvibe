@@ -22,6 +22,7 @@ import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
 import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
+import { AvatarPhotoComponent } from "./avatar-photo/avatar-photo.component";
 
 @NgModule({
   declarations: [
@@ -49,6 +50,7 @@ import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
     SharedUiModule,
     TableModule,
     UserAutocompleteModule,
+    AvatarPhotoComponent,
   ],
 })
 export class SettingsModule {}

@@ -100,6 +100,8 @@ export function daysBetween(from: string | null | undefined, to: string | null |
 /** One row of a warranties table: a product of a receipt, and the receipt's warranty. */
 export interface WarrantyRow {
   receiptId: number;
+  /** The receipt's own group: the row menu is gated on it. */
+  groupId: number;
   shop: string;
   /** The product's name; "" for a receipt without products. */
   product: string;
@@ -112,13 +114,14 @@ export interface WarrantyRow {
 
 /** A row per product of each receipt (one row for a receipt without products), in the receipts' order. */
 export function warrantyRows(
-  receipts: readonly { id: number; name: string; shopName?: string; date: string; warrantyUntil?: string; warrantyProducts?: string[] }[],
+  receipts: readonly { id: number; groupId: number; name: string; shopName?: string; date: string; warrantyUntil?: string; warrantyProducts?: string[] }[],
   today: string
 ): WarrantyRow[] {
   return receipts.flatMap((receipt) => {
     const products = receipt.warrantyProducts?.length ? receipt.warrantyProducts : [""];
     return products.map((product, index) => ({
       receiptId: receipt.id,
+      groupId: receipt.groupId,
       shop: receipt.shopName || receipt.name,
       product,
       bought: receipt.date,

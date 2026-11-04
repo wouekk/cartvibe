@@ -1,3 +1,4 @@
+import { WarrantyMenuComponent } from "../warranties/warranty-menu/warranty-menu.component";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -21,6 +22,6 @@ import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 
 @NgModule({
   declarations: [OverviewPageComponent],
-  imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports],
+  imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, WarrantyMenuComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports],
 })
 export class OverviewModule {}

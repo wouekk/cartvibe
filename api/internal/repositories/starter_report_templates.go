@@ -112,8 +112,8 @@ func SeedStarterReportTemplates(h cell.Handle) error {
 		return err
 	}
 
-	var group models.Group
-	if err := db.Where("name = ?", HouseholdGroupName).Limit(1).Find(&group).Error; err != nil {
+	group, err := FindHouseholdGroup(db)
+	if err != nil {
 		return err
 	}
 	if group.ID == 0 {

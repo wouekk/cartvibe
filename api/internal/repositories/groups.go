@@ -104,6 +104,15 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 	groupToCreate.Status = command.Status
 	groupToCreate.IsAllGroup = command.IsAllGroup
 	groupToCreate.IsolateMembers = command.IsolateMembers
+	// The synthetic "All" group never wears a household look.
+	if !command.IsAllGroup {
+		if command.Icon != nil {
+			groupToCreate.Icon = *command.Icon
+		}
+		if command.Color != nil {
+			groupToCreate.Color = *command.Color
+		}
+	}
 	for i := 0; i < len(command.GroupMembers); i++ {
 		groupMember := buildGroupMemberFromCommand(command.GroupMembers[i])
 		groupToCreate.GroupMembers = append(groupToCreate.GroupMembers, groupMember)
@@ -154,7 +163,9 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		return models.Group{}, err
 	}
 
-	err = repository.GetDB().Model(models.Group{}).Where("id = ?", groupToCreate.ID).Preload("GroupMembers").Find(&returnGroup).Error
+	// Read back through the same handle the group was written with: inside a caller's transaction (CreateUser),
+	// another connection cannot see the uncommitted row yet.
+	err = db.Model(models.Group{}).Where("id = ?", groupToCreate.ID).Preload("GroupMembers").Find(&returnGroup).Error
 	if err != nil {
 		return models.Group{}, err
 	}
@@ -163,10 +174,18 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 }
 
 func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupCommand, groupId string) (models.Group, error) {
-	// TODO: move hooks from model to repository func
 	db := repository.GetDB()
 
 	uintId, err := utils.StringToUint(groupId)
+	if err != nil {
+		return models.Group{}, err
+	}
+
+	var stored models.Group
+	if err := db.Model(models.Group{}).Select("id", "name").Where("id = ?", uintId).First(&stored).Error; err != nil {
+		return models.Group{}, err
+	}
+	folderMove, err := planGroupFolderMove(uintId, stored.Name, command.Name)
 	if err != nil {
 		return models.Group{}, err
 	}
@@ -217,6 +236,22 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 			return txErr
 		}
 
+		// Map form, so "" (back to the default look) is written; an omitted field keeps what is stored. The "All"
+		// group is refused by the handler before it gets here.
+		look := map[string]interface{}{}
+		if command.Icon != nil {
+			look["icon"] = *command.Icon
+		}
+		if command.Color != nil {
+			look["color"] = *command.Color
+		}
+		if len(look) > 0 {
+			txErr = tx.Model(&models.Group{}).Where("id = ? AND (is_all_group IS NULL OR is_all_group = ?)", uintId, false).Updates(look).Error
+			if txErr != nil {
+				return txErr
+			}
+		}
+
 		txErr = tx.Model(&groupToUpdate).Association("GroupMembers").Unscoped().Replace(groupToUpdate.GroupMembers)
 		if txErr != nil {
 			return txErr
@@ -231,9 +266,12 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 			return txErr
 		}
 
-		return nil
+		// Last, so a failed move rolls the whole update back: receipt files are found through the group's
+		// current name, so the folder and the name must change together.
+		return folderMove.apply()
 	})
 	if err != nil {
+		folderMove.undo()
 		return models.Group{}, err
 	}
 

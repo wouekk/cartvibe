@@ -60,42 +60,11 @@
 </ng-template>
 
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="flex items-center">
-    <app-button
-      *hasAppPermission="Permission.AppUsersUpdate"
-      data-testid="user-edit"
-      matButtonType="iconButton"
-      icon="edit"
-      [tooltip]="'Edit User' | t"
-      color="accent"
-      (clicked)="openUserFormDialog(element)"
-    ></app-button>
-    <app-button
-      *hasAppPermission="Permission.AppUsersUpdate"
-      data-testid="user-set-password"
-      matButtonType="iconButton"
-      icon="password"
-      [tooltip]="'Set password' | t"
-      color="accent"
-      (clicked)="openResetPasswordDialog(element)"
-    ></app-button>
-    <ng-container *hasAppPermission="Permission.AppUsersUpdate">
-      <app-button
-        *ngIf="element.isDummyUser"
-        matButtonType="iconButton"
-        icon="person"
-        color="accent"
-        [tooltip]="'Convert to normal user' | t"
-        (clicked)="openDummyUserConversionDialog(element)"
-      >
-      </app-button>
-    </ng-container>
-    <ng-container *hasAppPermission="Permission.AppUsersDelete">
-      <app-delete-button
-        *ngIf="userId() !== element.id.toString()"
-        data-testid="user-delete"
-        (clicked)="deleteUser(index)"
-      ></app-delete-button>
-    </ng-container>
-  </div>
+  <app-row-actions
+    menuTestId="user-menu"
+    [menuLabel]="'User actions' | t"
+    [actions]="rowActions"
+    [row]="element"
+    (run)="rowAction($event, element, index)"
+  ></app-row-actions>
 </ng-template>

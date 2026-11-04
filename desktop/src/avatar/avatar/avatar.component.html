@@ -1,14 +1,30 @@
-<!-- A user's own avatar colour is their data (white initial on it); without one the avatar takes the primary token pair. -->
+<!--
+  A user's own avatar colour is their data (white initial on it); a household wears its chosen colour token
+  (--household-<name>); without either the avatar takes the primary token pair.
+-->
 <div
   [hlmTooltip]="user()?.displayName ?? group()?.name ?? ''"
-  [style.background-color]="user()?.defaultAvatarColor || null"
-  class="avatar flex size-[3.125rem] items-center justify-center rounded-full"
-  [class.bg-primary]="!user()?.defaultAvatarColor"
-  [class.text-primary-foreground]="!user()?.defaultAvatarColor"
-  [class.text-white]="!!user()?.defaultAvatarColor"
+  [style.background-color]="background()"
+  [style.color]="foreground()"
+  class="avatar flex items-center justify-center overflow-hidden rounded-full"
+  [class]="sizeClass()"
+  [class.bg-primary]="!background()"
+  [class.text-primary-foreground]="!background()"
 >
-  {{
-    user()?.displayName?.toUpperCase() ?? group()?.name?.toUpperCase()
-      | slice : 0 : 1
-  }}
+  @if (showPhoto()) {
+    <img
+      class="size-full object-cover"
+      data-testid="avatar-photo"
+      alt=""
+      [src]="photoUrl()"
+      (error)="failedUrl.set(photoUrl())"
+    />
+  } @else if (groupIcon(); as icon) {
+    <app-icon data-testid="avatar-group-icon" [class]="iconClass()" [name]="icon"></app-icon>
+  } @else {
+    {{
+      user()?.displayName?.toUpperCase() ?? group()?.name?.toUpperCase()
+        | slice : 0 : 1
+    }}
+  }
 </div>

@@ -5,6 +5,14 @@
   font-size: 0.875rem;
   flex: 0 0 auto;
   box-shadow: none;
+}
+
+// The person's own avatar keeps the primary pair in the sidebar; a household wears its chosen colour.
+.sidebar__avatar--user .avatar {
   background-color: var(--primary) !important;
   color: var(--primary-foreground) !important;
+}
+
+.sidebar__avatar .avatar app-icon {
+  font-size: 1rem;
 }

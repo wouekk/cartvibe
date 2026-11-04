@@ -15,8 +15,11 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two
   months on (`WARRANTY_ENDING_SOON_MONTHS`), nearest first, one row per product (`warrantyRows` over the list's
   `warrantyProducts`; the shop and dates on a receipt's first row), and a Days left column ("Today", then `N days`; a
-  week or less in `text-warning-text`). It loads once per group, whatever the period. The Warranties page uses the same
-  rows. Both tables are `table-fixed` so long names end in an ellipsis, and phones drop the monogram and date columns. Unhealthy, Not on the list, tags and every donut slice open
+  week or less in `text-warning-text`). It loads once per group, whatever the period (and again after a row's menu
+  saves). The Warranties page uses the same rows. A receipt's first row ends in `app-warranty-menu`
+  (`src/warranties/warranty-menu/`, gated on `group.receipts.update` in the receipt's own `groupId`): Edit opens
+  `WarrantyDateDialogComponent`, Remove confirms with `marker("Remove")`; both call `setReceiptWarranty` ("" clears) and
+  emit `changed`. Both tables are `table-fixed` so long names end in an ellipsis, and phones drop the monogram and date columns. Unhealthy, Not on the list, tags and every donut slice open
   `OverviewDetailDialogComponent`. **Other** (`DonutSegment.members`, the categories folded past `MAX_DONUT_SEGMENTS`)
   opens kind `OTHER`: one `FOODGROUP` request per member, one section with a subtotal each, and a failed member fails the
   whole list rather than showing a short one. The **Spent** tile (a stretched link, the goal controls sit above it), the
@@ -269,16 +272,25 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 
 ## Navigation and settings screens
 
-- **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: Management,
-  AI, User Settings, Language (`/language`), Theme (`/theme`), System Settings, each behind its permission (Language
-  and Theme need none and are top-level routes; `/settings/theme` redirects). Each entry has a `nav-*` test id.
+- **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: System
+  Settings, Management, User Settings, AI, Theme (`/theme`), Language (`/language`), each behind its permission
+  (Language and Theme need none and are top-level routes; `/settings/theme` redirects). Each entry has a `nav-*` test id.
 - **Management** is Categories (`/categories`), Tags (`/tags`), Users (`/users`) and Households (`/groups`) as tabs:
   each list page keeps its own route and module, is titled "Management" and puts `app-management-tabs` in its
   `settingsTabs` slot (`MANAGEMENT_TABS`, `allowedManagementTabs`, `managementTabForUrl` in
   `shared-ui/management-tabs/`). The sidebar entry opens the first tab the user may read and stays active under all
   four (`activeUnder`); a household's or user's own pages keep their own headers. Routes with `data: { fullHeight: true }` get a
   bounded full-bleed content area.
-- **User Settings** (`/settings`): User Profile and User Preferences, each gated on its read permission.
+- **User Settings** (`/settings`): User Profile and User Preferences, each gated on its read permission. User Profile
+  starts with `app-avatar-photo` (`src/settings/avatar-photo/`): two native `<label>` file inputs (camera with
+  `capture="user"`, and a file), `downscaleImageForUpload(file, { maxSide: 512, minBytes: 0 })`, an 8 MB check, then
+  `PUT /user/avatar`; Remove photo confirms with `marker("Remove")`. Either result dispatches `UpdateUser` with the new
+  `avatarUpdatedAt`. `app-avatar` draws `/api/user/{id}/avatar?v=<avatarUpdatedAt>` when the user (or, for the
+  signed-in user from the token, `UserState`) has one, and the initial otherwise or when the image fails.
+- **Households** (`/groups`): the name cell shows `app-avatar size="sm" [group]` (icon on its colour). The edit form holds
+  `icon` / `color` controls driven by `app-group-look-picker` (`src/group/group-look-picker/`, lists in
+  `constants/group-look.ts`). Each row ends in `app-row-actions` (Edit → the household's edit page, Delete; inline icons, or the
+  `group-menu` menu on a phone, like users, categories, tags and the members table); phones drop the dates and the member count (`visibleColumns`, `ViewportService.isHandset`) so the menu stays on screen.
 - **System Settings** has six tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
   Tasks & Storage, Export & import (`export-import`, only with `app.backup.export`), Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,

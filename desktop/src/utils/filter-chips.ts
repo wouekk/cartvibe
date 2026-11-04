@@ -66,7 +66,10 @@ function buildLabel(
       ? ""
       : buildValueLabel(field, entry, operation, lookups);
 
-  return [translate(field.label), operationLabel, valueLabel].filter((part) => !!part).join(" ");
+  // "<field>: <operation> <value>", the colon right after the field name in every language.
+  const condition = [operationLabel, valueLabel].filter((part) => !!part).join(" ");
+  const fieldLabel = translate(field.label);
+  return condition ? `${fieldLabel}: ${condition}` : fieldLabel;
 }
 
 function buildValueLabel(

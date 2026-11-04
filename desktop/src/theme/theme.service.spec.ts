@@ -179,7 +179,7 @@ describe("ThemeService", () => {
     const modes = MODE_OPTIONS.map((option) => option.mode);
 
     expect(new Set(keys).size).toBe(keys.length);
-    expect(keys).toEqual(["blue", "zinc", "indigo", "emerald", "violet"]);
+    expect(keys).toEqual(["zinc", "blue", "indigo", "emerald", "violet"]);
     expect(findPalette(DEFAULT_PALETTE)).toBeDefined();
     expect(modes).toEqual(["system", "light", "dark"]);
   });

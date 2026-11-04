@@ -44,7 +44,7 @@ describe("buildReceiptFilterChips", () => {
       lookups
     );
 
-    expect(chip.label).toBe("Receipt Date between Tue Sep 01 2026 – Wed Sep 30 2026");
+    expect(chip.label).toBe("Receipt Date: between Tue Sep 01 2026 – Wed Sep 30 2026");
   });
 
   it("labels a currency comparison", () => {
@@ -53,7 +53,7 @@ describe("buildReceiptFilterChips", () => {
       lookups
     );
 
-    expect(chip.label).toBe("Amount greater than $25.00");
+    expect(chip.label).toBe("Amount: greater than $25.00");
   });
 
   it("resolves ids to names for every list-shaped field", () => {
@@ -68,10 +68,10 @@ describe("buildReceiptFilterChips", () => {
     );
 
     expect(chips.map((chip) => chip.label)).toEqual([
-      "Paid by contains Dana Kim",
-      "Group contains Household",
-      "Categories contains Groceries, Dining",
-      "Status contains To check",
+      "Paid by: contains Dana Kim",
+      "Group: contains Household",
+      "Categories: contains Groceries, Dining",
+      "Status: contains To check",
     ]);
   });
 
@@ -83,7 +83,7 @@ describe("buildReceiptFilterChips", () => {
       lookups
     );
 
-    expect(chip.label).toBe("Categories contains 99");
+    expect(chip.label).toBe("Categories: contains 99");
   });
 
   // WITHIN_CURRENT_MONTH carries no value, so the label stops at the operation.
@@ -93,7 +93,7 @@ describe("buildReceiptFilterChips", () => {
       lookups
     );
 
-    expect(chip.label).toBe("Receipt Date within current month");
+    expect(chip.label).toBe("Receipt Date: within current month");
   });
 
   // The quick date control used to suppress its own field's chip while the

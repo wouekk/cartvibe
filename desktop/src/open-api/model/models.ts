@@ -7,6 +7,7 @@ export * from './appLogEntry';
 export * from './associatedEntityType';
 export * from './associatedGroup';
 export * from './attachShoppingTripReceiptCommand';
+export * from './avatarResponse';
 export * from './backupEntityCount';
 export * from './backupImportJob';
 export * from './backupImportPerson';

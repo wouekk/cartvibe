@@ -94,6 +94,8 @@ func TestDataFileHelpers_RejectPathsOutsideDataDir(t *testing.T) {
 	assertRejected("RenameDataPath(dst-outside)", RenameDataPath(marker, filepath.Join(os.TempDir(), "cv_utils_out_moved")))
 	assertRejected("WriteDataFile", WriteDataFile(filepath.Join(sentinel, "w.txt"), []byte("x")))
 	assertRejected("EnsureDataDirectory", EnsureDataDirectory(filepath.Join(sentinel, "d")))
+	_, existsErr := DataPathExists(marker)
+	assertRejected("DataPathExists", existsErr)
 	_, readErr := ReadDataFile(marker)
 	assertRejected("ReadDataFile", readErr)
 
@@ -127,8 +129,15 @@ func TestDataFileHelpers_AllowPathsInsideDataDir(t *testing.T) {
 		t.Fatalf("expected directory to be created")
 	}
 
+	if exists, err := DataPathExists(dir); err != nil || !exists {
+		t.Fatalf("DataPathExists on a created dir: %v, %v", exists, err)
+	}
+
 	renamed := filepath.Join(dataDir, "cv_utils_in_dir_renamed")
 	defer os.RemoveAll(renamed)
+	if exists, err := DataPathExists(renamed); err != nil || exists {
+		t.Fatalf("DataPathExists on a missing dir: %v, %v", exists, err)
+	}
 	if err := RenameDataPath(dir, renamed); err != nil {
 		t.Fatalf("RenameDataPath in data dir failed: %v", err)
 	}

@@ -135,7 +135,7 @@ describe("HeaderComponent", () => {
     const toggle = fixture.nativeElement.querySelector("[data-testid=theme-toggle]") as HTMLButtonElement;
     expect(palette).not.toBeNull();
     expect(palette.nextElementSibling).toBe(toggle);
-    expect(component.palettes.map((entry) => entry.key)).toEqual(["blue", "zinc", "indigo", "emerald", "violet"]);
+    expect(component.palettes.map((entry) => entry.key)).toEqual(["zinc", "blue", "indigo", "emerald", "violet"]);
 
     component.pickPalette("emerald");
 

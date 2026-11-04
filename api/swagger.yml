@@ -2283,6 +2283,89 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /user/avatar:
+    put:
+      tags:
+        - User
+      summary: Upload own avatar photo
+      description:
+        Stores the signed-in person's avatar photo, shown wherever their initials were. The file must be a receipt
+        format (JPEG, PNG, WebP, GIF, HEIC, TIFF or PDF, detected from its bytes) of at most 8 MB; HEIC, TIFF and PDF are
+        turned into a JPEG. A new photo replaces the old one.
+      operationId: uploadAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadAvatarCommand"
+      responses:
+        200:
+          description: When the photo was saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvatarResponse"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        413:
+          description: The photo is larger than 8 MB
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+    delete:
+      tags:
+        - User
+      summary: Remove own avatar photo
+      description: Deletes the signed-in person's avatar photo; their initials show again.
+      operationId: deleteAvatar
+      responses:
+        200:
+          description: The photo is gone (avatarUpdatedAt is null)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvatarResponse"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /user/{id}/avatar:
+    get:
+      tags:
+        - User
+      summary: Get a person's avatar photo
+      description:
+        Serves a person's avatar photo (JPEG, PNG, WebP or GIF) to a signed-in viewer allowed to see that person. A
+        person without a photo, and one hidden from the viewer by member isolation, both answer 404. The web app adds
+        ?v=<avatarUpdatedAt> so a new photo is a new address.
+      operationId: getUserAvatar
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Id of the person
+          schema:
+            type: integer
+      responses:
+        200:
+          description: The photo
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: No photo, or a person the viewer may not see
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
   /user/appData:
     get:
       tags:
@@ -6021,6 +6104,17 @@ components:
             Whether member-presence isolation is enabled for the group. When on,
             members cannot discover other members unless they hold a group role
             flagged seesAllMembers. Defaults to false.
+        icon:
+          type: string
+          description: >-
+            The household's icon: home, add_home, apartment, group, favorite, child_care, dog, cat, pets,
+            directions_car, flight, shopping_cart, restaurant, local_cafe, work, school, park, sunny or star; "" shows
+            the initial. Never set on the "All" group.
+        color:
+          type: string
+          description: >-
+            The household's colour: slate, red, orange, amber, green, teal, blue, indigo, violet or pink; "" is the
+            default look.
         status:
           type: string
           $ref: "#/components/schemas/GroupStatus"
@@ -6054,6 +6148,18 @@ components:
             Whether to enable member-presence isolation for the group. When on,
             members cannot discover other members unless they hold a group role
             flagged seesAllMembers. Defaults to false.
+        icon:
+          type: string
+          nullable: true
+          description: >-
+            One of the household icons (see Group.icon), or "" for the initial. Omitted keeps the stored icon; anything
+            else is a 400.
+        color:
+          type: string
+          nullable: true
+          description: >-
+            One of the household colours (see Group.color), or "" for the default look. Omitted keeps the stored
+            colour; anything else is a 400.
         status:
           type: string
           $ref: "#/components/schemas/GroupStatus"
@@ -6453,6 +6559,10 @@ components:
           description: Id of the modern app role assigned to the user
         lastLoginDate:
           type: string
+        avatarUpdatedAt:
+          type: string
+          nullable: true
+          description: When the person last uploaded an avatar photo (GET /user/{id}/avatar); null shows the initials
       description: User in the system
       x-go-package: cartvibe/api/internal/models
     UserView:
@@ -6490,6 +6600,10 @@ components:
           format: uint64
           nullable: true
           description: Id of the modern app role assigned to the user
+        avatarUpdatedAt:
+          type: string
+          nullable: true
+          description: When the person last uploaded an avatar photo (GET /user/{id}/avatar); null shows the initials
       description: User in the system
       x-go-package: cartvibe/api/internal/models
     UpdateProfileCommand:
@@ -7711,6 +7825,21 @@ components:
         - fileCount
         - fileBytes
         - formatVersion
+    UploadAvatarCommand:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+      required:
+        - file
+    AvatarResponse:
+      type: object
+      properties:
+        avatarUpdatedAt:
+          type: string
+          nullable: true
+          description: When the avatar photo was saved (RFC 3339); null once it is removed
     BackupImportUploadCommand:
       type: object
       properties:

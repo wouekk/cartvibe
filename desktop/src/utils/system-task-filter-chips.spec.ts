@@ -33,7 +33,7 @@ describe("buildSystemTaskFilterChips", () => {
       type: { operation: FilterOperation.Contains, value: ["QUICK_SCAN", "HTML_TO_PDF"] },
     });
 
-    expect(chips).toEqual([{ key: "type", label: "Type contains Quick Scan, HTML to PDF" }]);
+    expect(chips).toEqual([{ key: "type", label: "Type: contains Quick Scan, HTML to PDF" }]);
   });
 
   it("names the System sentinel and resolves real users", () => {
@@ -41,7 +41,7 @@ describe("buildSystemTaskFilterChips", () => {
       ranBy: { operation: FilterOperation.Contains, value: [SYSTEM_RAN_BY_OPTION_ID, 4] },
     });
 
-    expect(chips).toEqual([{ key: "ranBy", label: "Ran By contains System, Alice" }]);
+    expect(chips).toEqual([{ key: "ranBy", label: "Ran By: contains System, Alice" }]);
   });
 
   // A user who has since been deleted must still leave a clearable chip, or a
@@ -51,7 +51,7 @@ describe("buildSystemTaskFilterChips", () => {
       ranBy: { operation: FilterOperation.Contains, value: [999] },
     });
 
-    expect(chips).toEqual([{ key: "ranBy", label: "Ran By contains 999" }]);
+    expect(chips).toEqual([{ key: "ranBy", label: "Ran By: contains 999" }]);
   });
 
   it("formats both bounds of a date range", () => {
@@ -65,7 +65,7 @@ describe("buildSystemTaskFilterChips", () => {
     expect(chips).toEqual([
       {
         key: "startedAt",
-        label: "Started At between date(2026-03-10T00:00:00Z) – date(2026-03-12T00:00:00Z)",
+        label: "Started At: between date(2026-03-10T00:00:00Z) – date(2026-03-12T00:00:00Z)",
       },
     ]);
   });

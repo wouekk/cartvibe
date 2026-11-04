@@ -6,7 +6,13 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
 import { By } from "@angular/platform-browser";
-import { provideRouter, RouterLink } from "@angular/router";
+import { provideRouter, Router, RouterLink } from "@angular/router";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ViewportService } from "../../services/viewport.service";
+import { AvatarModule } from "../../avatar";
+import { RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -42,6 +48,11 @@ describe("GroupTableComponent", () => {
         NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
         SharedUiModule,
         TableModule,
+        HlmButton,
+        ...HlmDropdownMenuImports,
+        AppIconComponent,
+        AvatarModule,
+        RowActionsComponent,
       ],
       providers: [
         provideZonelessChangeDetection(),
@@ -99,22 +110,58 @@ describe("GroupTableComponent", () => {
       fixture.detectChanges(false);
     };
 
-    it("shows the delete action to a member holding group.delete", () => {
+    const group = { id: 5, name: "Abandoned Group", groupMembers: [] } as unknown as Group;
+
+    it("offers delete to a member holding group.delete", () => {
       renderRowWith([], { 5: [Permission.GroupDelete] });
 
       expect(queryTestId("group-delete")).toBeTruthy();
+      expect(component.canDelete(group)).toBe(true);
+      expect(component.canEdit(group)).toBe(false);
     });
 
-    it("shows the delete action to a non-member holding app.groups.delete", () => {
+    it("offers delete to a non-member holding app.groups.delete", () => {
       renderRowWith([Permission.AppGroupsDelete]);
 
       expect(queryTestId("group-delete")).toBeTruthy();
+      expect(component.canDelete(group)).toBe(true);
     });
 
-    it("hides the delete action from a non-member who can only read all groups", () => {
+    it("shows no row action to a non-member who can only read all groups", () => {
       renderRowWith([Permission.AppGroupsRead]);
 
       expect(queryTestId("group-delete")).toBeFalsy();
+      expect(queryTestId("group-edit")).toBeFalsy();
+    });
+  });
+
+  describe("edit row action", () => {
+    const group = { id: 5, name: "Home", groupMembers: [] } as unknown as Group;
+
+    it("offers Edit to a member holding group.update and opens the household's edit page", () => {
+      store.dispatch(new SetPermissions([], { 5: [Permission.GroupUpdate] }));
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigateByUrl").mockResolvedValue(true);
+
+      expect(component.canEdit(group)).toBe(true);
+      component.editGroup(group);
+
+      expect(navigate).toHaveBeenCalledWith("/groups/5/details/edit");
+    });
+
+    it("never offers Edit or Delete on the synthetic All group", () => {
+      store.dispatch(new SetPermissions([Permission.AppGroupsDelete], { 5: [Permission.GroupUpdate, Permission.GroupDelete] }));
+      const all = { ...group, isAllGroup: true } as Group;
+
+      expect(component.canEdit(all)).toBe(false);
+      expect(component.canDelete(all)).toBe(false);
+    });
+
+    it("drops the dates and the member count on a phone so the row menu stays on screen", () => {
+      const viewport = TestBed.inject(ViewportService) as unknown as { isHandset: () => boolean };
+      Object.defineProperty(viewport, "isHandset", { value: () => true });
+      fixture = TestBed.createComponent(GroupTableComponent);
+
+      expect(fixture.componentInstance.visibleColumns()).toEqual(["name", "actions"]);
     });
   });
 

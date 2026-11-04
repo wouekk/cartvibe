@@ -17,6 +17,10 @@ type UpsertGroupCommand struct {
 	// IsolateMembers turns on member-presence isolation for the group. Default
 	// false ⇒ existing groups behave exactly as before.
 	IsolateMembers bool `json:"isolateMembers"`
+	// Icon and Color: one of models.GroupIcons / GroupColors, or "" for the default look. Omitted (nil) keeps the
+	// stored value, so a client that does not know them changes nothing.
+	Icon  *string `json:"icon"`
+	Color *string `json:"color"`
 }
 
 func (command *UpsertGroupCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -45,6 +49,14 @@ func (command *UpsertGroupCommand) Validate(isCreate bool) structs.ValidatorErro
 
 	if len(command.Status) == 0 {
 		errorMap["status"] = "Status is required"
+	}
+
+	if command.Icon != nil && !models.IsGroupIcon(*command.Icon) {
+		errorMap["icon"] = "Icon is not one of the household icons"
+	}
+
+	if command.Color != nil && !models.IsGroupColor(*command.Color) {
+		errorMap["color"] = "Color is not one of the household colours"
 	}
 
 	if !isCreate {

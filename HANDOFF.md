@@ -13,6 +13,15 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - **Site search and sharing (`feature/site-seo`, 2026-11-04):** JSON-LD, robots.txt, sitemap, sharing image, new title,
   Zinc first in the site's palette menu (`docs/site.md`, "Search and sharing"). The site deploys from `main` only, so it is
   live after that merge. Owner: verify `cartvibe.app` in Google Search Console, submit the sitemap; add repo topics.
+- **`feature/settings-avatar-warranty` (2026-11-04) is on `preview`, not `main`:** household rename (row Edit)
+  (HH-01; the data folder moves inside the update's transaction, and `is_household` with the data migration
+  `mark-household-group-v1` keeps new accounts joining a renamed household), Settings menu order (APP-10), warranty
+  Edit/Remove menus (WARR-05), profile photos (HH-06, `data/avatars/`), a household icon and colour (HH-07,
+  `--household-*` tokens), Zinc first in the palette pickers, "field: condition" filter chips and one row pattern
+  for settings lists (`app-row-actions`: inline icons on a computer, a ⋮ menu below 768px). Checked locally in a
+  browser (day, Night + Emerald/Violet, 360px and desktop) on the stubbed Windows API; not tried yet: a HEIC or PDF
+  avatar (needs ImageMagick) and a rename of a household that has receipt photos on the NAS. Avatars and the household
+  look are not in the export (ADM-11). `main` waits for the owner's go.
 - Last release v0.16.0 (2026-11-02); `[Unreleased]` holds the scanner fix (#11), the feature registry and two FAQ answers.
   `i18n-audit-en-pl.md` and `docs/plans/backlog-review-2026-11-03.md` (untracked) are the owner's.
 - **No hosted plan (2026-11-02):** `wouekk/cartvibe-cloud` is frozen (ADR 0014 there); the iPhone app keeps its data on the

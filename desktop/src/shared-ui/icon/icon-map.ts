@@ -166,6 +166,11 @@ import {
   lucideTablet,
   lucideMonitor,
   lucideWifiOff,
+  lucideHousePlus,
+  lucideBaby,
+  lucideDog,
+  lucideCat,
+  lucideTreePine,
 } from "@ng-icons/lucide";
 
 export const ICON_DEFINITIONS = {
@@ -332,6 +337,11 @@ export const ICON_DEFINITIONS = {
   lucideTablet,
   lucideMonitor,
   lucideWifiOff,
+  lucideHousePlus,
+  lucideBaby,
+  lucideDog,
+  lucideCat,
+  lucideTreePine,
 };
 
 export const MATERIAL_TO_LUCIDE: Record<string, string> = {
@@ -531,4 +541,11 @@ export const MATERIAL_TO_LUCIDE: Record<string, string> = {
   computer: "lucideMonitor",
   wifi_off: "lucideWifiOff",
   screen_lock_portrait: "lucideSmartphone",
+  // Household icons (GROUP_ICONS)
+  add_home: "lucideHousePlus",
+  child_care: "lucideBaby",
+  dog: "lucideDog",
+  cat: "lucideCat",
+  park: "lucideTreePine",
+  sunny: "lucideSun",
 };

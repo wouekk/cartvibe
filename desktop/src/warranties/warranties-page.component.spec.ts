@@ -6,11 +6,15 @@ import { NgxsModule } from "@ngxs/store";
 import { Observable, of, Subject, throwError } from "rxjs";
 import { ReceiptService, SortDirection } from "../open-api";
 import { SystemSettingsState } from "../store/system-settings.state";
+import { AuthState } from "../store";
+import { SetPermissions } from "../store/auth.state.actions";
+import { Store } from "@ngxs/store";
 import { WarrantiesPageComponent } from "./warranties-page.component";
 
 import type { Mock } from "vitest";
 const receipt = (id: number, shopName: string, warrantyProducts: string[] = []) => ({
   id,
+  groupId: 1,
   name: `Receipt ${id}`,
   shopName,
   date: "2026-09-01",
@@ -28,7 +32,7 @@ describe("WarrantiesPageComponent", () => {
   const open = async (response: () => Observable<unknown>, { settle = true } = {}) => {
     getReceiptsForGroup = vi.fn(response);
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([SystemSettingsState])],
+      imports: [NgxsModule.forRoot([AuthState, SystemSettingsState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([{ path: "warranties/group/:groupId", component: WarrantiesPageComponent }]),
@@ -91,5 +95,24 @@ describe("WarrantiesPageComponent", () => {
 
     expect(getReceiptsForGroup).toHaveBeenCalledTimes(2);
     expect(getReceiptsForGroup).toHaveBeenLastCalledWith(2, expect.anything());
+  });
+
+  it("gives each receipt a row menu only where its group lets the person update receipts", async () => {
+    await open(() => of({ data: [receipt(1, "MediaMarkt", ["Headphones", "Cable"])] }));
+    expect(byTestId("warranty-menu")).toHaveLength(0);
+
+    TestBed.inject(Store).dispatch(new SetPermissions([], { 1: ["group.receipts.update"] }));
+    await harness.fixture.whenStable();
+
+    expect(byTestId("warranty-menu")).toHaveLength(1);
+  });
+
+  it("loads the list again after a warranty changes", async () => {
+    await open(() => of({ data: [receipt(1, "MediaMarkt")] }));
+
+    (harness.routeDebugElement!.componentInstance as WarrantiesPageComponent).reload();
+    await harness.fixture.whenStable();
+
+    expect(getReceiptsForGroup).toHaveBeenCalledTimes(2);
   });
 });

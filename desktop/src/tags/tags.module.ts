@@ -1,3 +1,4 @@
+import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 import { CommonModule } from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from "@angular/common/http";
@@ -19,6 +20,7 @@ import { TagsRoutingModule } from "./tags-routing.module";
         PipesModule,
         ReactiveFormsModule,
         SharedUiModule,
+    RowActionsComponent,
         TableModule,
         TagsRoutingModule], providers: [provideHttpClient(withXhr(), withInterceptorsFromDi())] })
 export class TagsModule {}

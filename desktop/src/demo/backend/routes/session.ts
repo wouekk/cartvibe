@@ -141,6 +141,10 @@ export function registerSession(router: DemoRouter): void {
     return ok(claimsFor(ctx.db));
   });
   router.post("/user/deleteAccount", () => badRequest("The sample account cannot be deleted in the demo."));
+  // The demo keeps no files, so its people keep their initials.
+  router.put("/user/avatar", () => badRequest("Photos are not kept in the demo."));
+  router.delete("/user/avatar", () => ok({ avatarUpdatedAt: null }));
+  router.get("/user/:userId/avatar", () => notFound("No photo"));
 }
 
 /**
