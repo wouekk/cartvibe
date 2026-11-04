@@ -87,6 +87,21 @@ func RemoveAllInDataDir(path string) error {
 	return os.RemoveAll(path)
 }
 
+// BuildAvatarPathString is where a person's avatar photo is stored: data/avatars/<userId>. The name is the numeric
+// id only, so nothing a person typed reaches the path.
+func BuildAvatarPathString(userId uint) (string, error) {
+	dataDir, err := GetDataDir()
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(dataDir, "avatars", UintToString(userId))
+	if err := AssertWithinDataDir(path); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 // DataPathExists reports whether a file or directory exists inside the data
 // directory, refusing any path that would escape it.
 func DataPathExists(path string) (bool, error) {

@@ -13,4 +13,6 @@ type UserView struct {
 	UpdatedAt          time.Time `json:"updatedAt"`
 	Username           string    `json:"username"`
 	AppRoleID          *uint     `json:"appRoleId"`
+	// AvatarUpdatedAt is set while the person has an avatar photo (GET /user/{id}/avatar); nil shows the initials.
+	AvatarUpdatedAt *time.Time `json:"avatarUpdatedAt"`
 }

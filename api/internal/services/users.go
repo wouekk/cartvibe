@@ -205,6 +205,9 @@ func DeleteUser(userId string) error {
 		return err
 	}
 
+	// The photo goes with the account; a failure to remove it leaves an unreachable file, not a broken delete.
+	_ = RemoveUserAvatarFile(uintUserId)
+
 	return nil
 }
 
