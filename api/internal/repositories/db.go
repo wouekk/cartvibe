@@ -13,8 +13,6 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
-	"gorm.io/driver/mysql"
-	"gorm.io/driver/postgres"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -53,17 +51,6 @@ func ImplicitCell() cell.Handle {
 	}
 
 	return handle
-}
-
-func BuildMariaDbConnectionString(dbConfig structs.DatabaseConfig) string {
-	host := fmt.Sprintf("%s:%d", dbConfig.Host, dbConfig.Port)
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbConfig.User, dbConfig.Password, host, dbConfig.Name)
-	return connectionString
-}
-
-func BuildPostgresqlConnectionString(dbConfig structs.DatabaseConfig) string {
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Name, fmt.Sprint(dbConfig.Port))
-	return connectionString
 }
 
 func BuildSqliteConnectionString(dbConfig structs.DatabaseConfig) (string, error) {
@@ -128,88 +115,47 @@ func configureSqlitePool(connectedDb *gorm.DB) error {
 	return nil
 }
 
-const (
-	// dbConnectMaxAttempts and dbConnectRetryDelay control how long Connect waits
-	// for the database to become reachable before giving up. This lets the API
-	// survive the database not being ready yet at startup (e.g. when containers are
-	// brought up by Docker restart policies or an orchestrator that does not
-	// guarantee start order), instead of exiting fatally on the first connection
-	// error and leaving the container in a broken state.
-	dbConnectMaxAttempts = 10
-	dbConnectRetryDelay  = 3 * time.Second
-)
+// checkDatabaseEngine refuses every DB_ENGINE but sqlite, unset included: the app runs on SQLite only
+// (the MySQL/MariaDB and PostgreSQL drivers were removed), and a server must not start on a guess.
+func checkDatabaseEngine(engine string) error {
+	if engine == "sqlite" {
+		return nil
+	}
 
+	return fmt.Errorf(
+		"DB_ENGINE is %q, but CartVibe runs on SQLite only: set DB_ENGINE=sqlite (MySQL, MariaDB and PostgreSQL are not supported)",
+		engine,
+	)
+}
+
+// Connect opens the SQLite file once. It is local, so a failure is a configuration problem, not a
+// race, and surfaces at once.
 func Connect() error {
 	dbConfig, err := config.GetDatabaseConfig()
 	if err != nil {
 		return err
 	}
 
-	dbEngine := dbConfig.Engine
-
-	var dialector gorm.Dialector
-
-	// Network-backed engines can be transiently unreachable at startup, so they
-	// get connection retries. Sqlite is file-based — failures there are
-	// configuration problems, not races, and should surface immediately.
-	maxAttempts := dbConnectMaxAttempts
-
-	switch dbEngine {
-	case "mariadb", "mysql":
-		dialector = mysql.Open(BuildMariaDbConnectionString(dbConfig))
-	case "postgresql":
-		dialector = postgres.Open(BuildPostgresqlConnectionString(dbConfig))
-	case "sqlite":
-		connectionString, sqliteErr := BuildSqliteConnectionString(dbConfig)
-		if sqliteErr != nil {
-			return sqliteErr
-		}
-		dialector = sqlite.Open(connectionString)
-		maxAttempts = 1
-	default:
-		return fmt.Errorf("database engine of: %s! check your config to make sure it is correct", dbEngine)
+	if err := checkDatabaseEngine(dbConfig.Engine); err != nil {
+		return err
 	}
 
-	connectedDb, err := openWithRetry(dialector, maxAttempts)
+	connectionString, err := BuildSqliteConnectionString(dbConfig)
 	if err != nil {
 		return err
 	}
 
-	if dbEngine == "sqlite" {
-		if err := configureSqlitePool(connectedDb); err != nil {
-			return err
-		}
+	connectedDb, err := gorm.Open(sqlite.Open(connectionString), &gorm.Config{Logger: quietGormLogger()})
+	if err != nil {
+		return fmt.Errorf("failed to open the database: %w", err)
+	}
+
+	if err := configureSqlitePool(connectedDb); err != nil {
+		return err
 	}
 
 	setDB(connectedDb)
 	return nil
-}
-
-// openWithRetry opens the database connection, retrying transient failures so the
-// API does not exit fatally when the database is briefly unreachable at startup.
-func openWithRetry(dialector gorm.Dialector, maxAttempts int) (*gorm.DB, error) {
-	var lastErr error
-
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		connectedDb, err := gorm.Open(dialector, &gorm.Config{Logger: quietGormLogger()})
-		if err == nil {
-			return connectedDb, nil
-		}
-
-		lastErr = err
-		if attempt < maxAttempts {
-			logging.LogStd(
-				logging.LOG_LEVEL_INFO,
-				fmt.Sprintf(
-					"database not ready (attempt %d/%d): %s; retrying in %s",
-					attempt, maxAttempts, err.Error(), dbConnectRetryDelay,
-				),
-			)
-			time.Sleep(dbConnectRetryDelay)
-		}
-	}
-
-	return nil, fmt.Errorf("failed to connect to the database after %d attempts: %w", maxAttempts, lastErr)
 }
 
 func MakeMigrations() error {
