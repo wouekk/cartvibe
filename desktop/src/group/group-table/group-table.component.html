@@ -17,7 +17,7 @@
     <app-table
       [dataSource]="dataSource()"
       [columns]="columns"
-      [displayedColumns]="displayedColumns"
+      [displayedColumns]="columns.length ? visibleColumns() : []"
       [pagination]="true"
       [length]="totalCount()"
       [page]="((baseTableService.page$ | async) || 1) - 1"
@@ -47,21 +47,49 @@
   {{ element.updatedAt | appDate : "short" }}
 </ng-template>
 
+<!--
+  One trailing more_vert menu per row (DESIGN.md, Rows), so the actions stay in reach on a phone. Edit opens the
+  household's page, where its name is changed; the synthetic "All" group is never listed here.
+-->
 <ng-template #actionsCell let-element="element" let-index="index">
-  <div class="flex">
-    <app-edit-button
-      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupUpdate }"
-      data-testid="group-edit"
-      color="accent"
-      [tooltip]="'Edit group' | t"
-      [buttonRouterLink]="[element | groupTableEditButton: appPermissions() : groupPermissions()]"
-    ></app-edit-button>
-    <app-delete-button
-      *hasGroupPermission="{ groupId: element.id, permission: Permission.GroupDelete, orApp: [Permission.AppGroupsDelete] }"
-      data-testid="group-delete"
-      [tooltip]="'Delete Household' | t"
-      [disabled]="deleteDisabled()"
-      (clicked)="deleteGroup(index)"
-    ></app-delete-button>
+  @if (canEdit(element) || canDelete(element)) {
+    <button
+      hlmBtn variant="ghost" size="icon"
+      type="button"
+      class="-my-1 size-8 shrink-0"
+      data-testid="group-menu"
+      [attr.aria-label]="'Household actions' | t"
+      [hlmDropdownMenuTrigger]="groupMenu" align="end"
+      [hlmDropdownMenuTriggerData]="{ group: element, index: index }"
+    >
+      <app-icon name="more_vert"></app-icon>
+    </button>
+  }
+</ng-template>
+
+<ng-template #groupMenu let-group="group" let-index="index">
+  <div hlmDropdownMenu class="w-56">
+    @if (canEdit(group)) {
+      <button
+        hlmDropdownMenuItem
+        data-testid="group-edit"
+        (click)="editGroup(group)"
+      >
+        <app-icon name="edit"></app-icon>
+        <span>{{ 'Edit' | t }}</span>
+      </button>
+    }
+    @if (canDelete(group)) {
+      <button
+        hlmDropdownMenuItem
+        variant="destructive"
+        data-testid="group-delete"
+        [disabled]="deleteDisabled()"
+        (click)="deleteGroup(index)"
+      >
+        <app-icon name="delete"></app-icon>
+        <span>{{ 'Delete' | t }}</span>
+      </button>
+    }
   </div>
 </ng-template>

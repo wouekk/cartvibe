@@ -184,10 +184,10 @@ describe("SidebarComponent", () => {
 
       expect(queryTestId("sidebar-manage-toggle").nativeElement.textContent).toContain("Settings");
       expect(queryTestId("sidebar-manage-toggle").nativeElement.textContent).not.toContain("Admin");
-      expect(itemIds()).toEqual(["nav-language", "nav-theme"]);
+      expect(itemIds()).toEqual(["nav-theme", "nav-language"]);
     });
 
-    it("gives a family User their catalogues, the AI, User Settings, Language and Theme, in that order", async () => {
+    it("gives a family User their catalogues, User Settings, the AI, Theme and Language, in that order", async () => {
       login();
       store.dispatch(
         new SetPermissions(
@@ -203,10 +203,10 @@ describe("SidebarComponent", () => {
       );
       await fixture.whenStable();
 
-      expect(itemIds()).toEqual(["nav-management", "nav-ai", "nav-user-settings", "nav-language", "nav-theme"]);
+      expect(itemIds()).toEqual(["nav-management", "nav-user-settings", "nav-ai", "nav-theme", "nav-language"]);
     });
 
-    it("adds the admin pages after the ones every member has", async () => {
+    it("puts System Settings first, then Management, User Settings, AI, Theme and Language", async () => {
       login();
       store.dispatch(
         new SetPermissions(
@@ -225,12 +225,12 @@ describe("SidebarComponent", () => {
       await fixture.whenStable();
 
       expect(itemIds()).toEqual([
-        "nav-management",
-        "nav-ai",
-        "nav-user-settings",
-        "nav-language",
-        "nav-theme",
         "nav-system-settings",
+        "nav-management",
+        "nav-user-settings",
+        "nav-ai",
+        "nav-theme",
+        "nav-language",
       ]);
     });
 

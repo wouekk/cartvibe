@@ -15,6 +15,10 @@ import { GroupTableState } from "../../store/group-table.state";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { Router } from "@angular/router";
+import { hasAll, hasAny } from "../../utils/permission.utils";
+import { ViewportService } from "../../services/viewport.service";
+import { GroupTableEditButtonPipe } from "./group-table-edit-button.pipe";
 
 @Component({
     selector: "app-group-table",
@@ -33,6 +37,8 @@ import { TranslationService } from "../../i18n/translation.service";
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly viewport = inject(ViewportService);
 
   public groups = this.store.selectSignal(GroupState.groups);
 
@@ -138,13 +144,30 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
         sortable: false,
       },
     ];
-    this.displayedColumns = [
-      "name",
-      "number_of_members",
-      "created_at",
-      "updated_at",
-      "actions",
-    ];
+  }
+
+  /** On a phone the dates give way, so the row's menu stays on screen without scrolling sideways. */
+  public readonly visibleColumns = computed(() =>
+    this.viewport.isHandset()
+      ? ["name", "number_of_members", "actions"]
+      : ["name", "number_of_members", "created_at", "updated_at", "actions"]
+  );
+
+  public canEdit(group: Group): boolean {
+    return !group.isAllGroup && hasAll(this.groupPermissions()?.[group.id] ?? [], Permission.GroupUpdate);
+  }
+
+  public canDelete(group: Group): boolean {
+    return (
+      !group.isAllGroup &&
+      (hasAny(this.appPermissions() ?? [], Permission.AppGroupsDelete) ||
+        hasAll(this.groupPermissions()?.[group.id] ?? [], Permission.GroupDelete))
+    );
+  }
+
+  public editGroup(group: Group): void {
+    const link = new GroupTableEditButtonPipe().transform(group, this.appPermissions(), this.groupPermissions());
+    this.router.navigateByUrl(link);
   }
 
   public deleteGroup(index: number): void {

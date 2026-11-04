@@ -21,40 +21,15 @@ type Group struct {
 	// they hold a group role flagged SeesAllMembers, or the app-level app.users.read.
 	// Default false ⇒ existing groups behave exactly as before (no migration).
 	IsolateMembers bool `json:"isolateMembers" gorm:"not null;default:false"`
+
+	// IsHousehold marks the install's one shared household (Phase 3 M5): later accounts join it. It is a flag, not
+	// the name "Household", so the household can be renamed. Old installs get it from the data migration
+	// mark-household-group-v1; a lookup that finds no flagged group falls back to the name.
+	IsHousehold bool `json:"-" gorm:"not null;default:false"`
 }
 
-func (groupToUpdate *Group) BeforeUpdate(tx *gorm.DB) (err error) {
-	if groupToUpdate.ID > 0 {
-		var dbGroup Group
-
-		err := tx.Table("groups").Where("id = ?", groupToUpdate.ID).Select("id", "name").Find(&dbGroup).Error
-		if err != nil {
-			return err
-		}
-
-		if groupToUpdate.Name != dbGroup.Name {
-			oldGroupId := utils.UintToString(dbGroup.ID)
-			newGroupId := utils.UintToString(groupToUpdate.ID)
-
-			oldGroupPath, err := utils.BuildGroupPathString(oldGroupId, dbGroup.Name)
-			if err != nil {
-				return err
-			}
-
-			newGroupPath, err := utils.BuildGroupPathString(newGroupId, groupToUpdate.Name)
-			if err != nil {
-				return err
-			}
-
-			// A rename failure is intentionally ignored: both paths are already
-			// validated by BuildGroupPathString above, and a group with no
-			// on-disk directory yet (no receipts) simply has nothing to move.
-			_ = utils.RenameDataPath(oldGroupPath, newGroupPath)
-		}
-	}
-
-	return nil
-}
+// A rename moves the group's data folder; that happens in GroupRepository.UpdateGroup, inside the transaction, so a
+// failed move rolls the new name back instead of leaving receipt files under a folder nothing points at.
 
 func (deletedGroup *Group) AfterDelete(tx *gorm.DB) (err error) {
 	if deletedGroup.ID > 0 {

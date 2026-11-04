@@ -22,6 +22,9 @@ import { GroupTableEditButtonPipe } from "./group-table/group-table-edit-button.
 import { GroupTableComponent } from "./group-table/group-table.component";
 import { GroupTabsComponent } from "./group-tabs/group-tabs.component";
 import { ReceiptProductBackfillComponent } from "../standalone/components/receipt-product-backfill/receipt-product-backfill.component";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
+import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
 @NgModule({
   declarations: [
@@ -49,6 +52,9 @@ import { ReceiptProductBackfillComponent } from "../standalone/components/receip
     UserAutocompleteModule,
     AutocompleteModule,
     GrantPickerComponent,
+    HlmButton,
+    ...HlmDropdownMenuImports,
+    AppIconComponent,
   ],
   exports: [GroupTableComponent],
 })
