@@ -263,6 +263,8 @@ func UpdateGroup(w http.ResponseWriter, r *http.Request) {
 		Request:          r,
 		GroupId:          chi.URLParam(r, "groupId"),
 		GroupPermissions: []string{permissions.GroupUpdate},
+		// An app admin edits any household, also one they only joined as a Member.
+		OrAppPermissions: []string{permissions.AppGroupsUpdate},
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			command := commands.UpsertGroupCommand{}
@@ -347,6 +349,7 @@ func UpdateGroupReceiptSettings(w http.ResponseWriter, r *http.Request) {
 		ResponseType:     constants.ApplicationJson,
 		GroupId:          groupId,
 		GroupPermissions: []string{permissions.GroupUpdate},
+		OrAppPermissions: []string{permissions.AppGroupsUpdate},
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			command := commands.UpdateGroupReceiptSettingsCommand{}
 			vErr, err := command.LoadDataFromRequestAndValidate(w, r)

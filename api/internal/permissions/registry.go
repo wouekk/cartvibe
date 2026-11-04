@@ -49,6 +49,7 @@ const (
 
 	AppGroupsCreate = "app.groups.create"
 	AppGroupsRead   = "app.groups.read"
+	AppGroupsUpdate = "app.groups.update"
 	AppGroupsDelete = "app.groups.delete"
 
 	AppOidcProvidersCreate = "app.oidc-providers.create"
@@ -162,6 +163,7 @@ var registry = []Descriptor{
 
 	{AppGroupsCreate, "Create Groups", "Create new groups.", "Group Management", ScopeApp},
 	{AppGroupsRead, "Read All Groups", "List and look up groups across the system, including ones the calling user is not a member of.", "Group Management", ScopeApp},
+	{AppGroupsUpdate, "Edit Any Group", "Rename any group and change its look and receipt settings, including ones where the calling user holds a role without Update Group (a household an admin only joined as a Member).", "Group Management", ScopeApp},
 	{AppGroupsDelete, "Delete Any Group", "Permanently delete any group in the system, including ones the calling user is not a member of. Intended for cleaning up abandoned or accidentally created groups; pairs with Read All Groups.", "Group Management", ScopeApp},
 
 
