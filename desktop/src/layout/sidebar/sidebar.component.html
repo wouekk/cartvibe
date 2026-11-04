@@ -54,6 +54,7 @@
                       (click)="groupClicked(group.id); closeMobileSidebar()"
                     >
                       <ng-icon name="lucideCheck" size="16" [class.invisible]="group.id !== selectedGroupIdNumber()" />
+                      <app-avatar size="xs" [group]="group"></app-avatar>
                       <span>{{ group.name }}</span>
                     </button>
                   }
@@ -136,7 +137,7 @@
               side="top"
               align="start"
             >
-              <app-avatar class="sidebar__avatar" [user]="loggedInUser() ?? $any({})"></app-avatar>
+              <app-avatar class="sidebar__avatar sidebar__avatar--user" [user]="loggedInUser() ?? $any({})"></app-avatar>
               <span class="grid flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
                 <span class="truncate font-medium">{{ loggedInUser()?.displayName }}</span>
               </span>

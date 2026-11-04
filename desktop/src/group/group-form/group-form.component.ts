@@ -206,6 +206,9 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
       groupMembers: this.formBuilder.array(groupMembers),
       status: this.originalGroup?.status ?? GroupStatus.Active,
       isolateMembers: this.originalGroup?.isolateMembers ?? false,
+      // "" is the default look (the initial on the primary colour).
+      icon: this.originalGroup?.icon ?? "",
+      color: this.originalGroup?.color ?? "",
     });
 
     this.groupMembers.valueChanges

@@ -166,6 +166,9 @@ export function registerCatalog(router: DemoRouter): void {
     group.status = command.status;
     group.isolateMembers = command.isolateMembers ?? false;
     group.isDefault = command.isDefault ?? group.isDefault;
+    // Like the API: an omitted icon or colour keeps the stored one.
+    group.icon = command.icon ?? group.icon;
+    group.color = command.color ?? group.color;
     group.groupMembers = command.groupMembers.map((member) => ({
       categoryGrants: [],
       tagGrants: [],

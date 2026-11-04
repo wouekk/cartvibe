@@ -11,6 +11,7 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ViewportService } from "../../services/viewport.service";
+import { AvatarModule } from "../../avatar";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -49,6 +50,7 @@ describe("GroupTableComponent", () => {
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
+        AvatarModule,
       ],
       providers: [
         provideZonelessChangeDetection(),
@@ -151,12 +153,12 @@ describe("GroupTableComponent", () => {
       expect(component.canDelete(all)).toBe(false);
     });
 
-    it("drops the date columns on a phone so the row menu stays on screen", () => {
+    it("drops the dates and the member count on a phone so the row menu stays on screen", () => {
       const viewport = TestBed.inject(ViewportService) as unknown as { isHandset: () => boolean };
       Object.defineProperty(viewport, "isHandset", { value: () => true });
       fixture = TestBed.createComponent(GroupTableComponent);
 
-      expect(fixture.componentInstance.visibleColumns()).toEqual(["name", "number_of_members", "actions"]);
+      expect(fixture.componentInstance.visibleColumns()).toEqual(["name", "actions"]);
     });
   });
 

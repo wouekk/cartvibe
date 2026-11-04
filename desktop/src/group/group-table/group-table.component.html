@@ -30,9 +30,12 @@
 </app-settings-page>
 
 <ng-template #nameCell let-element="element" let-index="index">
-  <a [routerLink]="['/groups/' + element.id + '/details/view']">
-    {{ element.name }}
-  </a>
+  <span class="flex min-w-0 items-center gap-2">
+    <app-avatar class="shrink-0" size="sm" [group]="element"></app-avatar>
+    <a class="truncate" [routerLink]="['/groups/' + element.id + '/details/view']">
+      {{ element.name }}
+    </a>
+  </span>
 </ng-template>
 
 <ng-template #numberOfMembersCell let-element="element" let-index="index">

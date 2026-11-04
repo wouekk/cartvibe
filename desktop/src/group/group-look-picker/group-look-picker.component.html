@@ -1,0 +1,83 @@
+<div class="flex flex-col gap-4">
+  <div class="flex flex-col gap-1.5">
+    <span class="text-sm font-medium leading-none text-foreground" id="group-icon-label">{{ 'Icon' | t }}</span>
+    <div
+      role="group"
+      aria-labelledby="group-icon-label"
+      class="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2"
+      data-testid="group-icon-picker"
+    >
+      <button
+        type="button"
+        class="flex min-h-11 items-center justify-center rounded-md border border-border bg-card text-sm font-semibold text-foreground transition-colors hover:bg-muted/40 disabled:cursor-default aria-pressed:border-primary aria-pressed:bg-accent/30 aria-pressed:ring-1 aria-pressed:ring-primary/20"
+        data-testid="group-icon-none"
+        [attr.aria-pressed]="isIcon('')"
+        [attr.aria-label]="'Initial' | t"
+        [title]="'Initial' | t"
+        [disabled]="readonly()"
+        (click)="pickIcon('')"
+        (keydown)="moveFocus($event)"
+      >{{ initial() }}</button>
+      @for (icon of icons; track icon.key) {
+        <button
+          type="button"
+          class="flex min-h-11 items-center justify-center rounded-md border border-border bg-card text-foreground transition-colors hover:bg-muted/40 disabled:cursor-default aria-pressed:border-primary aria-pressed:bg-accent/30 aria-pressed:ring-1 aria-pressed:ring-primary/20"
+          [attr.data-testid]="'group-icon-' + icon.key"
+          [attr.aria-pressed]="isIcon(icon.key)"
+          [attr.aria-label]="icon.label | t"
+          [title]="icon.label | t"
+          [disabled]="readonly()"
+          (click)="pickIcon(icon.key)"
+          (keydown)="moveFocus($event)"
+        >
+          <app-icon [name]="icon.key"></app-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-1.5">
+    <span class="text-sm font-medium leading-none text-foreground" id="group-color-label">{{ 'Colour' | t }}</span>
+    <div
+      role="group"
+      aria-labelledby="group-color-label"
+      class="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2"
+      data-testid="group-color-picker"
+    >
+      <button
+        type="button"
+        class="flex min-h-11 items-center justify-center rounded-md border border-border bg-primary text-primary-foreground transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
+        data-testid="group-color-none"
+        [attr.aria-pressed]="isColor('')"
+        [attr.aria-label]="'Default colour' | t"
+        [title]="'Default colour' | t"
+        [disabled]="readonly()"
+        (click)="pickColor('')"
+        (keydown)="moveFocus($event)"
+      >
+        @if (isColor('')) {
+          <app-icon name="check"></app-icon>
+        }
+      </button>
+      @for (color of colors; track color.key) {
+        <button
+          type="button"
+          class="flex min-h-11 items-center justify-center rounded-md border border-border/40 transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
+          [style.background-color]="colorStyle(color.key)?.background"
+          [style.color]="colorStyle(color.key)?.foreground"
+          [attr.data-testid]="'group-color-' + color.key"
+          [attr.aria-pressed]="isColor(color.key)"
+          [attr.aria-label]="color.label | t"
+          [title]="color.label | t"
+          [disabled]="readonly()"
+          (click)="pickColor(color.key)"
+          (keydown)="moveFocus($event)"
+        >
+          @if (isColor(color.key)) {
+            <app-icon name="check"></app-icon>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>

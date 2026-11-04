@@ -23,7 +23,7 @@ import { GroupTableEditButtonPipe } from "./group-table-edit-button.pipe";
 @Component({
     selector: "app-group-table",
     templateUrl: "./group-table.component.html",
-    styleUrls: ["./group-table.component.scss"],
+
     host: DEFAULT_HOST_CLASS,
     providers: [
         {
@@ -146,10 +146,10 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     ];
   }
 
-  /** On a phone the dates give way, so the row's menu stays on screen without scrolling sideways. */
+  /** On a phone the dates and the member count give way, so the row's menu stays on screen without scrolling sideways. */
   public readonly visibleColumns = computed(() =>
     this.viewport.isHandset()
-      ? ["name", "number_of_members", "actions"]
+      ? ["name", "actions"]
       : ["name", "number_of_members", "created_at", "updated_at", "actions"]
   );
 

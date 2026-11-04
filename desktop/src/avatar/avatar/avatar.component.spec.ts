@@ -6,6 +6,8 @@ import { User } from "../../open-api";
 import { SetUsers } from "../../store/user.state.actions";
 import { UserState } from "../../store/user.state";
 import { AvatarComponent } from "./avatar.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { Group } from "../../open-api";
 
 describe("AvatarComponent", () => {
   let fixture: ComponentFixture<AvatarComponent>;
@@ -13,7 +15,7 @@ describe("AvatarComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [AvatarComponent],
-      imports: [...HlmTooltipImports, NgxsModule.forRoot([UserState])],
+      imports: [...HlmTooltipImports, AppIconComponent, NgxsModule.forRoot([UserState])],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
@@ -54,5 +56,33 @@ describe("AvatarComponent", () => {
 
     expect(photo()).toBeNull();
     expect(fixture.nativeElement.textContent.trim()).toBe("A");
+  });
+
+  const circle = (): HTMLElement => fixture.nativeElement.querySelector(".avatar");
+  const groupIcon = () => fixture.nativeElement.querySelector('[data-testid="avatar-group-icon"]');
+
+  it("draws a household's icon on its colour", async () => {
+    fixture.componentRef.setInput("group", { id: 2, name: "Home", icon: "dog", color: "teal" } as Group);
+    await fixture.whenStable();
+
+    expect(groupIcon()).not.toBeNull();
+    expect(circle().style.backgroundColor).toBe("var(--household-teal)");
+  });
+
+  it("keeps a household's initial on the primary colour without a look", async () => {
+    fixture.componentRef.setInput("group", { id: 2, name: "home", icon: "", color: "" } as Group);
+    await fixture.whenStable();
+
+    expect(groupIcon()).toBeNull();
+    expect(fixture.nativeElement.textContent.trim()).toBe("H");
+    expect(circle().classList).toContain("bg-primary");
+  });
+
+  it("ignores an icon or colour it does not know", async () => {
+    fixture.componentRef.setInput("group", { id: 2, name: "Home", icon: "rocket", color: "#f00" } as Group);
+    await fixture.whenStable();
+
+    expect(groupIcon()).toBeNull();
+    expect(circle().style.backgroundColor).toBe("");
   });
 });

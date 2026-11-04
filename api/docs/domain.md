@@ -155,6 +155,10 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 
 ## Households and renames
 
+- A household's look is `groups.icon` / `groups.color`: "" (the initial on the primary colour) or one of
+  `models.GroupIcons` / `GroupColors`, kept in step with the desktop's `constants/group-look.ts`. On the command they
+  are pointers: omitted keeps the stored value, "" clears it; never written on the "All" group.
+
 - The household new accounts join is flagged `groups.is_household` (set for the first account's group; old installs by
   the data migration `mark-household-group-v1`). `FindHouseholdGroup` reads the flag, then falls back to the name
   "Household" (a database an import wrote).

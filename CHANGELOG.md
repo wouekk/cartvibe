@@ -29,6 +29,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 - **Profile photo (HH-06).** Settings → User Settings has a Photo card: take a photo or pick a picture, and it shows
   instead of your initials in the sidebar and next to your comments. A large photo is shrunk on the phone before it goes
   up; *Remove photo* brings the initials back. The photo is kept on your server and shown only to people signed in.
+- **A household icon and colour (HH-07).** Editing a household now offers a grid of icons (a house, people, a heart, a
+  baby, pets, a car, a plane and more) and ten colours. The household wears them in the sidebar switcher and the
+  household list; without a choice it keeps its initial.
 - **Edit or remove a warranty from the list (WARR-05).** Each receipt on the Warranties page and in the Dashboard's
   *Warranties ending soon* panel has a ⋮ menu: *Edit* changes the last day of the warranty, *Remove* (after asking)
   takes the warranty off the receipt and keeps the receipt. Reminders follow.
@@ -41,7 +44,7 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ### Changed
 - **Renaming a household works from a phone (HH-01).** Households under Settings → Management have a ⋮ menu with *Edit*
-  and *Delete*, in reach without scrolling sideways (the dates give way on a phone). A rename moves the household's
+  and *Delete*, in reach without scrolling sideways (the dates and the member count give way on a phone). A rename moves the household's
   photo folder with it, or is refused and changes nothing if the folder cannot move, and new accounts keep joining the
   renamed household.
 - **Settings menu order (APP-10):** System Settings, Management, User Settings, AI, Theme, then Language.

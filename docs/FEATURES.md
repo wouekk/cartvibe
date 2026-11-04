@@ -166,6 +166,7 @@ in by hand and the AI is retried later.
 | HH-02 | Everyone adds things | Every family member can add receipts and list items. Nothing is split between members; the person who adds a receipt is recorded as who added it. | 0.6.0 | released |
 | HH-03 | Household currency | One main currency for the household (EUR, PLN, USD, GBP or CHF to start), chosen by an admin. | 0.6.0 | released |
 | HH-06 | Profile photo | Under Settings → User Settings a person takes a photo with the camera or picks a picture (JPEG, PNG, WebP, GIF, HEIC or TIFF, up to 8 MB; a large photo is shrunk on the device first). It shows wherever their initials showed (the sidebar, comments) for everyone who can see them, and only to people signed in. *Remove photo* brings the initials back. | – | unreleased |
+| HH-07 | Household icon and colour | On a household's edit page an admin, or someone allowed to, picks one of 19 icons (a house, people, a heart, a baby, a dog, a car, a plane and more) and one of 10 colours, or keeps the initial and the default colour. The household then shows its icon on its colour in the sidebar's household switcher, the household list and the switcher's menu, in Day and Night. Households have no photos. | – | unreleased |
 
 ## Running the server (ADM)
 

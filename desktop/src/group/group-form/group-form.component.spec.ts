@@ -1,3 +1,4 @@
+import { GroupLookPickerComponent } from "../group-look-picker/group-look-picker.component";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
@@ -41,7 +42,8 @@ describe("GroupFormComponent", () => {
         SelectModule,
         SharedUiModule,
         TableModule,
-        UserAutocompleteModule],
+        UserAutocompleteModule,
+        GroupLookPickerComponent],
     providers: [
         provideRouter([]),
         {
@@ -226,6 +228,8 @@ describe("GroupFormComponent", () => {
       status: GroupStatus.Active,
       groupMembers: [],
       isolateMembers: false,
+      icon: "",
+      color: "",
     } as any);
     expect(storeSpy).toHaveBeenCalledWith(new AddGroup(returnValue));
     expect(routerSpy).toHaveBeenCalledWith(["/groups/1/details/view"], {
@@ -317,6 +321,8 @@ describe("GroupFormComponent", () => {
           },
         ],
         isolateMembers: false,
+        icon: "",
+        color: "",
       } as Group
     );
     expect(storeSpy).toHaveBeenCalledWith(new UpdateGroup(returnValue));
@@ -369,6 +375,36 @@ describe("GroupFormComponent", () => {
     component.ngOnInit();
 
     expect(component.form.get("isolateMembers")?.value).toBe(true);
+  });
+
+  it("hydrates the household's icon and colour and sends them with the save", () => {
+    const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    const route = TestBed.inject(ActivatedRoute);
+    route.snapshot.data = {
+      group: { id: 1, name: "test", status: GroupStatus.Active, icon: "dog", color: "teal", groupMembers: [{ userId: 1, groupRoleId: 11, groupId: 1 }] },
+      formConfig: { mode: FormMode.edit },
+    };
+
+    component.ngOnInit();
+    expect(component.form.get("icon")?.value).toBe("dog");
+    expect(component.form.get("color")?.value).toBe("teal");
+
+    component.form.patchValue({ icon: "", color: "pink" });
+    updateSpy.mockReturnValue(of({ ...component.form.value, id: 1 }));
+    component.submit();
+
+    expect(updateSpy).toHaveBeenCalledWith(1, expect.objectContaining({ icon: "", color: "pink" }));
+  });
+
+  it("starts a new household with the default look", () => {
+    const route = TestBed.inject(ActivatedRoute);
+    route.snapshot.data = { formConfig: { mode: FormMode.add } };
+
+    component.ngOnInit();
+
+    expect(component.form.get("icon")?.value).toBe("");
+    expect(component.form.get("color")?.value).toBe("");
   });
 
   it("submits in edit mode even when no member holds an owner role", () => {

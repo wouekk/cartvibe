@@ -47,8 +47,12 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Tabs / segmented filters: `app-settings-tabs` (also behind `app-filter-bar`, `app-tabs`). Period: `app-period-picker` (`overview/period-picker`).
 - CSS components (`tailwind.css`): `cv-card*`, `cv-section*`, `cv-inset` (read-only muted block), `cv-list` (hairline key/value list), `cv-scroll-x` (sideways scroll, no scrollbar), `cv-scroll-y` (a Dashboard list scrolling under the mouse wheel, thin scrollbar; fine pointers only, never on touch), `cv-field-box*` (boxed labelled field), `cv-panel*` / `cv-tile` / `cv-tile-link` (Dashboard), `cv-pill-up` / `-down`, `cv-link`.
 - List page header: `app-table-header` (+ `subtitle`); create: `app-add-button [buttonText]="'Add X'"`.
-- Avatars: `app-avatar` (`src/avatar/`) is a circle with the person's photo (`object-cover`) when they uploaded one,
-  otherwise the first letter, white on their own colour or the primary pair. Photo buttons are native `<label>`s styled
+- Avatars: `app-avatar` (`src/avatar/`, `size` md / sm / xs) is a circle with the person's photo (`object-cover`) when
+  they uploaded one, otherwise the first letter, white on their own colour or the primary pair. A household shows its
+  icon on its colour, or its initial on the primary pair. Household colours are the `--household-<slate|red|orange|amber|green|teal|blue|indigo|violet|pink>`
+  tokens with `--household-foreground` (`--household-amber-foreground` on amber), defined once in `zinc.css` like the status colours:
+  deep with a white mark by day, light with a dark mark at night. The picker (`app-group-look-picker`) is two grids of
+  `min-h-11` toggle buttons with `aria-pressed`, a default first. Photo buttons are native `<label>`s styled
   with `buttonVariants` (primary for the camera, outline for a file); *Remove photo* is `variant="destructive"`.
 - Countdown columns (Days left on the warranties panel and page): right-aligned, bold, tabular, "Today" for 0, and
   `text-warning-text` within a week.

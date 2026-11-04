@@ -25,6 +25,8 @@ import { ReceiptProductBackfillComponent } from "../standalone/components/receip
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
+import { GroupLookPickerComponent } from "./group-look-picker/group-look-picker.component";
+import { AvatarModule } from "../avatar";
 
 @NgModule({
   declarations: [
@@ -55,6 +57,8 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
     HlmButton,
     ...HlmDropdownMenuImports,
     AppIconComponent,
+    GroupLookPickerComponent,
+    AvatarModule,
   ],
   exports: [GroupTableComponent],
 })
