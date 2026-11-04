@@ -32,6 +32,14 @@ export interface UpsertGroupCommand {
      * Whether to enable member-presence isolation for the group. When on, members cannot discover other members unless they hold a group role flagged seesAllMembers. Defaults to false.
      */
     isolateMembers?: boolean;
+    /**
+     * One of the household icons (see Group.icon), or \"\" for the initial. Omitted keeps the stored icon; anything else is a 400.
+     */
+    icon?: string;
+    /**
+     * One of the household colours (see Group.color), or \"\" for the default look. Omitted keeps the stored colour; anything else is a 400.
+     */
+    color?: string;
     status: GroupStatus;
 }
 export namespace UpsertGroupCommand {
