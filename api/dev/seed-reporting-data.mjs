@@ -7,16 +7,16 @@
  * receipts spread across a date range — so the Report Builder can be exercised at
  * volume with lifelike data.
  *
- * Auth is an admin login: the script signs in with RW_USERNAME / RW_PASSWORD (tokens in the body) and sends
+ * Auth is an admin login: the script signs in with CV_USERNAME / CV_PASSWORD (tokens in the body) and sends
  * the access token as a Bearer header, signing in again when it expires. The password is read from the
  * environment and never written to disk.
  *
  * Usage:
- *   RW_USERNAME=admin RW_PASSWORD='...' node api/dev/seed-reporting-data.mjs
+ *   CV_USERNAME=admin CV_PASSWORD='...' node api/dev/seed-reporting-data.mjs
  *
- * Env vars (all optional except RW_USERNAME and RW_PASSWORD):
- *   RW_USERNAME         (required) admin username
- *   RW_PASSWORD         (required) admin password
+ * Env vars (all optional except CV_USERNAME and CV_PASSWORD):
+ *   CV_USERNAME         (required) admin username
+ *   CV_PASSWORD         (required) admin password
  *   API_BASE_URL        default http://localhost:8081/api
  *   RECEIPT_COUNT       default 2000   (receipts created THIS run; additive)
  *   NEW_USER_COUNT      default 3      member users to ensure
@@ -37,8 +37,8 @@ function envInt(value, fallback) {
 }
 
 const API_BASE_URL = (process.env.API_BASE_URL || "http://localhost:8081/api").replace(/\/+$/, "");
-const RW_USERNAME = process.env.RW_USERNAME;
-const RW_PASSWORD = process.env.RW_PASSWORD;
+const CV_USERNAME = process.env.CV_USERNAME;
+const CV_PASSWORD = process.env.CV_PASSWORD;
 const RECEIPT_COUNT = envInt(process.env.RECEIPT_COUNT, 2000);
 const NEW_USER_COUNT = envInt(process.env.NEW_USER_COUNT, 3);
 const SEED_GROUP_NAME = process.env.SEED_GROUP_NAME || "Reporting Load Test";
@@ -48,9 +48,9 @@ const RANDOM_SEED = envInt(process.env.RANDOM_SEED, 42);
 const CONCURRENCY = Math.max(1, envInt(process.env.CONCURRENCY, 4));
 const SEED_USER_PASSWORD = process.env.SEED_USER_PASSWORD || "ReportingSeed!23";
 
-if (!RW_USERNAME || !RW_PASSWORD) {
-  console.error("RW_USERNAME and RW_PASSWORD are required (an admin login).");
-  console.error("Example: RW_USERNAME=admin RW_PASSWORD='...' node api/dev/seed-reporting-data.mjs");
+if (!CV_USERNAME || !CV_PASSWORD) {
+  console.error("CV_USERNAME and CV_PASSWORD are required (an admin login).");
+  console.error("Example: CV_USERNAME=admin CV_PASSWORD='...' node api/dev/seed-reporting-data.mjs");
   process.exit(1);
 }
 if (!(START_DATE < END_DATE)) {
@@ -107,7 +107,7 @@ async function login() {
   const res = await fetch(API_BASE_URL + "/login/?tokensInBody=true", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: RW_USERNAME, password: RW_PASSWORD }),
+    body: JSON.stringify({ username: CV_USERNAME, password: CV_PASSWORD }),
   });
   if (!res.ok) throw new Error(`login -> ${res.status}: ${(await res.text()).slice(0, 160)}`);
   accessToken = (await res.json()).jwt;

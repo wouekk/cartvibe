@@ -12,13 +12,13 @@ describe("demo storage", () => {
   });
 
   it("keeps every key the app writes under the demo prefix", () => {
-    window.localStorage.setItem("rw_theme_mode", "dark");
+    window.localStorage.setItem("cartvibe.themeMode", "dark");
     window.sessionStorage.setItem("anything", "1");
 
-    expect(window.localStorage.getItem("rw_theme_mode")).toBe("dark");
+    expect(window.localStorage.getItem("cartvibe.themeMode")).toBe("dark");
     const stored = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index));
-    expect(stored).toContain(`${DEMO_STORAGE_PREFIX}rw_theme_mode`);
-    expect(stored).not.toContain("rw_theme_mode");
+    expect(stored).toContain(`${DEMO_STORAGE_PREFIX}cartvibe.themeMode`);
+    expect(stored).not.toContain("cartvibe.themeMode");
     expect(window.sessionStorage.key(0)).toBe(`${DEMO_STORAGE_PREFIX}anything`);
   });
 
@@ -42,14 +42,14 @@ describe("demo storage", () => {
   });
 
   it("a reset keeps the look but forgets the rest of the demo's keys", () => {
-    window.localStorage.setItem("rw_theme_mode", "dark");
-    window.localStorage.setItem("rw_theme_palette", "blue");
+    window.localStorage.setItem("cartvibe.themeMode", "dark");
+    window.localStorage.setItem("cartvibe.themePalette", "blue");
     window.localStorage.setItem("receiptTable", "{}");
 
     clearDemoStorage(window.localStorage);
 
-    expect(window.localStorage.getItem("rw_theme_mode")).toBe("dark");
-    expect(window.localStorage.getItem("rw_theme_palette")).toBe("blue");
+    expect(window.localStorage.getItem("cartvibe.themeMode")).toBe("dark");
+    expect(window.localStorage.getItem("cartvibe.themePalette")).toBe("blue");
     expect(window.localStorage.getItem("receiptTable")).toBeNull();
   });
 });

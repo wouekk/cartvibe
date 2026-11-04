@@ -1,4 +1,4 @@
-package wranglerasynq
+package jobs
 
 import (
 	"encoding/json"

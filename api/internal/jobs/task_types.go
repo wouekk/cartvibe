@@ -1,4 +1,4 @@
-package wranglerasynq
+package jobs
 
 const (
 	QuickScan           = "receipt:quick_scan"

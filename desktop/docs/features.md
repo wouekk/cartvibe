@@ -190,7 +190,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   digit. No API and no permission.
 - No name search on purpose: Open Food Facts answers cross-site search requests with 503 and no CORS header, and a
   server relay was rejected. `OpenFoodFactsService` is on `HttpBackend`; a 404 is "not found"; a stale answer is
-  dropped. The last 10 products are in `localStorage` (`rw_recent_products`, every access guarded).
+  dropped. The last 10 products are in `localStorage` (`cartvibe.recentProducts`, every access guarded).
 - The live scanner needs `canUseCamera()` (`isSecureContext` + `getUserMedia`). Photo inputs are native `<label>`s
   around hidden file inputs, never a button calling `input.click()` (mobile browsers ignore a click made after an
   `await`). `BarcodeImageService` shrinks to 1280px, tries `BarcodeDetector`, then zxing (loaded on demand).
@@ -225,8 +225,8 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 ## Identity and themes
 
 - The look is a palette (Blue, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
-  (System, Day, Night). `ThemeService` keeps `mode` (`rw_theme_mode`: `system|light|dark`) and `palette`
-  (`rw_theme_palette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
+  (System, Day, Night). `ThemeService` keeps `mode` (`cartvibe.themeMode`: `system|light|dark`) and `palette`
+  (`cartvibe.themePalette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
   follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`). The
   header has a palette menu (`palette-menu`, `app-palette-swatch` items) left of the day/night toggle (`theme-toggle`,
   which leaves System); Settings → Theme has the Appearance (`theme-mode-*`) and Colour palette (`theme-palette-*`)

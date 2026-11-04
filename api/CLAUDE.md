@@ -22,7 +22,7 @@ handle).
 - The test DB enforces foreign keys, so a cleanup test passes on `ON DELETE CASCADE` alone. To prove an explicit delete,
   run under `repositories.UseTestDbWithoutForeignKeysForTests()` and defer its restore. A failed run can leave `app.db`
   in a test package directory; delete those, never anything under `sqlite/`.
-- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`RW_USERNAME` / `RW_PASSWORD` from the environment).
+- `dev/seed-reporting-data.mjs` seeds a large reporting dataset over HTTP (`CV_USERNAME` / `CV_PASSWORD` from the environment).
 
 ## 2. Conventions and gotchas
 

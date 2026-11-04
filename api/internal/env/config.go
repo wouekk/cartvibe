@@ -146,8 +146,8 @@ func setEnv() {
 }
 
 // basePathDirNames are the directory names that mark the API root when BASE_PATH
-// is not set: the image's folder, and the pre-rename one older installs still use.
-var basePathDirNames = []string{"cartvibe-api", "receipt-wrangler-api"}
+// is not set: the image's folder.
+var basePathDirNames = []string{"cartvibe-api"}
 
 func setBasePath() {
 	cwd, _ := os.Getwd()

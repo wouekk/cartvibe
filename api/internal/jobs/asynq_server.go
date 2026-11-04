@@ -1,4 +1,4 @@
-package wranglerasynq
+package jobs
 
 import (
 	config "cartvibe/api/internal/env"

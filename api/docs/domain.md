@@ -248,7 +248,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   ids are resolved to names; unknown or out-of-grant ids are dropped (an id-only category would blank the category's
   name on save). Failures before the create transaction record a FAILED `RECEIPT_UPLOADED` child
   (`recordEarlyQuickScanFailure`).
-- **Sweeps** (`wranglerasynq/clean_up.go`): product extraction every 30 s (5 receipts), food classification every 1 min
+- **Sweeps** (`jobs/clean_up.go`): product extraction every 30 s (5 receipts), food classification every 1 min
   (60 products + 60 list items, batched per group and purchase month), shopping trips every 1 min (5 trips), temp files
   hourly, refresh tokens and OIDC sessions daily. Rows are claimed with a conditional UPDATE and a 30-minute lease
   (`claimDue`), so overlapping sweeps never double-process and a dead sweep's row returns.

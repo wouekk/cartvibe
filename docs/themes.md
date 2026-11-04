@@ -7,9 +7,9 @@ token values**. There is no per-component theme code.
 
 The look is two independent choices, remembered per browser (localStorage, no API):
 
-- **Palette** (`rw_theme_palette`, default `zinc`): **Blue**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
+- **Palette** (`cartvibe.themePalette`, default `zinc`): **Blue**, **Zinc**, **Indigo**, **Emerald**, **Violet**. It is
   `data-palette="<key>"` on `<html>`.
-- **Mode** (`rw_theme_mode`): **System**, **Day** (`light`) or **Night** (`dark`). Night puts the `dark` class on `<html>`
+- **Mode** (`cartvibe.themeMode`): **System**, **Day** (`light`) or **Night** (`dark`). Night puts the `dark` class on `<html>`
   (what Tailwind's `dark:` variants, the spartan components and the night token blocks key off); System follows the
   operating system, also when it switches.
 

@@ -90,9 +90,22 @@ describe("ThemeService", () => {
     expect(root.classList.contains("dark")).toBe(true);
   });
 
+  it("moves a look stored under the old upstream keys to the new ones", () => {
+    window.localStorage.setItem("rw_theme_mode", "dark");
+    window.localStorage.setItem("rw_theme_palette", "violet");
+
+    const service = create();
+
+    expect(service.mode()).toBe("dark");
+    expect(service.palette()).toBe("violet");
+    expect(window.localStorage.getItem(THEME_MODE_STORAGE_KEY)).toBe("dark");
+    expect(window.localStorage.getItem(THEME_PALETTE_STORAGE_KEY)).toBe("violet");
+    expect(window.localStorage.getItem("rw_theme_mode")).toBeNull();
+    expect(window.localStorage.getItem("rw_theme_palette")).toBeNull();
+  });
+
   it("keeps working for a browser that stored only the mode, from before palettes", () => {
     window.localStorage.setItem(THEME_MODE_STORAGE_KEY, "light");
-    window.localStorage.setItem("rw_theme_scheme", "light");
 
     const service = create();
 

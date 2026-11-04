@@ -294,7 +294,7 @@ func TestFindBasePath(t *testing.T) {
 	}{
 		{"image folder", "/app/cartvibe-api", "/app/cartvibe-api"},
 		{"image folder, nested cwd", "/app/cartvibe-api/internal/env", "/app/cartvibe-api"},
-		{"pre-rename folder", "/app/receipt-wrangler-api/sub", "/app/receipt-wrangler-api"},
+		{"upstream folder name is not a root", "/app/receipt-wrangler-api/sub", ""},
 		{"windows path", `C:\work\cartvibe-api\sub`, "C:/work/cartvibe-api"},
 		{"local api checkout", "/home/me/cartvibe/api", "/home/me/cartvibe/api"},
 		{"unknown folder", "/tmp/elsewhere", ""},

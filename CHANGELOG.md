@@ -36,6 +36,13 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 ### Changed
 - **A clone of the repository used for a deployment ignores its `.env`, `data` and `sqlite` folders**, so a stray
   `git add -A` can no longer commit the keys or the database.
+- **The last upstream names are gone from the code.**
+  - The background-jobs package is now `jobs`.
+  - The browser keeps the theme and recent products under `cartvibe.*` keys; a value saved under the old `rw_` keys
+    moves over the first time it is read.
+  - The API no longer treats an `/app/receipt-wrangler-api` folder as its root: mount the three volumes under
+    `/app/cartvibe-api`, as the compose files do since 0.x.
+  - The Receipt Wrangler credits stay in `LICENSE`, `NOTICE.md`, the READMEs, the About page and the project site.
 
 ### Fixed
 - **Check product: the camera no longer hops between lenses ([#11](https://github.com/wouekk/cartvibe/issues/11), FOOD-01).**

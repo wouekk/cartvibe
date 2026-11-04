@@ -29,7 +29,6 @@ permissions:
 jobs:
   publish:
     if: |
-      github.repository_owner != 'Receipt-Wrangler' &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     steps:

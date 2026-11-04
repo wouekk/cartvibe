@@ -22,7 +22,7 @@ const (
 
 // Bounds and default for the temp-file retention window, here for the same
 // reason as the refresh-token bounds above: the validator below and the
-// read-side clamp in wranglerasynq must not drift.
+// read-side clamp in jobs must not drift.
 //
 // The floor is a day because the window doubles as the grace period a user has
 // to rerun or download a failed upload — anything shorter reintroduces the bug
