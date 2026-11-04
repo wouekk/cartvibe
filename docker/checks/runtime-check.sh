@@ -30,7 +30,19 @@ magick /tmp/checks/tiny.heic heic.png 2>heic.err || { cat heic.err >&2; fail "a 
 # and read by Tesseract: the path of a PDF receipt, with fonts, ghostscript and OCR in one chain.
 gs --version >/dev/null || fail "ghostscript is missing"
 magick -size 700x160 xc:white -font Helvetica -pointsize 90 -fill black -draw "text 20,115 'RECEIPT'" text.pdf 2>text.err \
-  || { cat text.err >&2; fail "ImageMagick cannot draw text and write a PDF"; }
+  || {
+    cat text.err >&2
+    # TEMPORARY diagnostics (feature/imagemagick-policy): which policy rule refuses the font.
+    echo "--- Helvetica in the type list:" >&2
+    magick -list type 2>&1 | grep -A4 -i "Font: Helvetica$" >&2
+    glyphs=$(magick -list type 2>/dev/null | grep -A4 -i "Font: Helvetica$" | sed -n 's/^ *glyphs: *//p' | head -1)
+    echo "--- glyphs file: $glyphs" >&2
+    [ -n "$glyphs" ] && ls -l "$glyphs" >&2 && readlink -f "$glyphs" >&2
+    echo "--- policy and configure decisions:" >&2
+    magick -debug Policy,Configure,Annotate -log "%e %m" -size 700x160 xc:white -font Helvetica -pointsize 90 \
+      -draw "text 20,115 'RECEIPT'" dbg.pdf 2>&1 | grep -viE "^\s*$" | tail -40 >&2
+    fail "ImageMagick cannot draw text and write a PDF"
+  }
 magick -density 150 text.pdf text.png 2>pdf.err || { cat pdf.err >&2; fail "a PDF does not convert to an image"; }
 tesseract text.png ocr >/dev/null 2>&1 || fail "Tesseract cannot read an image"
 grep -qi receipt ocr.txt 2>/dev/null || fail "Tesseract did not read the word drawn into the PDF"
