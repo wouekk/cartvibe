@@ -8,6 +8,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - **The audit sprint is on `main` and `preview` (2026-11-04, not tagged; CHANGELOG `[Unreleased]`).** Not looked at in a
   browser yet (day/night, phone, accent palette): the shadows, section titles, icon sizes and desktop input size changed.
   Skipped: one answer language for the AI (no household language setting exists), `app-button`'s `color="warn"` API.
+  Also on `main`: our own ImageMagick policy plus the upload allowlist (try a HEIC and a PDF upload on the NAS), and
+  wide-screen scaling above 1920px (try the 4K screen at 100% browser zoom).
 - Last release v0.16.0 (2026-11-02); `[Unreleased]` holds the scanner fix (#11), the feature registry and two FAQ answers.
   `i18n-audit-en-pl.md` and `docs/plans/backlog-review-2026-11-03.md` (untracked) are the owner's.
 - **No hosted plan (2026-11-02):** `wouekk/cartvibe-cloud` is frozen (ADR 0014 there); the iPhone app keeps its data on the
