@@ -15,13 +15,6 @@
 // know. Purple and slate are exactly the translucent fills the two hand-rolled
 // badges this replaced used, pre-composited over white, so they are unchanged.
 
-// The flex item is the host, not the span inside it, so the "don't shrink me"
-// rule has to live here or it silently does nothing.
-:host {
-  display: inline-block;
-  flex: none;
-}
-
 .cv-badge {
   display: inline-block;
   vertical-align: middle;

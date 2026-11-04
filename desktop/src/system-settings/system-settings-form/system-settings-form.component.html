@@ -256,7 +256,7 @@
         ></app-checkbox>
         @if ((form | formGet:'secureCookies').value && !servedOverHttps) {
           <div
-            class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            class="rounded-lg border border-warning/40 bg-warning/15 px-4 py-3 text-sm text-foreground"
             data-testid="secure-cookies-http-warning"
           >
             {{ 'This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.' | t }}
@@ -346,7 +346,7 @@
               </div>
               <input
                 type="number"
-                class="min-h-10 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
+                class="h-9 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
                 [attr.aria-label]="data.displayValue + ' priority'"
                 [attr.data-testid]="'queue-priority-' + data.value"
                 [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"

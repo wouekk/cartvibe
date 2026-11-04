@@ -1,9 +1,12 @@
+<!-- A user's own avatar colour is their data (white initial on it); without one the avatar takes the primary token pair. -->
 <div
   [hlmTooltip]="user()?.displayName ?? group()?.name ?? ''"
-  [style.background-color]="user()?.defaultAvatarColor ?? '#27b1ff'"
-  class="avatar flex justify-center items-center"
+  [style.background-color]="user()?.defaultAvatarColor || null"
+  class="avatar flex size-[50px] items-center justify-center rounded-full"
+  [class.bg-primary]="!user()?.defaultAvatarColor"
+  [class.text-primary-foreground]="!user()?.defaultAvatarColor"
+  [class.text-white]="!!user()?.defaultAvatarColor"
 >
-  
   {{
     user()?.displayName?.toUpperCase() ?? group()?.name?.toUpperCase()
       | slice : 0 : 1

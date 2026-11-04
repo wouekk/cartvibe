@@ -30,7 +30,7 @@ import { AppIconComponent } from "../icon/icon.component";
       }
     </button>
     @if (isExpanded()) {
-      <div class="animate-in fade-in-0 slide-in-from-top-1 border-t border-border px-4 py-3 duration-200" data-testid="expansion-body">
+      <div class="animate-in fade-in-0 slide-in-from-top-1 border-t border-border px-4 py-3 duration-200 motion-reduce:animate-none" data-testid="expansion-body">
         <ng-content />
       </div>
     }

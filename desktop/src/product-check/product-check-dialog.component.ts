@@ -14,11 +14,11 @@ import { CheckedProduct, NutrientLevel, NutriScore } from "./product-check.model
 import { ProductCheckService } from "./product-check.service";
 
 const NUTRI_CLASSES: Record<NutriScore, string> = {
-  a: "bg-nutri-a text-white",
-  b: "bg-nutri-b text-black",
-  c: "bg-nutri-c text-black",
-  d: "bg-nutri-d text-white",
-  e: "bg-nutri-e text-white",
+  a: "bg-nutri-a text-nutri-a-foreground",
+  b: "bg-nutri-b text-nutri-b-foreground",
+  c: "bg-nutri-c text-nutri-c-foreground",
+  d: "bg-nutri-d text-nutri-d-foreground",
+  e: "bg-nutri-e text-nutri-e-foreground",
 };
 
 const TONE_CLASSES: Record<HealthTone, string> = {
@@ -112,7 +112,7 @@ interface NutritionRow {
             <button
               type="button"
               role="listitem"
-              class="inline-flex h-8 max-w-48 shrink-0 items-center gap-2 rounded-full border border-border px-3 text-xs transition-colors hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
+              class="inline-flex h-8 max-w-48 shrink-0 items-center gap-2 rounded-full border border-border px-3 text-xs transition-colors hover:bg-accent motion-reduce:transition-none focus-visible:ring-3 focus-visible:ring-ring/40 focus-visible:outline-none"
               [class.bg-accent]="isCurrent(item)"
               [attr.aria-current]="isCurrent(item) ? 'true' : null"
               [attr.data-testid]="'product-check-recent-' + item.code"
@@ -129,8 +129,8 @@ interface NutritionRow {
       @switch (status()) {
         @case ('loading') {
           <div class="flex flex-col gap-3" data-testid="product-check-loading" aria-busy="true">
-            <div class="h-24 animate-pulse rounded-xl bg-muted"></div>
-            <div class="h-32 animate-pulse rounded-xl bg-muted"></div>
+            <div class="h-24 animate-pulse rounded-xl bg-muted motion-reduce:animate-none"></div>
+            <div class="h-32 animate-pulse rounded-xl bg-muted motion-reduce:animate-none"></div>
           </div>
         }
         @case ('notFound') {

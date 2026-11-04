@@ -21,7 +21,7 @@
               @if (column.sortable) {
                 <button
                   type="button"
-                  class="group/sort -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground"
+                  class="group/sort -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground motion-reduce:transition-none"
                   [attr.data-testid]="'sort-' + column.matColumnDef"
                   (click)="toggleSort(column)"
                 >
@@ -85,7 +85,7 @@
         @if (expandedRowTemplate() && expandedElement === element) {
           <tr hlmTr class="expanded-row [&_td]:border-b-0">
             <td hlmTd [attr.colspan]="displayedColumns().length">
-              <div class="overflow-hidden animate-in fade-in-0 slide-in-from-top-1 duration-200">
+              <div class="overflow-hidden animate-in fade-in-0 slide-in-from-top-1 duration-200 motion-reduce:animate-none">
                 <ng-template
                   [ngTemplateOutlet]="expandedRowTemplate()"
                   [ngTemplateOutletContext]="{ element: element }"

@@ -149,8 +149,8 @@
     }
 
     &:disabled {
-      opacity: 0.45;
-      cursor: default;
+      opacity: 0.5;
+      pointer-events: none;
     }
   }
 

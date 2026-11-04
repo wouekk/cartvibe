@@ -3,9 +3,8 @@ import { Component, computed, Input, input, output, ChangeDetectionStrategy } fr
 @Component({
   selector: "app-base-button",
   standalone: false,
-  templateUrl: "./base-button.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: "./base-button.component.scss"
+  template: "", // a base class: subclasses bring their own template
+  changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BaseButtonComponent {
   public readonly buttonClass = input<string>("");

@@ -3,8 +3,7 @@ import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
   selector: "app-form-button",
-  templateUrl: "./form-button.component.html",
-  styleUrls: ["./form-button.component.scss"],
+  template: "", // a base class: subclasses bring their own template
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })

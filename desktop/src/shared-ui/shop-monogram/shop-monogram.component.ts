@@ -5,9 +5,9 @@ import { findShopBrand } from "./shop-logo-match";
 /**
  * A 24px badge in front of a receipt's shop name: the shop's logo when the server has downloaded one (an admin entered
  * a Logo.dev key under System Settings → Shop Logos), otherwise its first letter. Logos come from this server, never
- * straight from Logo.dev. The logo sits on a white tile with a ring in the foreground color (black by day, white at
- * night) so light and dark logos both stay visible. The letter is white on black by day and black on white at night. If
- * a logo fails to load, the letter shows.
+ * straight from Logo.dev. The logo sits on a white tile, the one fixed colour the design allows (logo art assumes
+ * white), edged with the border hairline. The letter is white on black by day and black on white at night. If a logo
+ * fails to load, the letter shows. `data-tile` says which of the two is drawn.
  */
 @Component({
   selector: "app-shop-monogram",
@@ -17,6 +17,7 @@ import { findShopBrand } from "./shop-logo-match";
     class:
       "inline-flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-md text-xs font-semibold",
     "[class]": "hostClass()",
+    "[attr.data-tile]": "logoSrc() ? 'logo' : 'letter'",
     "aria-hidden": "true",
     "data-testid": "shop-monogram",
   },
@@ -46,7 +47,7 @@ export class ShopMonogramComponent {
   });
 
   protected readonly hostClass = computed(() =>
-    this.logoSrc() ? "bg-white ring-1 ring-foreground" : "bg-foreground text-background"
+    this.logoSrc() ? "bg-white ring-1 ring-border" : "bg-foreground text-background"
   );
 
   protected readonly initial = computed(() => {

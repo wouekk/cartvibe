@@ -2,11 +2,11 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     <span class="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{{ 'FORMAT' | t }}</span>
     <!-- Formats are toggles (several may be picked), drawn as one segmented control. -->
-    <div class="inline-flex rounded-lg border border-border bg-muted/40 p-0.5" role="group" [attr.aria-label]="'Format' | t">
+    <div class="inline-flex h-9 items-stretch rounded-lg border border-border bg-muted/40 p-0.5" role="group" [attr.aria-label]="'Format' | t">
       @for (format of formats; track format.key) {
         <button
           type="button"
-          class="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&_app-icon]:size-4"
+          class="inline-flex items-center gap-1.5 rounded-md px-3 text-sm font-medium transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&_app-icon]:size-4"
           [ngClass]="isSelected(format.key) ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'"
           [attr.aria-pressed]="isSelected(format.key)"
           [attr.data-testid]="'report-format-' + format.key"
