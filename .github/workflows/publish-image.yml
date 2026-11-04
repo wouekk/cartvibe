@@ -3,8 +3,10 @@
 # pre-built image (docker-compose.yml: image: ghcr.io/<owner>/cartvibe:latest) instead of
 # building from source on the NAS.
 #
-# It runs after CI succeeds on main, so a commit whose tests fail never becomes :latest. The
-# upstream project publishes to Docker Hub from ci.yml instead; this workflow is fork-only.
+# :latest only ever holds a commit whose CI passed on main: after a green CI run (workflow_run), and for the weekly
+# rebuild or a manual run on main, the commit of the newest CI run on main, only when that run succeeded. A manual run
+# from another branch publishes :preview. The upstream project publishes to Docker Hub from ci.yml instead; this
+# workflow is fork-only.
 name: Publish image
 
 on:
@@ -22,42 +24,89 @@ concurrency:
   group: publish-image
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  packages: write
+permissions: {}
 
 jobs:
-  publish:
+  # Decides which commit and tag to publish, or that nothing is published.
+  gate:
     if: |
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      publish: ${{ steps.pick.outputs.publish }}
+      ref: ${{ steps.pick.outputs.ref }}
+      tag: ${{ steps.pick.outputs.tag }}
+    steps:
+      - name: Pick the commit
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = "workflow_run" ]; then
+            # The commit CI just passed on main, not whatever main points at by now.
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "ref=$RUN_SHA" >> "$GITHUB_OUTPUT"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = "workflow_dispatch" ] && [ "$REF_NAME" != "main" ]; then
+            # A manual run from a branch publishes :preview, never :latest, so trying a branch on the NAS cannot replace
+            # what main published.
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "ref=$SHA" >> "$GITHUB_OUTPUT"
+            echo "tag=preview" >> "$GITHUB_OUTPUT"
+          else
+            # The weekly rebuild, or a manual run on main: rebuild the commit of the newest CI run on main, and only when
+            # that run passed. A docs-only commit on top has no CI run and changes nothing in the image; a newer commit
+            # whose CI failed or is still running blocks :latest until CI passes (workflow_run then publishes it).
+            run=$(gh run list --repo "$REPO" --workflow ci.yml --branch main --limit 1 \
+              --json headSha,status,conclusion --jq '.[0] | "\(.headSha) \(.status) \(.conclusion)"')
+            read -r head status conclusion <<< "$run"
+            if [ -n "$head" ] && [ "$status" = "completed" ] && [ "$conclusion" = "success" ]; then
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              echo "ref=$head" >> "$GITHUB_OUTPUT"
+              echo "tag=latest" >> "$GITHUB_OUTPUT"
+            else
+              echo "::notice:::latest not republished: the newest CI run on main (${head:-none}) is ${status:-missing} ${conclusion}."
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+  publish:
+    needs: gate
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v7
         with:
-          # The commit CI tested, not whatever main points at by now.
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ needs.gate.outputs.ref }}
           persist-credentials: false
       - name: Image name and build info
         id: meta
+        env:
+          OWNER: ${{ github.repository_owner }}
+          TAG: ${{ needs.gate.outputs.tag }}
         run: |
-          echo "image=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/cartvibe" >> "$GITHUB_OUTPUT"
+          echo "image=ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/cartvibe" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          # A manual run from a branch publishes :preview, never :latest, so trying a branch on the NAS
-          # cannot replace what main published.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.ref_name }}" != "main" ]; then
-            echo "tag=preview" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
-          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push (amd64)
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./docker/Dockerfile
@@ -76,18 +125,31 @@ jobs:
           # Always fetch the newest base images; the weekly run also rebuilds every layer.
           pull: true
           no-cache: ${{ github.event_name == 'schedule' }}
-      # A vulnerability report for what was just published (the run's Artifacts). It never fails the run: most findings
-      # are Debian packages without a fix yet, and the report is read, not gated on.
+      # The full vulnerability report for what was just published (the run's Artifacts). It never fails the run: most
+      # findings are Debian packages without a fix yet, and the report is read, not gated on.
       - name: Scan the image
-        uses: anchore/scan-action@v7
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
           fail-build: false
           output-format: table
           output-file: grype-report.txt
+      # Turns the run red when a critical finding already has a fix, so the next rebuild (or a package bump) is due.
+      # The image is pushed above, so this flags rather than blocks a release.
+      - name: Fail on a fixable critical vulnerability
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
+          fail-build: true
+          severity-cutoff: critical
+          only-fixed: true
+          output-format: table
+          output-file: grype-critical-fixable.txt
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: grype-report-${{ steps.meta.outputs.tag }}-${{ steps.meta.outputs.sha }}
-          path: grype-report.txt
+          path: |
+            grype-report.txt
+            grype-critical-fixable.txt
           if-no-files-found: ignore

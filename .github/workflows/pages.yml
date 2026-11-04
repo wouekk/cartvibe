@@ -70,7 +70,7 @@ jobs:
           mkdir -p site/dist/demo
           cp -r desktop/dist/cartvibe-demo/browser/. site/dist/demo/
       # On a branch the built page is kept for three days, so it can be looked at before it reaches main.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: github.ref != 'refs/heads/main'
         with:
           name: site-preview
