@@ -43,6 +43,7 @@ model/appLogEntry.ts
 model/associatedEntityType.ts
 model/associatedGroup.ts
 model/attachShoppingTripReceiptCommand.ts
+model/avatarResponse.ts
 model/backupEntityCount.ts
 model/backupImportJob.ts
 model/backupImportPerson.ts
