@@ -11,6 +11,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-04
+
+Export and import a household, a household date format, profile photos and household icons, the AI in your language, a
+Quick Scan that never loses a photo, wide-screen scaling, a hardened image, and a long list of fixes from an audit.
+
 ### Added
 - **The project page is easier to find.** [cartvibe.app](https://cartvibe.app/) now has a `robots.txt`, a sitemap, a
   sharing picture with full Open Graph and X card tags, and structured data that ties the page to this repository. The

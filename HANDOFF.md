@@ -5,12 +5,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Current state
 
-- Last release v0.16.0 (2026-11-02). **`main` = `preview` (2026-11-04), untagged, all in `[Unreleased]`:** export and
-  import (ADM-11/12), date format (ADM-13), the audit sprint (Quick Scan keeps the photo, Dashboard grants, CSS layers,
-  CI gates, healthcheck, SQLite only), our ImageMagick policy and upload allowlist, wide-screen scaling, the household
-  sprint (rename HH-01, settings order APP-10, warranty menu WARR-05, profile photo HH-06, household icon and colour
-  HH-07, `app-row-actions`), and the site's search and sharing. Avatars and the household look are not in the export.
-- Skipped on purpose: one AI answer language (no household language setting), `app-button`'s `color="warn"` API.
+- **Last release v0.17.0 (2026-11-04)**: export and import (ADM-11/12), date format (ADM-13), the audit sprint,
+  the ImageMagick policy and upload allowlist, wide-screen scaling, the household sprint (HH-01, APP-10, WARR-05, HH-06,
+  HH-07), the AI language per person (SCAN-10) and the site's search and sharing. Not yet seen on the NAS (below).
+  Avatars and the household look are not in the export. Skipped on purpose: `app-button`'s `color="warn"` API.
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
 - Mac Playwright run: `failed-activity-source-file` and `system-task-filter` fail on `main`, 15 skipped behind them.
   Also to do: the `dashboard-charts` spec; `app-time-zone` and `report-period-date-field` specs were not run.
