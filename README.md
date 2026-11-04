@@ -251,3 +251,11 @@ Want to help or ask for a feature? See [CONTRIBUTING.md](CONTRIBUTING.md). Worki
 
 GNU Affero General Public License v3.0, as the original ([LICENSE](LICENSE)). If you run a modified copy as a
 service, you must offer its users the source.
+
+## Cookies
+
+CartVibe uses cookies only to keep you signed in: `jwt`, a short-lived access token, and `refresh_token`, which renews
+it. Both are HttpOnly, so scripts on the page cannot read them. If an admin has set up single sign-on, one more
+short-lived cookie protects that sign-in. There are no tracking, analytics or advertising cookies. Your own choices,
+such as the theme, the language and whether the sidebar is open, stay in your browser's local storage. The project page
+and the demo at [cartvibe.app](https://cartvibe.app/) set no cookies at all.
