@@ -103,6 +103,28 @@ add 'count-skips-null-rows' 'accumulator.go' \
 	}
 	a.records++'
 
+# TestAccumulator_CountsIdentifiedRecordsOnce — COUNT counts a record once, not
+# its rows.
+add 'count-ignores-record-identity' 'accumulator.go' \
+'	return a.records - a.identified + int64(len(a.identities))' \
+'	return a.records'
+
+# TestAccumulator_CountsIdentifiedRecordsOnce — a parent must not write into a
+# child's identity set.
+add 'merge-shares-child-identities' 'accumulator.go' \
+'	if len(other.identities) > 0 && a.identities == nil {
+		a.identities = make(map[string]struct{}, len(other.identities))
+	}' \
+'	if len(other.identities) > 0 && a.identities == nil {
+		a.identities = other.identities
+	}'
+
+# TestRun_RecordIdentityCountsARecordOncePerBucket — the engine reads the
+# catalog's identity field.
+add 'engine-ignores-record-identity' 'engine.go' \
+'	key := e.compiled.catalog.RecordIdentity()' \
+'	key := FieldKey("")'
+
 # TestAccumulator_Sum — SUM of nothing is zero, not null.
 add 'sum-of-nothing-is-null' 'accumulator.go' \
 '	case AggSum:
@@ -462,8 +484,8 @@ add 'date-parts-read-in-app-zone' 'receiptsource/receiptsource.go' \
 # TestSource_DateFieldsDeclareTheirDisplayZone — the catalog is where a renderer
 # learns an instant's zone.
 add 'created-at-field-declares-utc' 'receiptsource/receiptsource.go' \
-'{Key: KeyCreatedAt, Label: "Added At", DataType: reporting.TypeDate, Location: location},' \
-'{Key: KeyCreatedAt, Label: "Added At", DataType: reporting.TypeDate, Location: time.UTC},'
+'{Key: KeyCreatedAt, Label: tr.T("Added At"), DataType: reporting.TypeDate, Location: location},' \
+'{Key: KeyCreatedAt, Label: tr.T("Added At"), DataType: reporting.TypeDate, Location: time.UTC},'
 
 # TestCSV_DateDimensionsAndLabelsUseTheFieldsLocation — the engine must carry a
 # label column's zone through to the renderer.
@@ -526,8 +548,8 @@ add 'lines-nil-planned-is-unplanned' 'receiptsource/lines.go' \
 # TestRowsWithLines_UncutFieldsLabelOnlyTheirLines — a bucket's other labels come
 # from its own lines, not the whole receipt.
 add 'lines-labels-read-every-line' 'receiptsource/lines.go' \
-'		setLineLabels(row, lines, bucket.lines, dimensions)' \
-'		setLineLabels(row, lines, allLineIndexes(lines), dimensions)'
+'		setLineLabels(tr, row, lines, bucket.lines, dimensions)' \
+'		setLineLabels(tr, row, lines, allLineIndexes(lines), dimensions)'
 
 # TestRowsWithLines_LabelsWithoutCutting — labels are sorted, so a report never
 # depends on the order the lines were read in.

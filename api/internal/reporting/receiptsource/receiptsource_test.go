@@ -381,7 +381,11 @@ func TestSource_FeedsTheEngine(t *testing.T) {
 	var receipts []models.Receipt
 	var lines [][]Line
 	receipt := func(payer, tag, category, amount string) {
-		receipts = append(receipts, models.Receipt{Amount: dec(amount), PaidByUser: models.User{DisplayName: payer}})
+		receipts = append(receipts, models.Receipt{
+			BaseModel:  models.BaseModel{ID: uint(len(receipts) + 1)},
+			Amount:     dec(amount),
+			PaidByUser: models.User{DisplayName: payer},
+		})
 		lines = append(lines, []Line{{Amount: dec(amount), Category: category, Tags: []string{tag}}})
 	}
 

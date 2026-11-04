@@ -313,6 +313,79 @@ func TestRun_MultiValueDimensionsDoubleCount(t *testing.T) {
 	}
 }
 
+// A catalog with a record identity counts a record once per bucket, however
+// many of its rows land there; the sums still add every row. Rows without an
+// identity count one each, as without one.
+func TestRun_RecordIdentityCountsARecordOncePerBucket(t *testing.T) {
+	base, err := NewFieldCatalog(
+		FieldRef{Key: "receipt", Label: "Receipt", DataType: TypeNumber},
+		FieldRef{Key: "amount", Label: "Amount", DataType: TypeCurrency},
+		FieldRef{Key: "category", Label: "Category", DataType: TypeString, Multi: true},
+		FieldRef{Key: "health", Label: "Health", DataType: TypeString, Multi: true},
+	)
+	if err != nil {
+		t.Fatalf("NewFieldCatalog() error = %v", err)
+	}
+	if _, err := base.WithRecordIdentity("nope"); err == nil {
+		t.Errorf("WithRecordIdentity(unknown) error = nil, want one")
+	}
+	catalog, err := base.WithRecordIdentity("receipt")
+	if err != nil {
+		t.Fatalf("WithRecordIdentity() error = %v", err)
+	}
+
+	spec := ReportSpec{
+		GroupBy: []FieldKey{"category"},
+		Detail:  DetailSpec{Mode: DetailAggregate, By: "health"},
+		Columns: []Column{
+			{Name: "Health", Kind: ColumnLabel, Field: "health"},
+			{Name: "Count", Kind: ColumnAggregate, Agg: Aggregate{Func: AggCount}},
+			{Name: "Subtotal", Kind: ColumnAggregate, Agg: Aggregate{Func: AggSum, Field: "amount"}},
+		},
+		Subtotals:   true,
+		GrandTotals: true,
+	}
+
+	row := func(receipt string, category string, health string, amount string) Row {
+		r := Row{"category": {Str(category)}, "amount": {Num(dec(amount))}}
+		if receipt != "" {
+			r["receipt"] = []Value{Num(dec(receipt))}
+		}
+		if health != "" {
+			r["health"] = []Value{Str(health)}
+		}
+		return r
+	}
+	rows := []Row{
+		// Receipt 1: two Dairy rows of different health, and its rest twice in
+		// (None) health under Dairy.
+		row("1", "Dairy", "Healthy", "2.00"),
+		row("1", "Dairy", "Unhealthy", "3.00"),
+		row("1", "Dairy", "", "1.00"),
+		row("1", "Dairy", "", "0.50"),
+		row("2", "Dairy", "Healthy", "4.00"),
+		// Two rows without an identity: two records.
+		row("", "Dairy", "", "1.00"),
+		row("", "Dairy", "", "1.00"),
+	}
+
+	model, err := Run(spec, catalog, rows, testMeta())
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	assertModelInvariants(t, spec, model)
+
+	dairy := model.Root.Children[0]
+	assertRow(t, dairy.DetailRows[0].Cells, map[string]string{"Health": "Healthy", "Count": "2", "Subtotal": "6.00"})
+	assertRow(t, dairy.DetailRows[1].Cells, map[string]string{"Health": "Unhealthy", "Count": "1", "Subtotal": "3.00"})
+	assertRow(t, dairy.DetailRows[2].Cells, map[string]string{"Count": "3", "Subtotal": "3.50"})
+	assertRow(t, dairy.Subtotals, map[string]string{"Count": "4", "Subtotal": "12.50"})
+	assertRow(t, model.GrandTotals, map[string]string{"Count": "4", "Subtotal": "12.50"})
+	if model.Root.RecordCount != 7 {
+		t.Errorf("root RecordCount = %d, want the 7 rows", model.Root.RecordCount)
+	}
+}
+
 // Distinct values fan out; a repeated one does not. A receipt tagged "Alex"
 // twice belongs to the Alex bucket once, and its amount is counted once.
 //

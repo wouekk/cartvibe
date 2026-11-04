@@ -191,6 +191,36 @@ func TestAccumulator_Merge(t *testing.T) {
 	}
 }
 
+// COUNT counts an identified record once, in a node and across a merge, and an
+// unidentified row once each. Merging never writes into the child's set.
+func TestAccumulator_CountsIdentifiedRecordsOnce(t *testing.T) {
+	left := newAccumulator(AggCount)
+	left.addIdentified(Null(), "n:1")
+	left.addIdentified(Null(), "n:1")
+	left.add(Null())
+	assertFinalize(t, left, "2")
+
+	right := newAccumulator(AggCount)
+	right.addIdentified(Null(), "n:1")
+	right.addIdentified(Null(), "n:2")
+	assertFinalize(t, right, "2")
+
+	parent := newAccumulator(AggCount)
+	parent.merge(left)
+	parent.merge(right)
+	assertFinalize(t, parent, "3")
+
+	parent.addIdentified(Null(), "n:3")
+	assertFinalize(t, parent, "4")
+	assertFinalize(t, left, "2")
+	assertFinalize(t, right, "2")
+
+	sum := newAccumulator(AggSum)
+	sum.addIdentified(Num(dec("1.50")), "n:1")
+	sum.addIdentified(Num(dec("2.00")), "n:1")
+	assertFinalize(t, sum, "3.50")
+}
+
 // Merging must be associative and commutative, otherwise the order the engine
 // walks a subtree in would change the numbers it reports.
 func TestAccumulator_MergeIsAssociativeAndCommutative(t *testing.T) {
