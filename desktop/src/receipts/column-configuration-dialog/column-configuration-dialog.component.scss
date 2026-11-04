@@ -1,10 +1,10 @@
 .column-config-content {
-  max-width: 500px;
+  max-width: 31.25rem;
   
   .description {
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
     color: color-mix(in oklab, var(--foreground) 60%, transparent);
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 }
 
@@ -12,14 +12,14 @@
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) - 2px);
   background: var(--muted);
-  padding: 8px;
-  margin-bottom: 16px;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
   
   .column-item {
     display: flex;
     align-items: center;
-    padding: 8px;
-    margin: 4px 0;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
     background: var(--card);
     border-radius: calc(var(--radius) - 2px);
     border: 1px solid transparent;
@@ -45,7 +45,7 @@
     .drag-handle {
       cursor: grab;
       color: var(--muted-foreground);
-      margin-right: 12px;
+      margin-right: 0.75rem;
       display: flex;
       align-items: center;
       
@@ -54,9 +54,9 @@
       }
       
       app-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: 1.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
       }
     }
     
@@ -70,7 +70,7 @@
 .actions {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   
   .reset-button {
     color: var(--muted-foreground);

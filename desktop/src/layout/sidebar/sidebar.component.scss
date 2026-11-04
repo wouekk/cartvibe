@@ -1,8 +1,8 @@
 // The look is the spartan sidebar (src/ui/sidebar) on the theme tokens; this file only sizes the avatars in it.
 .sidebar__avatar .avatar {
-  width: 32px !important;
-  height: 32px !important;
-  font-size: 14px;
+  width: 2rem !important;
+  height: 2rem !important;
+  font-size: 0.875rem;
   flex: 0 0 auto;
   box-shadow: none;
   background-color: var(--primary) !important;

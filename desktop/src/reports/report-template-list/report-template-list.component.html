@@ -67,9 +67,9 @@
 </ng-template>
 
 <ng-template #formatsCell let-element="element">
-  <div class="flex flex-wrap gap-[5px]">
+  <div class="flex flex-wrap gap-[0.3125rem]">
     @for (format of formatChipsFor(element); track format) {
-      <span class="inline-flex h-[22px] items-center rounded-sm bg-accent px-2 text-[11px] font-bold tracking-wide text-foreground">{{ format }}</span>
+      <span class="inline-flex h-[1.375rem] items-center rounded-sm bg-accent px-2 text-[0.6875rem] font-bold tracking-wide text-foreground">{{ format }}</span>
     }
   </div>
 </ng-template>

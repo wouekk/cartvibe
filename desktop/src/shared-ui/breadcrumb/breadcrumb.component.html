@@ -1,4 +1,4 @@
-<nav class="flex items-center gap-2 text-[13px] text-muted-foreground" [attr.aria-label]="'Breadcrumb' | t">
+<nav class="flex items-center gap-2 text-[0.8125rem] text-muted-foreground" [attr.aria-label]="'Breadcrumb' | t">
   @for (item of items(); track $index; let last = $last) {
     @if (item.routerLink && !last) {
       <a data-testid="crumb" class="inline-flex items-center gap-1 font-medium text-muted-foreground no-underline hover:text-foreground" [routerLink]="item.routerLink">

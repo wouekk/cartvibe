@@ -20,7 +20,7 @@
   } @else if (entries().length === 0) {
     <p class="m-0 px-6 py-5 text-muted-foreground" data-testid="log-empty">{{ 'Nothing in the log.' | t }}</p>
   } @else {
-    <ul class="m-0 list-none px-6 py-2 font-mono text-[13px]">
+    <ul class="m-0 list-none px-6 py-2 font-mono text-[0.8125rem]">
       @for (entry of entries(); track $index) {
         <li class="entry grid grid-cols-1 gap-0.5 border-b border-border py-1.5 last:border-b-0 sm:grid-cols-[150px_56px_1fr] sm:gap-2 [&.error_.level]:font-semibold [&.error_.level]:text-destructive" [class.error]="entry.level === 'ERROR' || entry.level === 'FATAL'">
           <span class="time">{{ entry.timestamp }}</span>

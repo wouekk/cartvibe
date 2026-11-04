@@ -2,7 +2,7 @@
 <div
   [hlmTooltip]="user()?.displayName ?? group()?.name ?? ''"
   [style.background-color]="user()?.defaultAvatarColor || null"
-  class="avatar flex size-[50px] items-center justify-center rounded-full"
+  class="avatar flex size-[3.125rem] items-center justify-center rounded-full"
   [class.bg-primary]="!user()?.defaultAvatarColor"
   [class.text-primary-foreground]="!user()?.defaultAvatarColor"
   [class.text-white]="!!user()?.defaultAvatarColor"

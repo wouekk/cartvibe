@@ -2,7 +2,7 @@ import { Component, computed, input, ChangeDetectionStrategy } from "@angular/co
 import { TranslatePipe } from "../../../i18n/translate.pipe";
 import { foodTagsOf, FoodTagValues } from "./food-tags";
 
-const BASE = "inline-block whitespace-nowrap rounded-full px-[7px] py-px text-[11px] font-semibold leading-4";
+const BASE = "inline-block whitespace-nowrap rounded-full px-[0.4375rem] py-px text-[0.6875rem] font-semibold leading-4";
 
 const TONES: Record<string, string> = {
   good: "bg-success-text/18 text-success-text",

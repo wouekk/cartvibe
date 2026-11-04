@@ -8,7 +8,7 @@
       [buttonRouterLink]="['/reports']"
     ></app-button>
     <div class="min-w-0 flex-1">
-      <nav class="flex min-w-0 items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground [&_app-icon]:size-3 [&_app-icon]:flex-none" [attr.aria-label]="'Breadcrumb' | t">
+      <nav class="flex min-w-0 items-center gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground [&_app-icon]:size-3 [&_app-icon]:flex-none" [attr.aria-label]="'Breadcrumb' | t">
         <a class="text-inherit no-underline transition-colors duration-150 hover:text-foreground" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>
         <app-icon name="chevron_right"></app-icon>
         <span class="truncate">{{ loadedTemplateName() ?? ('New report' | t) }}</span>
@@ -22,11 +22,11 @@
   </header>
 
   <!-- Two panes scrolling on their own; stacked below 900px, where the page scrolls as one. -->
-  <div class="flex min-h-0 flex-1 max-[900px]:flex-col max-[900px]:overflow-y-auto">
-    <div class="w-[30rem] flex-none overflow-y-auto border-r border-border p-4 max-[900px]:w-full max-[900px]:flex-none max-[900px]:overflow-visible max-[900px]:border-b max-[900px]:border-r-0">
+  <div class="flex min-h-0 flex-1 max-[56.25rem]:flex-col max-[56.25rem]:overflow-y-auto">
+    <div class="w-[30rem] flex-none overflow-y-auto border-r border-border p-4 max-[56.25rem]:w-full max-[56.25rem]:flex-none max-[56.25rem]:overflow-visible max-[56.25rem]:border-b max-[56.25rem]:border-r-0">
       <app-report-config-panel [form]="form"></app-report-config-panel>
     </div>
-    <div class="min-w-0 flex-1 overflow-y-auto bg-muted/40 max-[900px]:flex-none max-[900px]:overflow-visible">
+    <div class="min-w-0 flex-1 overflow-y-auto bg-muted/40 max-[56.25rem]:flex-none max-[56.25rem]:overflow-visible">
       <app-report-preview-panel
         [form]="form"
         [html]="previewHtml()"

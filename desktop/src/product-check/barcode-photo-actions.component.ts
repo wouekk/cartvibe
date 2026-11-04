@@ -22,7 +22,7 @@ import { BarcodeImageService } from "./barcode-image.service";
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: "block" },
   template: `
-    <div class="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2" data-testid="barcode-photo-bar">
+    <div class="grid grid-cols-1 gap-2 min-[25rem]:grid-cols-2" data-testid="barcode-photo-bar">
       @if (liveCamera()) {
         <button type="button" [class]="photoButtonClass" [disabled]="decoding()" data-testid="barcode-photo-live" (click)="takePhoto.emit()">
           <app-icon name="photo_camera"></app-icon>
