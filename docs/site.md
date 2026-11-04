@@ -49,6 +49,30 @@ npm run build      # writes site/dist
   (Self-hosted, and the iPhone app as "Coming soon", a separate app that does not connect to a server, linking to issue #1 until
   there is an App Store page). When the app is live, the button becomes the App Store link, with Apple's badge used as Apple's
   marketing guidelines say.
+- The palette menu lists Zinc first, because it is the site's default; the app's own menu (`PALETTES` in
+  `desktop/src/theme/themes.ts`) keeps Blue first.
+
+## Search and sharing
+
+The aim is for "CartVibe" to find this page, and for search engines to treat the page and `github.com/wouekk/cartvibe` as one
+piece of software (an unrelated shop has a similar name).
+
+- **Head.** `Base.astro` gives every page a description, an absolute canonical, `robots` `index, follow`, Open Graph
+  (`og:site_name`, `og:image` and its size and alt) and X card tags. The sharing picture is the demo Dashboard (day), cut to a
+  1200 × 630 PNG at build time by `src/lib/social-image.ts`; redo the screenshots and it follows.
+- **Home page.** The title and description are fixed in `index.astro` (the description matches the repository's). The page
+  passes one JSON-LD `@graph` to `Base.astro` (`jsonLd` prop): `Organization` (`sameAs` the repository), `WebSite`,
+  `SoftwareApplication` and `SoftwareSourceCode` (linked both ways by `isBasedOn` and `targetProduct`; `codeRepository` lives on
+  the source code, where schema.org defines it) and a `FAQPage` built from the `faq` array. Never write FAQ markup by hand: it
+  must match the questions on the page. Google shows FAQ rich results only for government and health sites, so no FAQ
+  snippet is expected; the markup is there for the entity.
+- **Crawling.** `public/robots.txt` allows everything and names `src/pages/sitemap.xml.ts`, which lists `/`, `/privacy/` and
+  `/support/`. A new indexable page goes in that list. `/roadmap/` (a `noindex` redirect, canonical the home page) and `/demo/`
+  stay out.
+- **The other direction.** The README's banner and first "CartVibe", and the intro of `docs/faq.md`, link to
+  `https://cartvibe.app/`; the repository's homepage field points here too. Keep those links when editing.
+- Tested in `site/tests/e2e/seo.test.mjs`. After a deploy, Google's Rich Results Test on `https://cartvibe.app/` shows the
+  structured data as Google reads it.
 
 ## Privacy and support
 

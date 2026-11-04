@@ -3,25 +3,31 @@ import "../styles/global.css";
 import Icon from "../components/Icon.astro";
 import Footer from "../components/Footer.astro";
 import Wordmark from "../components/Wordmark.astro";
+import { SOCIAL_IMAGE_ALT, SOCIAL_IMAGE_HEIGHT, SOCIAL_IMAGE_WIDTH, socialImageUrl } from "../lib/social-image";
 
 interface Props {
   title: string;
   description: string;
+  /** Structured data (schema.org JSON-LD) for this page; the home page sends its @graph (docs/site.md, "Search and sharing"). */
+  jsonLd?: object;
 }
-const { title, description } = Astro.props;
+const { title, description, jsonLd } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const repo = "https://github.com/wouekk/cartvibe";
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const image = await socialImageUrl(Astro.site);
+// "<" is escaped so no string in the data can close the script element.
+const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, "\\u003c") : null;
 const nav = [
   { href: `${base}/#features`, label: "Features" },
   { href: `${base}/#why`, label: "Why CartVibe" },
   { href: `${base}/#roadmap`, label: "Roadmap" },
   { href: `${base}/#faq`, label: "FAQ" },
 ];
-// Same keys and order as PALETTES in desktop/src/theme/themes.ts.
+// Same keys as PALETTES in desktop/src/theme/themes.ts; Zinc, the site's default, leads here (the app lists Blue first).
 const palettes = [
-  { key: "blue", label: "Blue" },
   { key: "zinc", label: "Zinc" },
+  { key: "blue", label: "Blue" },
   { key: "indigo", label: "Indigo" },
   { key: "emerald", label: "Emerald" },
   { key: "violet", label: "Violet" },
@@ -36,13 +42,27 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href={`${base}/cartvibe-icon.svg`} type="image/svg+xml" />
     <link rel="preconnect" href="https://api.github.com" crossorigin />
+    <meta property="og:site_name" content="CartVibe" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={image} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(SOCIAL_IMAGE_WIDTH)} />
+    <meta property="og:image:height" content={String(SOCIAL_IMAGE_HEIGHT)} />
+    <meta property="og:image:alt" content={SOCIAL_IMAGE_ALT} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+    <meta name="twitter:image:alt" content={SOCIAL_IMAGE_ALT} />
+    {jsonLdText && <script type="application/ld+json" is:inline set:html={jsonLdText} />}
     <script is:inline>
       // Apply the saved palette and mode before first paint. localStorage only; the site sets no cookies.
       (function () {
