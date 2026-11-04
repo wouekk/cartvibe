@@ -19,10 +19,10 @@ const REPO = "https://github.com/wouekk/cartvibe";
 
 test("the home page has the agreed title, description, canonical and social tags", async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
-  assert.equal(await page.title(), "CartVibe — Household Receipts, Shared Shopping Lists & Spending Insights");
+  assert.equal(await page.title(), "CartVibe — Household Receipts, Shopping Lists & Spending Insights");
   assert.equal(
     await meta(page, "name", "description"),
-    "Self-hosted and open-source (AGPL-3.0) app for household receipts, AI receipt OCR, shared shopping lists, warranty tracking, and spending insights. CartVibe for iPhone coming soon.",
+    "Scan receipts, share live shopping lists and see where your household's money goes. Free, open source (AGPL-3.0) and self-hosted. iPhone app coming soon.",
   );
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), "https://cartvibe.app/");
   assert.match(await meta(page, "name", "robots"), /^index, follow/);
@@ -87,4 +87,18 @@ test("the palette menu lists Zinc first", async () => {
   const keys = await page.locator("[data-palette-option]").evaluateAll((els) => els.map((e) => e.dataset.paletteOption));
   assert.deepEqual(keys, ["zinc", "blue", "indigo", "emerald", "violet"]);
   await context.close();
+});
+
+// Bing Webmaster Tools flags a title over 70 characters, a description outside 25-160 and any image without alt text.
+test("every page keeps within Bing's title and description limits, and every image has alt text", async () => {
+  for (const path of ["/", "/privacy/", "/support/"]) {
+    const { page, context } = await open(browser, server.origin, path, { setup: noGithub });
+    const title = await page.title();
+    const description = await meta(page, "name", "description");
+    assert.ok(title.length <= 70, `${path} title is ${title.length} characters`);
+    assert.ok(description.length >= 25 && description.length <= 160, `${path} description is ${description.length} characters`);
+    const missing = await page.locator("img").evaluateAll((els) => els.filter((e) => !e.getAttribute("alt")?.trim()).map((e) => e.getAttribute("src")));
+    assert.deepEqual(missing, [], `${path} images without alt`);
+    await context.close();
+  }
 });
