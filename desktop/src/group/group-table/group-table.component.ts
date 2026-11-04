@@ -19,6 +19,7 @@ import { Router } from "@angular/router";
 import { hasAll, hasAny } from "../../utils/permission.utils";
 import { ViewportService } from "../../services/viewport.service";
 import { GroupTableEditButtonPipe } from "./group-table-edit-button.pipe";
+import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
 
 @Component({
     selector: "app-group-table",
@@ -163,6 +164,28 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
       (hasAny(this.appPermissions() ?? [], Permission.AppGroupsDelete) ||
         hasAll(this.groupPermissions()?.[group.id] ?? [], Permission.GroupDelete))
     );
+  }
+
+  /** The row's actions (app-row-actions): one stable array, judged per row. */
+  public readonly rowActions: readonly RowAction<Group>[] = [
+    { key: "edit", label: marker("Edit"), icon: "edit", testId: "group-edit", visible: (group) => this.canEdit(group) },
+    {
+      key: "delete",
+      label: marker("Delete Household"),
+      icon: "delete",
+      testId: "group-delete",
+      destructive: true,
+      visible: (group) => this.canDelete(group),
+      disabled: () => this.deleteDisabled(),
+    },
+  ];
+
+  public rowAction(key: string, group: Group, index: number): void {
+    if (key === "edit") {
+      this.editGroup(group);
+    } else if (key === "delete") {
+      this.deleteGroup(index);
+    }
   }
 
   public editGroup(group: Group): void {

@@ -178,6 +178,7 @@
     "Categories: {matched} already here, {created} new. Tags: {tagsMatched} already here, {tagsCreated} new.": "Catégories : {matched} déjà présentes, {created} nouvelles. Étiquettes : {tagsMatched} déjà présentes, {tagsCreated} nouvelles.",
     "Category": "Catégorie",
     "Category & tag access": "Accès aux catégories et étiquettes",
+    "Category actions": "Actions de la catégorie",
     "Category created successfully": "Catégorie ajoutée",
     "Category successfully deleted": "Catégorie supprimée",
     "Category updated successfully": "Catégorie mise à jour",
@@ -315,6 +316,7 @@
     "Delete \"{name}\" from this list?": "Supprimer « {name} » de cette liste ?",
     "Delete Account": "Supprimer le compte",
     "Delete Group": "Supprimer le groupe",
+    "Delete Household": "Supprimer le foyer",
     "Delete Item": "Supprimer l’article",
     "Delete List": "Supprimer la liste",
     "Delete Receipt": "Supprimer le ticket",
@@ -610,6 +612,7 @@
     "Meat": "Viande",
     "Meat & Poultry": "Viande et volaille",
     "Medium": "Moyen",
+    "Member actions": "Actions du membre",
     "Mobile": "Mobile",
     "Model": "Modèle",
     "Moderate": "Modéré",
@@ -1082,6 +1085,7 @@
     "System settings updated successfully": "Paramètres système mis à jour",
     "Tablet": "Tablette",
     "Tag": "Étiquette",
+    "Tag actions": "Actions de l’étiquette",
     "Tag created successfully": "Étiquette ajoutée",
     "Tag products on your receipts, and the Dashboard shows what the tagged products cost in the chosen period and their share of the spending.": "Étiquetez les produits de vos tickets, et le tableau de bord montre ce que les produits étiquetés ont coûté sur la période choisie et leur part des dépenses.",
     "Tag successfully deleted": "Étiquette supprimée",
@@ -1258,6 +1262,7 @@
     "User Preferences": "Préférences de l’utilisateur",
     "User Profile": "Profil de l’utilisateur",
     "User Settings": "Paramètres de l’utilisateur",
+    "User actions": "Actions de l’utilisateur",
     "User is unauthorized to access report templates": "Vous n’êtes pas autorisé à accéder aux modèles de rapport",
     "User is unauthorized to access this report template": "Vous n’êtes pas autorisé à accéder à ce modèle de rapport",
     "User is unauthorized to create a report over one or more of these groups": "Vous n’êtes pas autorisé à créer un rapport sur un ou plusieurs de ces groupes",
@@ -1610,10 +1615,6 @@
     "Delete API Key": {
       "value": "Supprimer la clé API",
       "closest": "API key"
-    },
-    "Delete Household": {
-      "value": "Supprimer le foyer",
-      "closest": "Add Household"
     },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Chaque navigateur charge les logos directement depuis Logo.dev et les garde une journée. Logo.dev voit quels logos de marques sont demandés, jamais vos tickets. Rien n'est stocké sur ce serveur."

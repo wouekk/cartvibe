@@ -65,6 +65,10 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Page: header row (`h1` + muted context left, actions right, `flex-wrap gap-2`), then `flex flex-col gap-6`. Text flex children need `min-w-0`; headings `break-words`.
 - Card: `rounded-xl border border-border/70 bg-card`; header `min-h-14 border-b border-border/60 px-4`; body `px-4 pt-3 pb-4`.
 - Rows: `flex min-h-14 items-center border-b border-border/40 last:border-b-0`, hover `bg-muted/40`, trailing ghost icon button with `more_vert` menu. Amounts right-aligned, bold, tabular.
+- Settings list rows (households, users, categories, tags, a household's members): `app-row-actions`
+  (`shared-ui/row-actions/`) draws inline icon buttons (accent icons, a red `app-delete-button`) on a wider screen and one
+  `more_vert` menu on a phone (below 768px, `ViewportService.isHandset`), never both. Every phone row menu is a
+  `more_vert` menu; Delete stays red and confirmed at both widths.
 - Selected card: `border-primary bg-accent/30 ring-1 ring-primary/20` + `aria-pressed`.
 - Finished/archived card: `bg-muted/30 text-muted-foreground`, a `history` icon before the name, and its actions in a
   `more_vert` ghost icon button placed beside the card button (absolute, top right), never nested inside it. A group

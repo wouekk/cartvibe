@@ -1,3 +1,4 @@
+import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
@@ -22,6 +23,7 @@ import { CategoryTableComponent } from "./category-table/category-table.componen
     PipesModule,
     ReactiveFormsModule,
     SharedUiModule,
+    RowActionsComponent,
     TableModule,
   ],
 })

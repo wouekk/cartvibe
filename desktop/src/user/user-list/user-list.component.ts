@@ -21,6 +21,7 @@ import { ResetPasswordComponent } from "../reset-password/reset-password.compone
 import { UserFormComponent } from "../user-form/user-form.component";
 import { UserTableService } from "./user-table.service";
 import { marker } from "../../i18n/marker";
+import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
 import { TranslationService } from "../../i18n/translation.service";
 
 @Component({
@@ -44,6 +45,55 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   protected readonly PermissionScope = PermissionScope;
 
   userId = this.store.selectSignal(AuthState.userId);
+
+  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersUpdate));
+
+  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersDelete));
+
+  /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
+  public readonly rowActions: readonly RowAction<User>[] = [
+    { key: "edit", label: marker("Edit User"), icon: "edit", testId: "user-edit", visible: () => this.canUpdate() },
+    {
+      key: "password",
+      label: marker("Set password"),
+      icon: "password",
+      testId: "user-set-password",
+      visible: () => this.canUpdate(),
+    },
+    {
+      key: "convert",
+      label: marker("Convert to normal user"),
+      icon: "person",
+      testId: "user-convert",
+      visible: (user) => this.canUpdate() && !!user.isDummyUser,
+    },
+    {
+      key: "delete",
+      label: marker("Delete"),
+      icon: "delete",
+      testId: "user-delete",
+      destructive: true,
+      // Nobody deletes their own account from here (Settings → Danger Zone does that).
+      visible: (user) => this.canDelete() && this.userId() !== user.id?.toString(),
+    },
+  ];
+
+  public rowAction(key: string, user: User, index: number): void {
+    switch (key) {
+      case "edit":
+        this.openUserFormDialog(user);
+        break;
+      case "password":
+        this.openResetPasswordDialog(user);
+        break;
+      case "convert":
+        this.openDummyUserConversionDialog(user);
+        break;
+      case "delete":
+        this.deleteUser(index);
+        break;
+    }
+  }
 
   // Signal-backed pagination state (per desktop guideline: selectSignal over | async).
   public readonly page = this.store.selectSignal(UserTableState.page);

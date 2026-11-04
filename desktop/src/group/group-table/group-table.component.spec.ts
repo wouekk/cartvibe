@@ -12,6 +12,7 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ViewportService } from "../../services/viewport.service";
 import { AvatarModule } from "../../avatar";
+import { RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -51,6 +52,7 @@ describe("GroupTableComponent", () => {
         ...HlmDropdownMenuImports,
         AppIconComponent,
         AvatarModule,
+        RowActionsComponent,
       ],
       providers: [
         provideZonelessChangeDetection(),
@@ -113,7 +115,7 @@ describe("GroupTableComponent", () => {
     it("offers delete to a member holding group.delete", () => {
       renderRowWith([], { 5: [Permission.GroupDelete] });
 
-      expect(queryTestId("group-menu")).toBeTruthy();
+      expect(queryTestId("group-delete")).toBeTruthy();
       expect(component.canDelete(group)).toBe(true);
       expect(component.canEdit(group)).toBe(false);
     });
@@ -121,14 +123,15 @@ describe("GroupTableComponent", () => {
     it("offers delete to a non-member holding app.groups.delete", () => {
       renderRowWith([Permission.AppGroupsDelete]);
 
-      expect(queryTestId("group-menu")).toBeTruthy();
+      expect(queryTestId("group-delete")).toBeTruthy();
       expect(component.canDelete(group)).toBe(true);
     });
 
-    it("shows no row menu to a non-member who can only read all groups", () => {
+    it("shows no row action to a non-member who can only read all groups", () => {
       renderRowWith([Permission.AppGroupsRead]);
 
-      expect(queryTestId("group-menu")).toBeFalsy();
+      expect(queryTestId("group-delete")).toBeFalsy();
+      expect(queryTestId("group-edit")).toBeFalsy();
     });
   });
 

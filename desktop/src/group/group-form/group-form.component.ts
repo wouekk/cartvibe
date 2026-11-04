@@ -20,6 +20,7 @@ import {AddGroup, AuthState, UpdateGroup} from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
+import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
 
 @Component({
     selector: "app-create-group-form",
@@ -258,6 +259,34 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
           this.groupMembers.at(index).patchValue(form.value);
         }
       });
+  }
+
+  /** A member row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
+  public readonly memberActions: readonly RowAction<GroupMember>[] = [
+    {
+      key: "edit",
+      label: marker("Edit group member"),
+      icon: "edit",
+      testId: "group-member-edit",
+      visible: () => this.canUpdateGroupMembers(),
+    },
+    {
+      key: "remove",
+      label: marker("Remove group member"),
+      icon: "delete",
+      testId: "group-member-remove",
+      destructive: true,
+      visible: () => this.canDeleteGroupMembers(),
+      disabled: () => this.disableDeleteButton,
+    },
+  ];
+
+  public memberAction(key: string, index: number): void {
+    if (key === "edit") {
+      this.editGroupMemberClicked(index);
+    } else if (key === "remove") {
+      this.removeGroupMember(index);
+    }
   }
 
   public removeGroupMember(index: number): void {

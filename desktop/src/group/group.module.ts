@@ -27,6 +27,7 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { GroupLookPickerComponent } from "./group-look-picker/group-look-picker.component";
 import { AvatarModule } from "../avatar";
+import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 
 @NgModule({
   declarations: [
@@ -59,6 +60,7 @@ import { AvatarModule } from "../avatar";
     AppIconComponent,
     GroupLookPickerComponent,
     AvatarModule,
+    RowActionsComponent,
   ],
   exports: [GroupTableComponent],
 })

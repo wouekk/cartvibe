@@ -43,10 +43,12 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   live install.
 
 ### Changed
-- **Renaming a household works from a phone (HH-01).** Households under Settings → Management have a ⋮ menu with *Edit*
-  and *Delete*, in reach without scrolling sideways (the dates and the member count give way on a phone). A rename moves the household's
+- **Renaming a household works from a phone (HH-01).** Households under Settings → Management have *Edit* and
+  *Delete* on every row (the ⋮ menu on a phone), in reach without scrolling sideways (the dates and the member count give way on a phone). A rename moves the household's
   photo folder with it, or is refused and changes nothing if the folder cannot move, and new accounts keep joining the
   renamed household.
+- **Settings lists share one row pattern (APP-06):** households, users, categories, tags and a household's members show
+  their actions as icon buttons on a computer and as a ⋮ menu on a phone.
 - **Settings menu order (APP-10):** System Settings, Management, User Settings, AI, Theme, then Language.
 - **Zinc comes first in every palette picker (APP-02)**: the header menu, Settings → Theme and the welcome. It was
   already the default.

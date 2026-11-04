@@ -289,8 +289,8 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   signed-in user from the token, `UserState`) has one, and the initial otherwise or when the image fails.
 - **Households** (`/groups`): the name cell shows `app-avatar size="sm" [group]` (icon on its colour). The edit form holds
   `icon` / `color` controls driven by `app-group-look-picker` (`src/group/group-look-picker/`, lists in
-  `constants/group-look.ts`). Each row ends in a `more_vert` menu (`group-menu`: Edit → the household's edit page,
-  Delete); phones drop the dates and the member count (`visibleColumns`, `ViewportService.isHandset`) so the menu stays on screen.
+  `constants/group-look.ts`). Each row ends in `app-row-actions` (Edit → the household's edit page, Delete; inline icons, or the
+  `group-menu` menu on a phone, like users, categories, tags and the members table); phones drop the dates and the member count (`visibleColumns`, `ViewportService.isHandset`) so the menu stays on screen.
 - **System Settings** has six tabs: Currency & Time Zone (route `general`), Shop Logos (`logos`), Auth & Security,
   Tasks & Storage, Export & import (`export-import`, only with `app.backup.export`), Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,

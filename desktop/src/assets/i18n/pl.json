@@ -178,6 +178,7 @@
     "Categories: {matched} already here, {created} new. Tags: {tagsMatched} already here, {tagsCreated} new.": "Kategorie: istniejące {matched}, nowe {created}. Tagi: istniejące {tagsMatched}, nowe {tagsCreated}.",
     "Category": "Kategoria",
     "Category & tag access": "Dostęp do kategorii i tagów",
+    "Category actions": "Działania dla kategorii",
     "Category created successfully": "Dodano kategorię",
     "Category successfully deleted": "Usunięto kategorię",
     "Category updated successfully": "Zaktualizowano kategorię",
@@ -315,6 +316,7 @@
     "Delete \"{name}\" from this list?": "Usunąć „{name}” z tej listy?",
     "Delete Account": "Usuń konto",
     "Delete Group": "Usuń grupę",
+    "Delete Household": "Usuń gospodarstwo",
     "Delete Item": "Usuń pozycję",
     "Delete List": "Usuń listę",
     "Delete Receipt": "Usuń paragon",
@@ -610,6 +612,7 @@
     "Meat": "Mięso",
     "Meat & Poultry": "Mięso i drób",
     "Medium": "Średnie",
+    "Member actions": "Działania dla członka",
     "Mobile": "Telefon",
     "Model": "Model",
     "Moderate": "Umiarkowane",
@@ -1082,6 +1085,7 @@
     "System settings updated successfully": "Zapisano ustawienia systemu",
     "Tablet": "Tablet",
     "Tag": "Tag",
+    "Tag actions": "Działania dla tagu",
     "Tag created successfully": "Dodano tag",
     "Tag products on your receipts, and the Dashboard shows what the tagged products cost in the chosen period and their share of the spending.": "Oznaczaj tagami produkty z paragonów, a Pulpit pokaże, ile kosztowały oznaczone produkty w wybranym okresie i jaka to część wydatków.",
     "Tag successfully deleted": "Usunięto tag",
@@ -1258,6 +1262,7 @@
     "User Preferences": "Preferencje użytkownika",
     "User Profile": "Profil użytkownika",
     "User Settings": "Ustawienia użytkownika",
+    "User actions": "Działania dla użytkownika",
     "User is unauthorized to access report templates": "Nie masz dostępu do szablonów raportów",
     "User is unauthorized to access this report template": "Nie masz dostępu do tego szablonu raportu",
     "User is unauthorized to create a report over one or more of these groups": "Nie możesz tworzyć raportów dla co najmniej jednej z tych grup",
@@ -1626,10 +1631,6 @@
     "Delete API Key": {
       "value": "Usuń klucz API",
       "closest": "API key"
-    },
-    "Delete Household": {
-      "value": "Usuń gospodarstwo",
-      "closest": "Add Household"
     },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Każda przeglądarka pobiera logo prosto z Logo.dev i przechowuje je przez jeden dzień. Logo.dev widzi, o logo których marek proszono, nigdy Twoje paragony. Na tym serwerze nic nie jest zapisywane."

@@ -5,7 +5,8 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { NgxsModule } from "@ngxs/store";
+import { NgxsModule, Store } from "@ngxs/store";
+import { SetPermissions } from "../../store/auth.state.actions";
 import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
 import { DirectivesModule } from "../../directives";
@@ -136,5 +137,28 @@ describe("UserListComponent", () => {
       config.onUnhandledError = previousHandler;
       vi.useRealTimers();
     }
+  });
+  it("offers each row only the actions the person may take: no delete on their own row, convert only for a name-only user", () => {
+    const store = TestBed.inject(Store);
+    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "1" } });
+    store.dispatch(new SetPermissions(["app.users.update", "app.users.delete"], {}));
+    const visible = (user: User) => component.rowActions.filter((action) => !action.visible || action.visible(user)).map((action) => action.key);
+
+    expect(visible({ id: 1 } as User)).toEqual(["edit", "password"]);
+    expect(visible({ id: 2, isDummyUser: true } as User)).toEqual(["edit", "password", "convert", "delete"]);
+
+    store.dispatch(new SetPermissions([], {}));
+    expect(visible({ id: 2 } as User)).toEqual([]);
+  });
+
+  it("runs the picked row action", () => {
+    const edit = vi.spyOn(component, "openUserFormDialog").mockImplementation(() => {});
+    const remove = vi.spyOn(component, "deleteUser").mockImplementation(() => {});
+
+    component.rowAction("edit", { id: 2 } as User, 0);
+    component.rowAction("delete", { id: 2 } as User, 3);
+
+    expect(edit).toHaveBeenCalledWith({ id: 2 });
+    expect(remove).toHaveBeenCalledWith(3);
   });
 });

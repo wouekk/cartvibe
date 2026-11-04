@@ -49,50 +49,14 @@
 <ng-template #updatedAtCell let-element="element" let-index="index">
   {{ element.updatedAt | appDate : "short" }}
 </ng-template>
-
-<!--
-  One trailing more_vert menu per row (DESIGN.md, Rows), so the actions stay in reach on a phone. Edit opens the
-  household's page, where its name is changed; the synthetic "All" group is never listed here.
--->
+<!-- DESIGN.md, Rows: inline icon buttons on a wider screen, a more_vert menu on a phone (app-row-actions). Edit opens
+     the household's page, where its name and look change; the synthetic "All" group is never listed here. -->
 <ng-template #actionsCell let-element="element" let-index="index">
-  @if (canEdit(element) || canDelete(element)) {
-    <button
-      hlmBtn variant="ghost" size="icon"
-      type="button"
-      class="-my-1 size-8 shrink-0"
-      data-testid="group-menu"
-      [attr.aria-label]="'Household actions' | t"
-      [hlmDropdownMenuTrigger]="groupMenu" align="end"
-      [hlmDropdownMenuTriggerData]="{ group: element, index: index }"
-    >
-      <app-icon name="more_vert"></app-icon>
-    </button>
-  }
-</ng-template>
-
-<ng-template #groupMenu let-group="group" let-index="index">
-  <div hlmDropdownMenu class="w-56">
-    @if (canEdit(group)) {
-      <button
-        hlmDropdownMenuItem
-        data-testid="group-edit"
-        (click)="editGroup(group)"
-      >
-        <app-icon name="edit"></app-icon>
-        <span>{{ 'Edit' | t }}</span>
-      </button>
-    }
-    @if (canDelete(group)) {
-      <button
-        hlmDropdownMenuItem
-        variant="destructive"
-        data-testid="group-delete"
-        [disabled]="deleteDisabled()"
-        (click)="deleteGroup(index)"
-      >
-        <app-icon name="delete"></app-icon>
-        <span>{{ 'Delete' | t }}</span>
-      </button>
-    }
-  </div>
+  <app-row-actions
+    menuTestId="group-menu"
+    [menuLabel]="'Household actions' | t"
+    [actions]="rowActions"
+    [row]="element"
+    (run)="rowAction($event, element, index)"
+  ></app-row-actions>
 </ng-template>

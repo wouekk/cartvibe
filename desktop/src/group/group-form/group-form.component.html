@@ -91,21 +91,12 @@
   {{ element.groupRoleId | roleName : roles() : PermissionScope.Group }}
 </ng-template>
 
-<ng-template #actionsCell let-index="index">
-  <div class="flex">
-    <app-edit-button
-      *ngIf="canUpdateGroupMembers()"
-      data-testid="group-member-edit"
-      [tooltip]="'Edit group member' | t"
-      color="accent"
-      (clicked)="editGroupMemberClicked(index)"
-    ></app-edit-button>
-    <app-delete-button
-      *ngIf="canDeleteGroupMembers()"
-      data-testid="group-member-remove"
-      [tooltip]="'Remove group member' | t"
-      [disabled]="disableDeleteButton"
-      (clicked)="removeGroupMember(index)"
-    ></app-delete-button>
-  </div>
+<ng-template #actionsCell let-element="element" let-index="index">
+  <app-row-actions
+    menuTestId="group-member-menu"
+    [menuLabel]="'Member actions' | t"
+    [actions]="memberActions"
+    [row]="element"
+    (run)="memberAction($event, index)"
+  ></app-row-actions>
 </ng-template>

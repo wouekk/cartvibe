@@ -1,3 +1,5 @@
+import { AuthState } from "../../store";
+import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -41,6 +43,31 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   public state = this.store.selectSignal(CategoryTableState.state);
 
   protected readonly Permission = Permission;
+
+  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesUpdate));
+
+  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesDelete));
+
+  /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
+  public readonly rowActions: readonly RowAction<CategoryView>[] = [
+    { key: "edit", label: marker("Edit"), icon: "edit", testId: "category-edit", visible: () => this.canUpdate() },
+    {
+      key: "delete",
+      label: marker("Delete"),
+      icon: "delete",
+      testId: "category-delete",
+      destructive: true,
+      visible: () => this.canDelete(),
+    },
+  ];
+
+  public rowAction(key: string, row: CategoryView): void {
+    if (key === "edit") {
+      this.openEditDialog(row);
+    } else if (key === "delete") {
+      this.openDeleteConfirmationDialog(row);
+    }
+  }
 
   constructor(
     private categoryService: CategoryService,
