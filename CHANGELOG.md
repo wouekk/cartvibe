@@ -43,8 +43,62 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   - The API no longer treats an `/app/receipt-wrangler-api` folder as its root: mount the three volumes under
     `/app/cartvibe-api`, as the compose files do since 0.x.
   - The Receipt Wrangler credits stay in `LICENSE`, `NOTICE.md`, the READMEs, the About page and the project site.
+- **SQLite only (ADM-08).** The MySQL/MariaDB and PostgreSQL options are removed. The server refuses to start unless
+  `DB_ENGINE=sqlite`, which the shipped compose files already set. `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` and
+  `DB_NAME` are ignored.
+- **Docker (ADM-08).**
+  - The image reports its health, so Docker shows `cartvibe` as healthy once the app answers. On the VPS setup, Caddy
+    waits for that before it starts.
+  - Compose stops with a clear message when `SECRET_KEY` or `ENCRYPTION_KEY` is missing, instead of starting with an
+    empty key.
+  - The weekly rebuild of `:latest` only republishes a version whose tests passed on `main`.
+  - To roll back on a VPS, pin the image to its `:sha-<commit>` tag (`docs/vps-deploy.md`).
+- **Amounts look the same everywhere.** The receipts list, product lines, the Dashboard, report drill-downs and the trip
+  list show amounts with the same bold whole part.
+- **Clearer dialogs.** The Duplicate and leave-without-saving dialogs say "Duplicate" and "Discard" instead of "Confirm".
+  Empty receipt, household, user and activity lists now say they are empty, and the empty Reports page matches the rest
+  of the app.
+- **Calmer look.**
+  - Tables, the sign-in card, tooltips and dialogs have lighter shadows.
+  - Shop logos have a thin grey edge.
+  - Disabled controls no longer show a "not allowed" cursor.
+  - Settings section titles are muted capitals, as designed.
+  - On desktop, text in form fields is 14px; phones keep 16px.
+- **Reduced motion everywhere (APP-07).** With reduced motion turned on in the system, animations stop across the app;
+  spinners and the progress bar only slow down.
 
 ### Fixed
+- **Quick Scan keeps the photo when the AI cannot read it (SCAN-01).** When the AI is missing, out of credit or can't
+  read a photo, the receipt is saved with the photo and today's date, and the notification says to fill it in. The AI
+  is not charged again for retries. A receipt the AI read without a name or date is saved as "Receipt <today>" instead
+  of being dropped.
+- **Magic Fill says why it failed.** It now says "No AI is set up" or "The AI could not read this receipt" instead of a
+  generic error.
+- **An AI server that never answers no longer blocks scans.** OpenAI, ChatGPT and OpenAI-compatible servers now time
+  out like the other providers, and the background reads stop piling up behind them.
+- **Product reading respects your edits (SCAN-02).** It no longer overwrites a status you changed while the AI was
+  reading, and it no longer marks a receipt with no total as Done.
+- **Switched-off categories stay off (SCAN-07).** The AI no longer puts a category switched off for it on a Quick Scan
+  receipt.
+- **Quick Scan checks access when it runs.** A member removed from a household, or whose role lost Quick Scan, after
+  uploading no longer gets that receipt created.
+- **The Dashboard respects who may see what (DASH-05, DASH-07).** Categories and tags a person may not see no longer show
+  by name: their spending appears as "(Restricted)", hidden tags get no tile, and tapping into them shows nothing.
+- **Dashboard slices add up (DASH-05).** The category slices always add up to the period total, refunds and receipts
+  whose lines add up to more than the receipt included. The unhealthy, unplanned and tag tiles count lines the way
+  reports do.
+- **Report counts (REP-03).** Reports cut by category, tag, health or planned count each receipt once per group. Count
+  and Avg/Receipt were too high in "(None)".
+- **Names stay as written (APP-03).** Receipt, category, role and report names you typed are shown exactly as written,
+  even when they look like an app phrase.
+- **More of the app is translated (APP-03).** The member form note, the receipt change history, the converted-currency
+  note, the activity list and four shopping-list tips are now in your language. The change history notice reads well
+  at night.
+- **Icons and spacing (APP-06).** Icons take the size their screen asks for. Form pages lose about 160px of empty space
+  at the bottom. The column settings dialog fits a 360px phone.
+- **Day and Night (APP-01).** The "secure cookies over HTTP" warning and the Nutri-Score letters follow day and night
+  colours.
+- The receipts list sends empty categories, tags, images and comments as empty lists instead of `null`.
 - **Check product: the camera no longer hops between lenses ([#11](https://github.com/wouekk/cartvibe/issues/11), FOOD-01).**
   The scanner stays on the phone's main lens instead of the lens-switching camera, so the barcode no longer jumps out of
   view while it focuses. The view now shows two brackets, `[ ]`, and only a barcode held between them is read.
