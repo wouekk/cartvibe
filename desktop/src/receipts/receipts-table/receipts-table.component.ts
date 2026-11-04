@@ -198,6 +198,19 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public totalCount = signal(0);
 
+  /** Set after the first answer, so the empty state never shows before the list has loaded. */
+  public loaded = signal(false);
+
+  /**
+   * The table's empty line: a search or a filter from the dialog says why it is empty, otherwise how to begin. The
+   * period alone does not count: it is always set and on show in the period picker.
+   */
+  public emptyText = computed(() =>
+    this.numFiltersApplied() || this.appliedSearch().length > 0
+      ? marker("No receipts match the search and filters.")
+      : marker("No receipts yet. Scan a receipt or add one by hand.")
+  );
+
   public selectedReceiptIds = signal<number[]>([]);
 
   public firstSort: boolean = true;
@@ -311,6 +324,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
           if (!this.refreshWasRequested) {
             this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
             this.totalCount.set(pagedData.totalCount);
+            this.loaded.set(true);
           }
           this.setColumns();
         })
@@ -676,6 +690,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         tap((pagedData) => {
           this.dataSource.set(new TableDataSource(pagedData.data));
           this.totalCount.set(pagedData.totalCount);
+          this.loaded.set(true);
         })
       )
       .subscribe();
@@ -754,6 +769,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
     dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: row.name });
+    dialogRef.componentInstance.confirmText = marker("Duplicate");
 
     dialogRef
       .afterClosed()

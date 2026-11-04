@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, inject, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, computed, DestroyRef, inject, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -49,6 +49,13 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   public readonly page = this.store.selectSignal(UserTableState.page);
 
   public readonly pageSize = this.store.selectSignal(UserTableState.pageSize);
+
+  /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
+  private readonly initialDataSource = this.dataSource();
+
+  public readonly loaded = computed(() => this.dataSource() !== this.initialDataSource);
+
+  public readonly emptyText = marker("No users yet.");
 
   public readonly usernameCell = viewChild.required<TemplateRef<any>>("usernameCell");
 

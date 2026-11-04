@@ -43,7 +43,7 @@
         <div class="hint hint-inline" data-testid="member-grant-hint">
           {{ 'Limit this member to specific categories and tags. This narrows within what their group role already allows — it can never widen it.' | t }}
           {{ emptySelectionHint(row) | t }}
-          Saved immediately when you save this member.
+          {{ 'Saved immediately when you save this member.' | t }}
         </div>
         <app-grant-picker
           [categoryPool]="categoryPool()"

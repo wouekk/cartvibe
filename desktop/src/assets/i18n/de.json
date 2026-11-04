@@ -85,6 +85,7 @@
     "Additives": "Zusatzstoffe",
     "Admin": "Admin",
     "Administrator": "Administrator",
+    "After": "Nachher",
     "After shopping, scan the receipt to see what you bought that was not on the list.": "Scanne nach dem Einkauf den Beleg, um zu sehen, was du gekauft hast, das nicht auf der Liste stand.",
     "Agg": "Agg.",
     "Aggregate": "Aggregat",
@@ -162,7 +163,6 @@
     "Build": "Erstellen",
     "Build Date:": "Build-Datum:",
     "Build Date: unknown": "Build-Datum: unbekannt",
-    "Build a report and save it as a template to reuse it later.": "Erstelle einen Bericht und speichere ihn als Vorlage, um ihn später wiederzuverwenden.",
     "Built with:": "Gebaut mit:",
     "Bulk Status Update": "Status für mehrere ändern",
     "Calories": "Kalorien",
@@ -180,6 +180,8 @@
     "Category updated successfully": "Kategorie wurde aktualisiert",
     "Category, tag, paid-by, member-visibility, and receipt requirement settings are only valid on group roles": "Einstellungen zu Kategorien, Schlagwörtern, Zahler, Sichtbarkeit von Mitgliedern und Belegpflichten gelten nur für Gruppenrollen",
     "Change": "Ändern",
+    "Changed: {fields}": "Geändert: {fields}",
+    "Changes made without editing the receipt, such as bulk status updates, can also show here.": "Auch Änderungen, die ohne Bearbeiten des Belegs vorgenommen wurden, etwa Statusänderungen für mehrere Belege, können hier erscheinen.",
     "Changes only": "Nur Änderungen",
     "Charts": "Diagramme",
     "Chat Completion": "Chat-Antwort",
@@ -247,6 +249,7 @@
     "Could not confirm the account deletion. Please try again.": "Das Löschen des Kontos konnte nicht bestätigt werden. Bitte versuche es erneut.",
     "Could not copy the list.": "Die Liste konnte nicht kopiert werden.",
     "Could not find any values to fill! Try reuploading a clearer image.": "Keine Werte zum Ausfüllen gefunden! Lade ein schärferes Bild hoch.",
+    "Could not keep the screen on.": "Der Bildschirm konnte nicht eingeschaltet bleiben.",
     "Could not load the log": "Das Protokoll konnte nicht geladen werden",
     "Could not reach Open Food Facts. Check your connection and try again.": "Open Food Facts ist nicht erreichbar. Prüfe deine Verbindung und versuche es erneut.",
     "Could not read what the export would hold": "Konnte nicht ermitteln, was der Export enthalten würde",
@@ -256,6 +259,7 @@
     "Count": "Anzahl",
     "Create Group": "Gruppe erstellen",
     "Create a free account at": "Kostenloses Konto anlegen auf",
+    "Create a shopping list first, then share the recipe again.": "Lege zuerst eine Einkaufsliste an und teile das Rezept dann noch einmal.",
     "Create your account": "Konto erstellen",
     "Create {name}": "{name} erstellen",
     "Create {name} {type}": "{name} ({type}) erstellen",
@@ -331,6 +335,7 @@
     "Dimension column": "Dimensionsspalte",
     "Dimensions, aggregates & formulas": "Dimensionen, Aggregate und Formeln",
     "Disabled while \"Hide Comments\" is on. Your selection is kept and applies again when Hide Comments is turned off.": "Deaktiviert, solange „Kommentare ausblenden“ an ist. Deine Auswahl bleibt erhalten und gilt wieder, sobald es ausgeschaltet wird.",
+    "Discard": "Verwerfen",
     "Discard changes": "Änderungen verwerfen",
     "Dismiss": "Schließen",
     "Display Name": "Anzeigename",
@@ -510,6 +515,7 @@
     "Importing is switched off in the demo.": "Der Import ist in der Demo ausgeschaltet.",
     "In season": "In der Saison",
     "In the Logo.dev dashboard, open API keys and copy the secret key.": "Im Logo.dev-Dashboard API keys öffnen und den geheimen Schlüssel (secret key) kopieren.",
+    "In {currency}, not converted: add the {currency} rate in System Settings.": "In {currency}, nicht umgerechnet: Trage den Kurs für {currency} in den Systemeinstellungen ein.",
     "Include photos and PDFs": "Fotos und PDFs einschließen",
     "Indigo": "Indigo",
     "Info": "Info",
@@ -554,6 +560,7 @@
     "Limit this member to specific categories and tags. This narrows within what their group role already allows — it can never widen it.": "Beschränke dieses Mitglied auf bestimmte Kategorien und Schlagwörter. Das grenzt nur ein, was seine Gruppenrolle bereits erlaubt — es erweitert es nie.",
     "Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.": "Beschränke diesen Benutzer pro Gruppe auf bestimmte Kategorien und Schlagwörter. Das grenzt nur ein, was seine Gruppenrolle bereits erlaubt — es erweitert es nie.",
     "List actions": "Listenaktionen",
+    "List copied to the clipboard.": "Liste in die Zwischenablage kopiert.",
     "List items": "Listeneinträge",
     "Lists": "Listen",
     "Loading": "Wird geladen",
@@ -640,24 +647,29 @@
     "Next image": "Nächstes Bild",
     "Next page": "Nächste Seite",
     "Night": "Nacht",
+    "No activity to show.": "Keine Aktivität vorhanden.",
     "No additives listed.": "Keine Zusatzstoffe angegeben.",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Auf dem Foto wurde kein Barcode gefunden. Versuche es erneut, mit scharfen Strichen, die das Bild ausfüllen.",
     "No camera could be started. Type the barcode instead.": "Keine Kamera konnte gestartet werden. Gib den Barcode stattdessen ein.",
     "No categories yet. The AI adds them as it reads receipts, or add your own.": "Noch keine Kategorien. Die KI fügt sie beim Lesen von Belegen hinzu, oder füge eigene hinzu.",
+    "No changes": "Keine Änderungen",
     "No columns yet. Use + to add one.": "Noch keine Spalten. Füge mit + eine hinzu.",
     "No comments for this receipt yet": "Zu diesem Beleg gibt es noch keine Kommentare",
     "No group yet. Use + to choose the groups this report covers.": "Noch keine Gruppe. Wähle mit + die Gruppen, die dieser Bericht abdeckt.",
     "No grouping": "Keine Gruppierung",
+    "No households yet.": "Noch keine Haushalte.",
     "No ingredients were found in that text. Put each ingredient on its own line, like “200 g flour”.": "In diesem Text wurden keine Zutaten gefunden. Schreibe jede Zutat in eine eigene Zeile, zum Beispiel „200 g Mehl“.",
     "No items found": "Keine Einträge gefunden",
     "No matches": "Keine Treffer",
     "No models were listed for this key.": "Für diesen Schlüssel wurden keine Modelle geliefert.",
     "No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized.": "Noch keine Produkte. Füge sie unten hinzu, um diesen Beleg Kategorien zuzuordnen; bis dahin zählt alles als „Ohne Kategorie“.",
+    "No receipts match the search and filters.": "Keine Belege passen zur Suche und zu den Filtern.",
     "No receipts match this report.": "Kein Beleg passt zu diesem Bericht.",
     "No receipts to attach. Add the receipt first.": "Keine Belege zum Anhängen. Füge zuerst den Beleg hinzu.",
     "No receipts yet in {period}.": "Noch keine Belege in {period}.",
+    "No receipts yet. Scan a receipt or add one by hand.": "Noch keine Belege. Scanne einen Beleg oder füge ihn von Hand hinzu.",
     "No recipe was found on that page. Copy the ingredients from the page and paste them here.": "Auf dieser Seite wurde kein Rezept gefunden. Kopiere die Zutaten von der Seite und füge sie hier ein.",
-    "No report templates yet": "Noch keine Berichtsvorlagen",
+    "No report templates yet. Build a report and save it as a template to reuse it later.": "Noch keine Berichtsvorlagen. Erstelle einen Bericht und speichere ihn als Vorlage, um ihn später wiederzuverwenden.",
     "No shopping lists yet.": "Noch keine Einkaufslisten.",
     "No shopping lists yet. Add one for each store you shop at.": "Noch keine Einkaufslisten. Lege eine für jeden Laden an, in dem du einkaufst.",
     "No shortcuts yet. Use + to add one.": "Noch keine Verknüpfungen. Füge mit + eine hinzu.",
@@ -665,6 +677,7 @@
     "No spending in {period} yet.": "Noch keine Ausgaben in {period}.",
     "No tags yet. Add one, then tag products on your receipts.": "Noch keine Schlagwörter. Füge eines hinzu und versieh dann Produkte auf deinen Belegen damit.",
     "No tags yet. Add them under Manage, Tags.": "Noch keine Schlagwörter. Füge sie unter Einstellungen → Schlagwörter hinzu.",
+    "No users yet.": "Noch keine Benutzer.",
     "No warranties running. Add a warranty date on a receipt to see it here.": "Keine laufenden Garantien. Füge einem Beleg ein Garantiedatum hinzu, um es hier zu sehen.",
     "No warranty date": "Kein Garantiedatum",
     "No warranty ends in the next two months.": "In den nächsten zwei Monaten endet keine Garantie.",
@@ -916,6 +929,7 @@
     "Save column configuration": "Spalteneinstellungen speichern",
     "Save key": "Schlüssel speichern",
     "Save the main AI first; the backup stands in for it.": "Speichere zuerst die Haupt-KI; die Ersatz-KI springt für sie ein.",
+    "Saved immediately when you save this member.": "Wird sofort gespeichert, wenn du dieses Mitglied speicherst.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Gespeicherte Berichtsvorlagen — im Editor öffnen, erstellen, duplizieren oder löschen.",
     "Saved with your account, so CartVibe speaks it on every device.": "Mit deinem Konto gespeichert, daher spricht CartVibe sie auf jedem Gerät.",
     "Saving…": "Wird gespeichert…",
@@ -1078,6 +1092,8 @@
     "The AI is reading this receipt now.": "Die KI liest diesen Beleg gerade.",
     "The AI picks from these categories when it reads a receipt, and adds new ones here by itself. Rename one and the AI is told to use the new name instead of the old; switch one off and it is told to choose another.": "Die KI wählt beim Lesen eines Belegs aus diesen Kategorien und fügt hier selbst neue hinzu. Benenne eine um, und die KI verwendet den neuen statt des alten Namens; schalte eine aus, und sie wählt eine andere.",
     "The AI reads receipts and their products, and tags food as healthy or not. Without it everything still works; receipts just wait until it is back.": "Die KI liest Belege und ihre Produkte und kennzeichnet Lebensmittel als gesund oder nicht. Ohne sie funktioniert alles weiter; Belege warten einfach, bis sie wieder da ist.",
+    "The Before side shows the receipt as saved by the previous update ({date}) instead.": "Die Seite „Vorher“ zeigt deshalb den Beleg, wie er bei der vorherigen Änderung gespeichert wurde ({date}).",
+    "The Before side shows the receipt as saved when it was created ({date}) instead.": "Die Seite „Vorher“ zeigt deshalb den Beleg, wie er bei der Erstellung gespeichert wurde ({date}).",
     "The accent colour. Day and night work with every palette.": "Die Akzentfarbe. Tag und Nacht funktionieren mit jeder Palette.",
     "The amount must be a number with at most two decimals, like 1,99.": "Der Betrag muss eine Zahl mit höchstens zwei Nachkommastellen sein, z. B. 1,99.",
     "The camera is blocked. Allow it for this site in the browser, or type the barcode instead.": "Die Kamera ist blockiert. Erlaube sie für diese Seite im Browser oder gib den Barcode ein.",
@@ -1132,6 +1148,8 @@
     "There is no room to move {name} that way.": "Es ist kein Platz, um {name} in diese Richtung zu verschieben.",
     "This action is": "Diese Aktion ist",
     "This activity type has no source file.": "Diese Art von Aktivität hat keine Quelldatei.",
+    "This change was recorded by an older version, and no earlier complete copy of this receipt exists. Item categories and tags can show as changed when they were not.": "Diese Änderung wurde von einer älteren Version aufgezeichnet, und es gibt keine frühere vollständige Kopie dieses Belegs. Kategorien und Tags der Positionen können als geändert erscheinen, obwohl sie es nicht sind.",
+    "This change was recorded by an older version, whose own copy of the receipt before the change is incomplete.": "Diese Änderung wurde von einer älteren Version aufgezeichnet, deren eigene Kopie des Belegs vor der Änderung unvollständig ist.",
     "This could not be loaded.": "Das konnte nicht geladen werden.",
     "This is switched off in the demo.": "Das ist in der Demo abgeschaltet.",
     "This is the publishable key. The server needs the secret key, which starts with sk_": "Das ist der öffentliche Schlüssel. Der Server braucht den geheimen Schlüssel, der mit sk_ beginnt",
@@ -1271,6 +1289,7 @@
     "Year to date": "Jahr bis heute",
     "You are offline. Changes you make now may not be saved.": "Du bist offline. Änderungen, die du jetzt machst, werden vielleicht nicht gespeichert.",
     "You can leave this page; the import goes on in the background.": "Du kannst die Seite verlassen; der Import läuft im Hintergrund weiter.",
+    "You cannot add items to these lists.": "Du kannst diesen Listen keine Einträge hinzufügen.",
     "You do not have permission to perform this action.": "Du hast keine Berechtigung für diese Aktion.",
     "You don't have report access in any group.": "Du hast in keiner Gruppe Zugriff auf Berichte.",
     "You have to add an AI API key to use Quick Scan. Would you like to go to the AI settings?": "Für den Schnellscan musst du einen KI-API-Schlüssel hinzufügen. Möchtest du zu den KI-Einstellungen gehen?",
@@ -1300,7 +1319,6 @@
     "box": "Schachtel",
     "bunch": "Bund",
     "by": "von",
-    "by the previous update": "durch die vorherige Änderung",
     "can": "Dose",
     "column": "Spalte",
     "columns": "Spalten",
@@ -1328,9 +1346,9 @@
     "row actions": "Zeilenaktionen",
     "still covered": "noch abgedeckt",
     "unknown": "unbekannt",
-    "when it was created": "bei der Erstellung",
     "{amount} left": "{amount} übrig",
     "{amount} of this receipt is not split into products yet, so it counts as Uncategorized.": "{amount} dieses Belegs sind noch nicht auf Produkte aufgeteilt und zählen daher als „Ohne Kategorie“.",
+    "{amount} {currency} at {rate}": "{amount} {currency} zum Kurs {rate}",
     "{count} ending soon": "{count} enden bald",
     "{count} more on the list": "{count} weitere auf der Liste",
     "{count} selected": "{count} ausgewählt",
@@ -1503,6 +1521,10 @@
       "value": "Namensnennung: Der kostenlose Tarif von Logo.dev verlangt einen sichtbaren Link zu Logo.dev auf einer Seite, die jeder öffnen kann. Solange ein Schlüssel gesetzt ist, zeigt die Anmeldeseite „Logos provided by Logo.dev“.",
       "closest": "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\"."
     },
+    "Build a report and save it as a template to reuse it later.": {
+      "value": "Erstelle einen Bericht und speichere ihn als Vorlage, um ihn später wiederzuverwenden.",
+      "closest": "No report templates yet. Build a report and save it as a template to reuse it later."
+    },
     "Cannot delete API key: ID is missing": {
       "value": "API-Schlüssel kann nicht gelöscht werden: ID fehlt"
     },
@@ -1633,6 +1655,10 @@
       "value": "Nächstes Jahr",
       "closest": "Next image"
     },
+    "No report templates yet": {
+      "value": "Noch keine Berichtsvorlagen",
+      "closest": "No households yet."
+    },
     "Paste it below and save. Logos appear the next time a page loads.": {
       "value": "Unten einfügen und speichern. Die Logos erscheinen beim nächsten Laden einer Seite.",
       "closest": "Paste it below and save. The logos download in the background, which takes a few minutes the first time."
@@ -1733,6 +1759,21 @@
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Dein Kurs: 4,25 bedeutet, 1 Einheit der Haushaltswährung entspricht 4,25 deiner Währung."
+    },
+    "by the previous update": {
+      "value": "durch die vorherige Änderung",
+      "closest": "shows the receipt as saved by the previous update ({date}) instead."
+    },
+    "shows the receipt as saved by the previous update ({date}) instead.": {
+      "value": null,
+      "closest": "The Before side shows the receipt as saved by the previous update ({date}) instead."
+    },
+    "shows the receipt as saved when it was created ({date}) instead.": {
+      "value": null,
+      "closest": "The Before side shows the receipt as saved when it was created ({date}) instead."
+    },
+    "when it was created": {
+      "value": "bei der Erstellung"
     },
     "{downloaded} of {total} logos downloaded.": {
       "value": "{downloaded} von {total} Logos geladen.",

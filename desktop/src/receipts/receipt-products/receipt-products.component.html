@@ -100,7 +100,7 @@
                 <td class="text-muted-foreground">{{ product.quantity }}</td>
                 <td class="!text-right whitespace-nowrap">
                   @if (product.amount) {
-                    {{ product.amount | customCurrency }}
+                    <app-money [value]="product.amount"></app-money>
                   }
                 </td>
                 @if (canUpdate()) {

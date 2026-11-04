@@ -14,7 +14,7 @@
       </td>
       <td class="text-right font-semibold">
         @if (product.amount) {
-          {{ product.amount | displayCurrency }}
+          <app-money [value]="product.amount" [display]="true"></app-money>
         }
       </td>
     </tr>
@@ -51,8 +51,8 @@
             <!-- Each category opens with a shaded band (a surface step, not a rule) carrying its name and subtotal. -->
             <tbody [attr.data-testid]="'overview-detail-section-' + section.name">
               <tr class="detail-group">
-                <th scope="rowgroup" colspan="2" class="bg-muted/60 text-sm font-semibold">{{ section.name | t }}</th>
-                <td class="bg-muted/60 text-right font-semibold tabular-nums">{{ section.total | displayCurrency }}</td>
+                <th scope="rowgroup" colspan="2" class="bg-muted/60 text-sm font-semibold">{{ section.name | tData }}</th>
+                <td class="bg-muted/60 text-right font-semibold tabular-nums"><app-money [value]="section.total" [display]="true"></app-money></td>
               </tr>
               @for (product of section.products; track product.id) {
                 <ng-container *ngTemplateOutlet="line; context: { $implicit: product }"></ng-container>

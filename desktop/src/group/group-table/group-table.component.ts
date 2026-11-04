@@ -36,6 +36,13 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
 
   public groups = this.store.selectSignal(GroupState.groups);
 
+  /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
+  private readonly initialDataSource = this.dataSource();
+
+  public readonly loaded = computed(() => this.dataSource() !== this.initialDataSource);
+
+  public readonly emptyText = marker("No households yet.");
+
   private readonly nameCell = viewChild.required<TemplateRef<any>>("nameCell");
 
   private readonly numberOfMembersCell = viewChild.required<TemplateRef<any>>("numberOfMembersCell");

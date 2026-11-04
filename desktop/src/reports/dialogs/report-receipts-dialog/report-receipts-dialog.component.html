@@ -44,7 +44,7 @@
       <div class="grid grid-cols-3 gap-px bg-muted">
         <div class="bg-card px-5 py-3.5">
           <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Amount' | t }}</div>
-          <div class="text-[15px] font-semibold text-foreground">{{ receipt.amount | customCurrency }}</div>
+          <div class="text-[15px] font-semibold text-foreground"><app-money [value]="receipt.amount"></app-money></div>
         </div>
         <div class="bg-card px-5 py-3.5">
           <div class="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{{ 'Shop' | t }}</div>
@@ -78,7 +78,7 @@
               <td class="font-medium text-foreground">{{ receipt.name }}</td>
               <td>{{ receipt.date | appDate: "mediumDate" : "calendar" }}</td>
               <td>{{ receipt.shopName || receipt.name }}</td>
-              <td class="drill-num tabular-nums">{{ receipt.amount | customCurrency }}</td>
+              <td class="drill-num tabular-nums"><app-money [value]="receipt.amount"></app-money></td>
               <td><app-status-chip [status]="receipt.status"></app-status-chip></td>
               <td class="w-7 text-right">
                 <app-icon class="size-[18px] align-middle text-lg text-border" name="chevron_right"></app-icon>

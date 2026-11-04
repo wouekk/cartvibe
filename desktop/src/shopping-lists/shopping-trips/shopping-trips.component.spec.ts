@@ -6,6 +6,7 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
@@ -64,6 +65,7 @@ describe("ShoppingTripsComponent", () => {
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
+        MoneyComponent,
         PipesModule,
         RouterLink,
       ],

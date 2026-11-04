@@ -22,6 +22,7 @@ import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
+import { ReportTemplateTableState } from "../../store/report-template-table.state";
 import {
   columnCount,
   detailSummary,
@@ -90,6 +91,10 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   public readonly duplicatingId = signal<number | null>(null);
 
   private readonly groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+
+  public readonly page = this.store.selectSignal(ReportTemplateTableState.page);
+
+  public readonly pageSize = this.store.selectSignal(ReportTemplateTableState.pageSize);
 
   constructor(public override baseTableService: BaseTableService) {
     super(baseTableService);

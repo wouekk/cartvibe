@@ -1363,6 +1363,7 @@ export class OverviewPageComponent {
     const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Discard changes");
     dialogRef.componentInstance.dialogContent = this.translation.t("Leave without saving your dashboard changes?");
+    dialogRef.componentInstance.confirmText = marker("Discard");
     dialogRef
       .afterClosed()
       .pipe(
@@ -1434,7 +1435,7 @@ export class OverviewPageComponent {
 
   /** Opens the products behind the Unhealthy or Unplanned tile. */
   public openProducts(kind: "UNHEALTHY" | "UNPLANNED"): void {
-    this.openDetail(kind, kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list"));
+    this.openDetail(kind, this.translation.t(kind === "UNHEALTHY" ? marker("Unhealthy products") : marker("Products not on the list")));
   }
 
   /**
@@ -1443,10 +1444,10 @@ export class OverviewPageComponent {
    */
   public openCategory(segment: DonutSegment): void {
     if (segment.members) {
-      this.openDetail("OTHER", segment.name, { members: segment.members });
+      this.openDetail("OTHER", this.translation.data(segment.name), { members: segment.members });
       return;
     }
-    this.openDetail("FOODGROUP", segment.name, {
+    this.openDetail("FOODGROUP", this.translation.data(segment.name), {
       foodGroup: segment.name === UNCATEGORIZED ? "" : segment.name,
       ...(segment.categoryId !== undefined ? { categoryId: segment.categoryId } : {}),
     });
@@ -1484,6 +1485,7 @@ export class OverviewPageComponent {
     this.productCheck.start();
   }
 
+  /** `title` is display text: already translated, or the data's own name. */
   private openDetail(
     kind: OverviewDetailKind,
     title: string,

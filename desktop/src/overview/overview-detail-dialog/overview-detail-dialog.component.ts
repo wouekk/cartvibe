@@ -1,4 +1,3 @@
-import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
@@ -52,7 +51,7 @@ const UNCATEGORIZED = "Uncategorized";
   selector: "app-overview-detail-dialog",
   templateUrl: "./overview-detail-dialog.component.html",
   standalone: true,
-  imports: [ButtonModule, CommonModule, DisplayCurrencyPipe, PipesModule, RouterLink, SharedUiModule],
+  imports: [ButtonModule, CommonModule, PipesModule, RouterLink, SharedUiModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],

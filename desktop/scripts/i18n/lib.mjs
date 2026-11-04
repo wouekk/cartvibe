@@ -179,7 +179,8 @@ function templateMessages(source, add, addPlural) {
   TAG.lastIndex = 0;
 }
 
-const SNACKBAR = /[sS]nack\w*\s*\.\s*(?:success|error|info)\s*\(\s*/g;
+// Every SnackbarService method that translates its message (successFromTemplate takes a template, not text).
+const SNACKBAR = /[sS]nack\w*\s*\.\s*(?:success|error|info|hint)\s*\(\s*/g;
 const TRANSLATE_CALL = /(?<![\w$])t\s*\(\s*/g;
 const MARKER_CALL = /(?<![\w$])marker\s*\(\s*/g;
 

@@ -20,3 +20,17 @@ export class TranslatePipe implements PipeTransform {
     return text ? this.translation.t(text, params) : "";
   }
 }
+
+/**
+ * `category.name | tData`: a text that came from stored data, or one the caller already translated. It reads in the
+ * language only when it is exactly a catalogue text (a starter category, "Uncategorized", a key passed as is); anything
+ * else is shown as written and never matched against a {placeholder} pattern (`TranslationService.data`).
+ */
+@Pipe({ name: "tData", standalone: true, pure: false })
+export class TranslateDataPipe implements PipeTransform {
+  private readonly translation = inject(TranslationService);
+
+  public transform(text: string | null | undefined): string {
+    return text ? this.translation.data(text) : "";
+  }
+}

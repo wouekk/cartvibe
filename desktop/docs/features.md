@@ -210,6 +210,11 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `{placeholders}`, never template literals or concatenation (`i18n:check` fails). Pure helpers take an optional
   `TranslateFn`. A noun counted in TypeScript is `pluralMarker("bottle", "bottles")` (the twin of `| plural:`) and is
   picked with `TranslationService.plural()`; countable shopping units use it, so "2 butelki" / "5 butelek" are right.
+- Stored data (category, report and receipt names) is never piped through `| t`, which also matches `{placeholder}`
+  patterns ("Edit Milk" would turn into "Edytuj Milk"). Use `| tData` (`TranslationService.data()`): a text that is
+  exactly a catalogue key (a starter category, "Uncategorized") reads in the language, anything else as written. The
+  headers of `app-dialog` and `app-form-header` and a confirmation's `dialogContent` go through `tData`, so callers pass
+  either a key (`marker("Discard changes")`) or text they built with `translation.t(…, { name })`, never translated twice.
 - A `{name}` can't take a grammatical case: put it after a colon or a noun ("Usuń: {name}", "kategorię „{name}”"), and
   keep counts in a form that reads right at 1, 2 and 5 ("Wybrano: {count}"). An English text change is a key change:
   carry each language's value over to the new key.
@@ -219,7 +224,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The language is never taken from the browser: English signed out, `UserPreferences.language` signed in
   (`LanguageSyncService`; `localStorage` only caches it). Chosen on `/language`, applied at once.
 - After adding text: `npm run i18n:extract`, then `npm run i18n:sync -- --lang pl` and fill the `null`s. A new language
-  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`../../api/CLAUDE.md` → 8. Reporting). Backend error messages stay English and are translated by `SnackbarService`; texts only data
+  also needs Angular locale data (`src/i18n/locale-data.ts`) and the API side (`../../api/CLAUDE.md` → 8. Reporting). Backend error messages stay English and are translated by `SnackbarService` (`success`, `error`, `info`, `hint`: the extractor reads a literal passed to any of them); texts only data
   reveals go in `scripts/i18n/extra-keys.json`. Dev builds collect misses in `window.__i18nMissing`.
 
 ## Identity and themes
