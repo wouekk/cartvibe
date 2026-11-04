@@ -11,6 +11,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+### Added
+- **The project page tells Bing about changes.** Each deploy of [cartvibe.app](https://cartvibe.app/) now notifies the
+  IndexNow search engines (Bing, Yandex, Seznam, Naver), so new pages and changes show up there within hours instead of
+  waiting for the next crawl.
+
 ## [0.17.0] - 2026-11-04
 
 Export and import a household, a household date format, profile photos and household icons, the AI in your language, a
