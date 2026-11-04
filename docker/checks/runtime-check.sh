@@ -26,23 +26,12 @@ magick -list format | grep -qi heic || fail "ImageMagick has no HEIC coder"
 magick /tmp/checks/tiny.heic heic.png 2>heic.err || { cat heic.err >&2; fail "a HEIC file does not decode"; }
 [ "$(magick identify -format %w heic.png 2>/dev/null)" = "16" ] || fail "the decoded HEIC has the wrong size"
 
-# Text through ImageMagick's standard Helvetica (ghostscript fonts), into a PDF, back to pixels through ghostscript,
-# and read by Tesseract: the path of a PDF receipt, with fonts, ghostscript and OCR in one chain.
+# A PDF with text, made by ghostscript with its own fonts (the API never draws text with ImageMagick), read back to
+# pixels by ImageMagick through ghostscript and read by Tesseract: the path of a PDF receipt, in one chain.
 gs --version >/dev/null || fail "ghostscript is missing"
-magick -size 700x160 xc:white -font Helvetica -pointsize 90 -fill black -draw "text 20,115 'RECEIPT'" text.pdf 2>text.err \
-  || {
-    cat text.err >&2
-    # TEMPORARY diagnostics (feature/imagemagick-policy): which policy rule refuses the font.
-    echo "--- Helvetica in the type list:" >&2
-    magick -list type 2>&1 | grep -A4 -i "Font: Helvetica$" >&2
-    glyphs=$(magick -list type 2>/dev/null | grep -A4 -i "Font: Helvetica$" | sed -n 's/^ *glyphs: *//p' | head -1)
-    echo "--- glyphs file: $glyphs" >&2
-    [ -n "$glyphs" ] && ls -l "$glyphs" >&2 && readlink -f "$glyphs" >&2
-    echo "--- policy and configure decisions:" >&2
-    magick -debug Policy,Configure,Annotate -log "%e %m" -size 700x160 xc:white -font Helvetica -pointsize 90 \
-      -draw "text 20,115 'RECEIPT'" dbg.pdf 2>&1 | grep -viE "^\s*$" | tail -40 >&2
-    fail "ImageMagick cannot draw text and write a PDF"
-  }
+gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=500 -dDEVICEHEIGHTPOINTS=120 -o text.pdf \
+  -c "/Helvetica findfont 72 scalefont setfont 20 30 moveto (RECEIPT) show showpage" 2>text.err \
+  || { cat text.err >&2; fail "ghostscript cannot write a PDF with text"; }
 magick -density 150 text.pdf text.png 2>pdf.err || { cat pdf.err >&2; fail "a PDF does not convert to an image"; }
 tesseract text.png ocr >/dev/null 2>&1 || fail "Tesseract cannot read an image"
 grep -qi receipt ocr.txt 2>/dev/null || fail "Tesseract did not read the word drawn into the PDF"
