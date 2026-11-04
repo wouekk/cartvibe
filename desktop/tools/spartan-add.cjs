@@ -92,6 +92,9 @@ fs.rmSync(work, { recursive: true, force: true });
 // Local patches, re-applied after every generation. Tailwind 4.3 compiles `data-active:` to the attribute's presence
 // ([data-active]), but the sidebar helm binds the boolean (`data-active="false"` is still present), which made every menu
 // button look active. A false value has to remove the attribute.
+// The storage methods patched into the sidebar service (see the sidebar entries at the end of `patches`).
+const SIDEBAR_STORAGE = "\t// CartVibe: the open state lives in localStorage, never in a cookie (the project site and the demo set no cookies).\n\t// Patched in by tools/spartan-add.cjs.\n\tprivate static readonly _storageKey = 'cartvibe.sidebarOpen';\n\n\tprivate saveState(open: boolean): void {\n\t\ttry {\n\t\t\tthis._window?.localStorage.setItem(HlmSidebarService._storageKey, String(open));\n\t\t} catch {\n\t\t\t// Storage blocked: the sidebar still toggles, it is just not remembered.\n\t\t}\n\t}\n\n\tprivate restoreState(): void {\n\t\tlet stored: string | null = null;\n\t\ttry {\n\t\t\tstored = this._window?.localStorage.getItem(HlmSidebarService._storageKey) ?? null;\n\t\t} catch {\n\t\t\treturn;\n\t\t}\n\t\tif (stored !== null) {\n\t\t\tthis._open.set(stored === 'true');\n\t\t\treturn;\n\t\t}\n\t\t// A sidebar_state cookie from an older version: keep its choice once, then delete the cookie.\n\t\tif (isPlatformServer(this._platformId)) return;\n\t\tthis.restoreStateFromCookie();\n\t\tif (this._document.cookie.includes(`${this._config.sidebarCookieName}=`)) {\n\t\t\tthis.saveState(this._open());\n\t\t\tthis._document.cookie = `${this._config.sidebarCookieName}=; path=/; max-age=0`;\n\t\t}\n\t}\n\n\tprivate restoreStateFromCookie(): void {";
+
 const patches = [
   ["sidebar/lib/hlm-sidebar-menu-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
   ["sidebar/lib/hlm-sidebar-menu-sub-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
@@ -118,6 +121,15 @@ const patches = [
   ...["select/lib/hlm-select-trigger.ts", "checkbox/lib/hlm-checkbox.ts", "switch/lib/hlm-switch.ts", "radio-group/lib/hlm-radio.ts", "textarea/lib/hlm-textarea.ts"].map(
     (file) => [file, /(disabled:|data-disabled:|data-\[disabled=true\]:)cursor-not-allowed/g, (_match, variant) => `${variant}pointer-events-none`],
   ),
+  // The sidebar remembers open/closed in a 7-day `sidebar_state` cookie on path /; the project site and the demo
+  // (same origin) promise no cookies. It goes to localStorage instead; an old cookie is read once and deleted.
+  ["sidebar/lib/hlm-sidebar.service.ts", /(inject\(DestroyRef\);\s+)this\.restoreStateFromCookie\(\);/, (_match, before) => `${before}this.restoreState();`],
+  [
+    "sidebar/lib/hlm-sidebar.service.ts",
+    "this._document.cookie = `${this._config.sidebarCookieName}=${open}; path=/; max-age=${this._config.sidebarCookieMaxAge}`;",
+    () => "this.saveState(open);",
+  ],
+  ["sidebar/lib/hlm-sidebar.service.ts", "\tprivate restoreStateFromCookie(): void {", () => SIDEBAR_STORAGE],
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);

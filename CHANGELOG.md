@@ -105,6 +105,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   spinners and the progress bar only slow down.
 
 ### Fixed
+- **No more sidebar cookie.** Collapsing the sidebar stored a `sidebar_state` cookie for 7 days, so the demo on
+  cartvibe.app set a cookie although the site says it sets none. The choice is now kept in the browser's local storage;
+  an old cookie is read once and deleted, so nobody's sidebar changes.
 - **Quick Scan keeps the photo when the AI cannot read it (SCAN-01).** When the AI is missing, out of credit or can't
   read a photo, the receipt is saved with the photo and today's date, and the notification says to fill it in. The AI
   is not charged again for retries. A receipt the AI read without a name or date is saved as "Receipt <today>" instead
