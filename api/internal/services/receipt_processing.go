@@ -465,18 +465,13 @@ func (service ReceiptProcessingService) buildTemplateVariableMap(ocrText string)
 		return result, err
 	}
 
-	tagsString, err := service.getTagsString()
-	if err != nil {
-		return result, err
-	}
-
 	// The year as the app's users see it, not the server process's, so a
 	// receipt scanned just after midnight on Jan 1 in the app zone is dated in
 	// the new year.
 	currentYearString := utils.UintToString(uint(time.Now().In(repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation()).Year()))
 
+	// No @tags: the AI never assigns tags (docs/ai-prompts.md), so the tag list is not read for the prompt.
 	result[structs.CATEGORIES] = categoriesString
-	result[structs.TAGS] = tagsString
 	result[structs.OCR_TEXT] = ocrText
 	result[structs.CURRENT_YEAR] = currentYearString
 
@@ -525,29 +520,6 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 	}
 
 	return string(categoriesBytes), nil
-}
-
-func (service ReceiptProcessingService) getTagsString() (string, error) {
-	tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
-	tags, err := tagsRepository.GetAllTags("id, name")
-	if err != nil {
-		return "", err
-	}
-
-	if service.UserId > 0 && service.Group.ID > 0 {
-		permissionService := NewPermissionService(service.TX)
-		tags, err = permissionService.GetVisibleTagsForUser(service.UserId, service.Group.ID, tags)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	tagsBytes, err := json.Marshal(tags)
-	if err != nil {
-		return "", err
-	}
-
-	return string(tagsBytes), nil
 }
 
 // dropAiTags empties the tags of an AI-read receipt.
