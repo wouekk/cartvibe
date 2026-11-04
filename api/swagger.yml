@@ -6104,6 +6104,17 @@ components:
             Whether member-presence isolation is enabled for the group. When on,
             members cannot discover other members unless they hold a group role
             flagged seesAllMembers. Defaults to false.
+        icon:
+          type: string
+          description: >-
+            The household's icon: home, add_home, apartment, group, favorite, child_care, dog, cat, pets,
+            directions_car, flight, shopping_cart, restaurant, local_cafe, work, school, park, sunny or star; "" shows
+            the initial. Never set on the "All" group.
+        color:
+          type: string
+          description: >-
+            The household's colour: slate, red, orange, amber, green, teal, blue, indigo, violet or pink; "" is the
+            default look.
         status:
           type: string
           $ref: "#/components/schemas/GroupStatus"
@@ -6137,6 +6148,18 @@ components:
             Whether to enable member-presence isolation for the group. When on,
             members cannot discover other members unless they hold a group role
             flagged seesAllMembers. Defaults to false.
+        icon:
+          type: string
+          nullable: true
+          description: >-
+            One of the household icons (see Group.icon), or "" for the initial. Omitted keeps the stored icon; anything
+            else is a 400.
+        color:
+          type: string
+          nullable: true
+          description: >-
+            One of the household colours (see Group.color), or "" for the default look. Omitted keeps the stored
+            colour; anything else is a 400.
         status:
           type: string
           $ref: "#/components/schemas/GroupStatus"

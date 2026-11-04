@@ -104,6 +104,15 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 	groupToCreate.Status = command.Status
 	groupToCreate.IsAllGroup = command.IsAllGroup
 	groupToCreate.IsolateMembers = command.IsolateMembers
+	// The synthetic "All" group never wears a household look.
+	if !command.IsAllGroup {
+		if command.Icon != nil {
+			groupToCreate.Icon = *command.Icon
+		}
+		if command.Color != nil {
+			groupToCreate.Color = *command.Color
+		}
+	}
 	for i := 0; i < len(command.GroupMembers); i++ {
 		groupMember := buildGroupMemberFromCommand(command.GroupMembers[i])
 		groupToCreate.GroupMembers = append(groupToCreate.GroupMembers, groupMember)
@@ -225,6 +234,22 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 		txErr = tx.Model(&models.Group{}).Where("id = ?", uintId).Update("isolate_members", command.IsolateMembers).Error
 		if txErr != nil {
 			return txErr
+		}
+
+		// Map form, so "" (back to the default look) is written; an omitted field keeps what is stored. The "All"
+		// group is refused by the handler before it gets here.
+		look := map[string]interface{}{}
+		if command.Icon != nil {
+			look["icon"] = *command.Icon
+		}
+		if command.Color != nil {
+			look["color"] = *command.Color
+		}
+		if len(look) > 0 {
+			txErr = tx.Model(&models.Group{}).Where("id = ? AND (is_all_group IS NULL OR is_all_group = ?)", uintId, false).Updates(look).Error
+			if txErr != nil {
+				return txErr
+			}
 		}
 
 		txErr = tx.Model(&groupToUpdate).Association("GroupMembers").Unscoped().Replace(groupToUpdate.GroupMembers)

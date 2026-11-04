@@ -26,6 +26,11 @@ type Group struct {
 	// the name "Household", so the household can be renamed. Old installs get it from the data migration
 	// mark-household-group-v1; a lookup that finds no flagged group falls back to the name.
 	IsHousehold bool `json:"-" gorm:"not null;default:false"`
+
+	// Icon and Color are the household's look in the app: one of GroupIcons and GroupColors, or "" for the initial on
+	// the default colour. Plain strings on the contract.
+	Icon  string `json:"icon" gorm:"not null;default:''"`
+	Color string `json:"color" gorm:"not null;default:''"`
 }
 
 // A rename moves the group's data folder; that happens in GroupRepository.UpdateGroup, inside the transaction, so a
