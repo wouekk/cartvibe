@@ -37,7 +37,7 @@ export class HlmSidebarService {
 
 	constructor() {
 		const destroyRef = inject(DestroyRef);
-		this.restoreStateFromCookie();
+		this.restoreState();
 
 		afterNextRender(() => {
 			if (!this._window || typeof this._window.matchMedia !== 'function') return;
@@ -89,7 +89,7 @@ export class HlmSidebarService {
 
 	public setOpen(open: boolean): void {
 		this._open.set(open);
-		this._document.cookie = `${this._config.sidebarCookieName}=${open}; path=/; max-age=${this._config.sidebarCookieMaxAge}`;
+		this.saveState(open);
 	}
 
 	public setOpenMobile(open: boolean): void {
@@ -107,6 +107,38 @@ export class HlmSidebarService {
 			this._openMobile.update((value) => !value);
 		} else {
 			this.setOpen(!this._open());
+		}
+	}
+
+	// CartVibe: the open state lives in localStorage, never in a cookie (the project site and the demo set no cookies).
+	// Patched in by tools/spartan-add.cjs.
+	private static readonly _storageKey = 'cartvibe.sidebarOpen';
+
+	private saveState(open: boolean): void {
+		try {
+			this._window?.localStorage.setItem(HlmSidebarService._storageKey, String(open));
+		} catch {
+			// Storage blocked: the sidebar still toggles, it is just not remembered.
+		}
+	}
+
+	private restoreState(): void {
+		let stored: string | null = null;
+		try {
+			stored = this._window?.localStorage.getItem(HlmSidebarService._storageKey) ?? null;
+		} catch {
+			return;
+		}
+		if (stored !== null) {
+			this._open.set(stored === 'true');
+			return;
+		}
+		// A sidebar_state cookie from an older version: keep its choice once, then delete the cookie.
+		if (isPlatformServer(this._platformId)) return;
+		this.restoreStateFromCookie();
+		if (this._document.cookie.includes(`${this._config.sidebarCookieName}=`)) {
+			this.saveState(this._open());
+			this._document.cookie = `${this._config.sidebarCookieName}=; path=/; max-age=0`;
 		}
 	}
 
