@@ -59,12 +59,11 @@
   <policy domain="path" rights="none" pattern="@*"/>
   <policy domain="path" rights="none" pattern="|*"/>
 
-  <!-- System: cap single allocations and embedded profiles (ICC, EXIF, XMP), never follow symlinks, no SVG
-       entities. -->
+  <!-- System: cap single allocations and embedded profiles (ICC, EXIF, XMP), no SVG entities. Symlinks are
+       followed: Debian reaches the Ghostscript fonts (Helvetica) through them. -->
   <policy domain="system" name="memory-map" value="anonymous"/>
   <policy domain="system" name="max-memory-request" value="1GiB"/>
   <policy domain="system" name="max-profile-size" value="16MiB"/>
   <policy domain="system" name="max-profile-count" value="16"/>
-  <policy domain="system" name="symlink" rights="none" pattern="follow"/>
   <policy domain="system" name="svg" rights="none" pattern="substitute-entities"/>
 </policymap>
