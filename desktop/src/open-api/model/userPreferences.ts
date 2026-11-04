@@ -60,6 +60,10 @@ export interface UserPreferences {
      */
     language?: string;
     /**
+     * The language the AI writes this person\'s product names and new categories in (a language code such as en or pl); empty follows language, then English
+     */
+    aiLanguage?: string;
+    /**
      * True until this person has been through the first sign-in welcome (language, theme and, for an admin, the household currency). New accounts start with it on; the desktop sends false when it is done.
      */
     onboardingPending?: boolean;
