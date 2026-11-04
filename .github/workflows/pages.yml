@@ -100,6 +100,23 @@ jobs:
       - id: deployment
         uses: actions/deploy-pages@v5
 
+  # After a deploy, tell the IndexNow search engines (Bing and others) that the sitemap's pages changed
+  # (site/tools/indexnow.mjs, docs/site.md "Search and sharing"). Only public URLs are sent. A failure here never fails
+  # the deploy: the engines still find changes through the sitemap.
+  indexnow:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: site/tools
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24.22.1"
+      - run: node site/tools/indexnow.mjs
+
   # Manual: the site's screenshots come from a browser and Linux fonts, so CI takes them (site/tools/shots.mjs) and commits
   # the .webp files to the branch it was started on.
   shots:

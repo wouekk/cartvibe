@@ -11,6 +11,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+### Added
+- **The project page tells Bing about changes.** Each deploy of [cartvibe.app](https://cartvibe.app/) now notifies the
+  IndexNow search engines (Bing, Yandex, Seznam, Naver), so new pages and changes show up there within hours instead of
+  waiting for the next crawl.
+
 ### Fixed
 - **An admin can edit every household (HH-01).** An admin who joined the original household as a member, which is
   the usual case when the household was created by the install's first `admin` account, had no Edit on it. Admins now

@@ -70,6 +70,12 @@ piece of software (an unrelated shop has a similar name).
 - **Crawling.** `public/robots.txt` allows everything and names `src/pages/sitemap.xml.ts`, which lists `/`, `/privacy/` and
   `/support/`. A new indexable page goes in that list. `/roadmap/` (a `noindex` redirect, canonical the home page) and `/demo/`
   stay out.
+- **IndexNow.** After every deploy from `main`, the `indexnow` job in `pages.yml` runs `site/tools/indexnow.mjs`: it waits until
+  the key file (`public/<key>.txt`, public by design) is live, reads the live sitemap and sends those URLs to
+  `api.indexnow.org`, which shares them with Bing, Yandex, Seznam and Naver. Google does not take part. The job may fail
+  without failing the deploy. `node tools/indexnow.mjs --dry-run` (in `site/`) prints the submission without sending it. The
+  request comes from CI, not from a visitor's browser, so the privacy page's list of the site's requests stays as it is.
+  Bing Webmaster Tools shows the submissions under IndexNow.
 - **The other direction.** The README's banner and first "CartVibe", and the intro of `docs/faq.md`, link to
   `https://cartvibe.app/`; the repository's homepage field points here too. Keep those links when editing.
 - Tested in `site/tests/e2e/seo.test.mjs`. After a deploy, Google's Rich Results Test on `https://cartvibe.app/` shows the
