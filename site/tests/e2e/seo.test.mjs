@@ -16,6 +16,8 @@ after(async () => {
 const noGithub = (context) => context.route(/^https:\/\/api\.github\.com/, (route) => route.abort());
 const meta = (page, attr, name) => page.locator(`meta[${attr}="${name}"]`).getAttribute("content");
 const REPO = "https://github.com/wouekk/cartvibe";
+const FACEBOOK = "https://www.facebook.com/profile.php?id=61595867657184";
+const INSTAGRAM = "https://www.instagram.com/cartvibe.app/";
 
 test("the home page has the agreed title, description, canonical and social tags", async () => {
   const { page, context } = await open(browser, server.origin, "/", { setup: noGithub });
@@ -46,7 +48,7 @@ test("the JSON-LD links the site and the repository, and its FAQ matches the que
   const byType = Object.fromEntries(graph.map((n) => [n["@type"], n]));
   assert.deepEqual(Object.keys(byType).sort(), ["FAQPage", "Organization", "SoftwareApplication", "SoftwareSourceCode", "WebSite"]);
 
-  assert.deepEqual(byType.Organization.sameAs, [REPO]);
+  assert.deepEqual(byType.Organization.sameAs, [REPO, FACEBOOK, INSTAGRAM]);
   assert.equal(byType.Organization.url, "https://cartvibe.app/");
   const app = byType.SoftwareApplication;
   const source = byType.SoftwareSourceCode;

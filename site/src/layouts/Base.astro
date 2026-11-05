@@ -4,6 +4,7 @@ import Icon from "../components/Icon.astro";
 import Footer from "../components/Footer.astro";
 import Wordmark from "../components/Wordmark.astro";
 import { SOCIAL_IMAGE_ALT, SOCIAL_IMAGE_HEIGHT, SOCIAL_IMAGE_WIDTH, socialImageUrl } from "../lib/social-image";
+import { FACEBOOK_URL, INSTAGRAM_URL } from "../lib/social";
 
 interface Props {
   title: string;
@@ -96,6 +97,8 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
         <nav aria-label="Main" class="ml-6 hidden items-center gap-1 xl:flex">
           {nav.map((item) => <a href={item.href} class={linkClass} data-spy>{item.label}</a>)}
           <a href={repo} class={`${linkClass} inline-flex items-center gap-1.5`} data-testid="nav-github"><Icon name="github" class="size-4" />GitHub</a>
+          <a href={FACEBOOK_URL} class={`${linkClass} inline-flex items-center`} aria-label="CartVibe on Facebook" title="Facebook" data-testid="nav-facebook"><Icon name="facebook" class="size-4" /></a>
+          <a href={INSTAGRAM_URL} class={`${linkClass} inline-flex items-center`} aria-label="CartVibe on Instagram" title="Instagram" data-testid="nav-instagram"><Icon name="instagram" class="size-4" /></a>
         </nav>
         <div class="ml-auto flex items-center gap-2">
           <details class="relative" id="palette-menu">
@@ -162,6 +165,8 @@ const linkClass = "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium te
             <div class="absolute right-0 top-11 z-50 w-56 rounded-xl border border-border/70 bg-popover p-1.5 text-popover-foreground">
               {nav.map((item) => <a href={item.href} class="block rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent aria-[current=location]:bg-accent" data-spy>{item.label}</a>)}
               <a href={repo} class="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent"><Icon name="github" class="size-4" />GitHub</a>
+              <a href={FACEBOOK_URL} class="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent" data-testid="menu-facebook"><Icon name="facebook" class="size-4" />Facebook</a>
+              <a href={INSTAGRAM_URL} class="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent" data-testid="menu-instagram"><Icon name="instagram" class="size-4" />Instagram</a>
               <a
                 href={`${base}/#iphone`}
                 class="mt-1 flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"

@@ -62,7 +62,9 @@ piece of software (an unrelated shop has a similar name).
   1200 × 630 PNG at build time by `src/lib/social-image.ts`; redo the screenshots and it follows.
 - **Home page.** The title and description are fixed in `index.astro`, within Bing's limits (title 70 characters, description
   25-160; tested). Every image has alt text, the night copy of a screenshot too (the hidden copy is `display: none`). The page
-  passes one JSON-LD `@graph` to `Base.astro` (`jsonLd` prop): `Organization` (`sameAs` the repository), `WebSite`,
+  passes one JSON-LD `@graph` to `Base.astro` (`jsonLd` prop): `Organization` (`sameAs` the repository and the
+  Facebook and Instagram profiles in `src/lib/social.ts`, which the header also links to, as icons next to GitHub and as rows
+  in the phone menu), `WebSite`,
   `SoftwareApplication` and `SoftwareSourceCode` (linked both ways by `isBasedOn` and `targetProduct`; `codeRepository` lives on
   the source code, where schema.org defines it) and a `FAQPage` built from the `faq` array. Never write FAQ markup by hand: it
   must match the questions on the page. Google shows FAQ rich results only for government and health sites, so no FAQ

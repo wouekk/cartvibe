@@ -12,6 +12,9 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 ## [Unreleased]
 
 ### Added
+- **CartVibe on Facebook and Instagram.** The project page's header links to the new
+  [Facebook](https://www.facebook.com/profile.php?id=61595867657184) and [Instagram](https://www.instagram.com/cartvibe.app/)
+  profiles, next to GitHub (in the menu on phones).
 - **The project page tells Bing about changes.** Each deploy of [cartvibe.app](https://cartvibe.app/) now notifies the
   IndexNow search engines (Bing, Yandex, Seznam, Naver), so new pages and changes show up there within hours instead of
   waiting for the next crawl.
