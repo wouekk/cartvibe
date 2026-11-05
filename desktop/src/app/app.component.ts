@@ -5,6 +5,7 @@ import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
 import { HideProgressBar } from "src/store/layout.state.actions";
 import { TokenRefreshService } from "../services";
+import { PullToRefreshService } from "../services/pull-to-refresh.service";
 import { SignInTransitionService } from "../services/sign-in-transition.service";
 import { CartVibeSplashComponent } from "../shared-ui/cartvibe-splash/cartvibe-splash.component";
 import { AuthState } from "../store";
@@ -25,7 +26,9 @@ export class AppComponent implements OnInit {
     private tokenRefreshService: TokenRefreshService,
     private store: Store,
     // Created here so the stored theme is applied, and follows the system, from the first screen on.
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    // Created here so the installed app can be pulled down to refresh from any page.
+    private pullToRefresh: PullToRefreshService
   ) {}
 
   public ngOnInit(): void {
