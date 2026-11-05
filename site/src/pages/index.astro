@@ -4,6 +4,7 @@ import Icon from "../components/Icon.astro";
 import Shots from "../components/Shots.astro";
 import Roadmap from "../components/Roadmap.astro";
 import { socialImageUrl } from "../lib/social-image";
+import { FACEBOOK_URL, INSTAGRAM_URL } from "../lib/social";
 
 const repo = "https://github.com/wouekk/cartvibe";
 // News about the iPhone app goes on its roadmap issue until there is an App Store page to link to.
@@ -163,7 +164,7 @@ const jsonLd = {
       url: home,
       logo: new URL("/brand/icon-light.svg", Astro.site).href,
       email: "support@cartvibe.app",
-      sameAs: [repo],
+      sameAs: [repo, FACEBOOK_URL, INSTAGRAM_URL],
     },
     {
       "@type": "WebSite",

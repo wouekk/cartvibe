@@ -185,6 +185,24 @@ test('the header says "Demo", and the GitHub link carries the GitHub icon', asyn
   await context.close();
 });
 
+test("the header links to Facebook and Instagram next to GitHub, and so does the phone menu", async () => {
+  const facebook = "https://www.facebook.com/profile.php?id=61595867657184";
+  const instagram = "https://www.instagram.com/cartvibe.app/";
+  const wide = await open(browser, server.origin, "/", { setup: noGithub, width: 1440 });
+  for (const [id, href, label] of [["nav-facebook", facebook, "CartVibe on Facebook"], ["nav-instagram", instagram, "CartVibe on Instagram"]]) {
+    const link = wide.page.getByTestId(id);
+    assert.ok(await link.isVisible(), id);
+    assert.equal(await link.getAttribute("href"), href);
+    assert.equal(await link.getAttribute("aria-label"), label);
+    assert.equal(await link.locator("svg").count(), 1);
+  }
+  await wide.context.close();
+  const phone = await open(browser, server.origin, "/", { setup: noGithub, width: 360, height: 740 });
+  assert.equal(await phone.page.getByTestId("menu-facebook").getAttribute("href"), facebook);
+  assert.equal(await phone.page.getByTestId("menu-instagram").getAttribute("href"), instagram);
+  await phone.context.close();
+});
+
 test("no horizontal overflow at 360 px in every palette, day and night", async () => {
   for (const palette of ["zinc", "blue", "indigo", "emerald", "violet"]) {
     for (const mode of ["light", "dark"]) {
