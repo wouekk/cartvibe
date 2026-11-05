@@ -1,0 +1,43 @@
+<div
+  role="group"
+  [attr.aria-labelledby]="labelledBy()"
+  class="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2"
+  [attr.data-testid]="testId()"
+>
+  @if (noneLabel(); as none) {
+    <button
+      type="button"
+      class="flex min-h-11 items-center justify-center rounded-md border border-border bg-primary text-primary-foreground transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
+      [attr.data-testid]="buttonTestId() + '-none'"
+      [attr.aria-pressed]="isPicked('')"
+      [attr.aria-label]="none | t"
+      [title]="none | t"
+      [disabled]="readonly()"
+      (click)="pick('')"
+      (keydown)="moveFocus($event)"
+    >
+      @if (isPicked('')) {
+        <app-icon name="check"></app-icon>
+      }
+    </button>
+  }
+  @for (swatch of swatches(); track swatch.value) {
+    <button
+      type="button"
+      class="flex min-h-11 items-center justify-center rounded-md border border-border/40 transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
+      [style.background-color]="swatch.background"
+      [style.color]="swatch.foreground"
+      [attr.data-testid]="buttonTestId() + '-' + swatch.name"
+      [attr.aria-pressed]="isPicked(swatch.value)"
+      [attr.aria-label]="swatch.label | t"
+      [title]="swatch.label | t"
+      [disabled]="readonly()"
+      (click)="pick(swatch.value)"
+      (keydown)="moveFocus($event)"
+    >
+      @if (isPicked(swatch.value)) {
+        <app-icon name="check"></app-icon>
+      }
+    </button>
+  }
+</div>

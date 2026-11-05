@@ -40,6 +40,18 @@ describe("GroupLookPickerComponent", () => {
     expect(byTestId("group-icon-none").textContent?.trim()).toBe("K");
   });
 
+  it("orders the colours as a gradient: the neutrals, then round the wheel, with every theme palette in it", () => {
+    const keys = GROUP_COLORS.map((choice) => choice.key);
+
+    expect(keys.slice(0, 3)).toEqual(["zinc", "slate", "red"]);
+    expect(keys.at(-1)).toBe("rose");
+    for (const palette of ["zinc", "blue", "indigo", "emerald", "violet"]) {
+      expect(keys).toContain(palette);
+    }
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="group-color-picker"] button')) as HTMLElement[];
+    expect(buttons.map((button) => button.dataset["testid"])).toEqual(["group-color-none", ...keys.map((key) => `group-color-${key}`)]);
+  });
+
   it("marks the stored choice as pressed", () => {
     expect(byTestId("group-icon-none").getAttribute("aria-pressed")).toBe("true");
     expect(byTestId("group-color-teal").getAttribute("aria-pressed")).toBe("true");

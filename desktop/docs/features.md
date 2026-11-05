@@ -31,8 +31,8 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Month chart** (`overview-chart.utils.ts`, pure): at most 12 months, scales to the tallest month, never the goal.
   Longer than a year (`exceedsOneYear`) swaps the chart for a landscape PDF and CSV export (`overview-export.ts`, one
   request per calendar year; the print view opens inside the click handler).
-- **Donut:** `CATEGORY_COLORS` are `var(--chart-1..5)` plus `--muted-foreground` for "Other"; bars use the primary
-  token, faded muted when not selected and destructive over the goal; Unhealthy text is `text-warning-text`. Charts
+- **Donut:** `CATEGORY_COLORS` are `var(--chart-1..5)` plus `--muted-foreground` for "Other"; bars use the foreground
+  token (never the accent primary), destructive over the goal, the selected month a bold label; Unhealthy text is `text-warning-text`. Charts
   read tokens at draw time (`readChartColors()`); `app-chart` (Chart.js on a canvas, `shared-ui/chart/`) recolours in
   place on a theme change, without a rebuild or a replayed entry animation. Click a slice or anywhere on its legend row to
   open its product list; the legend dot toggles the focus highlight (`focusedSegment`); hover sets `hoveredSegment`. The wrapper's `activeIndex` input (`activeSegmentIndex`) is what the

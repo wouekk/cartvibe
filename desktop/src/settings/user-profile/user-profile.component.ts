@@ -16,6 +16,17 @@ import {
   DeleteAccountDialogResult,
 } from "../delete-account-dialog/delete-account-dialog.component";
 import { marker } from "../../i18n/marker";
+import { GROUP_COLORS } from "../../constants/group-look";
+import { ColorSwatch } from "../../shared-ui/color-swatches/color-swatches.component";
+
+/** The household colours as avatar swatches: the same menu, stored as hex (the token keeps a hex colour). */
+const AVATAR_SWATCHES: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
+  value: color.hex,
+  name: color.key,
+  label: color.label,
+  background: color.hex,
+  foreground: "#ffffff",
+}));
 
 @Component({
     selector: "app-user-profile",
@@ -78,6 +89,38 @@ export class UserProfileComponent implements OnInit {
     this.initForm();
     this.loadConnections();
     this.completeDeleteConfirmation();
+  }
+
+  /** The avatar colour on file (a hex), as the form holds it. */
+  public avatarColor(): string {
+    return this.form.get("defaultAvatarColor")?.value ?? "";
+  }
+
+  /**
+   * The household colour menu as avatar colours (each a deep hex under the white initial). A colour picked before the
+   * menu existed, or the default one, leads the grid as "Current colour" so it stays visible and pressed. It follows
+   * the saved colour, not the pick, so the grid does not shift under the finger.
+   */
+  public avatarSwatches(): readonly ColorSwatch[] {
+    const current = this.user?.defaultAvatarColor ?? "";
+    if (!current || AVATAR_SWATCHES.some((swatch) => swatch.value.toLowerCase() === current.toLowerCase())) {
+      return AVATAR_SWATCHES;
+    }
+    if (this.customSwatches?.[0].value !== current) {
+      this.customSwatches = [
+        { value: current, name: "current", label: marker("Current colour"), background: current, foreground: "#ffffff" },
+        ...AVATAR_SWATCHES,
+      ];
+    }
+    return this.customSwatches;
+  }
+
+  private customSwatches?: readonly ColorSwatch[];
+
+  public pickAvatarColor(hex: string): void {
+    const control = this.form.get("defaultAvatarColor");
+    control?.setValue(hex);
+    control?.markAsDirty();
   }
 
   /** Seam for the full-page navigation, so a spec can assert where it goes. */

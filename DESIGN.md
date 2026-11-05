@@ -25,7 +25,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Lines: every border defaults to `--border` (base layer). Hairlines: `border-border`, `border-border/70` (panels), `/60` (dividers), `/40` (list rows). Focus: `ring-ring/50`, `ring-3`.
 - Primary: `bg-primary` is monochrome in Zinc (neutral-950 by day), near-white at night, and the hue in Blue / Indigo / Emerald / Violet (600-700 by day, 400 at night, with `text-primary-foreground` kept at 4.5:1). Hover `bg-primary/80`. `text-primary` (links, "blue" badge) must hold 4.5:1 on background, card and accent.
 - Status: `text-destructive` / `bg-destructive/10`; `text-warning-text` (orange: rises, unhealthy, "to check"); `text-success-text` (green: falls, done); `bg-warning text-warning-foreground` (filled warning); `nutri-a..e` with `text-nutri-a..e-foreground` (health score only).
-- Charts: `--chart-1..5` + `--muted-foreground` ("Other") via `readChartColors()` (`shared-ui/chart/chart-colors.ts`); bars: `colors.primary` selected, faded muted otherwise, `colors.destructive` over goal. Grid `colors.border`, dashed 3. The donut's active slice slides 8px out of the ring while the others fade to 45%; the tooltip is our own HTML card on the theme tokens (`tooltipCard`).
+- Charts: `--chart-1..5` + `--muted-foreground` ("Other") via `readChartColors()` (`shared-ui/chart/chart-colors.ts`); spending bars: `colors.foreground` for every bar (black by day, white at night, never the accent primary), `colors.destructive` over goal, the selected month a bold foreground label. Grid `colors.border`, dashed 3. The donut's active slice slides 8px out of the ring while the others fade to 45%; the tooltip is our own HTML card on the theme tokens (`tooltipCard`).
 - Brand: `--brand-*` only for the logo/icon/loader components. Never reuse them in UI. The wordmark's "Vibe" (`cartvibe-logo`) matches the project site: brand emerald in Zinc (`#16C976` at night, `#047857` by day, since the brand green is 2.1:1 on the light canvas), the palette's `--primary` in Blue, Indigo, Emerald and Violet.
 
 ## Scale
@@ -49,9 +49,9 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - List page header: `app-table-header` (+ `subtitle`); create: `app-add-button [buttonText]="'Add X'"`.
 - Avatars: `app-avatar` (`src/avatar/`, `size` md / sm / xs) is a circle with the person's photo (`object-cover`) when
   they uploaded one, otherwise the first letter, white on their own colour or the primary pair. A household shows its
-  icon on its colour, or its initial on the primary pair. Household colours are the `--household-<slate|red|orange|amber|green|teal|blue|indigo|violet|pink>`
-  tokens with `--household-foreground` (`--household-amber-foreground` on amber), defined once in `zinc.css` like the status colours:
-  deep with a white mark by day, light with a dark mark at night. The picker (`app-group-look-picker`) is two grids of
+  icon on its colour, or its initial on the primary pair. Household colours are the 19 `--household-<name>` tokens (`GROUP_COLORS`: zinc, slate, then round the wheel red to rose, every theme palette included)
+  with `--household-foreground` (`--household-light-foreground` on amber, yellow and lime), defined once in `zinc.css` like the status colours:
+  deep with a white mark by day, light with a dark mark at night. Colour menus (households, and the avatar colour as each colour's deep `hex`) are `app-color-swatches`. The picker (`app-group-look-picker`) is two grids of
   `min-h-11` toggle buttons with `aria-pressed`, a default first. Photo buttons are native `<label>`s styled
   with `buttonVariants` (primary for the camera, outline for a file); *Remove photo* is `variant="destructive"`.
 - Countdown columns (Days left on the warranties panel and page): right-aligned, bold, tabular, "Today" for 0, and

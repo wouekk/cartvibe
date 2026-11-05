@@ -38,46 +38,15 @@
 
   <div class="flex flex-col gap-1.5">
     <span class="text-sm font-medium leading-none text-foreground" id="group-color-label">{{ 'Colour' | t }}</span>
-    <div
-      role="group"
-      aria-labelledby="group-color-label"
-      class="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2"
-      data-testid="group-color-picker"
-    >
-      <button
-        type="button"
-        class="flex min-h-11 items-center justify-center rounded-md border border-border bg-primary text-primary-foreground transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
-        data-testid="group-color-none"
-        [attr.aria-pressed]="isColor('')"
-        [attr.aria-label]="'Default colour' | t"
-        [title]="'Default colour' | t"
-        [disabled]="readonly()"
-        (click)="pickColor('')"
-        (keydown)="moveFocus($event)"
-      >
-        @if (isColor('')) {
-          <app-icon name="check"></app-icon>
-        }
-      </button>
-      @for (color of colors; track color.key) {
-        <button
-          type="button"
-          class="flex min-h-11 items-center justify-center rounded-md border border-border/40 transition-colors disabled:cursor-default aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background"
-          [style.background-color]="colorStyle(color.key)?.background"
-          [style.color]="colorStyle(color.key)?.foreground"
-          [attr.data-testid]="'group-color-' + color.key"
-          [attr.aria-pressed]="isColor(color.key)"
-          [attr.aria-label]="color.label | t"
-          [title]="color.label | t"
-          [disabled]="readonly()"
-          (click)="pickColor(color.key)"
-          (keydown)="moveFocus($event)"
-        >
-          @if (isColor(color.key)) {
-            <app-icon name="check"></app-icon>
-          }
-        </button>
-      }
-    </div>
+    <app-color-swatches
+      labelledBy="group-color-label"
+      testId="group-color-picker"
+      buttonTestId="group-color"
+      [swatches]="swatches"
+      [value]="colorValue()"
+      [readonly]="readonly()"
+      [noneLabel]="defaultColour"
+      (picked)="pickColor($event)"
+    ></app-color-swatches>
   </div>
 </div>
