@@ -9,6 +9,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   the ImageMagick policy and upload allowlist, wide-screen scaling, the household sprint (HH-01, APP-10, WARR-05, HH-06,
   HH-07), the AI language per person (SCAN-10) and the site's search and sharing. Not yet seen on the NAS (below).
   Avatars and the household look are not in the export. Skipped on purpose: `app-button`'s `color="warn"` API.
+- **After 0.17.0** (`[Unreleased]`): admins edit any household (`app.groups.update`), the plain black/white month bars
+  and the 19-colour gradient menu for households and avatars. Not yet seen on the NAS.
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
 - Mac Playwright run: `failed-activity-source-file` and `system-task-filter` fail on `main`, 15 skipped behind them.
   Also to do: the `dashboard-charts` spec; `app-time-zone` and `report-period-date-field` specs were not run.
