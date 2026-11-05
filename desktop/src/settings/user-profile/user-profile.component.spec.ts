@@ -1,3 +1,5 @@
+import { GROUP_COLORS } from "../../constants/group-look";
+import { ColorSwatchesComponent } from "../../shared-ui/color-swatches/color-swatches.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -35,6 +37,7 @@ describe("UserProfileComponent", () => {
     declarations: [UserProfileComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
+        ColorSwatchesComponent,
         DirectivesModule,
         PipesModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, UserState]),
@@ -151,6 +154,39 @@ describe("UserProfileComponent", () => {
       defaultAvatarColor: "#CD5C5C",
     } as any);
     expect(authSpy).toHaveBeenCalled();
+  });
+
+  describe("avatar colour", () => {
+    const signInWithColour = (defaultAvatarColor: string) => {
+      TestBed.inject(Store).reset({ auth: { username: "alex", displayname: "Alex", defaultAvatarColor } });
+      component.ngOnInit();
+    };
+
+    it("offers the household colour menu, with an older custom colour first as the current one", () => {
+      signInWithColour("#CD5C5C");
+
+      const swatches = component.avatarSwatches();
+      expect(swatches[0]).toMatchObject({ value: "#CD5C5C", name: "current" });
+      expect(swatches.slice(1).map((swatch) => swatch.name)).toEqual(GROUP_COLORS.map((color) => color.key));
+      expect(swatches.slice(1).every((swatch) => /^#[0-9a-f]{6}$/.test(swatch.value))).toBe(true);
+    });
+
+    it("keeps the current colour in place after a pick, so the grid does not shift", () => {
+      signInWithColour("#CD5C5C");
+      const blue = GROUP_COLORS.find((color) => color.key === "blue")!;
+
+      component.pickAvatarColor(blue.hex);
+
+      expect(component.form.get("defaultAvatarColor")?.value).toBe(blue.hex);
+      expect(component.form.dirty).toBe(true);
+      expect(component.avatarSwatches()[0].name).toBe("current");
+    });
+
+    it("shows only the menu when the saved colour is one of it", () => {
+      signInWithColour(GROUP_COLORS[3].hex.toUpperCase());
+
+      expect(component.avatarSwatches().length).toBe(GROUP_COLORS.length);
+    });
   });
 
   it("should open delete account dialog when deleteAccount is called", () => {

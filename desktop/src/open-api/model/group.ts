@@ -45,7 +45,7 @@ export interface Group {
      */
     icon?: string;
     /**
-     * The household\'s colour: slate, red, orange, amber, green, teal, blue, indigo, violet or pink; \"\" is the default look.
+     * The household\'s colour: zinc, slate, red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, purple, fuchsia, pink or rose; \"\" is the default look.
      */
     color?: string;
     status: GroupStatus;

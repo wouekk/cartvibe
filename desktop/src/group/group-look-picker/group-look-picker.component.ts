@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from "@angular/core";
+import { marker } from "../../i18n/marker";
 import { FormControl } from "@angular/forms";
 import { GROUP_COLORS, GROUP_ICONS, groupColorStyle } from "../../constants/group-look";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { ColorSwatch, ColorSwatchesComponent } from "../../shared-ui/color-swatches/color-swatches.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 
 /**
@@ -12,7 +14,7 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 @Component({
   selector: "app-group-look-picker",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppIconComponent, TranslatePipe],
+  imports: [AppIconComponent, ColorSwatchesComponent, TranslatePipe],
   host: { class: "block" },
   templateUrl: "./group-look-picker.component.html",
 })
@@ -24,8 +26,14 @@ export class GroupLookPickerComponent {
   public readonly name = input("");
 
   protected readonly icons = GROUP_ICONS;
-  protected readonly colors = GROUP_COLORS;
-  protected readonly colorStyle = groupColorStyle;
+  protected readonly defaultColour = marker("Default colour");
+  protected readonly swatches: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
+    value: color.key,
+    name: color.key,
+    label: color.label,
+    background: groupColorStyle(color.key)!.background,
+    foreground: groupColorStyle(color.key)!.foreground,
+  }));
 
   /** Bumped on every pick: the controls are not signals, so this repaints the pressed state (OnPush, zoneless). */
   private readonly picked = signal(0);
@@ -37,9 +45,9 @@ export class GroupLookPickerComponent {
     return (this.iconControl().value ?? "") === key;
   }
 
-  public isColor(key: string): boolean {
+  public colorValue(): string {
     this.picked();
-    return (this.colorControl().value ?? "") === key;
+    return this.colorControl().value ?? "";
   }
 
   public pickIcon(key: string): void {

@@ -19,6 +19,16 @@ From the first release after 0.16.0, every user-visible entry names the feature 
   IndexNow search engines (Bing, Yandex, Seznam, Naver), so new pages and changes show up there within hours instead of
   waiting for the next crawl.
 
+### Changed
+- **More household colours, in order (HH-07).** The colour menu now has 19 colours: the five colour palettes (Zinc,
+  Blue, Indigo, Emerald, Violet) plus yellow, lime, cyan, sky, purple, fuchsia and rose, laid out as one gradient from
+  the greys round the colour wheel instead of a mixed row.
+- **Your avatar colour uses the same menu (HH-06).** Settings → User Settings offers the household colours as swatches
+  instead of a hex box and colour wheel. A colour you chose before stays offered as *Current colour*.
+- **The monthly spending bars are black by day and white at night (DASH-06).** Months other than the chosen one were
+  grey, and the chosen one took the accent palette's colour; every bar is now plain black or white whatever the
+  palette, red above the goal, and the chosen month's label is bold.
+
 ### Fixed
 - **An admin can edit every household (HH-01).** An admin who joined the original household as a member, which is
   the usual case when the household was created by the install's first `admin` account, had no Edit on it. Admins now

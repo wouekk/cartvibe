@@ -8,8 +8,11 @@ var GroupIcons = []string{
 }
 
 // GroupColors are the colours a household may wear (the --household-<name> tokens; the desktop's GROUP_COLORS keeps the
-// same list). "" is the default look.
-var GroupColors = []string{"slate", "red", "orange", "amber", "green", "teal", "blue", "indigo", "violet", "pink"}
+// same list and order: the neutrals, then round the colour wheel). "" is the default look.
+var GroupColors = []string{
+	"zinc", "slate", "red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo",
+	"violet", "purple", "fuchsia", "pink", "rose",
+}
 
 // IsGroupIcon reports whether value is "" or one of GroupIcons.
 func IsGroupIcon(value string) bool {

@@ -377,9 +377,16 @@ describe("OverviewPageComponent", () => {
       expect(over.data).toEqual([5, 0]);
       expect(over.backgroundColor).toBe(CHART_COLORS.destructive);
 
-      const colorOf = (index: number) => (spent.backgroundColor as (context: { dataIndex: number }) => string)({ dataIndex: index });
-      expect(colorOf(1)).toBe(CHART_COLORS.primary); // this month is the selected bar
-      expect(colorOf(0)).toBe("rgba(100, 100, 100, 0.35)");
+      // Every bar is the foreground colour (never the accent primary); the selected month is its bold label.
+      expect(spent.backgroundColor).toBe(CHART_COLORS.foreground);
+      const ticks = spec.options?.scales?.["x"]?.ticks as unknown as {
+        color: (context: { index: number }) => string;
+        font: (context: { index: number }) => { weight: string };
+      };
+      expect(ticks.color({ index: 1 })).toBe(CHART_COLORS.foreground); // this month is the selected bar
+      expect(ticks.font({ index: 1 }).weight).toBe("bold");
+      expect(ticks.color({ index: 0 })).toBe(CHART_COLORS.mutedForeground);
+      expect(ticks.font({ index: 0 }).weight).toBe("normal");
 
       const radius = (dataset: (typeof spec.data.datasets)[number], index: number) =>
         (dataset.borderRadius as (context: { dataIndex: number }) => unknown)({ dataIndex: index });

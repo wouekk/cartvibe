@@ -27,11 +27,18 @@
       [inputFormControl]="form | formGet : 'displayName'"
       [readonly]="formConfig.mode | inputReadonly"
     ></app-input>
-    <app-color-picker
-      [label]="'Default avatar color' | t"
-      [inputFormControl]="form | formGet : 'defaultAvatarColor'"
-      [readonly]="formConfig.mode | inputReadonly"
-    ></app-color-picker>
+    <div class="flex flex-col gap-1.5">
+      <span class="text-sm font-medium leading-none text-foreground" id="avatar-color-label">{{ 'Default avatar color' | t }}</span>
+      <app-color-swatches
+        labelledBy="avatar-color-label"
+        testId="avatar-color-picker"
+        buttonTestId="avatar-color"
+        [swatches]="avatarSwatches()"
+        [value]="avatarColor()"
+        [readonly]="formConfig.mode | inputReadonly"
+        (picked)="pickAvatarColor($event)"
+      ></app-color-swatches>
+    </div>
   </app-form-section>
 </ng-template>
 

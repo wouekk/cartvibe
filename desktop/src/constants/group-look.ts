@@ -31,18 +31,43 @@ export const GROUP_ICONS: readonly GroupLookChoice[] = [
   { key: "star", label: marker("Star") },
 ];
 
-export const GROUP_COLORS: readonly GroupLookChoice[] = [
-  { key: "slate", label: marker("Slate") },
-  { key: "red", label: marker("Red") },
-  { key: "orange", label: marker("Orange") },
-  { key: "amber", label: marker("Amber") },
-  { key: "green", label: marker("Green") },
-  { key: "teal", label: marker("Teal") },
-  { key: "blue", label: marker("Blue") },
-  { key: "indigo", label: marker("Indigo") },
-  { key: "violet", label: marker("Violet") },
-  { key: "pink", label: marker("Pink") },
+export interface ColorChoice extends GroupLookChoice {
+  /**
+   * The same colour as a fixed hex for a person's avatar (stored as hex, under a white initial): a deep shade of it,
+   * light enough to tell apart and dark enough for the white letter.
+   */
+  hex: string;
+}
+
+/**
+ * The colour menu of households and avatars, in one order: the two neutrals, then round the colour wheel from red to
+ * rose, so the grid reads as a gradient. Every palette of Settings → Theme is in it (zinc, blue, indigo, emerald,
+ * violet).
+ */
+export const GROUP_COLORS: readonly ColorChoice[] = [
+  { key: "zinc", label: marker("Zinc"), hex: "#3f3f46" },
+  { key: "slate", label: marker("Slate"), hex: "#475569" },
+  { key: "red", label: marker("Red"), hex: "#dc2626" },
+  { key: "orange", label: marker("Orange"), hex: "#c2410c" },
+  { key: "amber", label: marker("Amber"), hex: "#b45309" },
+  { key: "yellow", label: marker("Yellow"), hex: "#a16207" },
+  { key: "lime", label: marker("Lime"), hex: "#4d7c0f" },
+  { key: "green", label: marker("Green"), hex: "#15803d" },
+  { key: "emerald", label: marker("Emerald"), hex: "#047857" },
+  { key: "teal", label: marker("Teal"), hex: "#0f766e" },
+  { key: "cyan", label: marker("Cyan"), hex: "#0e7490" },
+  { key: "sky", label: marker("Sky"), hex: "#0369a1" },
+  { key: "blue", label: marker("Blue"), hex: "#2563eb" },
+  { key: "indigo", label: marker("Indigo"), hex: "#4f46e5" },
+  { key: "violet", label: marker("Violet"), hex: "#7c3aed" },
+  { key: "purple", label: marker("Purple"), hex: "#9333ea" },
+  { key: "fuchsia", label: marker("Fuchsia"), hex: "#a21caf" },
+  { key: "pink", label: marker("Pink"), hex: "#db2777" },
+  { key: "rose", label: marker("Rose"), hex: "#e11d48" },
 ];
+
+/** Light swatches that carry a dark mark by day (--household-light-foreground). */
+const LIGHT_GROUP_COLORS = new Set(["amber", "yellow", "lime"]);
 
 export function isGroupIcon(value: string | null | undefined): boolean {
   return !!value && GROUP_ICONS.some((icon) => icon.key === value);
@@ -59,6 +84,6 @@ export function groupColorStyle(color: string | null | undefined): { background:
   }
   return {
     background: `var(--household-${color})`,
-    foreground: color === "amber" ? "var(--household-amber-foreground)" : "var(--household-foreground)",
+    foreground: LIGHT_GROUP_COLORS.has(color!) ? "var(--household-light-foreground)" : "var(--household-foreground)",
   };
 }

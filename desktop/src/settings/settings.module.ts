@@ -5,7 +5,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
-import { ColorPickerModule } from "src/color-picker/color-picker.module";
+import { ColorSwatchesComponent } from "../shared-ui/color-swatches/color-swatches.component";
 import { PipesModule } from "src/pipes/pipes.module";
 import { SelectModule } from "src/select/select.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -36,7 +36,7 @@ import { AvatarPhotoComponent } from "./avatar-photo/avatar-photo.component";
     AutocompleteModule,
     ButtonModule,
     CheckboxModule,
-    ColorPickerModule,
+    ColorSwatchesComponent,
     CommonModule,
     DirectivesModule,
     InputModule,

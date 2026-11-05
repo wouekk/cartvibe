@@ -578,17 +578,20 @@ export class OverviewPageComponent {
     return text.includes(" – ") ? this.translation.t(marker("Total")) : `${text.slice(0, DONUT_CENTER_LABEL_MAX - 1)}…`;
   }
 
-  /** The spending bars: black in the light theme, white in the dark one (the primary token), red above the goal. */
+  /**
+   * The spending bars: black by day, white at night (the foreground token, so an accent palette never tints them), red
+   * above the goal. The selected month is marked by its label, bold in the foreground colour.
+   */
   public readonly barsOptions = (colors: ChartColors): ChartSpec => {
     const bars = this.chartBars();
     const goalMode = this.goalMode();
     const daily = this.isDailyTrend();
-    const faded = withAlpha(colors.mutedForeground, 0.35);
     const money = (value: number) => this.displayCurrencyService.format(value);
-    const base = (context: ScriptableContext<"bar">) => (bars[context.dataIndex]?.isSelected ? colors.primary : faded);
+    const base = colors.foreground;
+    const isSelected = (index: number) => !!bars[index]?.isSelected;
     const hasOver = (index: number) => goalMode && (bars[index]?.overAmount ?? 0) > 0;
     // Only the top segment of a stack is rounded, at its top; the other segment and every bottom stay square.
-    const dataset = (label: string, data: number[], fill: ((context: ScriptableContext<"bar">) => string) | string, isTop: (index: number) => boolean) => ({
+    const dataset = (label: string, data: number[], fill: string, isTop: (index: number) => boolean) => ({
       label,
       data,
       backgroundColor: fill,
@@ -630,7 +633,10 @@ export class OverviewPageComponent {
             grid: { display: false },
             border: { color: colors.border },
             // Months are all labelled, slanted when they do not fit; the labels of up to 31 days are thinned out.
-            ticks: { color: colors.mutedForeground, font: { size: chartFontSize(12) }, autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
+            ticks: {
+              color: (context) => (isSelected(context.index) ? colors.foreground : colors.mutedForeground),
+              font: (context) => ({ size: chartFontSize(12), weight: isSelected(context.index) ? "bold" : "normal" }),
+              autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
           },
           y: {
             stacked: true,
@@ -650,7 +656,7 @@ export class OverviewPageComponent {
               if (!bar) {
                 return "";
               }
-              const rows = [{ color: colors.primary, label: this.translation.t("Spent"), value: money(bar.total) }];
+              const rows = [{ color: colors.foreground, label: this.translation.t("Spent"), value: money(bar.total) }];
               if (goalMode && (bar.overAmount ?? 0) > 0) {
                 rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
               }
