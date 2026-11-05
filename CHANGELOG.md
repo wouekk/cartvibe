@@ -11,6 +11,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-05
+
+Admins edit every household, plain black-and-white month bars, and one colour menu of 19 colours for households and
+avatars.
+
 ### Added
 - **CartVibe on Facebook and Instagram.** The project page's header links to the new
   [Facebook](https://www.facebook.com/profile.php?id=61595867657184) and [Instagram](https://www.instagram.com/cartvibe.app/)
