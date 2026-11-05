@@ -11,6 +11,14 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+### Added
+- **Pull down to refresh in the installed app.** Hold the top of a page and drag down; let go once the arrow has turned
+  and the page reloads with fresh data *(APP-11)*.
+
+### Fixed
+- **The notifications panel fits a phone screen.** It used to run off the left edge; it now stays inside the screen
+  *(NOTE-01)*.
+
 ## [0.18.0] - 2026-11-05
 
 Admins edit every household, plain black-and-white month bars, and one colour menu of 19 colours for households and

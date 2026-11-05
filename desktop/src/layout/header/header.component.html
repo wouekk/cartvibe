@@ -38,6 +38,8 @@
           [cdkConnectedOverlayOrigin]="notificationsOrigin"
           [cdkConnectedOverlayOpen]="notificationsOpen()"
           [cdkConnectedOverlayPositions]="notificationPositions"
+          [cdkConnectedOverlayPush]="true"
+          [cdkConnectedOverlayViewportMargin]="8"
           (overlayOutsideClick)="notificationsOpen.set(false)"
           (detach)="notificationsOpen.set(false)"
         >

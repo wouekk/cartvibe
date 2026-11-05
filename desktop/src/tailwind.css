@@ -115,6 +115,14 @@
     text-size-adjust: 100%;
   }
 
+  /* The installed app draws its own pull-to-refresh (PullToRefreshService), so the browser's must not fire as well. */
+  @media (display-mode: standalone) {
+    html,
+    body {
+      overscroll-behavior-y: contain;
+    }
+  }
+
   body {
     min-height: 100vh;
     min-height: 100dvh;
