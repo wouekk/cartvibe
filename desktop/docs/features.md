@@ -262,6 +262,11 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **`AppUpdateService`** (app initializer): when a new version is ready it activates it on the next navigation and
   loads the target URL fresh, and checks for updates when the tab becomes visible. The full page load goes through the
   `navigateToUrl` seam (jsdom cannot replace `window.location`).
+- **Pull to refresh** (`PullToRefreshService`, created by `AppComponent`): only in the installed app (display mode
+  standalone). Dragging down from the top of the page past 72 px (after resistance) and letting go reloads the page; it
+  does not start when the page is scrolled, something under the finger is scrolled, or a dialog or menu is open. CSS
+  `overscroll-behavior-y: contain` stops the browser's own gesture doubling it. The notifications panel pushes itself
+  inside the viewport (8 px margin) so it never runs off the left edge on a phone.
 - **Motion:** the router uses `enableViewTransitions: true` (a 160ms page cross-fade, styled at the end of
   `tailwind.css`, off under `prefers-reduced-motion`). Element fades use `animate.enter` / `animate.leave` with
   `tw-animate-css` classes; `@angular/animations` is not a dependency, so a spec needs no animations provider.

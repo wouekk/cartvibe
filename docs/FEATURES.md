@@ -158,6 +158,7 @@ in by hand and the AI is retried later.
 | APP-08 | Save button halo | A Save button on a form with unsaved changes wears a soft halo until saved; it stays still with reduced motion. | 0.16.0 | released |
 | APP-09 | Licence and credits page | About lists the project, its credits and the licence texts of what it ships. | 0.2.0 | released |
 | APP-10 | Settings menu | The sidebar's Settings menu lists, in this order and each only for those allowed to open it: System Settings, Management, User Settings, AI, Theme and Language. | 0.17.0 | released |
+| APP-11 | Pull down to refresh | In the installed app, holding the top of a page and dragging down shows an arrow; letting go after a long enough pull reloads the page with fresh data. It does nothing when the page is scrolled, while a dialog or menu is open, or in a normal browser tab. | unreleased | unreleased |
 
 ## Households and accounts (HH)
 
