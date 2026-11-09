@@ -101,8 +101,8 @@ func TestValidateRefreshToken_MissingToken(t *testing.T) {
 
 	ValidateRefreshToken(createFakeHandler()).ServeHTTP(w, r)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -116,8 +116,8 @@ func TestValidateRefreshToken_InvalidToken(t *testing.T) {
 
 	ValidateRefreshToken(createFakeHandler()).ServeHTTP(w, r)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -196,8 +196,8 @@ func TestRevokeRefreshToken_AlreadyUsedToken(t *testing.T) {
 	if nextCalled {
 		utils.PrintTestError(t, "next called on already-used token", "next not called")
 	}
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 
 	// Verify the handler set clearing cookies.
@@ -219,7 +219,7 @@ func TestRevokeRefreshToken_AlreadyUsedToken(t *testing.T) {
 }
 
 // Covers the fallback path where the context does NOT carry
-// "refreshTokenString" AND the request has no cookie — we expect a 500.
+// "refreshTokenString" AND the request has no cookie — we expect a 401.
 func TestRevokeRefreshToken_NoContextNoCookie(t *testing.T) {
 	defer teardownAuthTest()
 	setupAuthTest()
@@ -238,13 +238,13 @@ func TestRevokeRefreshToken_NoContextNoCookie(t *testing.T) {
 	if nextCalled {
 		utils.PrintTestError(t, "next called with no refresh token", "next not called")
 	}
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
 // Token not found: the middleware must treat an unknown token as an auth
-// failure, clear the auth cookies, and return 500 — the same shape as the
+// failure, clear the auth cookies, and return 401 — the same shape as the
 // already-used branch.
 func TestRevokeRefreshToken_TokenNotFound(t *testing.T) {
 	defer teardownAuthTest()
@@ -265,8 +265,8 @@ func TestRevokeRefreshToken_TokenNotFound(t *testing.T) {
 	if nextCalled {
 		utils.PrintTestError(t, "next called for unknown refresh token", "next not called")
 	}
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 
 	foundJwt, foundRefresh := false, false

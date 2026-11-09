@@ -743,15 +743,6 @@ func TestGetPagedReceiptsAppliesGroupFilter(t *testing.T) {
 func uintPtr(v uint) *uint {
 	return &v
 }
-
-// Helper function to count rows in junction tables
-func countJunctionTableRows(tableName string, itemId uint) int64 {
-	db := GetDB()
-	var count int64
-	db.Table(tableName).Where("item_id = ?", itemId).Count(&count)
-	return count
-}
-
 // The table's Shop column shows the shop, or the receipt's name when none was read, and sorts the same way.
 func TestGetPagedReceiptsSortsByShopFallingBackToTheName(t *testing.T) {
 	defer teardownReceiptTest()

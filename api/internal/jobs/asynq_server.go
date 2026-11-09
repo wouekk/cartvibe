@@ -75,6 +75,7 @@ func BuildMux() *asynq.ServeMux {
 	mux.HandleFunc(ShopLogoSync, HandleShopLogoSyncTask)
 	mux.HandleFunc(WarrantyReminderSweep, HandleWarrantyReminderSweepTask)
 	mux.HandleFunc(BackupImport, HandleBackupImportTask)
+	mux.HandleFunc(DatabaseSnapshot, HandleDatabaseSnapshotTask)
 
 	return mux
 }

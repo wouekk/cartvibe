@@ -399,14 +399,10 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 
 	fillQuickScanDefaults(&receiptCommand, finishedAt, repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation())
 
-	if receiptCommand.PaidByUserID == 0 {
-		receiptCommand.PaidByUserID = params.PaidByUserId
-	}
-
-	if len(receiptCommand.Status) == 0 {
-		receiptCommand.Status = models.ReceiptStatus(params.Status)
-	}
-
+	// Who paid, the status and the household are the person's (or the household's settings'), never the AI's: its
+	// answer carries only what the prompt asks for (onlyPromptedReceiptFields).
+	receiptCommand.PaidByUserID = params.PaidByUserId
+	receiptCommand.Status = models.ReceiptStatus(params.Status)
 	receiptCommand.GroupId = groupId
 
 	// Record a FAILED system task for any error that aborts the quick scan *before* the
@@ -454,12 +450,10 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 		return models.Receipt{}, nil, recordEarlyQuickScanFailure(err)
 	}
 
-	// Append the user's quick-scan comment rather than replacing whatever the AI produced: the
-	// default prompt doesn't ask for comments, but the response is unmarshalled straight into an
-	// UpsertReceiptCommand, so a group running a custom prompt can produce them and they must not be
-	// dropped. UserId is required — UpsertCommentCommand.Validate rejects a nil one, which would fail
-	// the whole receipt. ReceiptId stays unset; it is only required when updating, and CreateReceipt
-	// fills the foreign key through the association.
+	// The person's quick-scan comment is the receipt's only comment: the AI's answer brings none. UserId is
+	// required — UpsertCommentCommand.Validate rejects a nil one, which would fail the whole receipt.
+	// ReceiptId stays unset; it is only required when updating, and CreateReceipt fills the foreign key
+	// through the association.
 	if len(params.Comment) > 0 {
 		commentUserId := token.UserId
 		receiptCommand.Comments = append(receiptCommand.Comments, commands.UpsertCommentCommand{

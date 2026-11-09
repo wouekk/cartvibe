@@ -228,7 +228,7 @@ func ViewOf(job models.BackupImportJob) JobView {
 		var counts []TableCount
 		if json.Unmarshal([]byte(job.Summary), &counts) == nil {
 			for _, count := range counts {
-				view.Imported = append(view.Imported, PreviewCount{Name: count.Name, Count: count.Count})
+				view.Imported = append(view.Imported, PreviewCount(count))
 			}
 		}
 	}

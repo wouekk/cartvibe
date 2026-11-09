@@ -220,14 +220,17 @@ func (service ReceiptProcessingService) processImages(
 
 	cleanedResponse := service.cleanResponse(response)
 
-	err = json.Unmarshal([]byte(cleanedResponse), &receipt)
+	var answer commands.UpsertReceiptCommand
+	err = json.Unmarshal([]byte(cleanedResponse), &answer)
 	if err != nil {
 		return result, err
 	}
 
-	// Tags are the household's own labels, set by people only; the AI picks categories and health.
-	// A stored custom prompt may still ask for tags, so whatever the answer holds is dropped here.
-	dropAiTags(&receipt)
+	// Only what the prompt asks for is taken from the answer. The answer is text a model wrote after reading a
+	// photo or a PDF somebody else may have produced, so it never decides who paid, the status, the household, the
+	// comments or the tags (tags are the household's own labels, set by people only): those come from the person
+	// and the household's settings.
+	receipt = onlyPromptedReceiptFields(answer)
 
 	// A receipt in another currency is converted at the household's own rate (Phase 3 currencies).
 	ApplyReceiptCurrency(&receipt)
@@ -522,7 +525,16 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 	return string(categoriesBytes), nil
 }
 
-// dropAiTags empties the tags of an AI-read receipt.
-func dropAiTags(receipt *commands.UpsertReceiptCommand) {
-	receipt.Tags = []commands.UpsertTagCommand{}
+// onlyPromptedReceiptFields keeps the fields DefaultReceiptPrompt asks for (name, shop, currency, amount, date,
+// categories) and nothing else of an AI's answer. Tags come back as an empty list, never null.
+func onlyPromptedReceiptFields(answer commands.UpsertReceiptCommand) commands.UpsertReceiptCommand {
+	return commands.UpsertReceiptCommand{
+		Name:       answer.Name,
+		ShopName:   answer.ShopName,
+		Currency:   answer.Currency,
+		Amount:     answer.Amount,
+		Date:       answer.Date,
+		Categories: answer.Categories,
+		Tags:       []commands.UpsertTagCommand{},
+	}
 }

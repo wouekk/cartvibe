@@ -198,22 +198,22 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 	}
 }
 
-// TestQuickScan_KeepsAiPaidByAndStatusWhenPresent proves an AI-supplied paid-by/status is not
-// overwritten by the QuickScan default arguments.
-func TestQuickScan_KeepsAiPaidByAndStatusWhenPresent(t *testing.T) {
+// TestQuickScan_IgnoresAPayerAndStatusInTheAiAnswer proves the AI's answer cannot decide who paid or the
+// status: the prompt asks for neither, and text printed on a receipt or a PDF must not be able to set them.
+// The person's choice (the QuickScan arguments) is what the receipt gets.
+func TestQuickScan_IgnoresAPayerAndStatusInTheAiAnswer(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	var aiPayerId uint
+	var uploaderId uint
 	created, _, _, err := runQuickScan(
 		t,
-		func(u models.User) uint { return u.ID }, // default paid-by (should be ignored)
-		models.OPEN,                              // default status (should be ignored)
+		func(u models.User) uint { uploaderId = u.ID; return u.ID }, // the person's paid-by: the one that counts
+		models.OPEN, // the person's status: the one that counts
 		nil,
 		nil,
 		func(u models.User, g models.Group) string {
-			// A second, distinct user for the AI paid-by so the assertion fails if
-			// QuickScan drops the AI value and falls back to the default arg (the
-			// seeded user). Same-user ids would pass either way.
+			// A second, distinct user in the AI's answer, so the assertion fails if QuickScan takes it.
 			aiPayer := models.User{Username: "ai-payer", Password: "p", DisplayName: "x"}
 			if err := repositories.GetDB().Create(&aiPayer).Error; err != nil {
 				t.Fatalf("seed ai payer: %v", err)
@@ -235,11 +235,11 @@ func TestQuickScan_KeepsAiPaidByAndStatusWhenPresent(t *testing.T) {
 		utils.PrintTestError(t, err, "no error")
 		return
 	}
-	if receipt.PaidByUserID != aiPayerId {
-		utils.PrintTestError(t, receipt.PaidByUserID, aiPayerId)
+	if receipt.PaidByUserID == aiPayerId || receipt.PaidByUserID != uploaderId {
+		utils.PrintTestError(t, receipt.PaidByUserID, uploaderId)
 	}
-	if receipt.Status != models.RESOLVED {
-		utils.PrintTestError(t, receipt.Status, models.RESOLVED)
+	if receipt.Status != models.OPEN {
+		utils.PrintTestError(t, receipt.Status, models.OPEN)
 	}
 }
 
@@ -480,20 +480,21 @@ func TestQuickScan_DropsMemberOutOfGrantAiCategory(t *testing.T) {
 // TestQuickScan_ValidationFailureRecordsFailedSystemTask covers the "missing system task" gap: a
 // failure AFTER AI processing succeeds but BEFORE the receipt is created (here receipt validation) used
 // to vanish into the log, leaving the AI tasks marked SUCCEEDED and no record of why no receipt
-// appeared. The AI JSON parses (so the QUICK_SCAN task is SUCCEEDED), then fails validation (a comment with no
-// author); QuickScan now records a FAILED RECEIPT_UPLOADED task and flips the QUICK_SCAN parent to FAILED.
+// appeared. The AI JSON parses (so the QUICK_SCAN task is SUCCEEDED), then the receipt fails validation (the
+// scan was queued with no payer); QuickScan now records a FAILED RECEIPT_UPLOADED task and flips the QUICK_SCAN
+// parent to FAILED.
 func TestQuickScan_ValidationFailureRecordsFailedSystemTask(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	_, _, _, err := runQuickScan(
 		t,
-		func(u models.User) uint { return u.ID },
+		// No payer: nothing in the AI's answer can fill it in, so validation fails after AI processing.
+		func(u models.User) uint { return 0 },
 		models.OPEN,
 		nil,
 		nil,
 		func(u models.User, g models.Group) string {
-			// Parses fine (QUICK_SCAN succeeds) but its comment has no user -> validation fails after AI processing.
-			return `{"name": "Shop", "amount": 12.34, "date": "2024-01-01T00:00:00Z", "comments": [{"comment": "hi"}]}`
+			return `{"name": "Shop", "amount": 12.34, "date": "2024-01-01T00:00:00Z"}`
 		},
 	)
 	if err == nil {
@@ -650,9 +651,9 @@ func TestQuickScan_EmptyCommentAddsNothing(t *testing.T) {
 	}
 }
 
-// The user's comment is APPENDED to whatever the AI produced, never replacing it: a group running a
-// custom prompt that emits comments must not lose them to a quick-scan comment.
-func TestQuickScan_AppendsUserCommentToAiComment(t *testing.T) {
+// A comment in the AI's answer is not taken: the prompt asks for none, and text printed on a receipt must not be
+// able to put words in a household member's mouth. The person's own quick-scan comment is the only one saved.
+func TestQuickScan_IgnoresACommentInTheAiAnswer(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	created, user, _, err := runQuickScanWithSetup(
@@ -680,20 +681,17 @@ func TestQuickScan_AppendsUserCommentToAiComment(t *testing.T) {
 		return
 	}
 
-	if len(receipt.Comments) != 2 {
-		utils.PrintTestError(t, len(receipt.Comments), 2)
+	if len(receipt.Comments) != 1 {
+		utils.PrintTestError(t, len(receipt.Comments), 1)
 		return
 	}
 
-	found := map[string]bool{}
-	for _, comment := range receipt.Comments {
-		found[comment.Comment] = true
-		if comment.UserId == nil || *comment.UserId != user.ID {
-			utils.PrintTestError(t, comment.UserId, user.ID)
-		}
+	comment := receipt.Comments[0]
+	if comment.Comment != "User note" {
+		utils.PrintTestError(t, comment.Comment, "User note")
 	}
-	if !found["AI note"] || !found["User note"] {
-		utils.PrintTestError(t, found, "both the AI comment and the user comment")
+	if comment.UserId == nil || *comment.UserId != user.ID {
+		utils.PrintTestError(t, comment.UserId, user.ID)
 	}
 }
 

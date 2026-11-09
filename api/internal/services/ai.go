@@ -63,7 +63,8 @@ func (service *AiService) CreateChatCompletion(options structs.AiChatCompletionO
 	if err != nil {
 		endedAt := time.Now()
 		systemTask.Status = models.SYSTEM_TASK_FAILED
-		systemTask.ResultDescription = fmt.Sprintf("Error: %s; RawResponse: %s", err.Error(), rawResponse)
+		// The provider's own answer, when it sent one with the error (its reason for a refusal or a bad request).
+		systemTask.ResultDescription = fmt.Sprintf("Error: %s; RawResponse: %s", err.Error(), result.RawResponse)
 		systemTask.EndedAt = &endedAt
 
 		return "", systemTask, err

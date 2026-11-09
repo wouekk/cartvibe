@@ -35,6 +35,8 @@ func (subscriber *ShoppingListSubscriber) markDropped() {
 type ShoppingListHub struct {
 	mu          sync.RWMutex
 	subscribers map[cell.CellKey[uint]]map[*ShoppingListSubscriber]struct{}
+	// closed is set when the server stops: open streams have been ended and a late subscriber is ended at once.
+	closed bool
 }
 
 func NewShoppingListHub() *ShoppingListHub {
@@ -59,6 +61,11 @@ func (hub *ShoppingListHub) Subscribe(cellID cell.ID, groupId uint) *ShoppingLis
 
 	hub.mu.Lock()
 	defer hub.mu.Unlock()
+
+	if hub.closed {
+		subscriber.markDropped()
+		return subscriber
+	}
 
 	key := cell.KeyIn(cellID, groupId)
 	if hub.subscribers[key] == nil {
@@ -117,6 +124,22 @@ func (hub *ShoppingListHub) Publish(cellID cell.ID, event models.ShoppingListEve
 
 	for _, subscriber := range dropped {
 		subscriber.markDropped()
+	}
+}
+
+// Close ends every open stream and refuses new ones. The server calls it when it stops: a stream is a request that
+// never finishes by itself, so http.Server.Shutdown would wait for it until its deadline. The browser's EventSource
+// reconnects on its own and finds the server that comes up next. Safe to call more than once.
+func (hub *ShoppingListHub) Close() {
+	hub.mu.Lock()
+	defer hub.mu.Unlock()
+
+	hub.closed = true
+	for key, groupSubscribers := range hub.subscribers {
+		for subscriber := range groupSubscribers {
+			subscriber.markDropped()
+		}
+		delete(hub.subscribers, key)
 	}
 }
 

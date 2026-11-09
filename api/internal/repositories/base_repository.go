@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -67,19 +69,45 @@ func (repository BaseRepository) Paginate(page int, pageSize int) func(db *gorm.
 	}
 }
 
+// ErrInvalidSortColumn is a sort column a list does not offer. A list that sorts by a value from the request checks
+// it against its own columns first and answers with this.
+var ErrInvalidSortColumn = errors.New("invalid sort column")
+
+// quotedSortAlias is a select alias written by a repository itself, such as "NumberOfReceipts": letters between
+// double quotes and nothing else.
+var quotedSortAlias = regexp.MustCompile(`^"[A-Za-z]+"$`)
+
 func (repository BaseRepository) Sort(db *gorm.DB, orderBy string, sortDirection commands.SortDirection) *gorm.DB {
+	// No column asked for: the query keeps its own order (an empty name used to end in a broken ORDER BY).
+	if orderBy == "" {
+		return db
+	}
+
 	desc := false
 	if sortDirection == commands.DESCENDING {
 		desc = true
 	}
 
 	// A name that arrives already double-quoted is a select alias ("NumberOfReceipts"); GORM would wrap
-	// it in backticks again and SQLite then looks for a column literally named with the quotes.
+	// it in backticks again and SQLite then looks for a column literally named with the quotes. Raw means the name
+	// goes into ORDER BY as written, so it is granted to a bare alias only: anything else that starts with a quote
+	// (a request trying to add SQL of its own) is quoted by GORM like any column name and fails as an unknown one.
 	return db.Order(clause.OrderByColumn{
-		Column:  clause.Column{Name: orderBy, Raw: strings.HasPrefix(orderBy, "\"")},
+		Column:  clause.Column{Name: orderBy, Raw: quotedSortAlias.MatchString(orderBy)},
 		Desc:    desc,
 		Reorder: false,
 	})
+}
+
+// isCatalogSortColumn lists what the categories and tags tables may be sorted by: their own columns and the two
+// counts. An empty value keeps the query's own order.
+func isCatalogSortColumn(orderBy string) bool {
+	switch orderBy {
+	case "", "id", "name", "description", "skipped", "created_at", "updated_at", "numberOfReceipts", "numberOfProducts":
+		return true
+	}
+
+	return false
 }
 
 func (repository BaseRepository) GetCount(table string, queryWhere string, args ...interface{}) (int64, error) {

@@ -26,4 +26,7 @@ const (
 	// not a sweep. Same queue, same reason. Its payload names the job only; the temp sweep never reads
 	// clean-up payloads (tempFileQueues).
 	BackupImport = "system_clean_up:backup_import"
+	// DatabaseSnapshot writes the daily copy of the database to sqlite/backups (see
+	// repositories.SnapshotDatabase). Same queue, same reason.
+	DatabaseSnapshot = "system_clean_up:database_snapshot"
 )

@@ -266,14 +266,7 @@ func TestDeleteAccountShouldPreventLastAdminDeletion(t *testing.T) {
 	}
 }
 
-// deleteAccountAs drives POST /user/deleteAccount as the given user.
-func deleteAccountAs(t *testing.T, userId uint, password string) *httptest.ResponseRecorder {
-	t.Helper()
-
-	return deleteAccountWithCommandAs(t, userId, commands.DeleteAccountCommand{Password: password})
-}
-
-// deleteAccountWithCommandAs is deleteAccountAs for any command body.
+// deleteAccountWithCommandAs drives POST /user/deleteAccount as the given user.
 func deleteAccountWithCommandAs(t *testing.T, userId uint, command commands.DeleteAccountCommand) *httptest.ResponseRecorder {
 	t.Helper()
 

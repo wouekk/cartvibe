@@ -70,9 +70,8 @@ func TestPromptBlockListsAllowedRenamedAndSkippedCategories(t *testing.T) {
 		}
 	}
 
-	empty, _ := newFoodGroupResolver(nil)
 	repositories.TruncateTestDb()
-	empty, _ = newFoodGroupResolver(nil)
+	empty, _ := newFoodGroupResolver(nil)
 	if empty.PromptBlock() != "" {
 		t.Error("an empty list should add nothing to the prompt")
 	}

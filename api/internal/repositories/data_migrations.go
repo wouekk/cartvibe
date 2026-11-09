@@ -24,6 +24,7 @@ var dataMigrations = []dataMigration{
 	{name: starterCategoriesMigration, run: runStarterCategoriesMigration},
 	{name: removeApiKeysMigration, run: runRemoveApiKeysMigration},
 	{name: markHouseholdGroupMigration, run: runMarkHouseholdGroupMigration},
+	{name: sessionLifetimeMigration, run: runSessionLifetimeMigration},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have

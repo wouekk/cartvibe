@@ -91,13 +91,20 @@ func (service OcrService) ReadImage(path string) (string, commands.UpsertSystemT
 	return text, systemTaskCommand, nil
 }
 
+// ocrCharBlacklist names the characters Tesseract may not output: the ones that only ever appear on a receipt as
+// misread smudges and folds. Everything a receipt is written with stays readable, the separators above all: "-" and
+// "/" in dates and negative amounts, ":" in times, "." and "," in amounts, "%" in VAT rates and discounts, currency
+// signs, "&" and "'" in shop names, "*" and "#" beside items. An earlier list removed most of those, so a date reached
+// the AI as "09112026" and "-20%" as "20".
+const ocrCharBlacklist = "|~`^_{}[]<>\\"
+
 func (service OcrService) ReadImageWithTesseract(preparedImageBytes []byte) (string, error) {
 	client := gosseract.NewClient()
 	defer client.Close()
 
-	err := client.SetVariable("tessedit_char_blacklist", "!@#$%^&*()_+=-[]}{;:'\"\\|~`<>/?")
+	err := client.SetVariable("tessedit_char_blacklist", ocrCharBlacklist)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	err = client.SetImageFromBytes(preparedImageBytes)

@@ -277,8 +277,6 @@ func TestSetActivityFlags_AppliesBothFlagsPerRow(t *testing.T) {
 
 // --- helpers ---
 
-func allowAllGroups(groupId uint) bool { return true }
-
 func lookupReturning(t *testing.T, state asynq.TaskState, payload any) taskInfoLookup {
 	t.Helper()
 

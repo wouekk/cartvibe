@@ -34,8 +34,6 @@ func SetUserData(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		return
-
 	})
 }
 
@@ -61,7 +59,6 @@ func SetResetPasswordData(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), "reset_password", resetPasswordData)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		return
 	})
 }
 
@@ -108,7 +105,6 @@ func ValidateUserData(roleRequired bool) (mw func(http.Handler) http.Handler) {
 			}
 
 			h.ServeHTTP(w, r)
-			return
 		})
 	}
 	return

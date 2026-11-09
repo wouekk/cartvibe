@@ -475,6 +475,9 @@ func TestShouldBeFirstAdminToLogin(t *testing.T) {
 	validateUser(t, createdUser, userToCreate, true, 1)
 
 	firstAdminToLogin, err := userRepository.IsFirstAdminToLogin()
+	if err != nil {
+		utils.PrintTestError(t, err, "no error")
+	}
 
 	if firstAdminToLogin != true {
 		utils.PrintTestError(t, firstAdminToLogin, true)
@@ -512,6 +515,9 @@ func TestShouldNotBeFirstAdminToLogin(t *testing.T) {
 	userRepository.UpdateUserLastLoginDate(1)
 
 	firstAdminToLogin, err := userRepository.IsFirstAdminToLogin()
+	if err != nil {
+		utils.PrintTestError(t, err, "no error")
+	}
 	if firstAdminToLogin != false {
 		utils.PrintTestError(t, firstAdminToLogin, false)
 	}
