@@ -253,6 +253,7 @@
     "Copy description": "Kopiuj opis",
     "Copying the photos…": "Kopiowanie zdjęć…",
     "Correct tags": "Popraw tagi",
+    "Correct the tags of {name}": "Popraw tagi: {name}",
     "Could not confirm the account deletion. Please try again.": "Nie udało się potwierdzić usunięcia konta. Spróbuj ponownie.",
     "Could not copy the list.": "Nie udało się skopiować listy.",
     "Could not find any values to fill! Try reuploading a clearer image.": "Nie znaleziono wartości do wypełnienia! Spróbuj wysłać wyraźniejszy obraz.",
@@ -860,7 +861,6 @@
     "Receipt Id": "Identyfikator paragonu",
     "Receipt Id is required": "Identyfikator paragonu jest wymagany",
     "Receipt Processing": "Przetwarzanie paragonów",
-    "Receipt Processing Settings": "Ustawienia przetwarzania paragonów",
     "Receipt Processing Settings Connectivity Check": "Test połączenia ustawień przetwarzania paragonów",
     "Receipt Settings": "Ustawienia paragonów",
     "Receipt Uploaded": "Dodano paragon",
@@ -1781,6 +1781,10 @@
     "Read/Write": {
       "value": "Odczyt i zapis",
       "closest": "Read Only"
+    },
+    "Receipt Processing Settings": {
+      "value": "Ustawienia przetwarzania paragonów",
+      "closest": "Group Receipt Settings"
     },
     "Scope": {
       "value": "Zakres"

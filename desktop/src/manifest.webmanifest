@@ -12,6 +12,18 @@
     "method": "GET",
     "params": { "title": "recipeTitle", "text": "recipeText", "url": "recipeUrl" }
   },
+  "shortcuts": [
+    {
+      "name": "Shopping lists",
+      "url": "/shopping-lists",
+      "icons": [{ "src": "assets/brand/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Scan a receipt",
+      "url": "/overview?scan=1",
+      "icons": [{ "src": "assets/brand/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "background_color": "#151920",
   "theme_color": "#151920",
   "icons": [

@@ -1445,6 +1445,24 @@ export class OverviewPageComponent {
         untracked(() => this.store.dispatch(new LoadShoppingLists(groupId)));
       }
     });
+
+    this.openScanFromShortcut();
+  }
+
+  /**
+   * The installed app's "Scan a receipt" shortcut (`shortcuts` in manifest.webmanifest) lands here as `?scan=1`,
+   * through the group-less `/overview` route.
+   */
+  private openScanFromShortcut(): void {
+    if (this.activatedRoute.snapshot?.queryParamMap?.get("scan") !== "1") {
+      return;
+    }
+
+    // Dropped from the URL, so a reload or Back does not open the dialog again.
+    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {}, replaceUrl: true });
+    if (this.canQuickScan()) {
+      this.openQuickScan();
+    }
   }
 
   /** Opens the products behind the Unhealthy or Unplanned tile. */

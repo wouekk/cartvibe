@@ -253,6 +253,7 @@
     "Copy description": "Copiar descripción",
     "Copying the photos…": "Copiando las fotos…",
     "Correct tags": "Corregir indicaciones",
+    "Correct the tags of {name}": "Corregir indicaciones: {name}",
     "Could not confirm the account deletion. Please try again.": "No se pudo confirmar la eliminación de la cuenta. Inténtalo de nuevo.",
     "Could not copy the list.": "No se pudo copiar la lista.",
     "Could not find any values to fill! Try reuploading a clearer image.": "¡No se encontró ningún valor que rellenar! Prueba a subir una imagen más nítida.",
@@ -860,7 +861,6 @@
     "Receipt Id": "ID del recibo",
     "Receipt Id is required": "El ID del recibo es obligatorio",
     "Receipt Processing": "Procesamiento de recibos",
-    "Receipt Processing Settings": "Ajustes de procesamiento de recibos",
     "Receipt Processing Settings Connectivity Check": "Prueba de conexión del procesamiento de recibos",
     "Receipt Settings": "Ajustes de recibos",
     "Receipt Uploaded": "Recibo subido",
@@ -1765,6 +1765,10 @@
     "Read/Write": {
       "value": "Lectura/escritura",
       "closest": "Read Only"
+    },
+    "Receipt Processing Settings": {
+      "value": "Ajustes de procesamiento de recibos",
+      "closest": "Group Receipt Settings"
     },
     "Scope": {
       "value": "Alcance"

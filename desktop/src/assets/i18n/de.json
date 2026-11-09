@@ -253,6 +253,7 @@
     "Copy description": "Beschreibung kopieren",
     "Copying the photos…": "Fotos werden kopiert…",
     "Correct tags": "Merkmale korrigieren",
+    "Correct the tags of {name}": "Merkmale korrigieren: {name}",
     "Could not confirm the account deletion. Please try again.": "Das Löschen des Kontos konnte nicht bestätigt werden. Bitte versuche es erneut.",
     "Could not copy the list.": "Die Liste konnte nicht kopiert werden.",
     "Could not find any values to fill! Try reuploading a clearer image.": "Keine Werte zum Ausfüllen gefunden! Lade ein schärferes Bild hoch.",
@@ -860,7 +861,6 @@
     "Receipt Id": "Beleg-ID",
     "Receipt Id is required": "Beleg-ID ist erforderlich",
     "Receipt Processing": "Belegverarbeitung",
-    "Receipt Processing Settings": "Einstellungen der Belegverarbeitung",
     "Receipt Processing Settings Connectivity Check": "Verbindungstest der Belegverarbeitung",
     "Receipt Settings": "Belegeinstellungen",
     "Receipt Uploaded": "Beleg hochgeladen",
@@ -1749,6 +1749,10 @@
     "Read/Write": {
       "value": "Lesen/Schreiben",
       "closest": "Read Only"
+    },
+    "Receipt Processing Settings": {
+      "value": "Einstellungen der Belegverarbeitung",
+      "closest": "Group Receipt Settings"
     },
     "Scope": {
       "value": "Bereich"

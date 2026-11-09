@@ -15,6 +15,8 @@ import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { QuickScanFieldConfig, resolveQuickScanFieldConfig } from "./quick-scan-field-config";
 import { receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { marker } from "../../i18n/marker";
+import { buttonVariants } from "@spartan-ng/helm/button";
+import { finePointerSignal } from "../../utils/fine-pointer";
 
 // Mirrors the backend's models.MaxCommentLength (the Comment column is varchar(500), which
 // MySQL/Postgres measure in characters) and mobile's FormBuilderTextField maxLength, so an
@@ -48,6 +50,17 @@ export class QuickScanDialogComponent implements OnInit {
   public readonly commentErrorMessages: { [key: string]: string } = {
     maxlength: marker("Comment must be {requiredLength} characters or fewer."),
   };
+
+  // The photo buttons are native labels around file inputs (mobile browsers ignore input.click() made after an
+  // await), styled like buttons.
+  protected readonly primaryButtonClass = buttonVariants({ variant: "default" });
+  protected readonly outlineButtonClass = buttonVariants({ variant: "outline" });
+
+  /** What the file picker offers: photos, PDFs and the iPhone formats. The upload component filters the same set. */
+  protected readonly pickerAccept = "image/*,application/pdf,.heic,.heif";
+
+  /** "Take a photo" opens the camera on a phone; with a mouse it would only be a second file picker. */
+  protected readonly finePointer = finePointerSignal();
 
   // The group picker only shows when there is a choice to make.
   public readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
@@ -306,8 +319,9 @@ export class QuickScanDialogComponent implements OnInit {
     return Math.max(1, Math.round(bytes / 1024)) + " KB";
   }
 
-  public openImageUploadComponent(): void {
-    this.uploadImageComponent().clickInput();
+  /** Photos taken or chosen with either button go the same way as dropped ones. */
+  public filesPicked(event: Event): void {
+    void this.uploadImageComponent().onFileChange(event);
   }
 
   public removeImage(index: number): void {
