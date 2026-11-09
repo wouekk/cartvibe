@@ -89,7 +89,7 @@ feature.
 
 ## Dependencies (recipe and failure modes: `docs/lockfile.md`)
 
-- Keep `npm audit` at 0. Transitive fixes go in `package.json` `overrides`; drop an override once it does nothing. An
+- Keep `npm audit` at 0 (CI fails on `npm audit --omit=dev`). Transitive fixes go in `package.json` `overrides`; drop an override once it does nothing. An
   advisory with no patched release is fixed by removing the path that pulls it in.
 - Builders are `@angular/build:*`; never add `@angular-devkit/build-angular`.
 - **Never regenerate `package-lock.json` from scratch**; update incrementally with CI's Node and npm (`node-version` in
@@ -112,6 +112,10 @@ feature.
   clients). `aiType` values live in `src/constants/ai-type.ts`, not the generated client.
 - **403 handling** (`src/interceptors/http-interceptor.ts`): the API answers every denial with 403, never 401. A 403 is
   a permission denial: toast "Forbidden" for non-GET outside queue mode and re-throw; **never log out or refresh on it.**
+- **Signing out is the refresh call's decision alone:** `TokenRefreshService` signs out only when `POST /token`
+  answers 401 or 403 (the one 401 in the API). A network error, a 429 or a 5xx keeps the session, so a dead zone in
+  the shop never signs anyone out; storage is cleared with `clearSessionStorage()`, never `localStorage.clear()`
+  (`docs/features.md` → Installable app).
 - **One toast per error, and the server's `errorMsg` wins.** The generic `HttpErrorResponse.message` is a fallback
   only for a 5xx with no `errorMsg`. A form with two writes toasts success only after both land.
 - **App time zone** (`SystemSettingsState.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the

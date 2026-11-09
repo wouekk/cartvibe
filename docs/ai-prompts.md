@@ -7,8 +7,11 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
 ## Decisions (by the user, do not undo without asking)
 
 - **The AI assigns categories and the health rating. It never assigns tags.** Tags are the household's own labels, set
-  by people (per product line, or picked in Quick Scan). The receipt prompt does not ask for tags, and `dropAiTags`
-  (`services/receipt_processing.go`) empties any tags an answer still holds, on the receipt, its items and linked items.
+  by people (per product line, or picked in Quick Scan). The receipt prompt does not ask for tags, and
+  `onlyPromptedReceiptFields` (`services/receipt_processing.go`) keeps only what the prompt asked for (name, shop,
+  currency, amount, date, categories): tags, a payer, a status, a group or comments in an answer are dropped, whether
+  the model made them up or read them off the receipt. Quick Scan takes payer, status and household from the person's
+  choices only.
 - **A category switched off for the AI** (Manage Categories → "Never let the AI use this category", `categories.skipped`)
   is never offered: it is left out of the receipt prompt's list, the product prompts say "never use", and an answer that
   still names it resolves to Uncategorized.
@@ -118,7 +121,13 @@ product is an error (guessing "unplanned" would overstate unplanned spend).
   A read that leaves out `name` or `date` gets the shop's name or "Receipt <today>" and today. A product read does not
   mark a receipt with no total Done, nor one whose status a person changed while the AI was reading.
 - **Magic Fill** answers 409 when no AI is configured and 502 when the AI failed or its answer was unreadable.
-- Every provider call times out after `constants.AiHttpTimeout`.
+- Every provider call times out: 3 minutes for a hosted provider (`constants.AiHttpTimeout`), 10 minutes for a model
+  on the household's own machine (`constants.AiLocalHttpTimeout`: Ollama and OpenAI-compatible servers), which may
+  have to load the model first. Scans run one at a time, so the short limit keeps one stuck call from holding the rest.
+- A model server's error is kept: Ollama's non-2xx answer becomes the error text ("the model server answered 404:
+  model 'x' not found") and the failed task's log shows the provider's own words.
+- OCR for text-only models keeps `-`, `/`, `:`, `%`, `$` and the like (dates, times, discounts, VAT rates); only
+  scanner noise is blacklisted (`ocrCharBlacklist`, `services/ocr.go`).
 - **Unreadable answer**: retried after 10 minutes, FAILED after 3 attempts (classification: 3 attempts per product, then
   left unclassified).
 - Sweeps claim rows with a conditional UPDATE and a 30-minute lease, so two sweeps never read the same receipt.

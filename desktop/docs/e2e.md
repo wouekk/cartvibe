@@ -15,12 +15,17 @@ About 40 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers
   red for the app races listed below.
 
 `e2e:smoke` is `auth.spec`, `dashboard-charts`, `generate-password`, `report-template-list` and `member-grant-security` (green three
-runs in a row, 7 seconds). `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
-added a template under a pending click. More files join smoke only after three green runs.
+runs in a row, 7 seconds), and since 2026-11-10 `shopping-list.spec`, `quick-scan-dialog.spec` and `receipts.spec`, so CI
+touches a list, the scan dialog and a receipt. `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
+added a template under a pending click. More files join smoke only after three green runs; one that turns flaky in CI leaves the list again.
+
+Around the specs, the `e2e-smoke` job checks the container itself: the main script arrives gzip-compressed with an
+`immutable` cache header, `docker stop` ends with exit code 0 inside the grace period, and a second container started on
+the same volumes under another `VERSION` leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.
 
 What was wrong, by cause (fixed unless marked open):
 - **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole
-  run, answering 503 beyond that; the access token lives 20 minutes. Provisioning calls now retry a 503 and reuse a login for
+  run, answering 429 beyond that (503 before 2026-11-10); the access token lives 20 minutes. Provisioning calls retry both and reuse a login for
   five minutes (`helpers/provisioning.ts`); run with 2 workers, and in batches if a run could pass 20 minutes (the `setup`
   project logs in again on every invocation).
 - **Secure context.** The page must be on `http://localhost` (the runner shares the app's network namespace), otherwise
@@ -36,7 +41,7 @@ What was wrong, by cause (fixed unless marked open):
 - **Receipt form:** no Group, Paid By, shares or items; the Name is pre-filled and Amount is the only other required field.
 
 Round 3 changes in how the suite is run and written:
-- **`run-docker.sh up` relaxes nginx's request rates** (same config, `10r/s` and `30r/m` raised) because the app does not retry a 503
+- **`run-docker.sh up` relaxes nginx's request rates** (same config, `10r/s` and `30r/m` raised) because the app does not retry a 429
   and the limits made tables and forms come up empty at random. CI's `e2e-smoke` still runs against the production limits.
 - **Global-settings specs are their own projects** (`playwright.config.ts`: `app-time-zone`, `session-lifetime`,
   `temp-file-retention` run after the main project, one after another). A settings save sends the whole payload, so two of them at

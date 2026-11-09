@@ -4,8 +4,14 @@ Purpose: how session lifetime, token types, the `Secure` cookie toggle and the p
 
 ## Refresh-token lifetime
 
-System Settings `refreshTokenValidForHours` and `mcpRefreshTokenValidForHours` (whole hours, 1-720, default 24). The MCP
-one is separate so a long human session never silently extends third-party connector tokens.
+System Settings `refreshTokenValidForHours` and `mcpRefreshTokenValidForHours` (whole hours, 1-720). A person's session
+defaults to 720 (30 days: a family member who skips a day should not have to sign in again at the shop door); a
+connector's to 24. The MCP one is separate so a long human session never silently extends third-party connector tokens.
+
+- A new install is seeded with 720 (`repositories.DefaultSessionLifetimeHours`). The data migration
+  `session-lifetime-30-days-v1` lifts a stored 24 (the old default) or 0 to 720 once; any other value was chosen by
+  someone and stays. The column's own default is still 24 so the schema does not change; the seed and the migration
+  are what decide.
 
 - It is an **inactivity timeout**, not an absolute cap: refresh tokens rotate on each use and the desktop refreshes every
   15 minutes. Lowering it bites active sessions at their next refresh; nothing is bulk-revoked.
@@ -13,7 +19,8 @@ one is separate so a long human session never silently extends third-party conne
   refresh timer is sized against it, and the OAuth `expires_in` mirrors it.
 - `utils` cannot read settings (import cycle), so `GetRefreshTokenExpiryDate(lifetime)` takes the duration;
   `services.GetRefreshTokenLifetime()` / `GetMcpRefreshTokenLifetime()` read live and clamp
-  (`clampRefreshTokenLifetime`, fallback 24 h). The clamp, not the validator, is the safety net. Bounds live in
+  (`clampRefreshTokenLifetime`, falling back to 720 h for a session and 24 h for a connector). The clamp, not the
+  validator, is the safety net. Bounds live in
   `commands` and are imported by `services`, so they cannot drift.
 - Explicit `0` means "use the default" (the `pdfDpi` convention).
 
@@ -37,6 +44,12 @@ Refresh consumption is atomic: `middleware.RevokeRefreshToken` does `UPDATE … 
 checks `RowsAffected` (mirrors `oauth.rotateRefreshToken`). A read-then-update let two concurrent refreshes both rotate.
 Unknown and used tokens answer the same. Two app tabs hot-reloading at once still race on the shared refresh token; the
 loser signs both out.
+
+**A refused refresh token answers 401** (`refusedRefreshTokenStatus` in `middleware/refresh_token.go`: missing, invalid,
+not a refresh token, unknown or already used), on `POST /token` and `POST /logout`. It is the one place the API uses
+401: the web app signs a person out only on a 401 or 403 from the refresh call, and keeps the session through anything
+else (no connection, a restart, a 429 or a 5xx), so "refused" must not look like "could not ask". A database error
+while checking stays a 500 for the same reason.
 
 ## `Secure` cookies (`secureCookies`)
 

@@ -181,9 +181,8 @@ package variable `db` (it flags the declaration only): step 2 found two such rea
 (`GroupRepository.IsAllGroup`, the category/tag subqueries of `ReceiptRepository.BuildGormFilterQuery`) and moved them to
 the repository's own database. Do the same check after moving a package.
 
-**CI step.** `ci.yml` runs it in `test-api` after `Build` as a `continue-on-error` step, so a finding, or the tool itself
-breaking, never fails the job. The `test-api` log prints the summary. The analyzer's own tests (`cd tools/celllint && go test ./...`) run on stub
-packages, not on the API.
+**CI does not run it** (the step was taken out when the hosted plan was parked). The analyzer's own tests
+(`cd tools/celllint && go test ./...`) run on stub packages, not on the API.
 
 A check that handler goroutines carry a handle is not in the lint yet.
 

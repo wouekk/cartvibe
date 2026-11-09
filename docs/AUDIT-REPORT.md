@@ -26,6 +26,16 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
 
 - [ ] 1. Quick wins (`feature/audit-quick-wins`): S21, S3, S9, S14, compression, B4, S6, B2.1, S22, B5.1, B5.4, B5.5,
   B5.6, B5.8, sessions, F3, F4, B7, D3 to D5, D12 to D14, part of D17
+  - On the branch and in `preview` since 2026-11-10; `main` waits for the owner.
+  - Also done there: S17 (loopback), the 30-day session default with its migration, Dependabot, `go vet`,
+    `staticcheck` and `govulncheck` in CI (37 findings fixed on the way), `npm audit` back to 0.
+  - Moved to a later sprint: a `context.Context` on the AI clients (B5.4, sprint 7); the one-year session cap and
+    "sign out everywhere" (sprint 4); the first-admin result and `PrepareAccessTokenClaims` (D3, D14), the three unused
+    npm packages (D13), the 51 empty style files (D4) and `GetReceiptsForGroupIds`, `ChartGrouping`, `LogoutCommand`
+    and the router parameters of D17 (sprint 2, with the contract); the wrong-password 500 (D14, with S8 in sprint 6);
+    the `GetReceiptImage` 500 (S18, sprint 7).
+  - Sprint 6 note: before `pull_request` is added to `ci.yml`, `publish-image.yml` must also require
+    `workflow_run.event == 'push'`, or a fork's branch named `main` could publish `:latest`.
 - [ ] 2. Remove the cell runtime: D1, D2, D16, rest of D17
 - [ ] 3. Offline shopping list: F1
 - [ ] 4. Phone shell and Shop mode: F2, F4, F5, F9, C7, C8, C9

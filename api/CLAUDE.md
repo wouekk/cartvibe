@@ -9,8 +9,10 @@ handle).
 ## 1. Build and test
 
 - Go 1.26.10+ (`go.mod` sets `go 1.26.10` so no build runs on a standard library with the advisories fixed there; raise it
-  when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.26-trixie`
-  with `GOTOOLCHAIN=local`, so check the image digest before raising the directive.
+  when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.26-trixie`,
+  which sets `GOTOOLCHAIN=local` itself, so check the image digest before raising the directive.
+- CI's `test-api` also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
+  are in `ci.yml`) and `govulncheck`, each a failure. Neither tool runs through `go-without-cgo.sh` on Windows; vet does.
 - Accepted advisories: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported) and the excelize GHSA set, cleared by
   pinning `github.com/xuri/excelize/v2` to the pseudo-version `v2.11.1-0.20261003002531-6258dcebc4e2`; move to the first
   tagged release after 2026-10-03. Production only writes XLSX.
@@ -46,6 +48,9 @@ handle).
   report templates use the ledger, so a deleted one stays deleted.
 - A query that joins must qualify its columns (`qualifyColumn`): the categories list joins `receipt_products`, which also
   has `name`.
+- **A sort column from a request is checked against an allow-list before it reaches `Sort`** (`isCatalogSortColumn`
+  for categories and tags, the lists in the users and receipts repositories); an unknown one answers 400
+  (`ErrInvalidSortColumn`). `Sort` writes only a quoted alias of letters as raw SQL.
 - `BaseRepository.BuildFilterQuery` interpolates `fieldName`; it must be a hardcoded column literal, never request data.
   Filter values arrive as `interface{}`; unwrap with comma-ok so a malformed body adds no predicate instead of panicking.
 - `utils.ReadFile` returns `(nil, nil)` on any error; never use it where a missing file must be an error.
@@ -54,6 +59,13 @@ handle).
   `busy_timeout` 5 s, `synchronous(NORMAL)`, foreign keys, `_txlock=immediate` (a transaction takes the write lock at
   BEGIN, so a read-then-write never fails on the upgrade), pool capped at 8. A write on a second connection inside a
   transaction waits for that transaction and fails after 5 s: write through the `tx`.
+- **Snapshots** (`repositories/snapshot.go`, `VACUUM INTO sqlite/backups/`): `main.go` takes one before
+  `MakeMigrations` when `VERSION` differs from the one that last booted (five kept), and the `DatabaseSnapshot`
+  clean-up task takes one a day (seven kept). A failed snapshot is logged and never stops the boot. They are why a
+  schema release no longer needs a manual backup step; keep the call ahead of anything that changes the schema.
+- **Shutdown** (`main.go`): HTTP stops first (10 s; open list streams end through `RegisterOnShutdown` and
+  `ShoppingListHub.Close`), then the scheduler and the queue. A timeout is logged, never `FATAL`. In `prod` the API
+  listens on `127.0.0.1:8081` only (nginx is in the same container); elsewhere on every interface for the dev proxy.
 
 ## 3. Security invariants
 
@@ -82,7 +94,7 @@ handle).
   denial; any handler denying for its own reason reuses that constant. Authorization runs before any file- or
   type-specific 400/404.
 - A route answering with a redirect checks permissions in the body (a 403 JSON body would land in the browser).
-- Unauthenticated by design: username availability, `ConvertToJpg` and `GET /featureConfig`. Self-service endpoints use
+- Unauthenticated by design: username availability and `GET /featureConfig`. Self-service endpoints use
   `app.account.*`, `app.user-preferences.*`, `app.notifications.*`, `app.receipts.search`.
 
 ### Visibility layers (rationale: `docs/authorization.md`)
@@ -121,6 +133,8 @@ handle).
   without a scope story.
 - **Access vs refresh tokens** carry `TokenType`; access paths reject refresh tokens (a typeless token with a `jti` is
   refresh). Refresh rotation is one conditional `UPDATE` checked by `RowsAffected`. The access token is fixed at 20 min.
+  A refused refresh token answers **401**, the only 401 in the API: the web app signs out on it and on nothing else
+  (`docs/sessions-cookies.md`), so never answer a refresh failure that is not a refusal with 401 or 403.
 - **Cookies:** `services.UseSecureCookies()` is the only `Secure` resolver, read live; every cookie builder asks it. Off by
   default (plain-http installs). Session cookies `SameSite=Strict`, the OIDC binding cookie `Lax`. Details and lock-out
   recovery: `docs/sessions-cookies.md`.
@@ -204,7 +218,8 @@ which day an instant falls on and what "today" means.
   the receipt is saved with it ("Receipt <today>", today, no total, the configured status and payer), a FAILED
   `QUICK_SCAN` task says why, and the task is not retried. `QuickScan` (shopping trips) still returns the AI error.
   Magic Fill answers 409 (no AI) or 502 (the AI failed) with an `errorMsg`, never a bare 500.
-- Every provider call is bounded by `constants.AiHttpTimeout` (HTTP client and context). The frequent sweeps are
+- Every provider call is bounded (the HTTP client, and a context where the SDK takes one): `constants.AiHttpTimeout` (3 min) for hosted providers,
+  `AiLocalHttpTimeout` (10 min) for Ollama and OpenAI-compatible servers. The frequent sweeps are
   scheduled with `sweepOptions()` (`asynq.Unique` + `asynq.Timeout`, 30 min like the claim lease) and their handlers
   honour a cancelled context. A product read is stored in one transaction against the receipt as it is then.
 - **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, ```json fences stripped, a refusal is an
@@ -214,8 +229,9 @@ which day an instant falls on and what "today" means.
   entered. Azure uses its `…/openai/v1` endpoint with the deployment as model (URL sniffing was removed on purpose).
 - Vision images are normalized (`FileRepository.NormalizeImageForVision`); the stored original is untouched. Tesseract is
   the only OCR engine.
-- **Prompts are code** (`services/receipt_prompt.go`). The AI never assigns tags (`dropAiTags`) and never a switched-off
-  category. Read `../docs/ai-prompts.md` before changing a prompt. `foodGroupResolver` maps AI category names onto
+- **Prompts are code** (`services/receipt_prompt.go`). A receipt answer keeps the prompted fields only
+  (`onlyPromptedReceiptFields`): the AI never sets tags, payer, status, household or comments, and never a switched-off
+  category. A new field the AI may fill is added to the prompt and to that function together. Read `../docs/ai-prompts.md` before changing a prompt. `foodGroupResolver` maps AI category names onto
   Manage Categories (unknown ones are created; renames keep the old name in `aliases`).
 - **Shop logos** (`docs/shop-logos.md`): Logo.dev credits are the limit, so never widen what is fetched (only wanted
   brands, a stored logo is never asked about again). The key is encrypted like the AI keys and `json:"-"`.

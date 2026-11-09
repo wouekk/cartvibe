@@ -347,8 +347,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   JPEG 85); the stored original is untouched. Tesseract is the only OCR engine; a setting naming EasyOCR is read with
   Tesseract.
 - **Prompts are code** (`services/receipt_prompt.go`, `DefaultReceiptPrompt`, the product and classification prompts).
-  The AI never assigns tags (`dropAiTags` empties any it returns) and never a category switched off under Manage
-  Categories. Read `docs/ai-prompts.md` before changing a prompt.
+  The AI never assigns tags, a payer, a status or comments (`onlyPromptedReceiptFields` keeps the prompted fields
+  only) and never a category switched off under Manage Categories. Read `docs/ai-prompts.md` before changing a prompt.
 - `foodGroupResolver` maps AI category names onto Manage Categories: a name or old alias resolves, a skipped one becomes
   Uncategorized, an unknown one is created (Title Case). Renames keep the old name in `aliases`.
 
