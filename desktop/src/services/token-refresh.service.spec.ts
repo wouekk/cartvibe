@@ -7,7 +7,7 @@ import { of, Subject, throwError } from "rxjs";
 import { ApiModule, AuthService, Claims } from "../open-api";
 import { AuthState, Logout, SetAuthState } from "../store";
 import { TokenRefreshService } from "./token-refresh.service";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
 describe("TokenRefreshService", () => {
   let service: TokenRefreshService;
@@ -74,8 +74,8 @@ describe("TokenRefreshService", () => {
       });
     }));
 
-    it("should dispatch Logout and clear localStorage on refresh failure", () => new Promise<void>((done) => {
-      const error = new Error("Token expired");
+    it("signs out, clears the account's storage and opens the login page when the server refuses the token", () => new Promise<void>((done) => {
+      const error = new HttpErrorResponse({ status: 401 });
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => error)
       );
@@ -95,22 +95,49 @@ describe("TokenRefreshService", () => {
       });
     }));
 
-    it("should navigate to /auth/login on refresh failure", () => new Promise<void>((done) => {
+    it("keeps the look and the language of the device when it signs out", () => {
+      localStorage.setItem("cartvibe.themeMode", "dark");
+      localStorage.setItem("cartvibe.themePalette", "emerald");
+      localStorage.setItem("cartvibe.language", "pl");
+      localStorage.setItem("auth", "{}");
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
-        throwError(() => new Error("fail"))
+        throwError(() => new HttpErrorResponse({ status: 401 }))
       );
       vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-      vi.spyOn(Storage.prototype, "clear");
+      vi.spyOn(router, "navigate").mockResolvedValue(true);
+
+      service.refreshToken().subscribe({ error: () => {} });
+
+      expect(localStorage.getItem("cartvibe.themeMode")).toBe("dark");
+      expect(localStorage.getItem("cartvibe.themePalette")).toBe("emerald");
+      expect(localStorage.getItem("cartvibe.language")).toBe("pl");
+      expect(localStorage.getItem("auth")).toBeNull();
+      localStorage.clear();
+    });
+
+    // A phone with no signal in the shop (status 0), a server restarting during a deploy (502, 503) and a server
+    // error (500) say nothing about the session: it stays, and the refresh is tried again later.
+    it.each([0, 500, 502, 503])("stays signed in when the refresh fails with status %i", (status) => {
+      localStorage.setItem("cartvibe.themeMode", "dark");
+      const error = new HttpErrorResponse({ status });
+      vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
+        throwError(() => error)
+      );
+      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const clearSpy = vi.spyOn(Storage.prototype, "clear");
       const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
-      service.refreshToken().subscribe({
-        error: () => {
-          expect(navigateSpy).toHaveBeenCalledWith(["/auth/login"]);
-          vi.spyOn(Storage.prototype, "clear").mockRestore();
-          done();
-        },
-      });
-    }));
+      const errors: unknown[] = [];
+      service.refreshToken().subscribe({ error: (err) => errors.push(err) });
+
+      expect(errors).toEqual([error]);
+      expect(dispatchSpy.mock.calls.some(([action]) => action instanceof Logout)).toBe(false);
+      expect(clearSpy).not.toHaveBeenCalled();
+      expect(navigateSpy).not.toHaveBeenCalled();
+      expect(localStorage.getItem("cartvibe.themeMode")).toBe("dark");
+      clearSpy.mockRestore();
+      localStorage.clear();
+    });
 
     it("should serialize concurrent calls — only one HTTP request fires", () => {
       const subject = new Subject<any>();
@@ -223,7 +250,7 @@ describe("TokenRefreshService", () => {
       service.refreshToken().subscribe({ error: () => {} });
       service.refreshToken().subscribe({ error: () => {} });
 
-      subject.error(new Error("fail"));
+      subject.error(new HttpErrorResponse({ status: 401 }));
 
       const logoutCalls = dispatchSpy.mock.calls.filter(
         ([action]) => action instanceof Logout

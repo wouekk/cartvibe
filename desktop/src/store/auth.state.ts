@@ -38,9 +38,14 @@ export class AuthState {
     return state.icons ?? [];
   }
 
+  /**
+   * A session exists in this browser: the person signed in and has not signed out. The 20-minute access token may
+   * have run out meanwhile (a phone asleep or without signal); `TokenRefreshService` renews it, and only the server's
+   * refusal ends the session. Use `isTokenExpired` to decide whether a renewal is due.
+   */
   @Selector()
   static isLoggedIn(state: AuthStateInterface): boolean {
-    return !AuthState.isTokenExpired(state);
+    return !!state.expirationDate;
   }
 
   @Selector()

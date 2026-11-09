@@ -20,12 +20,9 @@ export class AppInitService {
   public initAppData(): Promise<boolean> {
 
     return new Promise((resolve) => {
-      const isLoggedIn = this.store.selectSnapshot(AuthState.isLoggedIn);
-      const hadSession = !!this.store.selectSnapshot(
-        (appState: any) => appState.auth?.expirationDate
-      );
-
-      if (isLoggedIn || hadSession) {
+      // A session from an earlier visit: renew the token and load the account. With no connection the refresh fails
+      // without ending the session (TokenRefreshService), and the app starts on what the store kept.
+      if (this.store.selectSnapshot(AuthState.isLoggedIn)) {
         this.tokenRefreshService.refreshToken().pipe(
           take(1),
           switchMap(() => this.getAppData()),
