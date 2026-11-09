@@ -28,6 +28,8 @@ services:
     pull_policy: always
     container_name: cartvibe
     restart: unless-stopped
+    # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
+    stop_grace_period: 30s
     depends_on:
       litestream-restore:
         condition: service_completed_successfully

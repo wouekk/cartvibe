@@ -1,5 +1,7 @@
-# Three stages: the desktop build (Node), the API build (Go with the compiler and the -dev libraries), and a slim Debian
-# runtime that receives only what runs: the binary, the API's files and the desktop's static files. The Go toolchain, the compilers and the *-dev packages stay behind in the build stages.
+# Four stages: the desktop build (Node), the API build (Go with the compiler and the -dev libraries), a throwaway
+# stage that makes a test file for the runtime checks, and a slim Debian runtime that receives only what runs: the API
+# binary and the desktop's static files. The Go toolchain, the compilers, the *-dev packages and the API's source stay
+# behind in the build stages. .dockerignore keeps local build output and data out of the build context.
 #
 # Layer order matters for build time: each stage installs its dependencies from the few files that declare them
 # BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages;
@@ -27,16 +29,19 @@ FROM golang:1.26-trixie AS api-build
 ENV BASE_PATH="/app/cartvibe-api"
 WORKDIR /app/cartvibe-api
 
-# Tesseract, ImageMagick (with HEIC) and Chromium. Only the script is copied first, so this (by far the slowest)
-# layer survives code changes.
+# The libraries the cgo bindings link (Tesseract, ImageMagick with HEIC). Only the script is copied first, so this
+# layer survives code changes. Chromium is not installed here: nothing compiles against it (CI's test job asks the
+# script for it with --with-test-tools).
 COPY api/set-up-dependencies.sh ./
 RUN bash set-up-dependencies.sh
 
 COPY api/go.mod api/go.sum ./
 RUN go mod download
 
+# -trimpath leaves the build machine's paths out of the binary; -s -w drop the symbol table and debug data (a panic
+# still prints function names and lines).
 COPY api/ ./
-RUN go build
+RUN go build -trimpath -ldflags "-s -w" -o api .
 
 # Every shared library the binary links must be one the runtime stage installs (checked there too).
 RUN ldd ./api | tee /tmp/api-libs.txt && ! grep "not found" /tmp/api-libs.txt
@@ -77,8 +82,9 @@ RUN useradd --system --uid 10001 --user-group --create-home --home-dir /home/car
 # only external program, resource limits sized for phone photos, and no risky paths. The check below proves it.
 COPY docker/imagemagick/policy.xml /etc/ImageMagick-7/policy.xml
 
+# The binary alone: the translations and the brand list are compiled into it, and it creates what it writes.
 WORKDIR /app/cartvibe-api
-COPY --from=api-build /app/cartvibe-api /app/cartvibe-api
+COPY --from=api-build /app/cartvibe-api/api /app/cartvibe-api/api
 
 # Fail the build, not the NAS, when something the API needs is missing at run time (libraries, HEIC and PDF
 # conversion, fonts, OCR, Chromium printing a PDF). The script lists every failure in one build.
@@ -99,9 +105,7 @@ VOLUME /app/cartvibe-api/sqlite
 VOLUME /app/cartvibe-api/logs
 
 # nginx and the entrypoint
-WORKDIR /app/cartvibe-api/docker
-COPY docker/ .
-COPY docker/entrypoint.sh /app
+COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod 755 /app/entrypoint.sh
 COPY docker/default.conf /etc/nginx/conf.d/default.conf
 RUN nginx -t

@@ -1,0 +1,39 @@
+# What never goes into the image build (docker/Dockerfile, built with the repository root as its context). The build
+# needs api/, desktop/ and docker/ only; everything here is either another part of the repository or something a
+# local checkout holds beside the source: installed packages, build output, databases and receipt files.
+
+.git
+.github
+.claude
+.idea
+
+# Other parts of the repository
+site
+docs
+deploy
+*.md
+
+# Installed packages and build output (the image installs and builds its own)
+**/node_modules
+desktop/dist
+desktop/.angular
+desktop/coverage
+desktop/test-results
+desktop/playwright-report
+api/api
+api/api.exe
+api/tmp
+
+# A local run's data: never in an image
+**/.env
+**/.env.*
+/data
+/sqlite
+api/data
+api/sqlite
+api/logs
+api/temp
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/dump.rdb

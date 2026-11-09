@@ -1,0 +1,68 @@
+# Weekly update proposals, one pull request per group, so dependencies move a little at a time instead of in rare
+# large jumps. Each pull request targets main and is tested by CI (ci.yml runs on dependabot/** branches); merging
+# one is a push to main, so it waits for the owner like any other.
+#
+# What stays manual, and why (desktop/CLAUDE.md, "Dependencies"):
+#   - Angular stays on its 22.x line: a new major is an upgrade of its own.
+#   - @playwright/test moves together with the browser build, and the @zxing packages move together.
+#   - A new major version of anything: check its licence first.
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: /api
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      go-modules:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /desktop
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    groups:
+      npm-packages:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-devkit/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@playwright/test"
+      - dependency-name: "@zxing/*"
+
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    groups:
+      site-packages:
+        patterns: ["*"]
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # The base images named in docker/Dockerfile.
+  - package-ecosystem: docker
+    directory: /docker
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 2
