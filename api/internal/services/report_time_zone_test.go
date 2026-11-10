@@ -26,7 +26,6 @@ func setAppTimeZone(t *testing.T, name string) {
 // no restart — and switching back to UTC moves it out again.
 func TestReportService_LastMonthOnAddedAtFollowsTheAppTimeZone(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-tz-bug", "Household")
@@ -66,7 +65,6 @@ func TestReportService_LastMonthOnAddedAtFollowsTheAppTimeZone(t *testing.T) {
 // Sydney, and in no August period.
 func TestReportService_CalendarDateIsUnaffectedByTheAppTimeZone(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-tz-date", "Household")
@@ -106,7 +104,6 @@ func TestReportService_CalendarDateIsUnaffectedByTheAppTimeZone(t *testing.T) {
 // zone's clock. At 02:00 UTC on Oct 1 it is still Sep 30 in New York.
 func TestReportService_PresetsLabelAndGeneratedAtUseTheAppTimeZone(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-tz-label", "Household")
@@ -153,7 +150,6 @@ func TestReportService_PresetsLabelAndGeneratedAtUseTheAppTimeZone(t *testing.T)
 // does not move; the rendered footer names the zone.
 func TestReportService_BucketsAndFooterUseTheAppTimeZone(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-tz-bucket", "Household")

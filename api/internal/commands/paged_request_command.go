@@ -109,8 +109,8 @@ func (command *ReceiptPagedRequestCommand) LoadDataFromRequest(w http.ResponseWr
 	return nil
 }
 
-// initReceiptFilterValues seeds the non-nil defaults the receipt query and
-// grant-narrowing rely on. Every command that carries a ReceiptPagedRequestFilter
+// initReceiptFilterValues seeds the non-nil defaults the receipt query
+// relies on. Every command that carries a ReceiptPagedRequestFilter
 // (paged receipts, pie chart, reports) runs it so the three paths stay in sync.
 // Defaulting a field whose operation is unset is a query no-op (buildFilterQuery
 // falls through on an empty operation, and the slice/name branches skip empties).

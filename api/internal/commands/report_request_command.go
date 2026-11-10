@@ -159,8 +159,8 @@ func (command *ReportRequestCommand) LoadDataFromRequest(w http.ResponseWriter, 
 		return err
 	}
 
-	// The reporting data source reuses the receipt filter, whose grant-narrowing
-	// and query code expect non-nil values — mirror the initialization the other
+	// The reporting data source reuses the receipt filter, whose query code
+	// expects non-nil values — mirror the initialization the other
 	// receipt-filter commands do.
 	initReceiptFilterValues(&command.Filter)
 	return nil

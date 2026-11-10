@@ -38,8 +38,8 @@ func writeReceiptProductsView(w http.ResponseWriter, receiptId uint) (int, error
 	return 0, nil
 }
 
-// GetReceiptProducts returns a receipt's products. Addressed by receipt id, so HandleRequest also
-// applies the paid-by visibility check, and an unknown id is the same 403 as a denial.
+// GetReceiptProducts returns a receipt's products. Addressed by receipt id, so HandleRequest judges
+// it in the receipt's household, and an unknown id is the same 403 as a denial.
 func GetReceiptProducts(w http.ResponseWriter, r *http.Request) {
 	receiptIdParam := chi.URLParam(r, "receiptId")
 
@@ -139,7 +139,7 @@ func QueueGroupReceiptProducts(w http.ResponseWriter, r *http.Request) {
 }
 
 // SetReceiptProductClassification is a person's correction of a receipt product's tags. The product
-// is resolved to its receipt before authorizing, so the receipt's paid-by visibility applies and an
+// is resolved to its receipt before authorizing, so the receipt's household is the one judged and an
 // unknown id gets the same 403 as a denial.
 func SetReceiptProductClassification(w http.ResponseWriter, r *http.Request) {
 	productId, err := utils.StringToUint(chi.URLParam(r, "productId"))
@@ -222,7 +222,7 @@ func writeReceiptProduct(w http.ResponseWriter, product models.ReceiptProduct) (
 }
 
 // AddReceiptProduct adds a product line the AI missed (Phase 3 C5). Addressed by receipt id, so
-// HandleRequest applies the receipt's group permission and paid-by visibility.
+// HandleRequest applies the receipt's group permission.
 func AddReceiptProduct(w http.ResponseWriter, r *http.Request) {
 	receiptIdParam := chi.URLParam(r, "receiptId")
 

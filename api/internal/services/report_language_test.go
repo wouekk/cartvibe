@@ -45,7 +45,6 @@ func assertContainsAll(t *testing.T, html string, wants ...string) {
 // stay as they are.
 func TestReportService_Preview_SpeaksTheReadersLanguage(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-lang-de", "Household")
@@ -77,7 +76,6 @@ func TestReportService_Preview_SpeaksTheReadersLanguage(t *testing.T) {
 // report, word for word as before; a title they typed is never translated.
 func TestReportService_Preview_EnglishWithoutALanguage(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-lang-en", "Household")
@@ -105,7 +103,6 @@ func TestReportService_Preview_EnglishWithoutALanguage(t *testing.T) {
 // A language the API has no words for falls back to English rather than failing.
 func TestReportService_Preview_UnknownLanguageIsEnglish(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-lang-xx", "Household")

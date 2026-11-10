@@ -61,8 +61,7 @@ func GetShoppingTrips(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachShoppingTripReceipt attaches an existing receipt to a list. Both the list's group and the
-// receipt are authorized (the receipt with its paid-by visibility), so an unknown or hidden receipt
-// is the same 403 as a denial.
+// receipt are authorized, so an unknown receipt is the same 403 as a denial.
 func AttachShoppingTripReceipt(w http.ResponseWriter, r *http.Request) {
 	listId, groupId, ok := resolveShoppingListGroupId(w, chi.URLParam(r, "listId"))
 	if !ok {

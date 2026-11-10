@@ -127,28 +127,11 @@ func createReceiptInGroup(t *testing.T, name string, groupId uint, paidByUserId 
 	return receipt
 }
 
+// addGroupMember creates a group role with the given permissions, then assigns
+// the user to the group with it.
 func addGroupMember(t *testing.T, userId uint, groupId uint, perms []string) {
 	t.Helper()
-	addGroupMemberWithGrants(t, userId, groupId, "mcp-test-role", perms, nil, nil, nil, false)
-}
-
-// addGroupMemberWithGrants creates a group role with the given permissions and
-// category/tag/paid-by grants, then assigns the user to the group with it. Use a
-// distinct roleName when a single test needs more than one role (names are unique).
-func addGroupMemberWithGrants(
-	t *testing.T,
-	userId uint,
-	groupId uint,
-	roleName string,
-	perms []string,
-	categoryGrants []uint,
-	tagGrants []uint,
-	paidByGrants []uint,
-	includeOwn bool,
-) {
-	t.Helper()
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
-		roleName, "", perms, categoryGrants, tagGrants, paidByGrants, includeOwn, false)
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole("mcp-test-role", "", perms)
 	if err != nil {
 		t.Fatalf("failed to create group role: %v", err)
 	}
@@ -160,7 +143,6 @@ func addGroupMemberWithGrants(
 	// test DB can reuse across truncations — clear them so the freshly created
 	// role's permissions are resolved from the DB rather than a stale entry.
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 }
 
 // setAppRole creates an app role with the given permissions and assigns it to the
@@ -168,7 +150,7 @@ func addGroupMemberWithGrants(
 // resolve to it.
 func setAppRole(t *testing.T, userId uint, roleName string, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms)
 	if err != nil {
 		t.Fatalf("failed to create app role: %v", err)
 	}
@@ -237,31 +219,6 @@ func TestListCategoriesAppReaderSeesAll(t *testing.T) {
 	}
 }
 
-// A member whose group role restricts categories sees only the granted subset.
-func TestListCategoriesRestrictedToGroupGrants(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	user := createUser(t, "catmember")
-	group := models.Group{Name: "g"}
-	if err := repositories.GetDB().Create(&group).Error; err != nil {
-		t.Fatalf("failed to create group: %v", err)
-	}
-	repositories.CreateTestCategories()
-	var categories []models.Category
-	if err := repositories.GetDB().Order("id asc").Find(&categories).Error; err != nil {
-		t.Fatalf("failed to load categories: %v", err)
-	}
-
-	// Grant only the first category.
-	addGroupMemberWithGrants(t, user.ID, group.ID, "cat-grant-role",
-		[]string{permissions.GroupReceiptsRead}, []uint{categories[0].ID}, nil, nil, false)
-
-	visible := listCategories(t, user.ID)
-	if len(visible) != 1 || visible[0].ID != categories[0].ID {
-		t.Errorf("expected only the granted category, got %+v", visible)
-	}
-}
-
 // A member whose group role has no category grants is unrestricted (sees all).
 func TestListCategoriesUnrestrictedGroupMemberSeesAll(t *testing.T) {
 	defer repositories.TruncateTestDb()
@@ -290,44 +247,6 @@ func TestListCategoriesNoAccessSeesNone(t *testing.T) {
 
 	if got := len(listCategories(t, user.ID)); got != 0 {
 		t.Errorf("expected a user with no grants to see 0 categories, got %d", got)
-	}
-}
-
-// list_tags is grant-filtered the same way (spot-check the restricted path).
-func TestListTagsRestrictedToGroupGrants(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	user := createUser(t, "tagmember")
-	group := models.Group{Name: "g"}
-	if err := repositories.GetDB().Create(&group).Error; err != nil {
-		t.Fatalf("failed to create group: %v", err)
-	}
-	allowedTag := models.Tag{Name: "allowed"}
-	hiddenTag := models.Tag{Name: "hidden"}
-	if err := repositories.GetDB().Create(&allowedTag).Error; err != nil {
-		t.Fatalf("failed to create tag: %v", err)
-	}
-	if err := repositories.GetDB().Create(&hiddenTag).Error; err != nil {
-		t.Fatalf("failed to create tag: %v", err)
-	}
-
-	addGroupMemberWithGrants(t, user.ID, group.ID, "tag-grant-role",
-		[]string{permissions.GroupReceiptsRead}, nil, []uint{allowedTag.ID}, nil, false)
-
-	_, out, err := handleListTags(context.Background(), requestForUser(user.ID), emptyInput{})
-	if err != nil {
-		t.Fatalf("handleListTags returned error: %v", err)
-	}
-	envelope, ok := out.(map[string]any)
-	if !ok {
-		t.Fatalf("expected result envelope, got %T", out)
-	}
-	tags, ok := envelope["tags"].([]models.Tag)
-	if !ok {
-		t.Fatalf("expected tags result, got %T", envelope["tags"])
-	}
-	if len(tags) != 1 || tags[0].ID != allowedTag.ID {
-		t.Errorf("expected only the granted tag, got %+v", tags)
 	}
 }
 
@@ -405,125 +324,6 @@ func TestSearchReceiptsScopesToUserGroups(t *testing.T) {
 		if result.GroupID != memberGroup.ID {
 			t.Errorf("search returned a receipt from group %d outside the user's groups", result.GroupID)
 		}
-	}
-}
-
-func TestGetReceiptStripsCategoriesAndTags(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	db := repositories.GetDB()
-
-	user := createUser(t, "stripuser")
-	group := models.Group{Name: "g"}
-	if err := db.Create(&group).Error; err != nil {
-		t.Fatalf("failed to create group: %v", err)
-	}
-
-	allowedCategory := models.Category{Name: "allowed-cat"}
-	hiddenCategory := models.Category{Name: "hidden-cat"}
-	allowedTag := models.Tag{Name: "allowed-tag"}
-	hiddenTag := models.Tag{Name: "hidden-tag"}
-	for _, m := range []interface{}{&allowedCategory, &hiddenCategory, &allowedTag, &hiddenTag} {
-		if err := db.Create(m).Error; err != nil {
-			t.Fatalf("failed to create fixture: %v", err)
-		}
-	}
-
-	// The role grants read plus exactly one category and one tag.
-	addGroupMemberWithGrants(t, user.ID, group.ID, "strip-role",
-		[]string{permissions.GroupReceiptsRead},
-		[]uint{allowedCategory.ID}, []uint{allowedTag.ID}, nil, false)
-
-	receipt := createReceiptInGroup(t, "lunch", group.ID, user.ID)
-	if err := db.Model(&receipt).Association("Categories").Append([]models.Category{allowedCategory, hiddenCategory}); err != nil {
-		t.Fatalf("failed to attach categories: %v", err)
-	}
-	if err := db.Model(&receipt).Association("Tags").Append([]models.Tag{allowedTag, hiddenTag}); err != nil {
-		t.Fatalf("failed to attach tags: %v", err)
-	}
-
-	_, out, err := handleGetReceipt(context.Background(), requestForUser(user.ID), getReceiptInput{Id: utils.UintToString(receipt.ID)})
-	if err != nil {
-		t.Fatalf("handleGetReceipt returned error: %v", err)
-	}
-	got, ok := out.(models.Receipt)
-	if !ok {
-		t.Fatalf("expected models.Receipt, got %T", out)
-	}
-	if len(got.Categories) != 1 || got.Categories[0].ID != allowedCategory.ID {
-		t.Errorf("expected only the granted category, got %+v", got.Categories)
-	}
-	if len(got.Tags) != 1 || got.Tags[0].ID != allowedTag.ID {
-		t.Errorf("expected only the granted tag, got %+v", got.Tags)
-	}
-}
-
-func TestGetReceiptEnforcesPaidByVisibility(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	db := repositories.GetDB()
-
-	user := createUser(t, "pbviewer")
-	allowedPayer := createUser(t, "allowedpayer")
-	hiddenPayer := createUser(t, "hiddenpayer")
-
-	group := models.Group{Name: "g"}
-	if err := db.Create(&group).Error; err != nil {
-		t.Fatalf("failed to create group: %v", err)
-	}
-	// Restrict the member to receipts paid by allowedPayer only.
-	addGroupMemberWithGrants(t, user.ID, group.ID, "pb-role",
-		[]string{permissions.GroupReceiptsRead}, nil, nil, []uint{allowedPayer.ID}, false)
-
-	allowedReceipt := createReceiptInGroup(t, "allowed", group.ID, allowedPayer.ID)
-	hiddenReceipt := createReceiptInGroup(t, "hidden", group.ID, hiddenPayer.ID)
-
-	// A receipt paid by an allowed payer is visible.
-	if _, _, err := handleGetReceipt(context.Background(), requestForUser(user.ID), getReceiptInput{Id: utils.UintToString(allowedReceipt.ID)}); err != nil {
-		t.Fatalf("expected the allowed receipt to be visible: %v", err)
-	}
-
-	// A receipt paid by a hidden payer reports the non-leaking "not found".
-	_, _, err := handleGetReceipt(context.Background(), requestForUser(user.ID), getReceiptInput{Id: utils.UintToString(hiddenReceipt.ID)})
-	if err == nil {
-		t.Fatalf("expected the paid-by-hidden receipt to be denied")
-	}
-	if !strings.Contains(err.Error(), "not found") {
-		t.Errorf("expected a non-leaking 'not found' error, got %v", err)
-	}
-}
-
-func TestSearchReceiptsEnforcesPaidByVisibility(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	db := repositories.GetDB()
-
-	user := createUser(t, "pbsearcher")
-	allowedPayer := createUser(t, "spallowed")
-	hiddenPayer := createUser(t, "sphidden")
-
-	group := models.Group{Name: "g"}
-	if err := db.Create(&group).Error; err != nil {
-		t.Fatalf("failed to create group: %v", err)
-	}
-	setAppRole(t, user.ID, "pb-search-app-role", []string{permissions.AppReceiptsSearch})
-	addGroupMemberWithGrants(t, user.ID, group.ID, "pb-search-role",
-		[]string{permissions.GroupReceiptsRead}, nil, nil, []uint{allowedPayer.ID}, false)
-
-	createReceiptInGroup(t, "Coffee allowed", group.ID, allowedPayer.ID)
-	createReceiptInGroup(t, "Coffee hidden", group.ID, hiddenPayer.ID)
-
-	_, out, err := handleSearchReceipts(context.Background(), requestForUser(user.ID), searchReceiptsInput{Query: "Coffee"})
-	if err != nil {
-		t.Fatalf("handleSearchReceipts returned error: %v", err)
-	}
-	envelope, ok := out.(map[string]any)
-	if !ok {
-		t.Fatalf("expected result envelope, got %T", out)
-	}
-	results, ok := envelope["receipts"].([]structs.SearchResult)
-	if !ok {
-		t.Fatalf("expected receipts result, got %T", envelope["receipts"])
-	}
-	if len(results) != 1 || results[0].PaidByUserId != allowedPayer.ID {
-		t.Errorf("expected only the receipt paid by the allowed payer, got %+v", results)
 	}
 }
 

@@ -14,9 +14,6 @@ type UpsertGroupCommand struct {
 	Status         models.GroupStatus         `gorm:"default:'ACTIVE'; not null" json:"status"`
 	IsAllGroup     bool                       `json:"isAllGroup" gorm:"default:false"`
 	IsDefaultGroup bool                       `json:"isDefault"`
-	// IsolateMembers turns on member-presence isolation for the group. Default
-	// false ⇒ existing groups behave exactly as before.
-	IsolateMembers bool `json:"isolateMembers"`
 	// Icon and Color: one of models.GroupIcons / GroupColors, or "" for the default look. Omitted (nil) keeps the
 	// stored value, so a client that does not know them changes nothing.
 	Icon  *string `json:"icon"`

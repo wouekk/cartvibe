@@ -27,12 +27,13 @@ func ledgerCount(t *testing.T, name string) int64 {
 }
 
 func TestDataMigrationRegistryHoldsTheKnownMigrations(t *testing.T) {
-	if len(dataMigrations) != 4 ||
+	if len(dataMigrations) != 5 ||
 		dataMigrations[0].name != starterCategoriesMigration ||
 		dataMigrations[1].name != removeApiKeysMigration ||
 		dataMigrations[2].name != markHouseholdGroupMigration ||
-		dataMigrations[3].name != sessionLifetimeMigration {
-		utils.PrintTestError(t, len(dataMigrations), 4)
+		dataMigrations[3].name != sessionLifetimeMigration ||
+		dataMigrations[4].name != fixedRolesMigration {
+		utils.PrintTestError(t, len(dataMigrations), 5)
 	}
 }
 

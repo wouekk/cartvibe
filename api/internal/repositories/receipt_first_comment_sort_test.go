@@ -10,7 +10,6 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 
-	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -53,13 +52,12 @@ func firstCommentNames(
 	userId uint,
 	groupId uint,
 	sortDirection commands.SortDirection,
-	resolver CommentAuthorVisibilityResolver,
 	withoutComment ...string,
 ) []string {
 	repository := NewReceiptRepository(nil)
 
 	receipts, count, err := repository.GetPagedReceiptsByGroupId(
-		userId, utils.UintToString(groupId), sortByFirstComment(sortDirection), nil, nil, resolver, nil, nil,
+		userId, utils.UintToString(groupId), sortByFirstComment(sortDirection), nil, nil,
 	)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -116,12 +114,12 @@ func TestShouldSortReceiptsByFirstComment(t *testing.T) {
 
 	assertOrder(
 		t,
-		firstCommentNames(t, 1, 1, commands.ASCENDING, nil, "r-none"),
+		firstCommentNames(t, 1, 1, commands.ASCENDING, "r-none"),
 		[]string{"r-apple", "r-banana", "r-cherry"},
 	)
 	assertOrder(
 		t,
-		firstCommentNames(t, 1, 1, commands.DESCENDING, nil, "r-none"),
+		firstCommentNames(t, 1, 1, commands.DESCENDING, "r-none"),
 		[]string{"r-cherry", "r-banana", "r-apple"},
 	)
 }
@@ -141,108 +139,8 @@ func TestFirstCommentTieOnCreatedAtIsBrokenById(t *testing.T) {
 
 	assertOrder(
 		t,
-		firstCommentNames(t, 1, 1, commands.ASCENDING, nil),
+		firstCommentNames(t, 1, 1, commands.ASCENDING),
 		[]string{"r-mango", "r-zebra-first"},
-	)
-}
-
-// Under member isolation a comment by an author the caller cannot see is dropped
-// from every response, so it must not order the table either - the receipt sorts
-// by its first comment the caller CAN see. A comment with no author names no one
-// and stays a candidate.
-func TestFirstCommentSortSkipsAuthorsTheCallerCannotSee(t *testing.T) {
-	defer teardownReceiptTest()
-	setupReceiptTest()
-
-	hiddenFirst := createSortableReceipt("r-hidden-first")
-	addCommentAt(hiddenFirst.ID, uintPtr(2), "aaa", firstCommentBaseTime)
-	addCommentAt(hiddenFirst.ID, uintPtr(1), "zzz", firstCommentBaseTime.Add(time.Hour))
-
-	visible := createSortableReceipt("r-visible")
-	addCommentAt(visible.ID, uintPtr(1), "mmm", firstCommentBaseTime)
-
-	authorless := createSortableReceipt("r-authorless")
-	addCommentAt(authorless.ID, nil, "bbb", firstCommentBaseTime)
-
-	onlyHidden := createSortableReceipt("r-only-hidden")
-	addCommentAt(onlyHidden.ID, uintPtr(3), "abc", firstCommentBaseTime)
-
-	restrictedToSelf := func(groupId uint) ([]uint, bool, error) {
-		return []uint{1}, false, nil
-	}
-
-	assertOrder(
-		t,
-		firstCommentNames(t, 1, 1, commands.ASCENDING, restrictedToSelf, "r-only-hidden"),
-		[]string{"r-authorless", "r-visible", "r-hidden-first"},
-	)
-
-	// The contrast: an unrestricted caller sorts on the hidden comments too.
-	unrestricted := func(groupId uint) ([]uint, bool, error) {
-		return nil, true, nil
-	}
-	assertOrder(
-		t,
-		firstCommentNames(t, 1, 1, commands.ASCENDING, unrestricted),
-		[]string{"r-hidden-first", "r-only-hidden", "r-authorless", "r-visible"},
-	)
-}
-
-// The All group spans several groups, and each receipt is judged by its own
-// group's visibility: the same author can be hidden in an isolated group and
-// visible in an open one.
-func TestFirstCommentSortAppliesEachGroupsVisibilityOnTheAllGroup(t *testing.T) {
-	defer TruncateTestDb()
-	db := GetDB()
-
-	isolated := models.Group{Name: "fc-isolated"}
-	open := models.Group{Name: "fc-open"}
-	allGroup := models.Group{Name: "fc-all", IsAllGroup: true}
-	db.Create(&isolated)
-	db.Create(&open)
-	db.Create(&allGroup)
-
-	member := models.User{Username: "fc-member", Password: "x"}
-	peer := models.User{Username: "fc-peer", Password: "x"}
-	db.Create(&member)
-	db.Create(&peer)
-
-	db.Create(&models.GroupMember{GroupID: isolated.ID, UserID: member.ID})
-	db.Create(&models.GroupMember{GroupID: open.ID, UserID: member.ID})
-
-	makeReceipt := func(groupId uint, name string) models.Receipt {
-		receipt := models.Receipt{
-			Name:         name,
-			Amount:       decimal.NewFromInt(1),
-			Date:         time.Now(),
-			PaidByUserID: member.ID,
-			GroupId:      groupId,
-			Status:       models.OPEN,
-		}
-		db.Create(&receipt)
-		return receipt
-	}
-
-	inIsolated := makeReceipt(isolated.ID, "isolated-receipt")
-	addCommentAt(inIsolated.ID, &peer.ID, "aaa", firstCommentBaseTime)
-	addCommentAt(inIsolated.ID, &member.ID, "yyy", firstCommentBaseTime.Add(time.Hour))
-
-	inOpen := makeReceipt(open.ID, "open-receipt")
-	addCommentAt(inOpen.ID, &peer.ID, "bbb", firstCommentBaseTime)
-
-	resolver := func(groupId uint) ([]uint, bool, error) {
-		if groupId == isolated.ID {
-			return []uint{member.ID}, false, nil
-		}
-		return nil, true, nil
-	}
-
-	// isolated-receipt sorts by "yyy" (its peer's "aaa" is hidden there), while
-	// open-receipt keeps the same peer's "bbb".
-	assertOrder(
-		t,
-		firstCommentNames(t, member.ID, allGroup.ID, commands.ASCENDING, resolver),
-		[]string{"open-receipt", "isolated-receipt"},
 	)
 }
 
@@ -255,21 +153,12 @@ func TestFirstCommentSortCarriesTheReceiptIdTiebreaker(t *testing.T) {
 	setupReceiptTest()
 
 	repository := NewReceiptRepository(nil)
-	restricted := func(groupId uint) ([]uint, bool, error) {
-		return []uint{1}, false, nil
-	}
 
 	for _, sortDirection := range []commands.SortDirection{
 		commands.ASCENDING, commands.DESCENDING, commands.DEFAULT,
 	} {
 		sql := normalizeSQL(GetDB().ToSQL(func(tx *gorm.DB) *gorm.DB {
-			query, err := repository.orderByFirstComment(
-				tx.Model(&models.Receipt{}), []uint{1}, restricted, sortDirection,
-			)
-			if err != nil {
-				utils.PrintTestError(t, err, nil)
-				return tx
-			}
+			query := repository.orderByFirstComment(tx.Model(&models.Receipt{}), sortDirection)
 
 			var receipts []models.Receipt
 			return query.Find(&receipts)
@@ -277,7 +166,6 @@ func TestFirstCommentSortCarriesTheReceiptIdTiebreaker(t *testing.T) {
 
 		for _, fragment := range []string{
 			"comments.receipt_id = receipts.id",
-			"comments.user_id IS NULL OR comments.user_id IN",
 			"LIMIT 1",
 			"receipts.id DESC",
 		} {
@@ -285,35 +173,6 @@ func TestFirstCommentSortCarriesTheReceiptIdTiebreaker(t *testing.T) {
 				utils.PrintTestError(t, sql, "an ORDER BY carrying "+fragment)
 			}
 		}
-	}
-}
-
-// A caller no group restricts gets no visibility predicate at all, so a
-// non-isolated install sorts exactly as it would with no resolver.
-func TestFirstCommentSortAddsNoPredicateWhenUnrestricted(t *testing.T) {
-	defer teardownReceiptTest()
-	setupReceiptTest()
-
-	repository := NewReceiptRepository(nil)
-	unrestricted := func(groupId uint) ([]uint, bool, error) {
-		return nil, true, nil
-	}
-
-	sql := normalizeSQL(GetDB().ToSQL(func(tx *gorm.DB) *gorm.DB {
-		query, err := repository.orderByFirstComment(
-			tx.Model(&models.Receipt{}), []uint{1, 2}, unrestricted, commands.ASCENDING,
-		)
-		if err != nil {
-			utils.PrintTestError(t, err, nil)
-			return tx
-		}
-
-		var receipts []models.Receipt
-		return query.Find(&receipts)
-	}))
-
-	if strings.Contains(sql, "comments.user_id") || strings.Contains(sql, "receipts.group_id") {
-		utils.PrintTestError(t, sql, "no author visibility predicate")
 	}
 }
 

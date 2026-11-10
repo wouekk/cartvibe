@@ -39,7 +39,7 @@ func storedAvatarUpdatedAt(t *testing.T, userId uint) *models.User {
 func TestSaveUserAvatar_StoresThePhotoAndServesItBack(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	clearRolePermissionCacheAll()
-	owner := seedIsoUser(t, "avatar-owner")
+	owner := seedUser(t, "avatar-owner")
 	cleanAvatar(t, owner.ID)
 	photo := testPngBytes(t)
 
@@ -56,7 +56,7 @@ func TestSaveUserAvatar_StoresThePhotoAndServesItBack(t *testing.T) {
 		t.Fatalf("the photo is not under data/avatars/")
 	}
 
-	data, contentType, err := ReadUserAvatar(owner.ID, owner.ID)
+	data, contentType, err := ReadUserAvatar(owner.ID)
 	if err != nil {
 		t.Fatalf("read: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestSaveUserAvatar_StoresThePhotoAndServesItBack(t *testing.T) {
 
 func TestSaveUserAvatar_RefusesOtherFormatsAndLargeFiles(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	owner := seedIsoUser(t, "avatar-refused")
+	owner := seedUser(t, "avatar-refused")
 	cleanAvatar(t, owner.ID)
 
 	for name, data := range map[string][]byte{
@@ -89,43 +89,9 @@ func TestSaveUserAvatar_RefusesOtherFormatsAndLargeFiles(t *testing.T) {
 	}
 }
 
-func TestReadUserAvatar_HidesAnIsolatedPeersPhoto(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearRolePermissionCacheAll()
-
-	group := seedIsoGroup(t, "avatar-iso", true)
-	supRole := seedIsoRole(t, "avatar-supervisor", true)
-	memberRole := seedIsoRole(t, "avatar-member", false)
-	coord := seedIsoUser(t, "avatar-coord")
-	p1 := seedIsoUser(t, "avatar-p1")
-	p2 := seedIsoUser(t, "avatar-p2")
-	seedIsoMember(t, group.ID, coord.ID, &supRole.ID)
-	seedIsoMember(t, group.ID, p1.ID, &memberRole.ID)
-	seedIsoMember(t, group.ID, p2.ID, &memberRole.ID)
-	cleanAvatar(t, p2.ID)
-	cleanAvatar(t, coord.ID)
-
-	if _, err := SaveUserAvatar(p2.ID, testPngBytes(t)); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := SaveUserAvatar(coord.ID, testPngBytes(t)); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, _, err := ReadUserAvatar(p1.ID, p2.ID); !errors.Is(err, ErrAvatarNotFound) {
-		t.Fatalf("an isolated peer's photo: err = %v, want ErrAvatarNotFound", err)
-	}
-	if _, _, err := ReadUserAvatar(p1.ID, coord.ID); err != nil {
-		t.Fatalf("the supervisor's photo: %v", err)
-	}
-	if _, _, err := ReadUserAvatar(coord.ID, p2.ID); err != nil {
-		t.Fatalf("the supervisor reading a member's photo: %v", err)
-	}
-}
-
 func TestRemoveUserAvatar_ShowsTheInitialsAgain(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	owner := seedIsoUser(t, "avatar-removed")
+	owner := seedUser(t, "avatar-removed")
 	cleanAvatar(t, owner.ID)
 
 	if _, err := SaveUserAvatar(owner.ID, testPngBytes(t)); err != nil {
@@ -138,7 +104,7 @@ func TestRemoveUserAvatar_ShowsTheInitialsAgain(t *testing.T) {
 	if user := storedAvatarUpdatedAt(t, owner.ID); user.AvatarUpdatedAt != nil {
 		t.Fatalf("avatar_updated_at kept after removal")
 	}
-	if _, _, err := ReadUserAvatar(owner.ID, owner.ID); !errors.Is(err, ErrAvatarNotFound) {
+	if _, _, err := ReadUserAvatar(owner.ID); !errors.Is(err, ErrAvatarNotFound) {
 		t.Fatalf("read after removal: err = %v", err)
 	}
 	// Removing again is not an error.

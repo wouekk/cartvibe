@@ -422,9 +422,9 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		}
 
 		// Gate the All-group expansion by the caller's per-group read permission.
-		// The All group is a real membership where the caller holds an
-		// unrestricted role, so without this a member could read receipts in every
-		// group they belong to — including groups whose role denies receipt read.
+		// The All group is a real membership where the caller holds the default
+		// role, so without this a member could read receipts in every group they
+		// belong to — including groups whose role denies receipt read.
 		if readableResolver != nil {
 			readable := make([]uint, 0, len(memberGroupIds))
 			for _, gid := range memberGroupIds {

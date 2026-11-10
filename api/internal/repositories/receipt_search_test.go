@@ -28,9 +28,9 @@ func searchRequest(phrase string, page int, pageSize int) commands.ReceiptPagedR
 	}
 }
 
-func searchNames(t *testing.T, phrase string, paidBy PaidByAllowedResolver) ([]string, int64) {
+func searchNames(t *testing.T, phrase string) ([]string, int64) {
 	receipts, count, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
-		1, "1", searchRequest(phrase, 1, 50), nil, paidBy, nil, nil, nil,
+		1, "1", searchRequest(phrase, 1, 50), nil, nil,
 	)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -63,7 +63,7 @@ func TestSearchMatchesNameShopCommentAndProductLines(t *testing.T) {
 
 	_ = byName
 
-	names, count := searchNames(t, "chocolate", nil)
+	names, count := searchNames(t, "chocolate")
 	assertOrder(t, names, []string{"Chocolate festival", "r-comment", "r-product", "r-shop"})
 	if count != 4 {
 		utils.PrintTestError(t, count, 4)
@@ -79,7 +79,7 @@ func TestSearchTolerantOfOcrAbbreviationsAndTypos(t *testing.T) {
 	typo := createSortableReceipt("r-typo")
 	addSearchProduct(typo.ID, "CHOCLATE MILK", "", "1.40")
 
-	names, _ := searchNames(t, "chocolate", nil)
+	names, _ := searchNames(t, "chocolate")
 	assertOrder(t, names, []string{"r-milka", "r-typo"})
 }
 
@@ -92,7 +92,7 @@ func TestSearchCountAndPagingFollowTheMatches(t *testing.T) {
 	}
 
 	receipts, count, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
-		1, "1", searchRequest("milk", 2, 2), nil, nil, nil, nil, nil,
+		1, "1", searchRequest("milk", 2, 2), nil, nil,
 	)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -106,27 +106,6 @@ func TestSearchCountAndPagingFollowTheMatches(t *testing.T) {
 	}
 }
 
-func TestSearchNeverShowsAReceiptThePaidByRulesHide(t *testing.T) {
-	defer teardownReceiptTest()
-	setupReceiptTest()
-
-	visible := createSortableReceipt("visible cola")
-	addSearchProduct(visible.ID, "COLA", "", "1.00")
-	hidden := createSortableReceipt("hidden cola")
-	GetDB().Model(&hidden).Update("paid_by_user_id", 2)
-	addSearchProduct(hidden.ID, "COLA", "", "1.00")
-
-	onlySelf := func(groupId uint) ([]uint, bool, error) {
-		return []uint{1}, false, nil
-	}
-
-	names, count := searchNames(t, "cola", onlySelf)
-	assertOrder(t, names, []string{"visible cola"})
-	if count != 1 {
-		utils.PrintTestError(t, count, 1)
-	}
-}
-
 func TestSearchWithBlankOrTinyPhraseDoesNotNarrow(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
@@ -135,7 +114,7 @@ func TestSearchWithBlankOrTinyPhraseDoesNotNarrow(t *testing.T) {
 	createSortableReceipt("two")
 
 	for _, phrase := range []string{"", "   ", "a"} {
-		names, _ := searchNames(t, phrase, nil)
+		names, _ := searchNames(t, phrase)
 		if len(names) != 2 {
 			utils.PrintTestError(t, len(names), 2)
 		}

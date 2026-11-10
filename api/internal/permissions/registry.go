@@ -41,8 +41,8 @@ const (
 
 	AppSystemTasksRead = "app.system-tasks.read"
 
-	// The backup keys are a whole-household dump and restore: they skip paid-by and
-	// member isolation on purpose, so they stay out of FamilyUserAppKeys (admin only).
+	// The backup keys are a whole-install dump and restore, of every household and
+	// person, so they stay out of FamilyUserAppKeys (admin only).
 	AppBackupExport = "app.backup.export"
 	AppBackupImport = "app.backup.import"
 
@@ -56,10 +56,8 @@ const (
 	AppOidcProvidersUpdate = "app.oidc-providers.update"
 	AppOidcProvidersDelete = "app.oidc-providers.delete"
 
-	AppRolesCreate = "app.roles.create"
-	AppRolesRead   = "app.roles.read"
-	AppRolesUpdate = "app.roles.update"
-	AppRolesDelete = "app.roles.delete"
+	// The roles are fixed (2026-11), so reading them is the only role permission.
+	AppRolesRead = "app.roles.read"
 
 	AppNotificationsRead   = "app.notifications.read"
 	AppNotificationsDelete = "app.notifications.delete"
@@ -80,9 +78,8 @@ const (
 	AppReportsDuplicate = "app.reports.duplicate"
 	AppReportsGenerate  = "app.reports.generate"
 
-	// The "*All" report permissions bypass both the per-group access requirement and
-	// the per-template grant matrix for that one action — a holder may perform it on
-	// any template. They are the per-action opt-out of the default group-scoped model.
+	// The "*All" report permissions bypass the per-group access requirement for
+	// that one action — a holder may perform it on any template. They are the per-action opt-out of the default group-scoped model.
 	AppReportsReadAll      = "app.reports.readAll"
 	AppReportsCreateAll    = "app.reports.createAll"
 	AppReportsUpdateAll    = "app.reports.updateAll"
@@ -99,12 +96,6 @@ const (
 	GroupMembersCreate = "group.members.create"
 	GroupMembersUpdate = "group.members.update"
 	GroupMembersDelete = "group.members.delete"
-	// GroupMembersGrantsUpdate is deliberately SEPARATE from GroupMembersUpdate.
-	// Per-member category/tag grants are a privacy boundary, so the ability to edit
-	// them must not ride along with ordinary member management — otherwise a
-	// restricted member holding group.members.update could widen their own grants
-	// and lift the very restriction the feature exists to enforce.
-	GroupMembersGrantsUpdate = "group.members.grants.update"
 
 	GroupReceiptsCreate    = "group.receipts.create"
 	GroupReceiptsRead      = "group.receipts.read"
@@ -170,10 +161,7 @@ var registry = []Descriptor{
 	{AppOidcProvidersUpdate, "Update OIDC Providers", "Edit a configured OpenID Connect identity provider, including its provisioning and account-linking behavior.", "Security", ScopeApp},
 	{AppOidcProvidersDelete, "Delete OIDC Providers", "Remove an OpenID Connect identity provider. Accounts linked to it lose the ability to sign in with it.", "Security", ScopeApp},
 
-	{AppRolesCreate, "Create Roles", "Create new app or group roles.", "Access Control", ScopeApp},
 	{AppRolesRead, "Read Roles", "List roles and view the permission catalog.", "Access Control", ScopeApp},
-	{AppRolesUpdate, "Update Roles", "Edit existing roles.", "Access Control", ScopeApp},
-	{AppRolesDelete, "Delete Roles", "Remove roles.", "Access Control", ScopeApp},
 
 	{AppNotificationsRead, "Read Notifications", "View your own notifications and unread count.", "Account", ScopeApp},
 	{AppNotificationsDelete, "Delete Notifications", "Dismiss your own notifications.", "Account", ScopeApp},
@@ -194,12 +182,12 @@ var registry = []Descriptor{
 	{AppReportsDuplicate, "Duplicate Report Templates", "Duplicate a saved report template.", "Reports", ScopeApp},
 	{AppReportsGenerate, "Generate Reports", "Generate and download reports.", "Reports", ScopeApp},
 
-	{AppReportsReadAll, "Read All Report Templates", "View and act on every report template, bypassing per-group access and per-template restrictions.", "Reports", ScopeApp},
+	{AppReportsReadAll, "Read All Report Templates", "View and act on every report template, bypassing per-group access.", "Reports", ScopeApp},
 	{AppReportsCreateAll, "Create Reports For Any Group", "Save report templates covering any group, bypassing the group-access requirement on create.", "Reports", ScopeApp},
-	{AppReportsUpdateAll, "Update All Report Templates", "Update any report template, bypassing per-group access and per-template restrictions.", "Reports", ScopeApp},
-	{AppReportsDeleteAll, "Delete All Report Templates", "Delete any report template, bypassing per-group access and per-template restrictions.", "Reports", ScopeApp},
-	{AppReportsDuplicateAll, "Duplicate All Report Templates", "Duplicate any report template, bypassing per-group access and per-template restrictions.", "Reports", ScopeApp},
-	{AppReportsGenerateAll, "Generate All Reports", "Generate and download any saved report template, bypassing per-group access and per-template restrictions.", "Reports", ScopeApp},
+	{AppReportsUpdateAll, "Update All Report Templates", "Update any report template, bypassing per-group access.", "Reports", ScopeApp},
+	{AppReportsDeleteAll, "Delete All Report Templates", "Delete any report template, bypassing per-group access.", "Reports", ScopeApp},
+	{AppReportsDuplicateAll, "Duplicate All Report Templates", "Duplicate any report template, bypassing per-group access.", "Reports", ScopeApp},
+	{AppReportsGenerateAll, "Generate All Reports", "Generate and download any saved report template, bypassing per-group access.", "Reports", ScopeApp},
 
 	{GroupView, "View Group", "See the group, its members, and metadata.", "Group", ScopeGroup},
 	{GroupUpdate, "Update Group", "Edit group name, settings, and receipt-handling configuration.", "Group", ScopeGroup},
@@ -208,7 +196,6 @@ var registry = []Descriptor{
 	{GroupMembersCreate, "Add Group Members", "Add members to the group.", "Group", ScopeGroup},
 	{GroupMembersUpdate, "Update Group Members", "Change a member's group role.", "Group", ScopeGroup},
 	{GroupMembersDelete, "Remove Group Members", "Remove members from the group.", "Group", ScopeGroup},
-	{GroupMembersGrantsUpdate, "Assign Member Categories & Tags", "Assign which categories and tags an individual member can see, within the limits of their group role.", "Group", ScopeGroup},
 
 	{GroupReceiptsCreate, "Create Receipts", "Upload images and create receipts.", "Receipts", ScopeGroup},
 	{GroupReceiptsRead, "Read Receipts", "Read, list, and export receipts.", "Receipts", ScopeGroup},

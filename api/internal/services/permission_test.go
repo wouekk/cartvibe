@@ -1,7 +1,6 @@
 package services
 
 import (
-	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
@@ -17,7 +16,7 @@ func seedUserWithAppRole(t *testing.T, username string, perms []string) (uint, u
 	db := repositories.GetDB()
 
 	roleRepository := repositories.NewRoleRepository(nil)
-	role, err := roleRepository.CreateAppRole("App Role", "", perms, false)
+	role, err := roleRepository.CreateAppRole("App Role", "", perms)
 	if err != nil {
 		t.Fatalf("seed app role: %v", err)
 	}
@@ -42,7 +41,7 @@ func seedMemberWithGroupRole(t *testing.T, username string, perms []string) (uin
 	}
 
 	roleRepository := repositories.NewRoleRepository(nil)
-	role, err := roleRepository.CreateGroupRole("Group Role", "", perms, nil, nil, nil, false, false)
+	role, err := roleRepository.CreateGroupRole("Group Role", "", perms)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}
@@ -267,77 +266,6 @@ func TestPermissionScopeGuards(t *testing.T) {
 	// No required permissions.
 	if _, err := service.HasAppPermissions(userId); err != ErrNoRequiredPermissions {
 		t.Errorf("expected ErrNoRequiredPermissions, got %v", err)
-	}
-}
-
-func TestPermissionCacheInvalidatedOnRoleUpdate(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearRolePermissionCacheAll()
-
-	userId, roleId := seedUserWithAppRole(t, "cache-user", []string{permissions.AppUsersRead})
-	service := NewPermissionService(nil)
-
-	// Prime the cache with the original permission set.
-	got, err := service.HasAppPermissions(userId, permissions.AppUsersRead)
-	if err != nil {
-		t.Fatalf("HasAppPermissions: %v", err)
-	}
-	if !got {
-		t.Fatal("expected initial permission to be granted")
-	}
-
-	// Update the role to swap the permission; this must invalidate the cache.
-	roleService := NewRoleService(nil)
-	_, err = roleService.UpdateRole(roleId, commands.UpsertRoleCommand{
-		Name:        "App Role",
-		Scope:       permissions.ScopeApp,
-		Permissions: []string{permissions.AppUsersCreate},
-	})
-	if err != nil {
-		t.Fatalf("UpdateRole: %v", err)
-	}
-
-	got, err = service.HasAppPermissions(userId, permissions.AppUsersRead)
-	if err != nil {
-		t.Fatalf("HasAppPermissions: %v", err)
-	}
-	if got {
-		t.Error("expected revoked permission to be denied after role update")
-	}
-
-	got, err = service.HasAppPermissions(userId, permissions.AppUsersCreate)
-	if err != nil {
-		t.Fatalf("HasAppPermissions: %v", err)
-	}
-	if !got {
-		t.Error("expected newly granted permission to be allowed after role update")
-	}
-}
-
-func TestPermissionCacheInvalidatedOnRoleDelete(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearRolePermissionCacheAll()
-
-	// An assigned role can't be deleted (delete guard), and the user->role
-	// lookup is always fresh, so prime the cache directly for an unassigned role
-	// and verify DeleteRole evicts that role's cached permission list.
-	roleRepository := repositories.NewRoleRepository(nil)
-	role, err := roleRepository.CreateAppRole("Deletable Role", "", []string{permissions.AppUsersRead}, false)
-	if err != nil {
-		t.Fatalf("seed role: %v", err)
-	}
-
-	setCachedRolePermissions(permissions.ScopeApp, role.ID, []string{permissions.AppUsersRead}, rolePermissionCacheGen())
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, role.ID); !ok {
-		t.Fatal("precondition: role permissions should be cached")
-	}
-
-	if err := NewRoleService(nil).DeleteRole(role.ID, permissions.ScopeApp); err != nil {
-		t.Fatalf("DeleteRole: %v", err)
-	}
-
-	if _, ok := getCachedRolePermissions(permissions.ScopeApp, role.ID); ok {
-		t.Error("expected role's cached permissions to be evicted after delete")
 	}
 }
 

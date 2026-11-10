@@ -17,14 +17,13 @@ import (
 func seedGroupWithRole(t *testing.T, name string, perms []string) (uint, uint) {
 	t.Helper()
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
 
 	group := models.Group{Name: name}
 	if err := db.Create(&group).Error; err != nil {
 		t.Fatalf("seed group: %v", err)
 	}
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(name+" role", "", perms, nil, nil, nil, false, false)
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(name+" role", "", perms)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)
 	}
@@ -41,7 +40,7 @@ func seedGroupWithRole(t *testing.T, name string, perms []string) (uint, uint) {
 // addMemberWithRole adds an existing user to groupId with a fresh role holding perms.
 func addMemberWithRole(t *testing.T, userId uint, groupId uint, roleName string, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(roleName, "", perms, nil, nil, nil, false, false)
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(roleName, "", perms)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)
 	}

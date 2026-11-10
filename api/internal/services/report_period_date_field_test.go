@@ -131,7 +131,6 @@ func buildPeriodReport(t *testing.T, userId uint, command commands.ReportRequest
 // template saved before the field existed.
 func TestReportService_BuildModel_EachDateFieldSelectsItsReceipt(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-period-fields", "Household")
@@ -176,7 +175,6 @@ func TestReportService_BuildModel_EachDateFieldSelectsItsReceipt(t *testing.T) {
 // instants of the period are in, the instants either side of it are out.
 func TestReportService_BuildModel_PeriodBoundsAreInclusivePerField(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	for _, dateField := range commands.ReceiptDateFilterKeys() {
@@ -211,7 +209,6 @@ func TestReportService_BuildModel_PeriodBoundsAreInclusivePerField(t *testing.T)
 // period is on.
 func TestReportService_BuildModel_PresetPeriodPerField(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	now := time.Date(2026, 6, 20, 15, 0, 0, 0, time.UTC)
@@ -238,7 +235,6 @@ func TestReportService_BuildModel_PresetPeriodPerField(t *testing.T) {
 // it always has been — when the period is on the receipt date itself.
 func TestReportService_BuildModel_DateFilterSurvivesANonDatePeriod(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-period-filter", "Household")
@@ -286,7 +282,6 @@ func TestReportService_BuildModel_DateFilterSurvivesANonDatePeriod(t *testing.T)
 // The public Preview entry point honours the date field end to end.
 func TestReportService_Preview_HonorsPeriodDateField(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-period-preview", "Household")
@@ -344,7 +339,6 @@ func listPeriodReceipts(t *testing.T, userId uint, command commands.ReportReques
 // Both go through prepareReportFilter and the same fetch, which is what this pins.
 func TestReportService_Receipts_MatchTheReportOnEachDateField(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-fields", "Household")
@@ -381,7 +375,6 @@ func TestReportService_Receipts_MatchTheReportOnEachDateField(t *testing.T) {
 // The instant is stored in UTC, as a server running in a UTC container stores it.
 func TestReportService_Receipts_AgreeWithTheReportAcrossTimeZones(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	losAngeles, err := time.LoadLocation("America/Los_Angeles")
@@ -429,7 +422,6 @@ func TestReportService_Receipts_AgreeWithTheReportAcrossTimeZones(t *testing.T) 
 // caller in the list too; sent as-is it would match no receipt at all.
 func TestReportService_Receipts_ResolveTheReportGeneratorPaidBy(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-payer", "Household")
@@ -452,7 +444,6 @@ func TestReportService_Receipts_ResolveTheReportGeneratorPaidBy(t *testing.T) {
 // Receipts from several groups come back as one list, newest receipt date first.
 func TestReportService_Receipts_MergeGroupsNewestFirst(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-order", "Household", "Roommates")
@@ -479,7 +470,6 @@ func TestReportService_Receipts_MergeGroupsNewestFirst(t *testing.T) {
 // so the drill-in's subtitle agrees with the preview's count chip.
 func TestReportService_Receipts_CapTheListButCountEveryReceipt(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-cap", "Household")
@@ -518,7 +508,6 @@ func TestReportService_Receipts_CapTheListButCountEveryReceipt(t *testing.T) {
 // every receipt in every group.
 func TestReportService_Receipts_CapAcrossGroupsKeepsTheNewestAndTheFullTotal(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-drill-cap-groups", "Household", "Roommates")
@@ -572,23 +561,21 @@ func TestReportService_Receipts_CapAcrossGroupsKeepsTheNewestAndTheFullTotal(t *
 }
 
 // A limited fetch loads at most the limit, newest first, while its count is every
-// receipt the caller may see: the count is taken after paid-by visibility, so a
-// hidden payer's receipts are in neither.
-func TestReportDataService_Receipts_LimitsTheFetchButCountsWhatTheCallerMaySee(t *testing.T) {
+// receipt of the household that matched, whoever paid.
+func TestReportDataService_Receipts_LimitsTheFetchButCountsEveryMatch(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
-	allowedPayer := makeUser(t, "rpt-drill-allowed-payer")
-	hiddenPayer := makeUser(t, "rpt-drill-hidden-payer")
-	userId, groupId, _ := seedMemberWithPaidByRole(t, "rpt-drill-reviewer", []uint{allowedPayer}, false)
+	payerA := makeUser(t, "rpt-drill-payer-a")
+	payerB := makeUser(t, "rpt-drill-payer-b")
+	userId, groupId, _ := seedHouseholdMember(t, "rpt-drill-reviewer")
 
 	day := func(d int) time.Time { return time.Date(2026, 6, d, 0, 0, 0, 0, time.UTC) }
-	seedPeriodReceipt(t, "visible-1", allowedPayer, groupId, day(1), nil, day(1))
-	seedPeriodReceipt(t, "visible-2", allowedPayer, groupId, day(2), nil, day(2))
-	seedPeriodReceipt(t, "visible-3", allowedPayer, groupId, day(3), nil, day(3))
-	seedPeriodReceipt(t, "hidden-4", hiddenPayer, groupId, day(4), nil, day(4))
-	seedPeriodReceipt(t, "hidden-5", hiddenPayer, groupId, day(5), nil, day(5))
+	seedPeriodReceipt(t, "receipt-1", payerA, groupId, day(1), nil, day(1))
+	seedPeriodReceipt(t, "receipt-2", payerA, groupId, day(2), nil, day(2))
+	seedPeriodReceipt(t, "receipt-3", payerA, groupId, day(3), nil, day(3))
+	seedPeriodReceipt(t, "receipt-4", payerB, groupId, day(4), nil, day(4))
+	seedPeriodReceipt(t, "receipt-5", payerB, groupId, day(5), nil, day(5))
 
 	receipts, count, err := NewReportDataService(nil).Receipts(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{}, 2)
 	if err != nil {
@@ -598,10 +585,10 @@ func TestReportDataService_Receipts_LimitsTheFetchButCountsWhatTheCallerMaySee(t
 	for index, receipt := range receipts {
 		names[index] = receipt.Name
 	}
-	if want := []string{"visible-3", "visible-2"}; !reflect.DeepEqual(names, want) {
-		t.Errorf("fetched %v, want the newest two visible receipts %v", names, want)
+	if want := []string{"receipt-5", "receipt-4"}; !reflect.DeepEqual(names, want) {
+		t.Errorf("fetched %v, want the newest two receipts %v", names, want)
 	}
-	if count != 3 {
-		t.Errorf("count = %d, want 3 (every visible receipt, none hidden)", count)
+	if count != 5 {
+		t.Errorf("count = %d, want 5 (every receipt of the household)", count)
 	}
 }

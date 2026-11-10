@@ -16,50 +16,52 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// sourceFileAuthzFixture is one isolated group holding a QUICK_SCAN activity run by
-// memberB, plus the three viewers whose answers must differ.
+// sourceFileAuthzFixture is one household holding a QUICK_SCAN activity run by
+// memberB, plus the viewers whose answers must differ.
 type sourceFileAuthzFixture struct {
-	taskId     uint
-	memberA    uint // plain member; must NOT see memberB
-	memberB    uint // ran the activity
-	supervisor uint // SeesAllMembers
-	outsider   uint // not in the group at all
+	taskId   uint
+	memberA  uint // another member of the household
+	memberB  uint // ran the activity
+	outsider uint // not in the household at all
+}
+
+func seedSourceFileUser(t *testing.T, username string) uint {
+	t.Helper()
+
+	user := models.User{Username: username, Password: "password"}
+	if err := repositories.GetDB().Create(&user).Error; err != nil {
+		t.Fatalf("user %s: %v", username, err)
+	}
+	return user.ID
 }
 
 func seedSourceFileAuthzFixture(t *testing.T) sourceFileAuthzFixture {
 	t.Helper()
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
 	roleRepository := repositories.NewRoleRepository(nil)
 
-	group := models.Group{Name: "iso-source-file", IsolateMembers: true}
+	group := models.Group{Name: "source-file-household"}
 	if err := db.Create(&group).Error; err != nil {
 		t.Fatalf("group: %v", err)
 	}
 
 	perms := []string{permissions.GroupActivitiesRead, permissions.GroupActivitiesRerun}
-	memberRole, err := roleRepository.CreateGroupRole("Iso SF Mem", "", perms, nil, nil, nil, false, false)
+	memberRole, err := roleRepository.CreateGroupRole("Source File Member", "", perms)
 	if err != nil {
 		t.Fatalf("member role: %v", err)
 	}
-	supervisorRole, err := roleRepository.CreateGroupRole("Iso SF Sup", "", perms, nil, nil, nil, false, true)
-	if err != nil {
-		t.Fatalf("supervisor role: %v", err)
-	}
 
 	fixture := sourceFileAuthzFixture{
-		memberA:    seedIsoHandlerUser(t, "iso-sf-a"),
-		memberB:    seedIsoHandlerUser(t, "iso-sf-b"),
-		supervisor: seedIsoHandlerUser(t, "iso-sf-sup"),
-		outsider:   seedIsoHandlerUser(t, "iso-sf-out"),
+		memberA:  seedSourceFileUser(t, "source-file-a"),
+		memberB:  seedSourceFileUser(t, "source-file-b"),
+		outsider: seedSourceFileUser(t, "source-file-out"),
 	}
 
 	for _, member := range []models.GroupMember{
 		{GroupID: group.ID, UserID: fixture.memberA, GroupRoleID: &memberRole.ID},
 		{GroupID: group.ID, UserID: fixture.memberB, GroupRoleID: &memberRole.ID},
-		{GroupID: group.ID, UserID: fixture.supervisor, GroupRoleID: &supervisorRole.ID},
 	} {
 		if err := db.Create(&member).Error; err != nil {
 			t.Fatalf("member: %v", err)
@@ -74,7 +76,7 @@ func seedSourceFileAuthzFixture(t *testing.T) sourceFileAuthzFixture {
 		AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 		GroupId:              &groupId,
 		RanByUserId:          &ranBy,
-		JobId:          "iso-sf-task",
+		JobId:                "source-file-task",
 		StartedAt:            time.Now(),
 	}
 	if err := db.Create(&task).Error; err != nil {
@@ -99,40 +101,9 @@ func sourceFileRequest(t *testing.T, taskId uint, userId uint) (*httptest.Respon
 	return w, r
 }
 
-// The headline case. A plain member of an isolated group holds
-// group.activities.read, so the group gate alone admits them — but the activity
-// list hides this row, and naming its id directly must not hand back the upload.
-//
-// The job is never looked up: the visibility check precedes the payload lookup, which
-// is the same ordering that stops an unauthorized caller learning whether the file
-// exists. That is why this test can exist at all.
-func TestSourceFileEndpointsDenyAHiddenPeersActivity(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	fixture := seedSourceFileAuthzFixture(t)
-
-	for _, endpoint := range []struct {
-		name    string
-		handler func(http.ResponseWriter, *http.Request)
-	}{
-		{"preview", GetSystemTaskSourceFile},
-		{"download", DownloadSystemTaskSourceFile},
-		{"rerun", RerunActivity},
-	} {
-		t.Run(endpoint.name, func(t *testing.T) {
-			w, r := sourceFileRequest(t, fixture.taskId, fixture.memberA)
-			endpoint.handler(w, r)
-
-			if w.Result().StatusCode != http.StatusForbidden {
-				t.Errorf("status = %d, want 403; body=%s", w.Result().StatusCode, w.Body.String())
-			}
-		})
-	}
-}
-
-// The contrasts, so the 403 above is attributable to isolation rather than to the
-// endpoint failing for everyone. Neither of these reaches 403: they get past the
-// gate and fail later, at the job lookup: no job was queued here.
-func TestSourceFileEndpointsAdmitVisibleActors(t *testing.T) {
+// Everyone in a household sees its activities, whoever ran them: both members get past
+// the gate and fail later, at the job lookup (no job was queued here).
+func TestSourceFileEndpointsAdmitEveryMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
 
@@ -141,7 +112,7 @@ func TestSourceFileEndpointsAdmitVisibleActors(t *testing.T) {
 		userId uint
 	}{
 		{"the member who ran it", fixture.memberB},
-		{"a supervisor", fixture.supervisor},
+		{"another member", fixture.memberA},
 	} {
 		t.Run(viewer.name, func(t *testing.T) {
 			w, r := sourceFileRequest(t, fixture.taskId, viewer.userId)
@@ -154,9 +125,7 @@ func TestSourceFileEndpointsAdmitVisibleActors(t *testing.T) {
 	}
 }
 
-// A non-member has no group permission, so HandleRequest denies before the
-// visibility check — the point being that the answer is the same 403 either way,
-// so neither reveals which check refused.
+// A non-member has no group permission, so HandleRequest denies.
 func TestSourceFileEndpointsDenyANonMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
@@ -169,10 +138,10 @@ func TestSourceFileEndpointsDenyANonMember(t *testing.T) {
 	}
 }
 
-// seedHiddenActivityOfType adds a second activity to the fixture's isolated group,
-// run by the same hidden member, so a type-specific branch can be exercised under
-// the same authorization conditions.
-func seedHiddenActivityOfType(t *testing.T, fixture sourceFileAuthzFixture, taskType models.SystemTaskType) uint {
+// seedActivityOfType adds a second activity to the fixture's household, run by the
+// same member, so a type-specific branch can be exercised under the same
+// authorization conditions.
+func seedActivityOfType(t *testing.T, fixture sourceFileAuthzFixture, taskType models.SystemTaskType) uint {
 	t.Helper()
 
 	existing := models.SystemTask{}
@@ -186,7 +155,7 @@ func seedHiddenActivityOfType(t *testing.T, fixture sourceFileAuthzFixture, task
 		AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 		GroupId:              existing.GroupId,
 		RanByUserId:          existing.RanByUserId,
-		JobId:          "iso-sf-task-2",
+		JobId:                "source-file-task-2",
 		StartedAt:            time.Now(),
 	}
 	if err := repositories.GetDB().Create(&task).Error; err != nil {
@@ -197,10 +166,9 @@ func seedHiddenActivityOfType(t *testing.T, fixture sourceFileAuthzFixture, task
 }
 
 // An id that names no task at all must answer exactly like one the caller may not
-// reach — for EVERY reason a caller can be refused. Asserting the status alone
-// proves nothing, and neither does one pairing: the three denials are written by
-// three different places (this file's task lookup, HandleRequest's group gate, and
-// enforceActivityActorVisible), so all three have to agree on the body as well.
+// reach. Asserting the status alone proves nothing: the two denials are written by
+// two different places (this file's task lookup and HandleRequest's group gate), so
+// they have to agree on the body as well.
 //
 // Before this, GetSystemTaskById's gorm.ErrRecordNotFound surfaced as a 500 while a
 // denied task returned 403, so the status code was an existence oracle for arbitrary
@@ -228,56 +196,43 @@ func TestSourceFileEndpointsAnswerAnUnknownTaskIdLikeADeniedOne(t *testing.T) {
 				return w.Result().StatusCode, w.Body.String()
 			}
 
-			unknownStatus, unknownBody := answer(unknownTaskId, fixture.memberA)
-
-			// Refused by enforceActivityActorVisible: a member of the group, but
-			// the activity was run by a peer isolation hides from them.
-			hiddenStatus, hiddenBody := answer(fixture.taskId, fixture.memberA)
+			unknownStatus, unknownBody := answer(unknownTaskId, fixture.outsider)
 			// Refused by HandleRequest's group gate, which writes its own body.
 			outsiderStatus, outsiderBody := answer(fixture.taskId, fixture.outsider)
 
-			for _, denied := range []struct {
-				name   string
-				status int
-				body   string
-			}{
-				{"a hidden peer's activity", hiddenStatus, hiddenBody},
-				{"an activity in a group they are not in", outsiderStatus, outsiderBody},
-			} {
-				if unknownStatus != denied.status {
-					t.Errorf(
-						"unknown id status = %d, %s status = %d; the two must be indistinguishable",
-						unknownStatus, denied.name, denied.status,
-					)
-				}
+			if unknownStatus != outsiderStatus {
+				t.Errorf(
+					"unknown id status = %d, denied status = %d; the two must be indistinguishable",
+					unknownStatus, outsiderStatus,
+				)
+			}
 
-				if unknownBody != denied.body {
-					t.Errorf(
-						"unknown id body = %s, %s body = %s; the two must be indistinguishable",
-						unknownBody, denied.name, denied.body,
-					)
-				}
+			if unknownBody != outsiderBody {
+				t.Errorf(
+					"unknown id body = %s, denied body = %s; the two must be indistinguishable",
+					unknownBody, outsiderBody,
+				)
+			}
 
-				// Pinned explicitly, so a regression that makes BOTH answers a 500
-				// cannot pass the comparisons above.
-				if denied.status != http.StatusForbidden {
-					t.Errorf("%s status = %d, want 403; body=%s", denied.name, denied.status, denied.body)
-				}
+			// Pinned explicitly, so a regression that makes BOTH answers a 500
+			// cannot pass the comparisons above.
+			if outsiderStatus != http.StatusForbidden {
+				t.Errorf("denied status = %d, want 403; body=%s", outsiderStatus, outsiderBody)
 			}
 		})
 	}
 }
 
-// RerunActivity's "only a quick scan or email upload can be rerun" check used to run
-// before the handler was built, so it answered ahead of the permission gate and told
-// an unauthorized caller the activity's type. A caller who may not see the activity
-// must get the same 403 as for any other task of theirs.
+// RerunActivity's "only a quick scan can be rerun" check used to run before the handler
+// was built, so it answered ahead of the permission gate and told an unauthorized caller
+// the activity's type. A caller who may not reach the activity must get the same 403 as
+// for any other task.
 func TestRerunActivityHidesTheTaskTypeFromAnUnauthorizedCaller(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
-	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.MAGIC_FILL)
+	nonRerunnableTaskId := seedActivityOfType(t, fixture, models.MAGIC_FILL)
 
-	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.memberA)
+	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.outsider)
 	RerunActivity(w, r)
 
 	if w.Result().StatusCode != http.StatusForbidden {
@@ -285,15 +240,14 @@ func TestRerunActivityHidesTheTaskTypeFromAnUnauthorizedCaller(t *testing.T) {
 	}
 }
 
-// The contrast: a caller who MAY see the activity still gets the 400, so moving the
-// check behind the gate did not quietly drop it. The type check precedes the job
-// lookup.
+// The contrast: a member still gets the 400, so moving the check behind the gate did
+// not quietly drop it. The type check precedes the job lookup.
 func TestRerunActivityStillRejectsANonRerunnableTypeForAnAuthorizedCaller(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
-	nonRerunnableTaskId := seedHiddenActivityOfType(t, fixture, models.MAGIC_FILL)
+	nonRerunnableTaskId := seedActivityOfType(t, fixture, models.MAGIC_FILL)
 
-	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.supervisor)
+	w, r := sourceFileRequest(t, nonRerunnableTaskId, fixture.memberA)
 	RerunActivity(w, r)
 
 	if w.Result().StatusCode != http.StatusBadRequest {

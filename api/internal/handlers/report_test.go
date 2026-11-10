@@ -31,7 +31,6 @@ import (
 func tearDownReportTest() {
 	repositories.TruncateTestDb()
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 }
 
 // generateReportRequest builds a POST carrying the JSON command body and JWT

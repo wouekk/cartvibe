@@ -50,12 +50,12 @@ func registerTools(server *mcpsdk.Server) {
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "list_categories",
-		Description: "List the receipt categories available to the authenticated user (filtered by the user's group role grants).",
+		Description: "List the receipt categories available to the authenticated user.",
 	}, handleListCategories)
 
 	mcpsdk.AddTool(server, &mcpsdk.Tool{
 		Name:        "list_tags",
-		Description: "List the receipt tags available to the authenticated user (filtered by the user's group role grants).",
+		Description: "List the receipt tags available to the authenticated user.",
 	}, handleListTags)
 }
 
@@ -71,8 +71,7 @@ func handleSearchReceipts(ctx context.Context, req *mcpsdk.CallToolRequest, in s
 	}
 
 	// Delegate to the shared enforced read so REST and MCP can't drift: it
-	// enforces app.receipts.search, scopes to the user's groups, and applies
-	// paid-by visibility in SQL before the limit.
+	// enforces app.receipts.search and scopes to the user's groups.
 	results, err := services.NewReceiptService(nil).SearchReceiptsForUser(claims.UserId, in.Query, limit)
 	if err != nil {
 		if errors.Is(err, services.ErrSearchForbidden) {

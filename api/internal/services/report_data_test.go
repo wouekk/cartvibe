@@ -5,7 +5,6 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
-	"slices"
 	"strconv"
 	"testing"
 	"time"
@@ -53,114 +52,13 @@ func groupIdString(groupId uint) string {
 	return strconv.FormatUint(uint64(groupId), 10)
 }
 
-// Paid-by visibility hides a whole receipt: one paid by an allowed payer is
-// returned, one paid by a disallowed payer never reaches the engine.
-func TestReportDataService_HidesReceiptsByPaidBy(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	allowedPayer := makeUser(t, "rpt-allowed-payer")
-	hiddenPayer := makeUser(t, "rpt-hidden-payer")
-	userId, groupId, _ := seedMemberWithPaidByRole(t, "rpt-reviewer", []uint{allowedPayer}, false)
-
-	visible := createReportReceipt(t, "visible", allowedPayer, groupId, nil)
-	createReportReceipt(t, "hidden", hiddenPayer, groupId, nil)
-
-	_, rows, err := NewReportDataService(nil).Rows(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{})
-	if err != nil {
-		t.Fatalf("Rows: %v", err)
-	}
-
-	if len(rows) != 1 {
-		t.Fatalf("expected only the allowed-payer receipt, got %d rows", len(rows))
-	}
-	id, _ := rows[0].Measure(receiptsource.KeyReceiptID).Decimal()
-	if id.IntPart() != int64(visible.ID) {
-		t.Errorf("row is receipt %s, want %d", id, visible.ID)
-	}
-}
-
-// Reporting inherits per-group member isolation through the shared paid-by resolver: a
-// receipt paid by a member the viewer cannot see in an isolated group never reaches the
-// report engine, while the viewer's own and a visible supervisor's receipts do.
-func TestReportDataService_MemberIsolationHidesPeerPaidReceipts(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	iso := seedIsoGroup(t, "rpt-iso", true)
-	supRole := seedIsoRole(t, "rpt-iso-sup", true)
-	memRole := seedIsoRole(t, "rpt-iso-mem", false)
-
-	viewer := seedIsoUser(t, "rpt-iso-viewer")
-	coord := seedIsoUser(t, "rpt-iso-coord")
-	peer := seedIsoUser(t, "rpt-iso-peer")
-	seedIsoMember(t, iso.ID, viewer.ID, &memRole.ID)
-	seedIsoMember(t, iso.ID, coord.ID, &supRole.ID)
-	seedIsoMember(t, iso.ID, peer.ID, &memRole.ID)
-
-	own := createReportReceipt(t, "own", viewer.ID, iso.ID, nil)
-	supPaid := createReportReceipt(t, "sup", coord.ID, iso.ID, nil)
-	createReportReceipt(t, "peer", peer.ID, iso.ID, nil) // paid by a hidden peer -> excluded
-
-	_, rows, err := NewReportDataService(nil).Rows(viewer.ID, groupIdString(iso.ID), commands.ReceiptPagedRequestFilter{})
-	if err != nil {
-		t.Fatalf("Rows: %v", err)
-	}
-
-	gotIds := map[int64]bool{}
-	for _, row := range rows {
-		id, _ := row.Measure(receiptsource.KeyReceiptID).Decimal()
-		gotIds[id.IntPart()] = true
-	}
-	if len(gotIds) != 2 || !gotIds[int64(own.ID)] || !gotIds[int64(supPaid.ID)] {
-		t.Fatalf("expected only the viewer's own + supervisor receipts, got %v", gotIds)
-	}
-}
-
-// A category the caller may not see becomes (Restricted) in the row rather than
-// being stripped (which would silently drop it from the totals).
-func TestReportDataService_SubstitutesRestrictedCategory(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	allowedCatId := makeCategory(t, "Groceries")
-	hiddenCatId := makeCategory(t, "Salary")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "rpt-cat", []uint{allowedCatId}, nil)
-
-	createReportReceipt(t, "mixed", userId, groupId, []models.Category{loadCategory(t, allowedCatId), loadCategory(t, hiddenCatId)})
-
-	_, rows, err := NewReportDataService(nil).Rows(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{})
-	if err != nil {
-		t.Fatalf("Rows: %v", err)
-	}
-	if len(rows) != 1 {
-		t.Fatalf("expected 1 row, got %d", len(rows))
-	}
-
-	got := make([]string, 0)
-	for _, value := range rows[0].Get(receiptsource.KeyCategory) {
-		text, _ := value.Text()
-		got = append(got, text)
-	}
-	if !slices.Contains(got, "Groceries") || !slices.Contains(got, "(Restricted)") {
-		t.Errorf("category values = %v, want Groceries and (Restricted)", got)
-	}
-	if slices.Contains(got, "Salary") {
-		t.Errorf("hidden category leaked into the row: %v", got)
-	}
-}
-
 // A non-numeric group id cannot be resolved, so Rows fails fast rather than
 // fetching against a bad scope.
 func TestReportDataService_Rows_InvalidGroupIdReturnsError(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
-	userId, _, _ := seedMemberWithGroupRoleGrants(t, "rpt-badid", nil, nil)
+	userId, _, _ := seedHouseholdMember(t, "rpt-badid")
 
 	catalog, rows, err := NewReportDataService(nil).Rows(userId, "not-a-number", commands.ReceiptPagedRequestFilter{})
 	if err == nil {
@@ -181,10 +79,9 @@ func TestReportDataService_Rows_InvalidGroupIdReturnsError(t *testing.T) {
 // the service is not mistaken for the gate, nor the gate accidentally moved here.
 func TestReportDataService_Rows_DoesNotGateGroupMembership(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
-	memberId, groupId, _ := seedMemberWithGroupRoleGrants(t, "rpt-member", nil, nil)
+	memberId, groupId, _ := seedHouseholdMember(t, "rpt-member")
 	createReportReceipt(t, "r1", memberId, groupId, nil)
 	createReportReceipt(t, "r2", memberId, groupId, nil)
 

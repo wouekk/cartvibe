@@ -227,8 +227,6 @@ func GetReportReceipts(w http.ResponseWriter, r *http.Request) {
 
 // DeleteReportTemplate removes a saved report template by id. Access is resolved by
 // CanActOnTemplate (delete): a missing id maps to 404, an unauthorized caller to 403.
-// On success the grant cache is flushed, since the deleted template's grant rows
-// cascade out of every role's matrix.
 func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error deleting report template",
@@ -363,7 +361,7 @@ func GetReportTemplate(w http.ResponseWriter, r *http.Request) {
 // DuplicateReportTemplate copies a saved report template and returns the new copy.
 // Access to the source is resolved by CanActOnTemplate (duplicate); a missing source
 // id maps to 404, an unauthorized caller to 403. The copy is owned by the caller,
-// its name suffixed " duplicate", and it starts unrestricted (no grant rows).
+// its name suffixed " duplicate".
 func DuplicateReportTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error duplicating report template",
@@ -533,10 +531,9 @@ func UpdateReportTemplate(w http.ResponseWriter, r *http.Request) {
 
 // GenerateReportFromTemplate generates a saved template by id and streams the file.
 // Unlike the ad-hoc /generate (which carries a live config and no template id), this
-// path enforces the per-template generate grant: it loads the stored configuration
-// server-side (so the caller cannot tamper with it), checks CanActOnTemplate(generate)
-// — the generate/generateAll app permission, the per-group ceiling, and the matrix —
-// then reuses the same engine path as GenerateReport.
+// path loads the stored configuration server-side (so the caller cannot tamper
+// with it), checks CanActOnTemplate(generate) — the generate/generateAll app
+// permission and the per-group ceiling — then reuses the same engine path as GenerateReport.
 func GenerateReportFromTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error generating report from template",
