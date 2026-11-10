@@ -20,8 +20,21 @@ touches a list, the scan dialog and a receipt. `report-template-list` is serial 
 added a template under a pending click. More files join smoke only after three green runs; one that turns flaky in CI leaves the list again.
 
 Around the specs, the `e2e-smoke` job checks the container itself: the main script arrives gzip-compressed with an
-`immutable` cache header, `docker stop` ends with exit code 0 inside the grace period, and a second container started on
-the same volumes under another `VERSION` leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.
+`immutable` cache header, a burst of 120 requests gets both 200s and 429s (the request limit), `docker stop` ends
+with exit code 0 inside the grace period, and a second container started on the same volumes under another `VERSION`
+leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.
+
+**The specs run with nginx's request limit raised** (`e2e/relax-rate-limits.sh`, called by the job and by
+`run-docker.sh up`). Until 2026-11-10 the job ran them under the production limit, and a spec or two needed a second
+try in most runs ("create a basic receipt" most often, sometimes all three tries). The cause, measured in the job:
+the limit refused a handful of the specs' requests per run (seven in the run that was counted: a receipt read, the
+app data, a group update, a template save), because every spec comes from the runner's one address and provisions
+through the API while another spec loads a page, and the app does not retry a 429. One person's page load is 2 to 11
+requests, so the limit is right for the product. After the specs the job fails if any of their requests was
+refused, so a starved spec can no longer pass as a flaky one. A spec that needs a retry now is wrong, or the app is.
+Three runs on the day: no request refused, "create a basic receipt" first time each run; one run retried the phone
+case of `dashboard-charts` (its single tap on a slice did nothing), which is therefore a fault of that spec or of
+the chart, still open.
 
 What was wrong, by cause (fixed unless marked open):
 - **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole
@@ -42,7 +55,7 @@ What was wrong, by cause (fixed unless marked open):
 
 Round 3 changes in how the suite is run and written:
 - **`run-docker.sh up` relaxes nginx's request rates** (same config, `10r/s` and `30r/m` raised) because the app does not retry a 429
-  and the limits made tables and forms come up empty at random. CI's `e2e-smoke` still runs against the production limits.
+  and the limits made tables and forms come up empty at random. CI's `e2e-smoke` does the same since 2026-11-10 (above).
 - **Global-settings specs are their own projects** (`playwright.config.ts`: `app-time-zone`, `session-lifetime`,
   `temp-file-retention` run after the main project, one after another). A settings save sends the whole payload, so two of them at
   once overwrote each other, and the zone moving under the other specs is worse. A failure in the main project skips them

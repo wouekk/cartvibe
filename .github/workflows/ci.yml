@@ -45,6 +45,8 @@ jobs:
             image:
               - 'docker/**'
               - '.dockerignore'
+              # A change to how the image is tested is tested: the smoke job runs for it.
+              - '.github/workflows/ci.yml'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -219,6 +221,14 @@ jobs:
           echo "$headers"
           echo "$headers" | grep -qi '^content-encoding: gzip'
           echo "$headers" | grep -qi '^cache-control:.*immutable'
+      # docker/default.conf: 10 requests a second from one address, 20 more at once, and a 429 past that. Proved
+      # here because the specs below run with the limit raised.
+      - name: The request limit answers 429
+        run: |
+          codes=$(seq 1 120 | xargs -P 16 -I{} curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8091/api/featureConfig | sort | uniq -c)
+          echo "$codes"
+          echo "$codes" | grep -q ' 200$'
+          echo "$codes" | grep -q ' 429$'
       - uses: actions/setup-node@v7
         with:
           node-version: "24.22.1"
@@ -228,6 +238,13 @@ jobs:
       - name: Install the browser
         run: npx playwright install --with-deps chromium
         working-directory: ./desktop
+      # Every spec shares this runner's address and the app does not retry a 429, so under the production limit a
+      # run lost a handful of requests and a spec or two needed a second try (desktop/docs/e2e.md). The access log's
+      # length is kept so the step after the specs counts only what they sent.
+      - name: Raise the request limit for the specs
+        run: |
+          bash desktop/e2e/relax-rate-limits.sh cartvibe
+          echo "ACCESS_LOG_LINES=$(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log')" >> "$GITHUB_ENV"
       # A fresh database only has admin / admin; the specs sign in as these two.
       - name: Create the e2e accounts
         run: node e2e/seed-accounts.mjs
@@ -235,6 +252,16 @@ jobs:
       - name: Run the smoke specs
         run: npm run e2e:smoke
         working-directory: ./desktop
+      # No request of the specs may have been refused: one that was means a spec was starved, not wrong.
+      - name: No request of the specs was refused
+        if: ${{ !cancelled() && env.ACCESS_LOG_LINES != '' }}
+        run: |
+          refused=$(docker exec cartvibe sh -c "tail -n +$((ACCESS_LOG_LINES + 1)) /var/log/nginx/access.log | awk '\$9 == 429 {print \$6, \$7}'")
+          if [ -n "$refused" ]; then
+            echo "$refused" | sed -E 's/[0-9]+/N/g' | sort | uniq -c | sort -rn | head -20
+            exit 1
+          fi
+          echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean

@@ -21,10 +21,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
   lines in its `go.mod` and run them on the copy.
 - Playwright: on the Mac `failed-activity-source-file` and `system-task-filter` fail on `main` (15 skipped behind
-  them); never run: `dashboard-charts`, `app-time-zone`, `report-period-date-field`. In CI `e2e-smoke` sometimes hits
-  nginx's login limit (429; re-run), and two cases are flaky the same way (something just created is not on screen
-  within 5 s; they pass on retry): `receipts.spec` "create a basic receipt" (most runs) and, since sprint 4,
-  `shopping-list.spec` "adds, crosses off, revives and clears items" (two runs in three). Cause unknown.
+  them); never run: `dashboard-charts`, `app-time-zone`, `report-period-date-field`. The smoke specs that needed a
+  retry in CI were starved by nginx's request limit (`desktop/docs/e2e.md`); since `feature/smoke-flakes` the job
+  raises it and fails on any refused request, and "create a basic receipt" passed first time in three runs of
+  three (a branch cut before that still flakes: re-run it). One spec is still flaky for another reason, with no
+  request refused: `dashboard-charts`, the phone case, whose one tap on a slice did nothing in one run of three.
+  Cause not found (a guess: the tap lands before the donut has settled).
 - The Browser pane does not render while the Claude window is out of view; photograph the built demo with Playwright
   instead (`desktop/docs/demo.md`, Checks).
 - Never run: Safari/Firefox desktop, Lighthouse, Web Push on a real device, any Playwright spec of the real app at a
@@ -60,6 +62,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   transaction (`api/CLAUDE.md`, SQLite), or they hang instead of failing after 5 s.
 - Litestream 0.3.13 to 0.5.x for `docker-compose.vps.yml`, with a restore drill.
 - The receipts page on a phone: its title, search, period row and filters fill a screen before the first receipt.
+- Found while measuring the smoke specs, not changed: one Dashboard load sends `POST /api/receipt/group/N` four
+  times and `GET /api/overview/group/N` twice (the Receipts page posts twice), and the app shows a 429 as a
+  failure instead of trying again.
 
 ## Parked (only when the owner asks)
 
