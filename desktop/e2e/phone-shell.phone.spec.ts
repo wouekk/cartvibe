@@ -8,12 +8,17 @@ import { uniqueName } from './helpers/provisioning';
 // leads everywhere it should.
 //
 // The admin's own household is used: it exists on a fresh database and the admin may do everything in it.
+//
+// The Scan tab is not tapped here. It is there only while one household is being browsed, and the specs that run
+// beside this one give the admin a second household for as long as they run: the first CI run found no Scan tab
+// once and found it on the retry. The rule for the tab is in the tab bar's own spec, the dialog in
+// quick-scan-dialog.spec.ts.
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
 const noSidewaysScroll = async (page: Page) =>
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
 
-test('the tab bar leads to a list that takes an item and a cross-off, to receipts as cards, and to the scan', async ({ page }) => {
+test('the tab bar leads to a list that takes an item and a cross-off, and to receipts as cards', async ({ page }) => {
   await stubTokenRefresh(page);
   await page.goto('/');
 
@@ -50,8 +55,4 @@ test('the tab bar leads to a list that takes an item and a cross-off, to receipt
   await expect(page.getByTestId('tab-nav-receipts')).toHaveAttribute('aria-current', 'page');
   await expect(page.locator('app-table table')).toHaveCount(0);
   await noSidewaysScroll(page);
-
-  // Scan: a dialog opens from any page (Quick Scan, or the question for an AI key when none is set).
-  await page.getByTestId('tab-scan').tap();
-  await expect(page.getByRole('dialog')).toBeVisible();
 });
