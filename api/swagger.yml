@@ -2995,6 +2995,26 @@ paths:
           $ref: "#/components/responses/BadRequest"
         403:
           $ref: "#/components/responses/Forbidden"
+  /receiptProcessingSettings/usage:
+    get:
+      tags:
+        - ReceiptProcessingSettings
+      summary: What the AI was asked and wrote, per month
+      description: The calls and the tokens each provider counted, totalled per month and model, for this month and the one before, newest month first.
+      operationId: getAiUsage
+      responses:
+        200:
+          description: The month totals (never null)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AiUsageMonth"
+        500:
+          $ref: "#/components/responses/Internal"
+        403:
+          $ref: "#/components/responses/Forbidden"
   /systemSettings:
     get:
       tags:
@@ -7773,6 +7793,36 @@ components:
       required:
         - name
         - displayName
+    AiUsageMonth:
+      type: object
+      description: What one model was asked and wrote in one month.
+      properties:
+        month:
+          type: string
+          description: The month, as yyyy-MM
+        aiType:
+          type: string
+          description: The provider (a plain string, as on the AI settings)
+        model:
+          type: string
+        calls:
+          type: integer
+          format: int64
+        inputTokens:
+          type: integer
+          format: int64
+          description: Tokens sent to the model
+        outputTokens:
+          type: integer
+          format: int64
+          description: Tokens the model wrote, its thinking included where the provider bills it
+      required:
+        - month
+        - aiType
+        - model
+        - calls
+        - inputTokens
+        - outputTokens
     BackupEntityCount:
       type: object
       description: The rows one export file would hold. The name is a plain string (file names may be added).
@@ -8264,6 +8314,9 @@ components:
             enforceJsonResponseFormat:
               type: boolean
               description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
+            contextSize:
+              type: integer
+              description: Ollama only. The context size (num_ctx) in tokens; 0 leaves the model server its own default, which is a few thousand and cuts a long receipt short.
             ocrEngine:
               $ref: "#/components/schemas/OcrEngine"
     UpsertReceiptProcessingSettingsCommand:
@@ -8296,6 +8349,9 @@ components:
         enforceJsonResponseFormat:
           type: boolean
           description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
+        contextSize:
+          type: integer
+          description: Ollama only. The context size (num_ctx) in tokens; 0 leaves the model server its own default, which is a few thousand and cuts a long receipt short.
         ocrEngine:
           $ref: "#/components/schemas/OcrEngine"
     CheckReceiptProcessingSettingsConnectivityCommand:
@@ -8321,6 +8377,9 @@ components:
         enforceJsonResponseFormat:
           type: boolean
           description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
+        contextSize:
+          type: integer
+          description: Ollama only. The context size (num_ctx) in tokens; 0 leaves the model server its own default, which is a few thousand and cuts a long receipt short.
         ocrEngine:
           $ref: "#/components/schemas/OcrEngine"
     Icon:

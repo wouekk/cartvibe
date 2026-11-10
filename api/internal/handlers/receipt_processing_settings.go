@@ -285,6 +285,7 @@ func CheckReceiptProcessingSettingsConnectivity(w http.ResponseWriter, r *http.R
 					Model:                     command.Model,
 					EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
 					OcrEngine:                 &command.OcrEngine,
+					ContextSize:               command.ContextSize,
 				}
 
 				client := services.AiService{}

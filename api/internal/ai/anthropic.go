@@ -96,11 +96,32 @@ func (claude AnthropicClient) GetChatCompletion() (structs.ChatCompletionResult,
 	}
 
 	client := newAnthropicSdkClient(key)
-	resp, err := client.Messages.New(context.Background(), anthropic.MessageNewParams{
+	params := anthropic.MessageNewParams{
 		Model:     anthropic.Model(model),
 		MaxTokens: anthropicMaxTokens,
 		Messages:  messages,
-	})
+	}
+	// Reading a receipt is extraction, not reasoning: at its default effort a current Claude model thinks far
+	// longer than the task needs, which is most of the wait and of the output tokens. A schema, when the caller
+	// has one, makes the answer JSON of that shape.
+	structured := !wantsPlainAnswer(claude.ReceiptProcessingSettings)
+	if structured {
+		params.OutputConfig = anthropic.OutputConfigParam{Effort: anthropic.OutputConfigEffortLow}
+		if schema := claude.Options.ResponseSchema; schema != nil {
+			params.OutputConfig.Format = anthropic.JSONOutputFormatParam{Schema: schema.Schema}
+		}
+	}
+
+	resp, err := client.Messages.New(context.Background(), params)
+	// A model that does not know these settings answers 400: ask once more without them rather than fail the read.
+	var apiErr *anthropic.Error
+	if err != nil && structured && errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusBadRequest {
+		params.OutputConfig = anthropic.OutputConfigParam{}
+		resp, err = client.Messages.New(context.Background(), params)
+		if err == nil {
+			rememberPlainAnswer(claude.ReceiptProcessingSettings)
+		}
+	}
 	if err != nil {
 		return result, err
 	}
@@ -110,6 +131,8 @@ func (claude AnthropicClient) GetChatCompletion() (structs.ChatCompletionResult,
 		responseBytes, _ := json.Marshal(resp)
 		result.RawResponse = string(responseBytes)
 	}
+	result.InputTokens = resp.Usage.InputTokens
+	result.OutputTokens = resp.Usage.OutputTokens
 
 	// A declined request is an error, so the backup AI (when one is set) gets the receipt instead.
 	if resp.StopReason == anthropic.StopReasonRefusal {
@@ -130,8 +153,9 @@ func (claude AnthropicClient) GetChatCompletion() (structs.ChatCompletionResult,
 	return result, nil
 }
 
-// stripJsonFence removes a ```json ... ``` fence around an answer. Claude has no JSON-only switch like OpenAI's
-// response format, and the product and classification parsers expect bare JSON.
+// stripJsonFence removes a ```json ... ``` fence around an answer. A call with a schema gets bare JSON from Claude
+// by itself; the calls without one (classification, the list comparison) and a model that refused the setting
+// still answer in text, and the parsers expect bare JSON.
 func stripJsonFence(answer string) string {
 	trimmed := strings.TrimSpace(answer)
 	if !strings.HasPrefix(trimmed, "```") || !strings.HasSuffix(trimmed, "```") || len(trimmed) < 6 {

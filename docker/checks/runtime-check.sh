@@ -35,7 +35,11 @@ gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dDEVICEWIDTHPOINTS=500 -dDEVI
 magick -density 150 text.pdf text.png 2>pdf.err || { cat pdf.err >&2; fail "a PDF does not convert to an image"; }
 tesseract text.png ocr >/dev/null 2>&1 || fail "Tesseract cannot read an image"
 grep -qi receipt ocr.txt 2>/dev/null || fail "Tesseract did not read the word drawn into the PDF"
-tesseract --list-langs 2>&1 | grep -qx eng || fail "Tesseract has no English data"
+# The five languages the app ships in (services/ocr.go asks for all of them): a receipt in Polish read with
+# English data alone loses every accented letter.
+for lang in eng pol deu fra spa; do
+  tesseract --list-langs 2>&1 | grep -qx "$lang" || fail "Tesseract has no data for $lang"
+done
 
 # A PDF with no text (the original check) and the policy: vector and script formats stay refused.
 magick -size 40x40 xc:white blank.pdf && magick blank.pdf blank.jpg || fail "a blank PDF does not convert"

@@ -98,11 +98,22 @@ func (service OcrService) ReadImage(path string) (string, commands.UpsertSystemT
 // the AI as "09112026" and "-20%" as "20".
 const ocrCharBlacklist = "|~`^_{}[]<>\\"
 
+// ocrLanguages are the languages Tesseract reads a receipt in: the five the app ships in, whose data the image
+// installs (docker/checks/runtime-check.sh proves each). With English alone, as before, a Polish, German, French
+// or Spanish receipt lost its accented letters, and with them shop and product names. All five are always asked
+// for: a household buys abroad, and a receipt does not say which language it is in.
+var ocrLanguages = []string{"eng", "pol", "deu", "fra", "spa"}
+
 func (service OcrService) ReadImageWithTesseract(preparedImageBytes []byte) (string, error) {
 	client := gosseract.NewClient()
 	defer client.Close()
 
-	err := client.SetVariable("tessedit_char_blacklist", ocrCharBlacklist)
+	err := client.SetLanguage(ocrLanguages...)
+	if err != nil {
+		return "", err
+	}
+
+	err = client.SetVariable("tessedit_char_blacklist", ocrCharBlacklist)
 	if err != nil {
 		return "", err
 	}

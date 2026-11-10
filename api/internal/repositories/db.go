@@ -253,6 +253,7 @@ func migrateSchema(target *gorm.DB) error {
 		&models.PushSubscription{},
 		&models.BackupImportJob{},
 		&models.Job{},
+		&models.AiUsage{},
 	)
 
 	return err

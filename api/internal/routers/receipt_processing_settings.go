@@ -1,15 +1,16 @@
 package routers
 
 import (
-	"github.com/go-chi/chi/v5"
 	"cartvibe/api/internal/handlers"
 	"cartvibe/api/internal/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 func BuildReceiptProcessingSettingsRouter() *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(middleware.UnifiedAuthMiddleware)
+	router.Get("/usage", handlers.GetAiUsage)
 	router.Get("/{id}", handlers.GetReceiptProcessingSettingsById)
 	router.Post("/", handlers.CreateReceiptProcessingSettings)
 	router.Post("/getPagedProcessingSettings", handlers.GetPagedReceiptProcessingSettings)

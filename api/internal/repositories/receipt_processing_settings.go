@@ -1,13 +1,13 @@
 package repositories
 
 import (
-	"errors"
-	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 	"cartvibe/api/internal/commands"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ReceiptProcessingSettingsRepository struct {
@@ -17,7 +17,7 @@ type ReceiptProcessingSettingsRepository struct {
 func NewReceiptProcessingSettings(tx *gorm.DB) ReceiptProcessingSettingsRepository {
 	repository := ReceiptProcessingSettingsRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -74,6 +74,7 @@ func (repository ReceiptProcessingSettingsRepository) CreateReceiptProcessingSet
 		IsVisionModel:             command.IsVisionModel,
 		EnforceJsonResponseFormat: command.EnforceJsonResponseFormat,
 		OcrEngine:                 &command.OcrEngine,
+		ContextSize:               command.ContextSize,
 	}
 
 	err := db.Create(&settings).Error
@@ -123,6 +124,7 @@ func (repository ReceiptProcessingSettingsRepository) UpdateReceiptProcessingSet
 	settings.Model = command.Model
 	settings.IsVisionModel = command.IsVisionModel
 	settings.EnforceJsonResponseFormat = command.EnforceJsonResponseFormat
+	settings.ContextSize = command.ContextSize
 	settings.OcrEngine = &command.OcrEngine
 
 	if updateKey && command.Key == "" {

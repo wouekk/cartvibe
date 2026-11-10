@@ -1,12 +1,13 @@
 package services
 
 import (
-	"fmt"
 	"cartvibe/api/internal/ai"
 	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"fmt"
 	"time"
 )
 
@@ -71,6 +72,13 @@ func (service *AiService) CreateChatCompletion(options structs.AiChatCompletionO
 	}
 	response = result.Response
 	rawResponse = result.RawResponse
+
+	// What the call used, for the month totals on the AI page. A count that cannot be stored never fails the read.
+	usageErr := repositories.NewAiUsageRepository(nil).Record(
+		time.Now(), string(service.ReceiptProcessingSettings.AiType), service.ReceiptProcessingSettings.Model, result.InputTokens, result.OutputTokens)
+	if usageErr != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "ai usage: could not record the call: "+usageErr.Error())
+	}
 
 	endedAt := time.Now()
 	systemTask.ResultDescription = rawResponse

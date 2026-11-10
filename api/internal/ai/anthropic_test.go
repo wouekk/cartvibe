@@ -26,6 +26,9 @@ type anthropicRequest struct {
 // newFakeAnthropic answers every call with status and body, and points the client at it for the length of the test.
 func newFakeAnthropic(t *testing.T, status int, body string) *[]anthropicRequest {
 	t.Helper()
+	// A refusal remembered by an earlier test would strip this one's settings.
+	forgetPlainAnswers()
+	t.Cleanup(forgetPlainAnswers)
 	requests := []anthropicRequest{}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

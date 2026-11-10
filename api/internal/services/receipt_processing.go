@@ -211,6 +211,8 @@ func (service ReceiptProcessingService) processImages(
 	response, chatCompletionSystemTaskCommand, err := aiClient.CreateChatCompletion(structs.AiChatCompletionOptions{
 		Messages:   aiMessages,
 		DecryptKey: true,
+		// The shape of the answer the prompt asks for, with the product lines when the prompt carries that part.
+		ResponseSchema: receiptAnswerSchema(promptAsksForProducts(prompt)),
 	})
 	result.ChatCompletionSystemTaskCommand = chatCompletionSystemTaskCommand
 	result.RawResponse = response
