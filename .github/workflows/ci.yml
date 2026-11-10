@@ -12,6 +12,9 @@ on:
       - 'docker/**'
       - '.dockerignore'
       - '.github/workflows/**'
+      # The VPS stack: the smoke job runs its restore drill.
+      - 'deploy/vps/**'
+      - 'docker-compose.vps.yml'
   # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
   workflow_dispatch:
 
