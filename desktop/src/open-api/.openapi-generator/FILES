@@ -22,7 +22,6 @@ api/receiptProcessingSettings.service.ts
 api/receiptProduct.service.ts
 api/report.service.ts
 api/role.service.ts
-api/search.service.ts
 api/shopLogo.service.ts
 api/shoppingList.service.ts
 api/systemSettings.service.ts
@@ -55,7 +54,6 @@ model/bulkStatusUpdateCommand.ts
 model/bulkUserDeleteCommand.ts
 model/category.ts
 model/categoryView.ts
-model/chartGrouping.ts
 model/checkReceiptProcessingSettingsConnectivityCommand.ts
 model/claims.ts
 model/comment.ts
@@ -134,7 +132,6 @@ model/reportTemplateGrant.ts
 model/reportTemplateOption.ts
 model/resetPasswordCommand.ts
 model/role.ts
-model/searchResult.ts
 model/setFoodClassificationCommand.ts
 model/setReceiptAmountCommand.ts
 model/setReceiptDateCommand.ts

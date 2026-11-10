@@ -30,10 +30,6 @@ export interface UpsertSystemSettingsCommand {
     currencyHideDecimalPlaces: boolean;
     debugOcr?: boolean;
     /**
-     * Number of workers to use
-     */
-    numWorkers?: number;
-    /**
      * Receipt processing settings foreign key
      */
     receiptProcessingSettingsId?: number;

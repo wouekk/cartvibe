@@ -39,10 +39,6 @@ export interface CheckReceiptProcessingSettingsConnectivityCommand {
      * Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
      */
     enforceJsonResponseFormat?: boolean;
-    /**
-     * Number of workers to use
-     */
-    numWorkers?: number;
     ocrEngine?: OcrEngine;
 }
 export namespace CheckReceiptProcessingSettingsConnectivityCommand {
