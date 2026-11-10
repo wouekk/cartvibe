@@ -11,7 +11,122 @@
     </p>
   }
 
-  @if (view.products.length > 0) {
+  @if (view.products.length > 0 && isHandset()) {
+    <!-- A phone: one card per line instead of a table that scrolls sideways. Name and amount lead; the rest follows. -->
+    <ul class="m-0 flex list-none flex-col p-0 text-sm tabular-nums" data-testid="receipt-products-cards">
+      @for (product of view.products; track product.id) {
+        <li class="border-t border-border py-3 first:border-t-0 first:pt-0" data-testid="receipt-product-card">
+          @if (editingId() === product.id) {
+            <div class="flex flex-col gap-2" data-testid="receipt-product-edit-row">
+              <input
+                class="h-control w-full rounded-md border border-border bg-transparent px-2 [font:inherit]"
+                type="text"
+                [attr.aria-label]="'Product name' | t"
+                data-testid="receipt-product-edit-name"
+                [value]="draftName()"
+                (input)="setValue(draftName, $event)"
+                (keydown.enter)="saveEdit(product)"
+              />
+              <p class="m-0 break-words text-xs text-muted-foreground">{{ product.name }}</p>
+              <div class="flex items-center gap-2">
+                <input
+                  class="h-control min-w-0 flex-1 rounded-md border border-border bg-transparent px-2 [font:inherit]"
+                  type="text"
+                  [placeholder]="'Qty' | t"
+                  [attr.aria-label]="'Quantity' | t"
+                  [value]="draftQuantity()"
+                  (input)="setValue(draftQuantity, $event)"
+                  (keydown.enter)="saveEdit(product)"
+                />
+                <input
+                  class="h-control min-w-0 flex-1 rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="0,00"
+                  [attr.aria-label]="'Amount' | t"
+                  data-testid="receipt-product-edit-amount"
+                  [value]="draftAmount()"
+                  (input)="setValue(draftAmount, $event)"
+                  (keydown.enter)="saveEdit(product)"
+                />
+              </div>
+              <div class="flex justify-end gap-2">
+                <button hlmBtn variant="outline" type="button" (click)="cancelEdit()">{{ 'Cancel' | t }}</button>
+                <button hlmBtn type="button" data-testid="receipt-product-save" [disabled]="saving()" (click)="saveEdit(product)">
+                  <app-icon name="check"></app-icon>
+                  {{ 'Save' | t }}
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="flex items-start gap-2">
+              <div class="min-w-0 flex-1">
+                <span class="block font-medium break-words">{{ product.displayName || product.name }}</span>
+                @if (product.displayName && product.displayName !== product.name) {
+                  <span class="block break-words text-xs text-muted-foreground" data-testid="receipt-product-original">{{ product.name }}</span>
+                }
+              </div>
+              <div class="flex shrink-0 flex-col items-end">
+                @if (product.amount) {
+                  <app-money class="font-bold" [value]="product.amount"></app-money>
+                } @else {
+                  <!-- A line without an amount is the first thing to check against the receipt. -->
+                  <span class="text-xs font-medium text-warning-text" data-testid="receipt-product-no-amount">{{ 'No amount' | t }}</span>
+                }
+                @if (product.quantity) {
+                  <span class="text-xs text-muted-foreground">{{ product.quantity }}</span>
+                }
+              </div>
+              @if (canUpdate()) {
+                <button
+                  hlmBtn variant="ghost" size="icon"
+                  type="button"
+                  class="-mt-1.5 -mr-2 shrink-0"
+                  data-testid="receipt-product-menu"
+                  [attr.aria-label]="'Actions for {name}' | t: { name: product.displayName || product.name }"
+                  [hlmDropdownMenuTrigger]="lineMenu"
+                  [hlmDropdownMenuTriggerData]="{ product: product }"
+                  align="end"
+                >
+                  <app-icon name="more_vert"></app-icon>
+                </button>
+              }
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <ng-container [ngTemplateOutlet]="categoryCell" [ngTemplateOutletContext]="{ product: product }"></ng-container>
+              <app-food-tags class="flex" [values]="product"></app-food-tags>
+              @if (product.planned === false) {
+                <span class="inline-block rounded-full bg-destructive/15 px-[0.4375rem] py-px text-[0.6875rem] font-semibold leading-4 text-destructive" data-testid="receipt-product-unplanned">{{ 'Not on the list' | t }}</span>
+              }
+              <ng-container [ngTemplateOutlet]="tagsCell" [ngTemplateOutletContext]="{ product: product }"></ng-container>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+    <!-- A phone row's actions are one menu: edit, the health correction, and the red removal last. -->
+    <ng-template #lineMenu let-product="product">
+      <div hlmDropdownMenu class="w-56">
+        <button hlmDropdownMenuItem data-testid="receipt-product-edit" (click)="startEdit(product)">
+          <app-icon name="edit"></app-icon>
+          <span>{{ 'Edit' | t }}</span>
+        </button>
+        <div hlmDropdownMenuSeparator></div>
+        <div hlmDropdownMenuLabel>{{ 'Health' | t }}</div>
+        @for (choice of healthChoices; track choice.value) {
+          <button hlmDropdownMenuItem [attr.data-testid]="'receipt-product-health-' + choice.value" (click)="correct(product, choice.value)">
+            <app-icon [name]="product.health === choice.value ? 'check' : ''"></app-icon>
+            <span>{{ choice.label }}</span>
+          </button>
+        }
+        <div hlmDropdownMenuSeparator></div>
+        <button hlmDropdownMenuItem variant="destructive" data-testid="receipt-product-delete" (click)="remove(product)">
+          <app-icon name="delete"></app-icon>
+          <span>{{ 'Remove' | t }}</span>
+        </button>
+      </div>
+    </ng-template>
+  } @else if (view.products.length > 0) {
     <div class="overflow-x-auto">
       <table class="w-full border-collapse text-sm tabular-nums [&_td]:border-t [&_td]:border-border [&_td]:py-2 [&_td]:pr-2 [&_td]:align-middle [&_th]:pb-2 [&_th]:pr-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-muted-foreground" data-testid="receipt-products-table">
         <thead>

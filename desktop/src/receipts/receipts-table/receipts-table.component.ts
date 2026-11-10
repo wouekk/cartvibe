@@ -372,10 +372,13 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private setColumns(): void {
     const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
 
+    // On a phone each receipt is a card: the shop and its date on the left, the amount and status on the right, and
+    // whatever else the person switched on as labelled details below (`phone`, see app-table).
     const allColumns = [
       {
         columnHeader: "Receipt Date",
         matColumnDef: "date",
+        phone: "subtitle",
         template: this.dateCell(),
         sortable: true,
       },
@@ -384,6 +387,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // the receipt's name when none was read. It sorts the same way (shop_name on the API).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
         matColumnDef: "shop_name",
+        phone: "title",
         template: this.shopCell(),
         sortable: true,
       },
@@ -397,6 +401,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Amount",
         matColumnDef: "amount",
+        phone: "aside",
         template: this.amountCell(),
         sortable: true,
       },
@@ -415,6 +420,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Status",
         matColumnDef: "status",
+        phone: "aside",
         template: this.statusCell(),
         sortable: true,
       },

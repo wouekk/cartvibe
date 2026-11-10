@@ -1,8 +1,9 @@
 import { LiveAnnouncer } from "@angular/cdk/a11y";
 import { SelectionModel } from "@angular/cdk/collections";
-import { Component, Input, OnChanges, SimpleChanges, inject, input, output, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, OnChanges, SimpleChanges, computed, inject, input, output, signal, ChangeDetectionStrategy } from "@angular/core";
+import { ViewportService } from "../../services/viewport.service";
 import { TranslationService } from "../../i18n/translation.service";
-import { TableColumn } from "../table-column.interface";
+import { TableColumn, TablePhoneRole } from "../table-column.interface";
 import { PageEvent, Sort, TableDataSource } from "../table-types";
 import { marker } from "../../i18n/marker";
 
@@ -50,6 +51,41 @@ export class TableComponent implements OnChanges {
   private rowIndexesByReference = new Map<any, number>();
 
   private readonly translation = inject(TranslationService);
+
+  /** A phone shows each row as a card instead of a table that scrolls sideways. */
+  public readonly cards = inject(ViewportService).isHandset;
+
+  /** The displayed data columns ("select" and "expand" are the table's own). */
+  private readonly dataColumns = computed(() => {
+    const columns = this.columns();
+    return this.displayedColumns()
+      .map((id) => columns.find((column) => column.matColumnDef === id))
+      .filter((column): column is TableColumn => !!column);
+  });
+
+  /**
+   * Where each column's cell goes on a row's card. A column says so with `phone`; one that does not is the title when
+   * it is the first column (and no other column claims the title), the actions when it is called "actions", and a
+   * labelled detail otherwise, so a table that declares nothing still reads well.
+   */
+  public readonly cardLayout = computed(() => {
+    const columns = this.dataColumns();
+    const titled = columns.some((column) => column.phone === "title");
+    const roleOf = (column: TableColumn, index: number): TablePhoneRole =>
+      column.phone ?? (column.matColumnDef === "actions" ? "actions" : index === 0 && !titled ? "title" : "meta");
+    const withRole = (role: TablePhoneRole) => columns.filter((column, index) => roleOf(column, index) === role);
+
+    return {
+      title: withRole("title"),
+      subtitle: withRole("subtitle"),
+      aside: withRole("aside"),
+      meta: withRole("meta"),
+      actions: withRole("actions"),
+    };
+  });
+
+  /** The columns the card view's "Sort by" offers: the ones whose header sorts in the table. */
+  public readonly sortableColumns = computed(() => this.dataColumns().filter((column) => column.sortable));
 
   constructor(private _liveAnnouncer: LiveAnnouncer) {}
 
@@ -162,6 +198,25 @@ export class TableComponent implements OnChanges {
     }
 
     this.announceSortChange({ active: direction ? column.matColumnDef : "", direction });
+  }
+
+  /** The card view's "Sort by": the chosen column, keeping the direction in use (the column's own, or ascending, at first). */
+  public sortByColumn(id: string): void {
+    const column = this.sortableColumns().find((candidate) => candidate.matColumnDef === id);
+    if (!column) {
+      this.announceSortChange({ active: "", direction: "" });
+      return;
+    }
+
+    this.announceSortChange({ active: id, direction: this.sortState().direction || column.defaultSortDirection || "asc" });
+  }
+
+  /** The card view's direction button. */
+  public flipSortDirection(): void {
+    const state = this.sortState();
+    if (state.active) {
+      this.announceSortChange({ active: state.active, direction: state.direction === "asc" ? "desc" : "asc" });
+    }
   }
 
   /** Announce the change in sort state for assistive technology, and tell the owner. */
