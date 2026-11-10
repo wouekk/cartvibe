@@ -26,7 +26,7 @@ func makeTestReportTemplate(t *testing.T, name string) uint {
 
 func TestReportTemplateGrantAndGroupTablesMigrate(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(ImplicitCell(), nil)
+	repository := NewRoleRepository(nil)
 
 	templateId := makeTestReportTemplate(t, "Quarterly")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -52,7 +52,7 @@ func TestReportTemplateGrantAndGroupTablesMigrate(t *testing.T) {
 
 func TestDeleteReportTemplateCascadesGrantAndGroupRows(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(ImplicitCell(), nil)
+	repository := NewRoleRepository(nil)
 
 	templateId := makeTestReportTemplate(t, "Cascade Template")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -85,7 +85,7 @@ func TestDeleteReportTemplateCascadesGrantAndGroupRows(t *testing.T) {
 
 func TestDeleteGroupRoleCascadesReportTemplateGrants(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(ImplicitCell(), nil)
+	repository := NewRoleRepository(nil)
 
 	templateId := makeTestReportTemplate(t, "Role Cascade Template")
 	role, err := repository.CreateGroupRole("Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -110,7 +110,7 @@ func TestDeleteGroupRoleCascadesReportTemplateGrants(t *testing.T) {
 
 func TestReplaceGroupRoleReportTemplateGrantsPersistsAndReplaces(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(ImplicitCell(), nil)
+	repository := NewRoleRepository(nil)
 
 	t1 := makeTestReportTemplate(t, "T1")
 	t2 := makeTestReportTemplate(t, "T2")
@@ -182,7 +182,7 @@ func TestReplaceGroupRoleReportTemplateGrantsPersistsAndReplaces(t *testing.T) {
 
 func TestReplaceGroupRoleReportTemplateGrantsEmptyClearsRestricted(t *testing.T) {
 	defer TruncateTestDb()
-	repository := NewRoleRepository(ImplicitCell(), nil)
+	repository := NewRoleRepository(nil)
 
 	t1 := makeTestReportTemplate(t, "T1")
 	role, err := repository.CreateGroupRole("Report Role", "", []string{permissions.GroupReportsRead}, nil, nil, nil, false, false)
@@ -229,7 +229,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 	t1 := makeTestReportTemplate(t, "T1")
 	t2 := makeTestReportTemplate(t, "T2")
 
-	count, err := NewReportTemplateRepository(ImplicitCell(), nil).CountByIds([]uint{t1, t2})
+	count, err := NewReportTemplateRepository(nil).CountByIds([]uint{t1, t2})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -239,7 +239,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 	}
 
 	// A non-existent id is not counted.
-	count, err = NewReportTemplateRepository(ImplicitCell(), nil).CountByIds([]uint{t1, 999999})
+	count, err = NewReportTemplateRepository(nil).CountByIds([]uint{t1, 999999})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
@@ -251,7 +251,7 @@ func TestReportTemplateCountByIds(t *testing.T) {
 
 func TestCreateAndUpdateSyncTemplateGroupIndex(t *testing.T) {
 	defer TruncateTestDb()
-	repo := NewReportTemplateRepository(ImplicitCell(), nil)
+	repo := NewReportTemplateRepository(nil)
 
 	created, err := repo.CreateReportTemplate(sampleReportCommand(), 1)
 	if err != nil {
@@ -289,7 +289,7 @@ func TestCreateAndUpdateSyncTemplateGroupIndex(t *testing.T) {
 
 func TestGetPagedReportTemplatesAppliesIdFilter(t *testing.T) {
 	defer TruncateTestDb()
-	repo := NewReportTemplateRepository(ImplicitCell(), nil)
+	repo := NewReportTemplateRepository(nil)
 
 	first := sampleReportCommand()
 	first.Name = "A"

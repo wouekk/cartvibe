@@ -41,10 +41,6 @@ export interface SystemSettings {
      */
     debugOcr?: boolean;
     /**
-     * Number of workers to use
-     */
-    numWorkers?: number;
-    /**
      * Receipt processing settings foreign key
      */
     receiptProcessingSettingsId?: number;

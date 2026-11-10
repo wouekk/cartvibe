@@ -18,9 +18,8 @@ import { marker } from "../../i18n/marker";
 import { buttonVariants } from "@spartan-ng/helm/button";
 import { finePointerSignal } from "../../utils/fine-pointer";
 
-// Mirrors the backend's models.MaxCommentLength (the Comment column is varchar(500), which
-// MySQL/Postgres measure in characters) and mobile's FormBuilderTextField maxLength, so an
-// over-length comment is caught here instead of coming back as a 400 after submit. Counted in
+// Mirrors the backend's models.MaxCommentLength, so an over-length comment is caught here
+// instead of coming back as a 400 after submit. Counted in
 // code points, like the backend's rune count -- Validators.maxLength counts UTF-16 code units,
 // which would reject 500 emoji the API accepts.
 export const QUICK_SCAN_COMMENT_MAX_LENGTH = 500;

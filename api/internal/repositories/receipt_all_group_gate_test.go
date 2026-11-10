@@ -44,7 +44,7 @@ func TestGetPagedReceipts_AllGroup_ReadGateDropsUnreadableGroups(t *testing.T) {
 		return CategoryTagVisibility{CategoryUnrestricted: true, TagUnrestricted: true}, nil
 	}
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 	receipts, count, err := repository.GetPagedReceiptsByGroupId(
 		member.ID, utils.UintToString(allGroup.ID), pagedRequestAllReceipts(), nil, nil, nil, readable, catTagVis,
 	)
@@ -102,7 +102,7 @@ func TestGetPagedReceipts_AllGroup_CategoryFilterIsPerGroup(t *testing.T) {
 		}, nil
 	}
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	filterBy := func(catId uint) commands.ReceiptPagedRequestCommand {
 		req := pagedRequestAllReceipts()
@@ -163,7 +163,7 @@ func TestGetPagedReceipts_AllGroup_RequiresBothResolvers(t *testing.T) {
 	member := models.User{Username: "pair-member", Password: "x"}
 	db.Create(&member)
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 	readable := func(uint) (bool, error) { return true, nil }
 	catTagVis := func(uint) (CategoryTagVisibility, error) {
 		return CategoryTagVisibility{CategoryUnrestricted: true, TagUnrestricted: true}, nil

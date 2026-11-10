@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"fmt"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
@@ -13,11 +12,10 @@ type TagsRepository struct {
 	BaseRepository
 }
 
-func NewTagsRepository(h cell.Handle, tx *gorm.DB) TagsRepository {
+func NewTagsRepository(tx *gorm.DB) TagsRepository {
 	repository := TagsRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

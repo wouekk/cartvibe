@@ -29,7 +29,7 @@ func seedMemberWithPaidByRole(t *testing.T, username string, paidByUserGrantIds 
 		t.Fatalf("seed group: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	role, err := roleRepository.CreateGroupRole("PaidBy Role "+username, "", []string{permissions.GroupReceiptsRead}, nil, nil, paidByUserGrantIds, includeOwn, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
@@ -175,7 +175,7 @@ func TestGetGroupPaidByUserIdsDoesNotMutateCacheAcrossUsers(t *testing.T) {
 		t.Fatalf("seed group: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	role, err := roleRepository.CreateGroupRole("PaidBy Shared Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, []uint{payer}, true, false)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)
@@ -245,7 +245,7 @@ func TestGetGroupPaidByUserIdsFailsClosedAfterGrantedUserDeleted(t *testing.T) {
 		t.Fatalf("delete payer: %v", err)
 	}
 	// A user delete does not evict the role's grant cache, so force a fresh load.
-	clearGroupRoleGrantCache(implicitCellID(), roleId)
+	clearGroupRoleGrantCache(roleId)
 
 	allowed, unrestricted, err = service.GetGroupPaidByUserIdsForUser(userId, groupId)
 	if err != nil {
@@ -280,7 +280,7 @@ func TestGetGroupPaidByUserIdsFailsClosedWhenFlagDesynced(t *testing.T) {
 		Update("paid_by_visibility_restricted", false).Error; err != nil {
 		t.Fatalf("force flag false: %v", err)
 	}
-	clearGroupRoleGrantCache(implicitCellID(), roleId)
+	clearGroupRoleGrantCache(roleId)
 
 	allowed, unrestricted, err := NewPermissionService(nil).GetGroupPaidByUserIdsForUser(userId, groupId)
 	if err != nil {

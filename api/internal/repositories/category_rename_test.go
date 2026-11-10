@@ -21,7 +21,7 @@ func TestRenamingACategoryKeepsTheOldNameAsAnAliasAndMovesItsProducts(t *testing
 	other.FoodGroup = "Dairy"
 	GetDB().Create(&other)
 
-	updated, err := NewCategoryRepository(ImplicitCell(), nil).UpdateCategory(models.Category{
+	updated, err := NewCategoryRepository(nil).UpdateCategory(models.Category{
 		BaseModel: models.BaseModel{ID: category.ID}, Name: "Snacks", Description: "d", Skipped: true,
 	}, "")
 	if err != nil {
@@ -45,7 +45,7 @@ func TestRenamingACategoryKeepsTheOldNameAsAnAliasAndMovesItsProducts(t *testing
 	}
 
 	// Renaming back drops the alias; a skip toggled off persists.
-	back, _ := NewCategoryRepository(ImplicitCell(), nil).UpdateCategory(models.Category{BaseModel: models.BaseModel{ID: category.ID}, Name: "Sweets & Snacks"}, "")
+	back, _ := NewCategoryRepository(nil).UpdateCategory(models.Category{BaseModel: models.BaseModel{ID: category.ID}, Name: "Sweets & Snacks"}, "")
 	if back.Aliases != "Snacks" {
 		t.Errorf("expected the intermediate name as the alias, got %q", back.Aliases)
 	}

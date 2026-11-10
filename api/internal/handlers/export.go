@@ -47,7 +47,7 @@ func ExportAllReceiptsFromGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
+			receiptRepository := repositories.NewReceiptRepository(nil)
 			receipts, _, err := receiptRepository.
 				GetPagedReceiptsByGroupId(
 					token.UserId,
@@ -111,7 +111,7 @@ func ExportReceiptsById(w http.ResponseWriter, r *http.Request) {
 			}
 
 			token := structs.GetClaims(r)
-			receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
+			receiptRepository := repositories.NewReceiptRepository(nil)
 			receipts, err := receiptRepository.GetReceiptsByIds(receiptIds, getExportReceiptAssociations())
 			if err != nil {
 				return http.StatusInternalServerError, err

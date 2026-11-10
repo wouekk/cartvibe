@@ -103,7 +103,7 @@ func TestGenerateReportFromTemplate_IgnoresRetiredSplitKeys(t *testing.T) {
 	if err := json.Unmarshal([]byte(linesReportBody), &command); err != nil {
 		t.Fatalf("decode body: %v", err)
 	}
-	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(command, 1)
+	template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(command, 1)
 	if err != nil {
 		t.Fatalf("seed report template: %v", err)
 	}

@@ -33,7 +33,7 @@ func (service PermissionService) GetVisibleUserIdsForUser(viewerId uint) (map[ui
 		return nil, true, nil
 	}
 
-	memberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
+	memberRepository := repositories.NewGroupMemberRepository(service.TX)
 	rows, err := memberRepository.GetViewerGroupRows(viewerId)
 	if err != nil {
 		return nil, false, err
@@ -110,7 +110,7 @@ func (service PermissionService) GetVisibleUserIdsForUserInGroup(viewerId uint, 
 		return nil, true, nil
 	}
 
-	memberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
+	memberRepository := repositories.NewGroupMemberRepository(service.TX)
 	row, found, isMember, err := memberRepository.GetViewerGroupRow(viewerId, groupId)
 	if err != nil {
 		return nil, false, err
@@ -261,7 +261,7 @@ func (service PermissionService) visibleUserIdsByGroup(viewerId uint, groupIds [
 		return nil, true, nil
 	}
 
-	memberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
+	memberRepository := repositories.NewGroupMemberRepository(service.TX)
 	rows, err := memberRepository.GetViewerGroupRows(viewerId)
 	if err != nil {
 		return nil, false, err

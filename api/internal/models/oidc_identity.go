@@ -13,9 +13,9 @@ import "time"
 type OidcIdentity struct {
 	BaseModel
 
-	// Subject is the ID token's `sub`. Capped at 255 so the composite unique
-	// index below stays inside MySQL's 3072-byte index limit; that is also why
-	// PreferredUsername is deliberately NOT part of any index.
+	// Subject is the ID token's `sub` (the OpenID Connect limit is 255 ASCII
+	// characters). PreferredUsername is deliberately NOT part of any index: it is
+	// a display hint, never an identity.
 	Subject        string `gorm:"not null;size:255;uniqueIndex:idx_oidc_identity_provider_subject" json:"subject"`
 	OidcProviderId uint   `gorm:"not null;uniqueIndex:idx_oidc_identity_provider_subject;uniqueIndex:idx_oidc_identity_provider_user" json:"oidcProviderId"`
 

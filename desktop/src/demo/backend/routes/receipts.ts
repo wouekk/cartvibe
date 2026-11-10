@@ -8,7 +8,6 @@ import {
   ReceiptPagedRequestCommand,
   ReceiptProduct,
   ReceiptStatus,
-  SearchResult,
   Tag,
   UpsertCategoryCommand,
   UpsertCommentCommand,
@@ -487,29 +486,7 @@ export function registerReceipts(router: DemoRouter): void {
     return ok();
   });
 
-  // Search box and exports
-  router.get("/search", (ctx) => {
-    const term = (ctx.req.query.get("searchTerm") ?? "").trim().toLowerCase();
-    if (!term) {
-      return [];
-    }
-    return ctx.db.receipts
-      .filter((receipt) => `${receipt.name} ${receipt.shopName ?? ""}`.toLowerCase().includes(term))
-      .slice(0, 10)
-      .map(
-        (receipt): SearchResult => ({
-          id: receipt.id,
-          name: receipt.name,
-          type: "receipt",
-          groupId: receipt.groupId,
-          date: receipt.date,
-          amount: receipt.amount,
-          receiptStatus: receipt.status,
-          paidByUserId: receipt.paidByUserId,
-          createdAt: receipt.createdAt ?? receipt.date,
-        }),
-      );
-  });
+  // Exports
   router.post("/export/:groupId", (ctx) => {
     const request = body<ReceiptPagedRequestCommand>(ctx);
     const groupId = Number(ctx.params["groupId"]);

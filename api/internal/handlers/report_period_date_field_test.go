@@ -75,7 +75,7 @@ func seedPeriodTemplate(t *testing.T, dateField string, month int) models.Report
 		Columns: []commands.ReportColumn{{Kind: "dimension", Name: "Name", Label: "Name", Field: "name"}},
 		Formats: []string{commands.ReportFormatCsv},
 	}
-	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(command, 1)
+	template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(command, 1)
 	if err != nil {
 		t.Fatalf("seed report template: %v", err)
 	}

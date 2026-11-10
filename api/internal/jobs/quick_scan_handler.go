@@ -142,7 +142,7 @@ func notifyQuickScanResult(payload QuickScanTaskPayload, title string, receiptId
 			repositories.BuildParamaterisedString("receiptId", receiptId, "", "link"))
 	}
 
-	err := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil).SendNotificationToUsers(
+	err := repositories.NewNotificationRepository(nil).SendNotificationToUsers(
 		[]uint{payload.Token.UserId},
 		title,
 		body,

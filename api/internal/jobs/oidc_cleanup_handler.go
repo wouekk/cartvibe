@@ -15,5 +15,5 @@ import (
 // un-swept row can never be redeemed. Rows are consumed within seconds or expire
 // within minutes, so the tables stay small at any interval.
 func HandleOidcCleanupTask(context context.Context, task *asynq.Task) error {
-	return repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).DeleteExpiredOidcSessions()
+	return repositories.NewOidcSessionRepository(nil).DeleteExpiredOidcSessions()
 }

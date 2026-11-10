@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"fmt"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
@@ -22,11 +21,10 @@ type CommentRepository struct {
 // disables suppression, so every recipient receives (backward compatible).
 type AuthorVisibilityResolver func(authorId uint, recipientId uint, groupId uint) (canSeeAuthor bool, err error)
 
-func NewCommentRepository(h cell.Handle, tx *gorm.DB) CommentRepository {
+func NewCommentRepository(tx *gorm.DB) CommentRepository {
 	repository := CommentRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
@@ -158,8 +156,8 @@ func (repository CommentRepository) sendNotificationsToUsers(comment models.Comm
 	authorId := *comment.UserId
 	usersToOmit := make([]interface{}, 0)
 	usersToOmit = append(usersToOmit, authorId)
-	notificationRepository := NewNotificationRepository(repository.Cell, repository.TX)
-	receiptRepository := NewReceiptRepository(repository.Cell, repository.TX)
+	notificationRepository := NewNotificationRepository(repository.TX)
+	receiptRepository := NewReceiptRepository(repository.TX)
 
 	receipt, err := receiptRepository.GetReceiptById(utils.UintToString(comment.ReceiptId))
 	if err != nil {
@@ -225,7 +223,7 @@ func (repository CommentRepository) recipientsWhoCannotSeeAuthor(authorId uint, 
 		return nil, nil
 	}
 
-	groupMemberRepository := NewGroupMemberRepository(repository.Cell, repository.TX)
+	groupMemberRepository := NewGroupMemberRepository(repository.TX)
 	members, err := groupMemberRepository.GetsGroupMembersByGroupId(utils.UintToString(groupId))
 	if err != nil {
 		return nil, err

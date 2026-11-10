@@ -93,7 +93,7 @@ func seedTripFixture(t *testing.T) tripFixture {
 
 func readTrip(t *testing.T, tripId uint) models.ShoppingTrip {
 	t.Helper()
-	trip, err := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), nil).GetTripById(tripId)
+	trip, err := repositories.NewShoppingTripRepository(nil).GetTripById(tripId)
 	if err != nil {
 		t.Fatalf("read trip: %v", err)
 	}
@@ -103,7 +103,7 @@ func readTrip(t *testing.T, tripId uint) models.ShoppingTrip {
 // seedReadProducts stores products for the receipt as a finished read.
 func seedReadProducts(t *testing.T, receiptId uint, products []models.ReceiptProduct) []models.ReceiptProduct {
 	t.Helper()
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
+	repository := repositories.NewReceiptProductRepository(nil)
 	if err := repository.MarkReceiptProductsPending(receiptId); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestAttachReceiptSnapshotsWhatWasPlanned(t *testing.T) {
 		t.Errorf("expected a pending trip, got %s", trip.Status)
 	}
 
-	extraction, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetExtraction(fixture.receipt.ID)
+	extraction, err := repositories.NewReceiptProductRepository(nil).GetExtraction(fixture.receipt.ID)
 	if err != nil || extraction.Status != models.PRODUCT_EXTRACTION_PENDING {
 		t.Errorf("expected the receipt queued for reading, got %+v (%v)", extraction, err)
 	}
@@ -163,7 +163,7 @@ func TestAttachingKeepsProductsAlreadyRead(t *testing.T) {
 		t.Fatalf("attach: %v", err)
 	}
 
-	extraction, _ := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).GetExtraction(fixture.receipt.ID)
+	extraction, _ := repositories.NewReceiptProductRepository(nil).GetExtraction(fixture.receipt.ID)
 	if extraction.Status != models.PRODUCT_EXTRACTION_DONE {
 		t.Errorf("attaching must not re-read products already read, got %s", extraction.Status)
 	}
@@ -272,7 +272,7 @@ func TestReReadingProductsComparesTheTripAgainAndDetachClearsMarks(t *testing.T)
 		t.Fatalf("process: %v", err)
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
+	productRepository := repositories.NewReceiptProductRepository(nil)
 	if err := productRepository.ReplaceProducts(fixture.receipt.ID, []models.ReceiptProduct{{ReceiptId: fixture.receipt.ID, Name: "PAIN"}}); err != nil {
 		t.Fatalf("re-read: %v", err)
 	}
@@ -295,7 +295,7 @@ func TestReReadingProductsComparesTheTripAgainAndDetachClearsMarks(t *testing.T)
 	if products[0].Planned != nil {
 		t.Error("expected detaching to clear the product's mark")
 	}
-	if _, err := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), nil).GetTripById(trip.ID); err == nil {
+	if _, err := repositories.NewShoppingTripRepository(nil).GetTripById(trip.ID); err == nil {
 		t.Error("expected the trip gone")
 	}
 }
@@ -352,7 +352,7 @@ func TestRetryOnlyRequeuesAFailedTrip(t *testing.T) {
 		t.Errorf("expected a pending trip not to be retried, got %v", err)
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
+	productRepository := repositories.NewReceiptProductRepository(nil)
 	productRepository.UpdateExtraction(fixture.receipt.ID, models.PRODUCT_EXTRACTION_FAILED, time.Now(), 3, "unreadable")
 	if _, err := service.ProcessDueTrips(); err != nil {
 		t.Fatalf("process: %v", err)

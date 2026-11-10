@@ -16,7 +16,7 @@ import (
 // The common case — a role with neither flag — costs one query; the group's
 // settings and the comment permission are only read when a flag is set.
 func (service ReceiptService) ResolveReceiptRequirements(userId uint, groupId uint) (structs.ReceiptRequirements, error) {
-	flagsByGroup, err := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX).GetMemberReceiptRequirementFlags(userId, []uint{groupId})
+	flagsByGroup, err := repositories.NewRoleRepository(service.TX).GetMemberReceiptRequirementFlags(userId, []uint{groupId})
 	if err != nil {
 		return structs.ReceiptRequirements{}, err
 	}
@@ -66,7 +66,7 @@ func (service ReceiptService) ResolveReceiptRequirementsForGroups(
 		groupIds = append(groupIds, group.ID)
 	}
 
-	flagsByGroup, err := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX).GetMemberReceiptRequirementFlags(userId, groupIds)
+	flagsByGroup, err := repositories.NewRoleRepository(service.TX).GetMemberReceiptRequirementFlags(userId, groupIds)
 	if err != nil {
 		return nil, err
 	}

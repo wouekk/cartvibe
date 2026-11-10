@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
@@ -18,39 +17,12 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// db is the one database of the process. Every repository reads it through GetDB when it is built.
 var db *gorm.DB
 
-// cells serves the cell handles. In standalone mode it holds today's single database; it always wraps
-// the same *gorm.DB as db, because setDB is the only place either is assigned.
-var cells cell.Manager
-
-// setDB replaces the process database and the standalone manager that wraps it.
+// setDB replaces the process database (Connect, and the tests that swap it).
 func setDB(connectedDb *gorm.DB) {
 	db = connectedDb
-
-	if connectedDb == nil {
-		cells = nil
-		return
-	}
-
-	// Only a nil database makes this fail, and that case returned above.
-	cells, _ = cell.NewStandaloneManager(connectedDb)
-}
-
-// ImplicitCell returns the handle of the one standalone cell, the zero Handle before the database is
-// connected (as GetDB returned nil then). It is the bridge for callers that do not receive a handle
-// yet; once the HTTP layer resolves the cell per request it goes away.
-func ImplicitCell() cell.Handle {
-	if cells == nil {
-		return cell.Handle{}
-	}
-
-	handle, err := cells.Implicit()
-	if err != nil {
-		return cell.Handle{}
-	}
-
-	return handle
 }
 
 func BuildSqliteConnectionString(dbConfig structs.DatabaseConfig) (string, error) {
@@ -162,8 +134,7 @@ func MakeMigrations() error {
 	return migrateSchema(db)
 }
 
-// migrateSchema creates or extends every table on target. MakeMigrations runs it on the process database;
-// the twin-cell tests run it on each fixture cell.
+// migrateSchema creates or extends every table on target (MakeMigrations runs it on the process database).
 func migrateSchema(target *gorm.DB) error {
 	err := target.AutoMigrate(
 		&models.RefreshToken{},
@@ -223,42 +194,40 @@ func GetDB() *gorm.DB {
 }
 
 func InitDB() error {
-	// Startup serves the one implicit cell until the cell is resolved by the caller.
-	h := ImplicitCell()
 
 	// The first settings row is the euro one. Anything that creates a row before this (an empty
 	// row here used to) would leave a fresh install on dollars, because the seed only acts on an
 	// empty table.
-	if err := SeedEuroForNewInstall(h); err != nil {
+	if err := SeedEuroForNewInstall(); err != nil {
 		return err
 	}
 
-	if err := SeedSystemRoles(h); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		return err
 	}
 
 	// Must run after the roles are seeded and before the bootstrap admin /
 	// data migration so the default app and group roles exist for assignment.
-	if err := EnsureDefaultRoles(h); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		return err
 	}
 
 	if config.GetDeployEnv() != "test" {
-		userRepository := NewUserRepository(h, nil)
+		userRepository := NewUserRepository(nil)
 		err := userRepository.CreateUserIfNoneExist()
 		if err != nil {
 			return err
 		}
 	}
 
-	if err := SeedDefaultExchangeRates(h); err != nil {
+	if err := SeedDefaultExchangeRates(); err != nil {
 		return err
 	}
 
-	if err := RunDataMigrations(h); err != nil {
+	if err := RunDataMigrations(); err != nil {
 		return err
 	}
-	if err := SeedStarterReportTemplates(h); err != nil {
+	if err := SeedStarterReportTemplates(); err != nil {
 		return err
 	}
 

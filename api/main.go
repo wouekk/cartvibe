@@ -40,17 +40,6 @@ func main() {
 
 	config.CheckRequiredEnvironmentVariables()
 
-	// worker and imgproc are reserved for the hosted plan. Refuse them rather than run as standalone:
-	// a hosted process quietly serving one database is the failure the mode exists to prevent.
-	mode, err := config.GetCellMode()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
-	}
-	if !mode.Implemented() {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Sprintf("CARTVIBE_MODE=%s is reserved and not implemented in this build", mode))
-	}
-	logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("Mode: %s", mode))
-
 	err = repositories.Connect()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())

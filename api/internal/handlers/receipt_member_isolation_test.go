@@ -44,7 +44,7 @@ func seedIsolatedReceiptGroupHandler(t *testing.T, isolate bool) isoHandlerFixtu
 	services.ClearRolePermissionCacheForTests()
 	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	perms := []string{
 		permissions.GroupReceiptsRead,
@@ -227,32 +227,6 @@ func TestMemberIsolationPagedListHidesNonVisiblePayer(t *testing.T) {
 	}
 	if len(payers) != 1 || payers[0] != fx.memberAId {
 		t.Errorf("expected only A's receipt in the page, got payers %v", payers)
-	}
-}
-
-func TestMemberIsolationGetReceiptsForGroupIdsHidesNonVisiblePayer(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	fx := seedIsolatedReceiptGroupHandler(t, true)
-	seedReceipt(t, fx.groupId, fx.memberAId)
-	seedReceipt(t, fx.groupId, fx.memberBId)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/?groupIds="+utils.UintToString(fx.groupId), nil)
-	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, claimsForUser(fx.memberAId)))
-
-	GetReceiptsForGroupIds(w, r)
-
-	if w.Result().StatusCode != 200 {
-		utils.PrintTestError(t, w.Result().StatusCode, 200)
-	}
-
-	var receipts []models.Receipt
-	if err := json.Unmarshal(w.Body.Bytes(), &receipts); err != nil {
-		t.Fatalf("unmarshal receipts: %v", err)
-	}
-	if len(receipts) != 1 || receipts[0].PaidByUserID != fx.memberAId {
-		t.Errorf("expected only A's receipt, got %d receipts", len(receipts))
 	}
 }
 

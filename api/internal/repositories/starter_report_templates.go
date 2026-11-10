@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"strconv"
 	"time"
 
@@ -96,8 +95,8 @@ func StarterReportTemplates(groupId uint) []commands.ReportRequestCommand {
 // SeedStarterReportTemplates creates the starter templates once, for the first account and the Household
 // group (else the first real group). It does nothing, and tries again next boot, until both exist; once they
 // have been created they are recorded, so a template an admin deletes stays deleted.
-func SeedStarterReportTemplates(h cell.Handle) error {
-	db := h.DB()
+func SeedStarterReportTemplates() error {
+	db := GetDB()
 
 	var applied int64
 	if err := db.Model(&models.DataMigration{}).Where("name = ?", starterReportTemplatesMigration).Count(&applied).Error; err != nil {
@@ -126,7 +125,7 @@ func SeedStarterReportTemplates(h cell.Handle) error {
 	}
 
 	return db.Transaction(func(tx *gorm.DB) error {
-		repository := NewReportTemplateRepository(h, tx)
+		repository := NewReportTemplateRepository(tx)
 		for _, command := range StarterReportTemplates(group.ID) {
 			if _, err := repository.CreateReportTemplate(command, admin.ID); err != nil {
 				return err

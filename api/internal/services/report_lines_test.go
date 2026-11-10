@@ -190,7 +190,7 @@ func TestReportDataService_RestrictsHiddenLineCategories(t *testing.T) {
 	hiddenTwo := makeCategory(t, "HiddenTwo")
 	restrictedUser, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-restricted", []uint{visibleId}, nil)
 
-	unrestrictedRole, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
+	unrestrictedRole, err := repositories.NewRoleRepository(nil).CreateGroupRole(
 		"Unrestricted lines role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)

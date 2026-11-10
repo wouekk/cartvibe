@@ -50,7 +50,7 @@ func seedRequirementMember(
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	role, err := roleRepository.CreateGroupRole(name+" role", "", perms, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed role: %v", err)
@@ -172,7 +172,7 @@ func TestResolveReceiptRequirements_NothingRequired(t *testing.T) {
 func TestGetAppData_GroupReceiptRequirements(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
 		Username:    "req-appdata",
 		Password:    "Password",
 		DisplayName: "Req AppData",
@@ -234,7 +234,7 @@ func seedCreateWithFilesGroup(t *testing.T) (models.User, models.Group, string) 
 		t.Fatalf("seed member: %v", err)
 	}
 
-	groupPath, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildGroupPath(group.ID, "")
+	groupPath, err := repositories.NewFileRepository(nil).BuildGroupPath(group.ID, "")
 	if err != nil {
 		t.Fatalf("BuildGroupPath: %v", err)
 	}

@@ -7,25 +7,21 @@ import (
 	"strings"
 	"time"
 
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-// ErrZeroHandleRepository is the panic value of BaseRepository.GetDB when no database is available.
-const ErrZeroHandleRepository = "repository built from a zero cell.Handle: no database (not connected, or the handle came from nowhere)"
+// ErrNoDatabase is the panic value of BaseRepository.GetDB when no database is available.
+const ErrNoDatabase = "repository has no database: it was built before the database was connected, and has no transaction"
 
 type BaseRepository struct {
 	DB *gorm.DB
 	TX *gorm.DB
-	// Cell is the handle the repository was built from. A repository that needs a sibling repository (or the app
-	// time zone) builds it from this handle, so the whole call chain stays in one cell.
-	Cell cell.Handle
 }
 
 // GetDB returns the transaction when one is set, else the repository's database. A repository with neither
-// was built from a zero cell.Handle (or before the database connected): that is a programming error, so it
+// was built before the database connected: that is a programming error, so it
 // stops here with a readable message instead of a nil-pointer panic inside GORM.
 func (repository BaseRepository) GetDB() *gorm.DB {
 	if repository.TX != nil {
@@ -33,7 +29,7 @@ func (repository BaseRepository) GetDB() *gorm.DB {
 	}
 
 	if repository.DB == nil {
-		panic(ErrZeroHandleRepository)
+		panic(ErrNoDatabase)
 	}
 
 	return repository.DB
@@ -190,8 +186,7 @@ func (repository BaseRepository) BuildFilterQuery(runningQuery *gorm.DB, value i
 //   - a time.Time, taken as the day in its own location.
 //
 // Every bound is converted to UTC before it reaches the driver, so it compares
-// correctly against UTC-stored timestamps on every engine (SQLite compares
-// them as text).
+// correctly against UTC-stored timestamps (SQLite compares them as text).
 //
 // Every unwrap is comma-ok: a wrong-typed or unparseable value adds no
 // predicate rather than panicking the handler. column is interpolated into the

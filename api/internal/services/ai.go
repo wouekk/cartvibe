@@ -11,7 +11,7 @@ import (
 )
 
 func NewAiService(receiptProcessingSettingsId string) (*AiService, error) {
-	repository := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil)
+	repository := repositories.NewReceiptProcessingSettings(nil)
 	client := &AiService{}
 
 	receiptProcessingSettings, err := repository.GetReceiptProcessingSettingsById(receiptProcessingSettingsId)
@@ -115,7 +115,7 @@ func (service *AiService) CheckConnectivity(ranByUserId uint, decryptKey bool) (
 		systemTaskCommand.AssociatedEntityId = service.ReceiptProcessingSettings.ID
 		systemTaskCommand.AssociatedEntityType = models.RECEIPT_PROCESSING_SETTINGS
 
-		systemTaskRepository := repositories.NewSystemTaskRepository(repositories.ImplicitCell(), nil)
+		systemTaskRepository := repositories.NewSystemTaskRepository(nil)
 		return systemTaskRepository.CreateSystemTask(systemTaskCommand)
 	}
 

@@ -37,7 +37,7 @@ func SaveUserAvatar(userId uint, data []byte) (time.Time, error) {
 		return time.Time{}, ErrAvatarTooLarge
 	}
 
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+	fileRepository := repositories.NewFileRepository(nil)
 	fileType, err := fileRepository.ValidateFileType(data)
 	if err != nil {
 		return time.Time{}, ErrAvatarType

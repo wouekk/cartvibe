@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"encoding/json"
 	"errors"
 
@@ -16,11 +15,10 @@ type ReportTemplateRepository struct {
 	BaseRepository
 }
 
-func NewReportTemplateRepository(h cell.Handle, tx *gorm.DB) ReportTemplateRepository {
+func NewReportTemplateRepository(tx *gorm.DB) ReportTemplateRepository {
 	repository := ReportTemplateRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

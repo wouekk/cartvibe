@@ -1797,33 +1797,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-  /search/:
-    get:
-      tags:
-        - Search
-      summary: Receipt Search
-      description: This will search for receipts based on a search term
-      operationId: receiptSearch
-      parameters:
-        - name: searchTerm
-          in: query
-          description: search term
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: The search results
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SearchResult"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
   /signUp:
     post:
       tags:
@@ -5785,12 +5758,6 @@ components:
         - asc
         - desc
         - ""
-    ChartGrouping:
-      type: string
-      enum:
-        - "CATEGORIES"
-        - "TAGS"
-        - "PAIDBY"
     AiType:
       type: string
       description: >-
@@ -6838,34 +6805,6 @@ components:
           $ref: "#/components/schemas/PagedRequestField"
         endedAt:
           $ref: "#/components/schemas/PagedRequestField"
-    SearchResult:
-      required:
-        - id
-        - name
-        - type
-        - groupId
-        - date
-        - createdAt
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        type:
-          type: string
-        groupId:
-          type: integer
-        date:
-          type: string
-        amount:
-          type: string
-        receiptStatus:
-          $ref: "#/components/schemas/ReceiptStatus"
-        paidByUserId:
-          type: integer
-        createdAt:
-          type: string
     PagedData:
       required:
         - data
@@ -8046,10 +7985,6 @@ components:
               type: boolean
               description: Debug OCR
               default: false
-            numWorkers:
-              type: integer
-              description: Number of workers to use
-              default: 1
             receiptProcessingSettingsId:
               type: integer
               description: Receipt processing settings foreign key
@@ -8152,10 +8087,6 @@ components:
           description: Whether to hide decimal places
         debugOcr:
           type: boolean
-        numWorkers:
-          type: integer
-          description: Number of workers to use
-          default: 1
         receiptProcessingSettingsId:
           type: integer
           description: Receipt processing settings foreign key
@@ -8328,7 +8259,6 @@ components:
       required:
         - name
         - aiType
-        - numWorkers
         - ocrEngine
       properties:
         name:
@@ -8379,9 +8309,6 @@ components:
         enforceJsonResponseFormat:
           type: boolean
           description: Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
-        numWorkers:
-          type: integer
-          description: Number of workers to use
         ocrEngine:
           $ref: "#/components/schemas/OcrEngine"
     Icon:

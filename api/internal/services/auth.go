@@ -46,7 +46,7 @@ const defaultMcpRefreshTokenLifetime = 24 * time.Hour
 // than an absolute session cap: an actively refreshing client is never logged
 // out, while an idle one must re-authenticate once it exceeds the window.
 func GetRefreshTokenLifetime() time.Duration {
-	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read refresh token lifetime, using default: "+err.Error())
 		return defaultRefreshTokenLifetime
@@ -60,7 +60,7 @@ func GetRefreshTokenLifetime() time.Duration {
 // long window chosen for human convenience does not silently extend tokens held
 // by third-party clients.
 func GetMcpRefreshTokenLifetime() time.Duration {
-	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read MCP refresh token lifetime, using default: "+err.Error())
 		return defaultMcpRefreshTokenLifetime
@@ -153,7 +153,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 	// password check on purpose: every caller answers this error exactly like a
 	// wrong password, and asking first would answer faster than bcrypt and tell
 	// anyone which usernames are identity provider accounts.
-	passwordless, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).IsAccountPasswordless(dbUser.ID)
+	passwordless, err := repositories.NewOidcIdentityRepository(nil).IsAccountPasswordless(dbUser.ID)
 	if err != nil {
 		return models.User{}, false, err
 	}
@@ -161,7 +161,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 		return models.User{}, false, ErrPasswordLoginUnavailable
 	}
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 
 	// "Administrator" is defined by the app.users.read permission (the modern
 	// replacement for the removed UserRole == ADMIN check), resolved from the
@@ -202,7 +202,7 @@ func UseSecureCookies() bool {
 		return true
 	}
 
-	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	systemSettings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read secure cookies setting, leaving cookies non-secure: "+err.Error())
 		return false
@@ -331,14 +331,14 @@ func generateTokenPair(userId uint, audience string, refreshLifetime time.Durati
 func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	appData := structs.AppData{}
 
-	aboutRepository := repositories.NewAboutRepository(repositories.ImplicitCell(), nil)
+	aboutRepository := repositories.NewAboutRepository(nil)
 	groupService := NewGroupService(nil)
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
-	userPreferenceRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
-	categoryRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
+	userPreferenceRepository := repositories.NewUserPreferencesRepository(nil)
+	categoryRepository := repositories.NewCategoryRepository(nil)
 	systemSettingsService := NewSystemSettingsService(nil)
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
-	tagRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
+	tagRepository := repositories.NewTagsRepository(nil)
 	stringUserId := utils.UintToString(userId)
 
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
@@ -497,7 +497,7 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	// Attach each surviving member's per-member category/tag grants. Loaded after
 	// the isolation filter so grants are never fetched for a member the caller
 	// cannot see. The fields are `gorm:"-"`, so nothing loads them implicitly.
-	if err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).LoadMemberGrantsForGroups(groups); err != nil {
+	if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroups(groups); err != nil {
 		return appData, err
 	}
 

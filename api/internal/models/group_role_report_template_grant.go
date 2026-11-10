@@ -8,8 +8,8 @@ package models
 // it to exactly the listed (template, action) pairs.
 //
 // Permission is one of the scopable report actions (read|generate|update|delete|
-// duplicate) — not a foreign key, an app-validated token — so it carries an explicit
-// size for the composite index (MariaDB/MySQL reject an unbounded VARCHAR there).
+// duplicate) — not a foreign key, an app-validated token. Its explicit size dates from
+// the engines that needed one for the composite index; SQLite ignores it.
 // The ReportTemplate association cascades so deleting a template cleans its grant
 // rows; the GroupRoleID side cascades from the parent GroupRoleDefinition.
 type GroupRoleReportTemplateGrant struct {

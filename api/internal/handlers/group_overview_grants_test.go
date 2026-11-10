@@ -148,7 +148,7 @@ func TestGroupOverviewForAllJudgesGrantsInTheRealGroups(t *testing.T) {
 	db.Create(&secret)
 
 	userId, groupId := seedRestrictedReceiptCreatorWithGrants(t, []uint{groceries.ID}, []uint{kids.ID})
-	allGroup, err := repositories.NewGroupRepository(repositories.ImplicitCell(), nil).CreateAllGroup(userId)
+	allGroup, err := repositories.NewGroupRepository(nil).CreateAllGroup(userId)
 	if err != nil {
 		t.Fatalf("create All group: %v", err)
 	}

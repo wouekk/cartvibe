@@ -100,6 +100,6 @@ func ExportBackup(w http.ResponseWriter, r *http.Request) {
 }
 
 func backupOptions(includeFiles bool) backup.Options {
-	about, _ := repositories.NewAboutRepository(repositories.ImplicitCell(), nil).GetAboutData()
+	about, _ := repositories.NewAboutRepository(nil).GetAboutData()
 	return backup.Options{IncludeFiles: includeFiles, AppVersion: about.Version, Now: time.Now()}
 }

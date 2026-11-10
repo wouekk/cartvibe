@@ -161,7 +161,7 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	productRepository := repositories.NewReceiptProductRepository(service.TX)
 	periodProducts, err := productRepository.GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
 	if err != nil {
 		return structs.GroupOverview{}, err
@@ -220,7 +220,7 @@ func (service GroupOverviewService) countActiveWarranties(userId uint, groupId s
 		Filter: commands.ReceiptPagedRequestFilter{WarrantyActive: true},
 	}
 
-	_, count, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetPagedReceiptsByGroupId(
+	_, count, err := repositories.NewReceiptRepository(service.TX).GetPagedReceiptsByGroupId(
 		userId,
 		groupId,
 		pagedRequest,
@@ -305,13 +305,13 @@ func (service GroupOverviewService) dashboardGroupIds(userId uint, groupId strin
 	if err != nil {
 		return nil, err
 	}
-	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), service.TX)
+	groupRepository := repositories.NewGroupRepository(service.TX)
 	isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
 	if err != nil || !isAllGroup {
 		return []uint{uintGroupId}, err
 	}
 
-	memberGroupIds, err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX).GetGroupIdsByUserId(utils.UintToString(userId))
+	memberGroupIds, err := repositories.NewGroupMemberRepository(service.TX).GetGroupIdsByUserId(utils.UintToString(userId))
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +342,7 @@ func (service GroupOverviewService) dashboardGroupIds(userId uint, groupId strin
 // receipt's group becomes the (Restricted) slice, as on every other aggregation: its spend still counts,
 // its name does not show.
 func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct, grants overviewGrants) error {
-	categories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), service.TX).GetAllCategories("id, name")
+	categories, err := repositories.NewCategoryRepository(service.TX).GetAllCategories("id, name")
 	if err != nil {
 		return err
 	}
@@ -423,7 +423,7 @@ func (service GroupOverviewService) sumDashboardTags(
 		return tiles, nil
 	}
 
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 
 	add := func(rows []repositories.PricedProductTag, shares map[uint]decimal.Decimal, previousPeriod bool) error {
 		for _, row := range rows {
@@ -533,7 +533,7 @@ func (service GroupOverviewService) sumProductKinds(receipts []models.Receipt, p
 		return unhealthy, unplanned, nil
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	productRepository := repositories.NewReceiptProductRepository(service.TX)
 
 	unhealthyProducts, err := productRepository.GetPricedProductsWithHealth(receiptIds, models.HEALTH_UNHEALTHY)
 	if err != nil {
@@ -583,7 +583,7 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 		byId[receipt.ID] = receipt
 	}
 
-	products, err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX).
+	products, err := repositories.NewReceiptProductRepository(service.TX).
 		GetProductsForReceiptsByKind(receiptIdsInPeriod(receipts, period), filter)
 	if err != nil {
 		return nil, err
@@ -672,7 +672,7 @@ func (service GroupOverviewService) fetchReceipts(
 		},
 	}
 
-	receipts, _, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetPagedReceiptsByGroupId(
+	receipts, _, err := repositories.NewReceiptRepository(service.TX).GetPagedReceiptsByGroupId(
 		userId,
 		groupId,
 		pagedRequest,

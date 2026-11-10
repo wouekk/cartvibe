@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"archive/zip"
 	"bytes"
 	"errors"
@@ -25,11 +24,10 @@ type FileRepository struct {
 	BaseRepository
 }
 
-func NewFileRepository(h cell.Handle, tx *gorm.DB) FileRepository {
+func NewFileRepository(tx *gorm.DB) FileRepository {
 	repository := FileRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
@@ -313,7 +311,7 @@ const (
 )
 
 func (repository FileRepository) pdfRasterizationDpi() float64 {
-	systemSettingsRepository := NewSystemSettingsRepository(repository.Cell, repository.DB)
+	systemSettingsRepository := NewSystemSettingsRepository(repository.DB)
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
 	if err != nil {
 		return defaultPdfDpi

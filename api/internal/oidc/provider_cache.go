@@ -19,7 +19,6 @@ package oidc
 import (
 	"context"
 	"net/http"
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"sync"
@@ -42,12 +41,11 @@ type cacheEntry struct {
 
 var (
 	providerCacheMutex sync.RWMutex
-	providerCache      = map[cell.CellKey[uint]]cacheEntry{}
+	providerCache      = map[uint]cacheEntry{}
 )
 
-// GetProvider returns a discovered *oidc.Provider for a configured row of the given cell, caching
-// it across requests. The cache is keyed by (cell, row id): two cells hold the same provider ids, and one
-// household's provider (and its cached signing keys) must never serve another's login.
+// GetProvider returns a discovered *oidc.Provider for a configured row, caching
+// it across requests. The cache is keyed by the row id.
 //
 // Caching is not an optimization here, it is the design. oidc.NewProvider makes a
 // network round trip on EVERY call, and the *oidc.Provider is what owns the
@@ -61,9 +59,9 @@ var (
 // invalidates the entry BY CONSTRUCTION -- including on other replicas, which
 // never see the explicit InvalidateProvider call. That is why this needs no
 // cross-process invalidation, and nobody should add any.
-func GetProvider(cellID cell.ID, providerRow models.OidcProvider) (*oidc.Provider, error) {
+func GetProvider(providerRow models.OidcProvider) (*oidc.Provider, error) {
 	providerCacheMutex.RLock()
-	key := cell.KeyIn(cellID, providerRow.ID)
+	key := providerRow.ID
 	entry, ok := providerCache[key]
 	providerCacheMutex.RUnlock()
 
@@ -104,9 +102,9 @@ func GetProvider(cellID cell.ID, providerRow models.OidcProvider) (*oidc.Provide
 // InvalidateProvider drops a cached entry. The UpdatedAt fingerprint already
 // makes this unnecessary for correctness; it just frees the memory promptly on
 // the process that handled the write.
-func InvalidateProvider(cellID cell.ID, id uint) {
+func InvalidateProvider(id uint) {
 	providerCacheMutex.Lock()
-	delete(providerCache, cell.KeyIn(cellID, id))
+	delete(providerCache, id)
 	providerCacheMutex.Unlock()
 }
 
@@ -117,7 +115,7 @@ func InvalidateProvider(cellID cell.ID, id uint) {
 // remedy, as ClearRolePermissionCacheForTests.
 func ClearProviderCacheForTests() {
 	providerCacheMutex.Lock()
-	providerCache = map[cell.CellKey[uint]]cacheEntry{}
+	providerCache = map[uint]cacheEntry{}
 	providerCacheMutex.Unlock()
 }
 
@@ -128,7 +126,7 @@ func buildOauthConfig(
 	discovered *oidc.Provider,
 	redirectUri string,
 ) (*oauth2.Config, error) {
-	secret, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetDecryptedClientSecret(providerRow)
+	secret, err := repositories.NewOidcProviderRepository(nil).GetDecryptedClientSecret(providerRow)
 	if err != nil {
 		return nil, err
 	}

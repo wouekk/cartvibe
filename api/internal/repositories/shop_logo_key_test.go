@@ -11,7 +11,7 @@ import (
 func TestShopLogoKeyIsStoredEncryptedAndNeverReturned(t *testing.T) {
 	defer TruncateTestDb()
 	t.Setenv("ENCRYPTION_KEY", "test-encryption-key")
-	repository := NewSystemSettingsRepository(ImplicitCell(), nil)
+	repository := NewSystemSettingsRepository(nil)
 
 	command := buildSettingsCommand()
 	key := " sk_ExampleSecret12345 "

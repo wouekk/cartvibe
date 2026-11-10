@@ -147,7 +147,7 @@ func addGroupMemberWithGrants(
 	includeOwn bool,
 ) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
 		roleName, "", perms, categoryGrants, tagGrants, paidByGrants, includeOwn, false)
 	if err != nil {
 		t.Fatalf("failed to create group role: %v", err)
@@ -168,7 +168,7 @@ func addGroupMemberWithGrants(
 // resolve to it.
 func setAppRole(t *testing.T, userId uint, roleName string, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateAppRole(roleName, "", perms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms, false)
 	if err != nil {
 		t.Fatalf("failed to create app role: %v", err)
 	}

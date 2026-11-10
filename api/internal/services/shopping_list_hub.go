@@ -1,7 +1,6 @@
 package services
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"sync"
 )
@@ -15,7 +14,6 @@ const shoppingListSubscriberBuffer = 32
 // unsubscribe could otherwise send on a closed channel. Dropped closes instead, once, when the hub
 // gives up on a subscriber that stopped draining.
 type ShoppingListSubscriber struct {
-	Cell     cell.ID
 	GroupId  uint
 	Events   chan models.ShoppingListEvent
 	Dropped  chan struct{}
@@ -28,20 +26,19 @@ func (subscriber *ShoppingListSubscriber) markDropped() {
 	})
 }
 
-// ShoppingListHub fans shopping list events out to the SSE streams open on the same group of the same cell:
-// group ids repeat across cells, so streams are keyed by (cell, group id). It is
+// ShoppingListHub fans shopping list events out to the SSE streams open on the same group. It is
 // in-process, which is correct for the single-container deployment; running several API replicas
 // would need a shared bus (e.g. Redis pub/sub) behind the same Publish/Subscribe surface.
 type ShoppingListHub struct {
 	mu          sync.RWMutex
-	subscribers map[cell.CellKey[uint]]map[*ShoppingListSubscriber]struct{}
+	subscribers map[uint]map[*ShoppingListSubscriber]struct{}
 	// closed is set when the server stops: open streams have been ended and a late subscriber is ended at once.
 	closed bool
 }
 
 func NewShoppingListHub() *ShoppingListHub {
 	return &ShoppingListHub{
-		subscribers: make(map[cell.CellKey[uint]]map[*ShoppingListSubscriber]struct{}),
+		subscribers: make(map[uint]map[*ShoppingListSubscriber]struct{}),
 	}
 }
 
@@ -51,9 +48,8 @@ func GetShoppingListHub() *ShoppingListHub {
 	return shoppingListHub
 }
 
-func (hub *ShoppingListHub) Subscribe(cellID cell.ID, groupId uint) *ShoppingListSubscriber {
+func (hub *ShoppingListHub) Subscribe(groupId uint) *ShoppingListSubscriber {
 	subscriber := &ShoppingListSubscriber{
-		Cell:    cellID,
 		GroupId: groupId,
 		Events:  make(chan models.ShoppingListEvent, shoppingListSubscriberBuffer),
 		Dropped: make(chan struct{}),
@@ -67,7 +63,7 @@ func (hub *ShoppingListHub) Subscribe(cellID cell.ID, groupId uint) *ShoppingLis
 		return subscriber
 	}
 
-	key := cell.KeyIn(cellID, groupId)
+	key := groupId
 	if hub.subscribers[key] == nil {
 		hub.subscribers[key] = make(map[*ShoppingListSubscriber]struct{})
 	}
@@ -85,7 +81,7 @@ func (hub *ShoppingListHub) Unsubscribe(subscriber *ShoppingListSubscriber) {
 }
 
 func (hub *ShoppingListHub) removeLocked(subscriber *ShoppingListSubscriber) {
-	key := cell.KeyIn(subscriber.Cell, subscriber.GroupId)
+	key := subscriber.GroupId
 	groupSubscribers := hub.subscribers[key]
 	if groupSubscribers == nil {
 		return
@@ -99,11 +95,11 @@ func (hub *ShoppingListHub) removeLocked(subscriber *ShoppingListSubscriber) {
 
 // Publish never blocks: a write request must not stall on a slow phone. A subscriber whose buffer is
 // full is dropped instead.
-func (hub *ShoppingListHub) Publish(cellID cell.ID, event models.ShoppingListEvent) {
+func (hub *ShoppingListHub) Publish(event models.ShoppingListEvent) {
 	var dropped []*ShoppingListSubscriber
 
 	hub.mu.RLock()
-	for subscriber := range hub.subscribers[cell.KeyIn(cellID, event.GroupId)] {
+	for subscriber := range hub.subscribers[event.GroupId] {
 		select {
 		case subscriber.Events <- event:
 		default:
@@ -143,10 +139,10 @@ func (hub *ShoppingListHub) Close() {
 	}
 }
 
-// SubscriberCount reports how many streams are open on a group of a cell.
-func (hub *ShoppingListHub) SubscriberCount(cellID cell.ID, groupId uint) int {
+// SubscriberCount reports how many streams are open on a group.
+func (hub *ShoppingListHub) SubscriberCount(groupId uint) int {
 	hub.mu.RLock()
 	defer hub.mu.RUnlock()
 
-	return len(hub.subscribers[cell.KeyIn(cellID, groupId)])
+	return len(hub.subscribers[groupId])
 }

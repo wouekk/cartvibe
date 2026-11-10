@@ -24,7 +24,7 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 	GetDB().Create(&product)
 
 	for _, orderBy := range []string{"name", "description", "numberOfReceipts", "numberOfProducts"} {
-		categories, err := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(commands.PagedRequestCommand{
+		categories, err := NewCategoryRepository(nil).GetAllPagedCategories(commands.PagedRequestCommand{
 			Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.ASCENDING,
 		})
 		if err != nil {
@@ -35,7 +35,7 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 		}
 	}
 
-	byName, _ := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(commands.PagedRequestCommand{
+	byName, _ := NewCategoryRepository(nil).GetAllPagedCategories(commands.PagedRequestCommand{
 		Page: 1, PageSize: 10, OrderBy: "name", SortDirection: commands.ASCENDING,
 	})
 	if byName[0].Name != "Dairy" || byName[0].NumberOfProducts != 1 {
@@ -61,10 +61,10 @@ func TestPagedCategoriesAndTagsRefuseASortColumnTheyDoNotOffer(t *testing.T) {
 	} {
 		command := commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.ASCENDING}
 
-		if _, err := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(command); !errors.Is(err, ErrInvalidSortColumn) {
+		if _, err := NewCategoryRepository(nil).GetAllPagedCategories(command); !errors.Is(err, ErrInvalidSortColumn) {
 			t.Errorf("categories sorted by %q: expected ErrInvalidSortColumn, got %v", orderBy, err)
 		}
-		if _, err := NewTagsRepository(ImplicitCell(), nil).GetAllPagedTags(command); !errors.Is(err, ErrInvalidSortColumn) {
+		if _, err := NewTagsRepository(nil).GetAllPagedTags(command); !errors.Is(err, ErrInvalidSortColumn) {
 			t.Errorf("tags sorted by %q: expected ErrInvalidSortColumn, got %v", orderBy, err)
 		}
 	}
@@ -72,7 +72,7 @@ func TestPagedCategoriesAndTagsRefuseASortColumnTheyDoNotOffer(t *testing.T) {
 	for _, orderBy := range []string{"", "id", "name", "description", "numberOfReceipts", "numberOfProducts"} {
 		command := commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.DESCENDING}
 
-		if tags, err := NewTagsRepository(ImplicitCell(), nil).GetAllPagedTags(command); err != nil || len(tags) != 1 {
+		if tags, err := NewTagsRepository(nil).GetAllPagedTags(command); err != nil || len(tags) != 1 {
 			t.Errorf("tags sorted by %q: %v, %d rows", orderBy, err, len(tags))
 		}
 	}

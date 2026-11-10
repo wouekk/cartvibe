@@ -53,7 +53,7 @@ func putSystemSettings(t *testing.T, extra map[string]interface{}) *httptest.Res
 
 func storedTimeZone(t *testing.T) string {
 	t.Helper()
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatal(err)
 	}

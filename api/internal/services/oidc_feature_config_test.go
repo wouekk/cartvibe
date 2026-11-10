@@ -25,7 +25,7 @@ func seedOidcProvider(t *testing.T, name string, enabled bool) {
 		Enabled:      enabled,
 	}
 
-	if _, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).CreateOidcProvider(command, nil); err != nil {
+	if _, err := repositories.NewOidcProviderRepository(nil).CreateOidcProvider(command, nil); err != nil {
 		t.Fatalf("failed to seed the provider: %v", err)
 	}
 }

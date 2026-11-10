@@ -55,7 +55,7 @@ func (service PermissionService) LoadFirstVisibleComments(viewerId uint, receipt
 		groupIdByReceiptId[receipts[i].ID] = receipts[i].GroupId
 	}
 
-	comments, err := repositories.NewCommentRepository(repositories.ImplicitCell(), service.TX).GetCommentsForReceiptIds(receiptIds)
+	comments, err := repositories.NewCommentRepository(service.TX).GetCommentsForReceiptIds(receiptIds)
 	if err != nil {
 		return err
 	}

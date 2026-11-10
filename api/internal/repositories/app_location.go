@@ -28,7 +28,7 @@ var reportedInvalidZones sync.Map // string -> struct{}
 // settings row, an empty name or a name the runtime cannot load all resolve to
 // UTC, which is also the setting's default.
 func GetAppLocation() *time.Location {
-	return appLocation(BaseRepository{DB: ImplicitCell().DB(), Cell: ImplicitCell()})
+	return appLocation(BaseRepository{DB: GetDB()})
 }
 
 // AppLocation is GetAppLocation read through the repository's transaction, so a
@@ -37,8 +37,8 @@ func (repository BaseRepository) AppLocation() *time.Location {
 	return appLocation(repository)
 }
 
-// appLocation reads the zone through the given repository's own database or transaction, so a repository never asks
-// another cell.
+// appLocation reads the zone through the given repository's own database or transaction, so a
+// filter built inside a transaction reads the zone through that transaction.
 func appLocation(base BaseRepository) *time.Location {
 	settings, err := SystemSettingsRepository{BaseRepository: base}.GetSystemSettings()
 	if err != nil {

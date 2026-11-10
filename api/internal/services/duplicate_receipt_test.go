@@ -42,7 +42,7 @@ func seedDuplicateSource(t *testing.T, imageNames ...string) (models.User, model
 		images = append(images, image)
 	}
 
-	groupPath, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildGroupPath(group.ID, "")
+	groupPath, err := repositories.NewFileRepository(nil).BuildGroupPath(group.ID, "")
 	if err != nil {
 		t.Fatalf("BuildGroupPath: %v", err)
 	}
@@ -56,7 +56,7 @@ func seedDuplicateSource(t *testing.T, imageNames ...string) (models.User, model
 
 func imagePath(t *testing.T, image models.FileData) string {
 	t.Helper()
-	path, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).BuildFilePath(
+	path, err := repositories.NewFileRepository(nil).BuildFilePath(
 		utils.UintToString(image.ReceiptId),
 		utils.UintToString(image.ID),
 		image.Name,

@@ -289,7 +289,7 @@ func TestShoppingListSetCheckedRequiresState(t *testing.T) {
 	SetShoppingListItemChecked(w, r)
 	assertStatus(t, w, http.StatusBadRequest)
 
-	stored, _ := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(item.ID)
+	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(item.ID)
 	if !stored.IsChecked {
 		t.Error("an empty body must not un-check the item")
 	}
@@ -347,7 +347,7 @@ func TestShoppingListSetListCheckedCompletesAndRestores(t *testing.T) {
 		t.Errorf("expected only milk to stay crossed off, got %+v", undone.Items)
 	}
 
-	stored, _ := repositories.NewShoppingListRepository(repositories.ImplicitCell(), nil).GetShoppingListItemById(otherItem.ID)
+	stored, _ := repositories.NewShoppingListRepository(nil).GetShoppingListItemById(otherItem.ID)
 	if stored.IsChecked {
 		t.Error("an item of another list must not change")
 	}
@@ -391,7 +391,7 @@ func TestShoppingListSetListCheckedPublishesTheWholeList(t *testing.T) {
 	addShoppingListItemForTest(t, 1, list.ID, `{"name":"Milk"}`)
 
 	hub := services.GetShoppingListHub()
-	subscriber := hub.Subscribe(services.ImplicitCellID(), 1)
+	subscriber := hub.Subscribe(1)
 	defer hub.Unsubscribe(subscriber)
 
 	setShoppingListCheckedForTest(t, 1, list.ID, `{"isChecked":true}`)
@@ -582,9 +582,9 @@ func TestShoppingListMutationsPublishToTheGroup(t *testing.T) {
 	grantAllGroupPerms(t, 1, 1)
 
 	hub := services.GetShoppingListHub()
-	subscriber := hub.Subscribe(services.ImplicitCellID(), 1)
+	subscriber := hub.Subscribe(1)
 	defer hub.Unsubscribe(subscriber)
-	otherGroup := hub.Subscribe(services.ImplicitCellID(), 2)
+	otherGroup := hub.Subscribe(2)
 	defer hub.Unsubscribe(otherGroup)
 
 	list := createShoppingListForTest(t, 1, "1", "Supermarket")
@@ -670,7 +670,7 @@ func readShoppingListStreamEvent(t *testing.T, reader *bufio.Reader) (string, mo
 func waitForShoppingListSubscribers(t *testing.T, groupId uint, count int) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
-	for services.GetShoppingListHub().SubscriberCount(services.ImplicitCellID(), groupId) < count {
+	for services.GetShoppingListHub().SubscriberCount(groupId) < count {
 		if time.Now().After(deadline) {
 			t.Fatal("stream never subscribed")
 		}
@@ -805,7 +805,7 @@ func assertShoppingListStreamCloses(t *testing.T, userId uint, afterOpen func())
 
 	// The handler unsubscribes on its way out.
 	deadline := time.Now().Add(time.Second)
-	for services.GetShoppingListHub().SubscriberCount(services.ImplicitCellID(), 1) != 0 {
+	for services.GetShoppingListHub().SubscriberCount(1) != 0 {
 		if time.Now().After(deadline) {
 			t.Fatal("stream ended without unsubscribing")
 		}
@@ -822,7 +822,7 @@ func TestSetShoppingListItemClassification(t *testing.T) {
 	params := map[string]string{"itemId": fmt.Sprint(item.ID)}
 
 	hub := services.GetShoppingListHub()
-	subscriber := hub.Subscribe(services.ImplicitCellID(), 1)
+	subscriber := hub.Subscribe(1)
 	defer hub.Unsubscribe(subscriber)
 
 	w, r := shoppingListRequest("PUT", `{"health":"HEALTHY","seasonality":"OUT_OF_SEASON"}`, 1, params)

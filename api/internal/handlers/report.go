@@ -57,7 +57,7 @@ func loadReportCommand(w http.ResponseWriter, r *http.Request) (commands.ReportR
 func authorizeTemplateAction(w http.ResponseWriter, r *http.Request, action string) (models.ReportTemplate, bool) {
 	id := chi.URLParam(r, "id")
 
-	template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).GetReportTemplateById(id)
+	template, err := repositories.NewReportTemplateRepository(nil).GetReportTemplateById(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			utils.WriteCustomErrorResponse(w, "Report template not found", http.StatusNotFound)
@@ -242,13 +242,12 @@ func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// The template is deleted, and the cell's grant cache flushed, through the same handle.
-			h := repositories.ImplicitCell()
-			err := repositories.NewReportTemplateRepository(h, nil).DeleteReportTemplateById(utils.UintToString(template.ID))
+			err := repositories.NewReportTemplateRepository(nil).DeleteReportTemplateById(utils.UintToString(template.ID))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			services.EvictAllGroupRoleGrants(h.ID())
+			services.EvictAllGroupRoleGrants()
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil
@@ -304,7 +303,7 @@ func GetPagedReportTemplates(w http.ResponseWriter, r *http.Request) {
 				idFilter = &visibleIds
 			}
 
-			templates, count, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).GetPagedReportTemplates(command, idFilter)
+			templates, count, err := repositories.NewReportTemplateRepository(nil).GetPagedReportTemplates(command, idFilter)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -382,7 +381,7 @@ func DuplicateReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).DuplicateReportTemplate(token.UserId, utils.UintToString(source.ID))
+			template, err := repositories.NewReportTemplateRepository(nil).DuplicateReportTemplate(token.UserId, utils.UintToString(source.ID))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -450,7 +449,7 @@ func CreateReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).CreateReportTemplate(command, token.UserId)
+			template, err := repositories.NewReportTemplateRepository(nil).CreateReportTemplate(command, token.UserId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -512,7 +511,7 @@ func UpdateReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			template, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).UpdateReportTemplate(command, utils.UintToString(existing.ID))
+			template, err := repositories.NewReportTemplateRepository(nil).UpdateReportTemplate(command, utils.UintToString(existing.ID))
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					utils.WriteCustomErrorResponse(w, "Report template not found", http.StatusNotFound)
@@ -591,7 +590,7 @@ func GetReportTemplateOptions(w http.ResponseWriter, r *http.Request) {
 		ResponseType:   constants.ApplicationJson,
 		AppPermissions: []string{permissions.AppRolesRead},
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			options, err := repositories.NewReportTemplateRepository(repositories.ImplicitCell(), nil).GetAllTemplateOptions()
+			options, err := repositories.NewReportTemplateRepository(nil).GetAllTemplateOptions()
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -138,7 +138,7 @@ func enforceImageDeleteKeepsRequired(w http.ResponseWriter, userId uint, receipt
 }
 
 func resolveRequirementsForReceipt(userId uint, receiptId uint) (structs.ReceiptRequirements, error) {
-	groupId, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetReceiptGroupIdByReceiptId(utils.UintToString(receiptId))
+	groupId, err := repositories.NewReceiptRepository(nil).GetReceiptGroupIdByReceiptId(utils.UintToString(receiptId))
 	if err != nil {
 		return structs.ReceiptRequirements{}, err
 	}

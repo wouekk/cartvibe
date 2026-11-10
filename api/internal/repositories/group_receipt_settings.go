@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 
@@ -13,11 +12,10 @@ type GroupReceiptSettingsRepository struct {
 	BaseRepository
 }
 
-func NewGroupReceiptSettingsRepository(h cell.Handle, tx *gorm.DB) GroupReceiptSettingsRepository {
+func NewGroupReceiptSettingsRepository(tx *gorm.DB) GroupReceiptSettingsRepository {
 	repository := GroupReceiptSettingsRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

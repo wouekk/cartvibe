@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/structs"
 	"gorm.io/gorm"
 	"os"
@@ -11,11 +10,10 @@ type AboutRepository struct {
 	BaseRepository
 }
 
-func NewAboutRepository(h cell.Handle, tx *gorm.DB) AboutRepository {
+func NewAboutRepository(tx *gorm.DB) AboutRepository {
 	repository := AboutRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

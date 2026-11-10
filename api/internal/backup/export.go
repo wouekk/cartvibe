@@ -105,7 +105,7 @@ func TakeSnapshot(db *gorm.DB, options Options) (*Snapshot, error) {
 	}
 
 	err = db.Transaction(func(tx *gorm.DB) error {
-		settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), tx).GetSystemSettings()
+		settings, err := repositories.NewSystemSettingsRepository(tx).GetSystemSettings()
 		if err != nil {
 			return err
 		}
@@ -349,7 +349,7 @@ var tableSpecs = []tableSpec{
 		name:    "files",
 		columns: []string{"id", "receipt_id", "name", "file_type", "size", "file", "created_at"},
 		write: func(state *exportState, table *tableWriter) error {
-			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), state.tx)
+			fileRepository := repositories.NewFileRepository(state.tx)
 			return eachInBatches(state.tx.Model(models.FileData{}), func(file models.FileData) error {
 				entryName := ""
 				if state.options.IncludeFiles {

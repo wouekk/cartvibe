@@ -26,7 +26,7 @@ func TestSeedStarterReportTemplatesCreatesThemOnceAndOnlyWhenThereIsAHousehold(t
 	defer TruncateTestDb()
 
 	// No account or group yet: nothing is created, and nothing is recorded, so a later boot tries again.
-	if err := SeedStarterReportTemplates(ImplicitCell()); err != nil {
+	if err := SeedStarterReportTemplates(); err != nil {
 		t.Fatal(err)
 	}
 	var count int64
@@ -36,7 +36,7 @@ func TestSeedStarterReportTemplatesCreatesThemOnceAndOnlyWhenThereIsAHousehold(t
 	}
 
 	CreateTestGroupWithUsers()
-	if err := SeedStarterReportTemplates(ImplicitCell()); err != nil {
+	if err := SeedStarterReportTemplates(); err != nil {
 		t.Fatal(err)
 	}
 	GetDB().Model(&models.ReportTemplate{}).Count(&count)
@@ -46,7 +46,7 @@ func TestSeedStarterReportTemplatesCreatesThemOnceAndOnlyWhenThereIsAHousehold(t
 
 	// Deleting one is not undone by the next boot.
 	GetDB().Where("name = ?", "Spending by shop").Delete(&models.ReportTemplate{})
-	if err := SeedStarterReportTemplates(ImplicitCell()); err != nil {
+	if err := SeedStarterReportTemplates(); err != nil {
 		t.Fatal(err)
 	}
 	GetDB().Model(&models.ReportTemplate{}).Count(&count)

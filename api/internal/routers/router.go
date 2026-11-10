@@ -9,16 +9,14 @@ import (
 	"cartvibe/api/internal/services"
 	"net/http"
 
-	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"
 )
 
 func BuildRootRouter() *chi.Mux {
-	tokenValidator, err := services.InitTokenValidator()
-	if err != nil {
+	// Checked once at start, so a bad signing configuration stops the boot instead of failing every request.
+	if _, err := services.InitTokenValidator(); err != nil {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 	}
-	tokenValidatorMiddleware := jwtmiddleware.New(tokenValidator.ValidateToken)
 	env := config.GetDeployEnv()
 
 	rootRouter := chi.NewRouter()
@@ -30,19 +28,19 @@ func BuildRootRouter() *chi.Mux {
 	}
 
 	// Token Refresh Router
-	refreshRouter := BuildTokenRefreshRouter(tokenValidatorMiddleware)
+	refreshRouter := BuildTokenRefreshRouter()
 	rootRouter.Mount("/api/token", refreshRouter)
 
 	// Signup Router
-	signUpRouter := BuildSignUpRouter(tokenValidatorMiddleware)
+	signUpRouter := BuildSignUpRouter()
 	rootRouter.Mount("/api/signUp", signUpRouter)
 
 	// Login Router
-	loginRouter := BuildLoginRouter(tokenValidatorMiddleware)
+	loginRouter := BuildLoginRouter()
 	rootRouter.Mount("/api/login", loginRouter)
 
 	// Logout router
-	logoutRouter := BuildLogoutRouter(tokenValidatorMiddleware)
+	logoutRouter := BuildLogoutRouter()
 	rootRouter.Mount("/api/logout", logoutRouter)
 
 	// Receipt Router
@@ -75,7 +73,7 @@ func BuildRootRouter() *chi.Mux {
 	rootRouter.Mount("/api/group", groupRouter)
 
 	// Feature Config Router
-	featureConfigRouter := BuildFeatureConfigRouter(tokenValidatorMiddleware)
+	featureConfigRouter := BuildFeatureConfigRouter()
 	rootRouter.Mount("/api/featureConfig", featureConfigRouter)
 
 	// OIDC relying party (sign in with an external identity provider)
@@ -86,10 +84,6 @@ func BuildRootRouter() *chi.Mux {
 	oidcProviderRouter := BuildOidcProviderRouter()
 	rootRouter.Mount("/api/oidcProvider", oidcProviderRouter)
 
-
-	// Search router
-	searchRouter := BuildSearchRouter()
-	rootRouter.Mount("/api/search", searchRouter)
 
 	// Notification router
 	notificationRouter := BuildNotificationRouter()

@@ -39,7 +39,7 @@ func (service OidcProviderService) CreateOidcProvider(
 	command commands.UpsertOidcProviderCommand,
 	createdBy *uint,
 ) (structs.OidcProviderView, error) {
-	repository := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewOidcProviderRepository(service.TX)
 
 	err := service.validateCrossSettingRules(command)
 	if err != nil {
@@ -67,7 +67,7 @@ func (service OidcProviderService) UpdateOidcProvider(
 	id uint,
 	command commands.UpsertOidcProviderCommand,
 ) (structs.OidcProviderView, error) {
-	repository := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewOidcProviderRepository(service.TX)
 
 	err := service.validateCrossSettingRules(command)
 	if err != nil {

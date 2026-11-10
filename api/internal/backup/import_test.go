@@ -47,7 +47,7 @@ func exportSeededHousehold(t *testing.T) exported {
 // freshInstall is what a new server has after its first sign-up: one admin, the Household and the All group.
 func freshInstall(t *testing.T, username string) models.User {
 	t.Helper()
-	admin, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).
+	admin, err := repositories.NewUserRepository(nil).
 		CreateUser(commands.SignUpCommand{Username: username, Password: "admin-password", DisplayName: "Admin"})
 	if err != nil {
 		t.Fatalf("fresh install: %v", err)
@@ -161,7 +161,7 @@ func TestImportRestoresTheHouseholdIntoAFreshServer(t *testing.T) {
 
 	var file models.FileData
 	db.First(&file)
-	path, err := repositories.NewFileRepository(repositories.ImplicitCell(), nil).
+	path, err := repositories.NewFileRepository(nil).
 		BuildFilePath(utils.UintToString(file.ReceiptId), utils.UintToString(file.ID), file.Name)
 	if err != nil {
 		t.Fatalf("file path: %v", err)

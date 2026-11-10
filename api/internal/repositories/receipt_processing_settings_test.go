@@ -12,7 +12,7 @@ func TestCreateReceiptProcessingSettingsKeepsJsonEnforcementOff(t *testing.T) {
 	defer TruncateTestDb()
 
 
-	repository := NewReceiptProcessingSettings(ImplicitCell(), nil)
+	repository := NewReceiptProcessingSettings(nil)
 	created, err := repository.CreateReceiptProcessingSettings(commands.UpsertReceiptProcessingSettingsCommand{
 		Name:                      "off",
 		AiType:                    models.OPEN_AI_CUSTOM,

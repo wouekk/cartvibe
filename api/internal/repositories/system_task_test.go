@@ -63,7 +63,7 @@ func TestGetPagedActivitiesFiltersByVisibilityBeforeCountAndLimit(t *testing.T) 
 		GroupIds: []uint{group.ID},
 	}
 
-	activities, count, err := NewSystemTaskRepository(ImplicitCell(), nil).GetPagedActivities(command, resolver)
+	activities, count, err := NewSystemTaskRepository(nil).GetPagedActivities(command, resolver)
 	if err != nil {
 		t.Fatalf("GetPagedActivities: %v", err)
 	}
@@ -133,7 +133,7 @@ func TestGetPagedActivitiesMixedVisibilityAcrossGroups(t *testing.T) {
 		GroupIds: []uint{oid, iid},
 	}
 
-	activities, count, err := NewSystemTaskRepository(ImplicitCell(), nil).GetPagedActivities(command, resolver)
+	activities, count, err := NewSystemTaskRepository(nil).GetPagedActivities(command, resolver)
 	if err != nil {
 		t.Fatalf("GetPagedActivities: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestGetPagedActivitiesNilResolverUnfiltered(t *testing.T) {
 		GroupIds: []uint{group.ID},
 	}
 
-	activities, count, err := NewSystemTaskRepository(ImplicitCell(), nil).GetPagedActivities(command, nil)
+	activities, count, err := NewSystemTaskRepository(nil).GetPagedActivities(command, nil)
 	if err != nil {
 		t.Fatalf("GetPagedActivities: %v", err)
 	}
@@ -263,7 +263,7 @@ func TestGetPagedSystemTasksExcludesChildTaskTypes(t *testing.T) {
 	child := seedReceiptUploadedChild(db, quickScan, now)
 	manual := seedSystemTask(db, models.RECEIPT_UPLOADED, nil, now, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	results, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{}))
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -295,7 +295,7 @@ func TestGetPagedSystemTasksReceiptUploadedFilterReturnsOnlyParentlessRows(t *te
 	seedReceiptUploadedChild(db, quickScan, now)
 	manual := seedSystemTask(db, models.RECEIPT_UPLOADED, nil, now, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	results, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		Type: commands.PagedRequestField{
 			Operation: commands.CONTAINS,
@@ -320,7 +320,7 @@ func TestGetPagedSystemTasksFiltersByType(t *testing.T) {
 	seedSystemTask(db, models.MAGIC_FILL, nil, now, nil)
 	seedSystemTask(db, models.HTML_TO_PDF, nil, now, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	results, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		Type: commands.PagedRequestField{
 			Operation: commands.CONTAINS,
@@ -370,7 +370,7 @@ func TestGetPagedSystemTasksFiltersByRanBy(t *testing.T) {
 		"sentinel and ids":     {value: []interface{}{float64(SystemRanByUserId), float64(bobId)}, expected: 3},
 	}
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -408,7 +408,7 @@ func TestGetPagedSystemTasksBetweenIncludesTasksLateOnTheEndDay(t *testing.T) {
 	seedSystemTask(db, models.QUICK_SCAN, nil, time.Date(2026, 3, 13, 0, 30, 0, 0, time.UTC), nil)
 	seedSystemTask(db, models.QUICK_SCAN, nil, time.Date(2026, 3, 9, 23, 30, 0, 0, time.UTC), nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	results, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		StartedAt: commands.PagedRequestField{
 			Operation: commands.BETWEEN,
@@ -449,7 +449,7 @@ func TestGetPagedSystemTasksEqualsMatchesTheWholeDay(t *testing.T) {
 	seedSystemTask(db, models.QUICK_SCAN, nil, time.Date(2026, 3, 11, 23, 59, 59, 0, time.UTC), nil)
 	seedSystemTask(db, models.QUICK_SCAN, nil, time.Date(2026, 3, 12, 0, 0, 1, 0, time.UTC), nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	_, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		StartedAt: commands.PagedRequestField{
 			Operation: commands.EQUALS,
@@ -478,7 +478,7 @@ func TestGetPagedSystemTasksLessThanOnEndedAtExcludesRunningTasks(t *testing.T) 
 	seedSystemTask(db, models.QUICK_SCAN, nil, started, &endedOnCutoffDay)
 	seedSystemTask(db, models.QUICK_SCAN, nil, started, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	_, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		EndedAt: commands.PagedRequestField{
 			Operation: commands.LESS_THAN,
@@ -504,7 +504,7 @@ func TestGetPagedSystemTasksIgnoresWrongTypedFilterValues(t *testing.T) {
 	seedSystemTask(db, models.QUICK_SCAN, nil, now, nil)
 	seedSystemTask(db, models.MAGIC_FILL, nil, now, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	_, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		Type:      commands.PagedRequestField{Operation: commands.CONTAINS, Value: "QUICK_SCAN"},
 		RanBy:     commands.PagedRequestField{Operation: commands.CONTAINS, Value: float64(1)},
@@ -538,7 +538,7 @@ func TestGetPagedSystemTasksCombinesTypeWithASystemRanByDisjunction(t *testing.T
 	seedSystemTask(db, models.MAGIC_FILL, &aliceId, now, nil) // wrong type
 	seedSystemTask(db, models.MAGIC_FILL, nil, now, nil)      // wrong type
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	_, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		Type: commands.PagedRequestField{
 			Operation: commands.CONTAINS,
@@ -618,7 +618,7 @@ func TestGetPagedSystemTasksDropsAFractionalRanByIdRatherThanTruncating(t *testi
 	seedSystemTask(db, models.QUICK_SCAN, &fourthId, now, nil)
 	seedSystemTask(db, models.QUICK_SCAN, nil, now, nil)
 
-	repository := NewSystemTaskRepository(ImplicitCell(), nil)
+	repository := NewSystemTaskRepository(nil)
 	_, count, err := repository.GetPagedSystemTasks(systemTaskFilterCommand(commands.SystemTaskPagedRequestFilter{
 		RanBy: commands.PagedRequestField{
 			Operation: commands.CONTAINS,

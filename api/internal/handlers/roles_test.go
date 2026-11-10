@@ -43,7 +43,7 @@ func ensureRoleAdmin(userId uint) {
 
 	var role models.AppRole
 	if err := db.Where("name = ?", "Role Admin").First(&role).Error; err != nil {
-		roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+		roleRepository := repositories.NewRoleRepository(nil)
 		created, cErr := roleRepository.CreateAppRole("Role Admin", "", []string{
 			permissions.AppRolesCreate,
 			permissions.AppRolesRead,
@@ -348,7 +348,7 @@ func TestShouldNotUpdateRoleDueToRole(t *testing.T) {
 
 func TestShouldNotChangeRoleType(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	created, err := roleRepository.CreateAppRole("App Role", "desc", []string{permissions.AppUsersCreate}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -444,7 +444,7 @@ func TestShouldDeleteAppRole(t *testing.T) {
 		return
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	if _, err := roleRepository.GetAppRoleById(1); err == nil {
 		utils.PrintTestError(t, "app role still exists", "app role should be deleted")
 	}
@@ -461,7 +461,7 @@ func TestShouldDeleteGroupRole(t *testing.T) {
 		return
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	if _, err := roleRepository.GetGroupRoleById(1); err == nil {
 		utils.PrintTestError(t, "group role still exists", "group role should be deleted")
 	}
@@ -512,7 +512,7 @@ func TestShouldReturnNotFoundForMissingDeleteRole(t *testing.T) {
 
 func TestShouldNotDeleteRoleDueToScopeMismatch(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	created, err := roleRepository.CreateAppRole("App Role", "desc", []string{permissions.AppUsersCreate}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -555,7 +555,7 @@ func TestShouldNotDeleteSystemRole(t *testing.T) {
 		return
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	if _, err := roleRepository.GetAppRoleById(systemRole.ID); err != nil {
 		utils.PrintTestError(t, err, "system role should be untouched")
 	}
@@ -563,7 +563,7 @@ func TestShouldNotDeleteSystemRole(t *testing.T) {
 
 func TestShouldNotDeleteAssignedAppRole(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	created, err := roleRepository.CreateAppRole("App Role", "desc", []string{permissions.AppUsersCreate}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -591,7 +591,7 @@ func TestShouldNotDeleteAssignedAppRole(t *testing.T) {
 
 func TestShouldNotDeleteAssignedGroupRole(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	created, err := roleRepository.CreateGroupRole("Group Role", "desc", []string{permissions.GroupReceiptsCreate}, nil, nil, nil, false, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)

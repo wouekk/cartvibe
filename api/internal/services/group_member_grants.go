@@ -59,7 +59,7 @@ func (service GroupService) UpdateMemberGrants(
 	}
 
 	return baseDb.Transaction(func(tx *gorm.DB) error {
-		groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), tx)
+		groupMemberRepository := repositories.NewGroupMemberRepository(tx)
 
 		member, err := groupMemberRepository.GetMemberGrantContext(userId, groupId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -91,7 +91,7 @@ func validateWithinRoleCeiling(tx *gorm.DB, groupRoleId *uint, categoryIds []uin
 		return nil
 	}
 
-	role, err := loadGroupRoleGrants(repositories.NewRoleRepository(repositories.ImplicitCell(), tx), *groupRoleId)
+	role, err := loadGroupRoleGrants(repositories.NewRoleRepository(tx), *groupRoleId)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func idsOutsideCeiling(ids []uint, ceiling map[uint]struct{}) []uint {
 
 // GetMemberGrants returns a membership's currently granted category and tag ids.
 func (service GroupService) GetMemberGrants(groupId uint, userId uint) ([]uint, []uint, error) {
-	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
+	groupMemberRepository := repositories.NewGroupMemberRepository(service.TX)
 
 	categoryIds, err := groupMemberRepository.GetMemberCategoryGrantIds(userId, groupId)
 	if err != nil {

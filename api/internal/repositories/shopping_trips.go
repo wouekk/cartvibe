@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"time"
 
@@ -12,11 +11,10 @@ type ShoppingTripRepository struct {
 	BaseRepository
 }
 
-func NewShoppingTripRepository(h cell.Handle, tx *gorm.DB) ShoppingTripRepository {
+func NewShoppingTripRepository(tx *gorm.DB) ShoppingTripRepository {
 	repository := ShoppingTripRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

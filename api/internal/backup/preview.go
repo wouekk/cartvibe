@@ -170,7 +170,7 @@ func templatesReplaced(db *gorm.DB, household *Household) (bool, error) {
 // unknownGroupRoles reports a membership whose group role this server does not have; the import makes
 // that person a Member instead.
 func unknownGroupRoles(db *gorm.DB, household *Household) (bool, error) {
-	roles := repositories.NewRoleRepository(repositories.ImplicitCell(), db)
+	roles := repositories.NewRoleRepository(db)
 	seen := map[string]bool{}
 	for _, member := range household.Members {
 		if seen[member.Role] {

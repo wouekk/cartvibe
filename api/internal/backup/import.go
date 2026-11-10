@@ -220,7 +220,7 @@ func (run *importRun) write() error {
 var failWriteForTest error
 
 func (run *importRun) writeHouseholdSettings() error {
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), run.tx).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(run.tx).GetSystemSettings()
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (run *importRun) writeUsers() error {
 	if err != nil {
 		return err
 	}
-	roles := repositories.NewRoleRepository(repositories.ImplicitCell(), run.tx)
+	roles := repositories.NewRoleRepository(run.tx)
 	userRoleId, err := roles.GetAppRoleIdByName(repositories.FamilyUserRoleName)
 	if err != nil {
 		return err
@@ -291,7 +291,7 @@ func (run *importRun) writeUsers() error {
 		if err := run.tx.Create(&nameOnly).Error; err != nil {
 			return err
 		}
-		if _, err := repositories.NewGroupRepository(repositories.ImplicitCell(), run.tx).CreateAllGroup(nameOnly.ID); err != nil {
+		if _, err := repositories.NewGroupRepository(run.tx).CreateAllGroup(nameOnly.ID); err != nil {
 			return err
 		}
 		run.users[user.ID] = nameOnly.ID
@@ -332,7 +332,7 @@ func (run *importRun) writeGroups() error {
 		settingsBySource[settings.GroupId] = settings
 	}
 
-	roles := repositories.NewRoleRepository(repositories.ImplicitCell(), run.tx)
+	roles := repositories.NewRoleRepository(run.tx)
 	defaultRoleId, err := roles.GetDefaultGroupRoleId()
 	if err != nil {
 		return err
@@ -632,7 +632,7 @@ func (run *importRun) moveIntoPlace(staged string, final string) error {
 // writeFiles writes a receipt file's row only when its photo came along: a row without a file would
 // show a broken image.
 func (run *importRun) writeFiles() error {
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), run.tx)
+	fileRepository := repositories.NewFileRepository(run.tx)
 	written := 0
 	for _, file := range run.household.Files {
 		staged, ok := run.staged[file.Entry]

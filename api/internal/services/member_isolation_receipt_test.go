@@ -22,7 +22,7 @@ type isolatedReceiptFixture struct {
 func seedIsolatedReceiptGroup(t *testing.T) isolatedReceiptFixture {
 	t.Helper()
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	group := models.Group{Name: "iso-receipt-group", IsolateMembers: true}
 	if err := db.Create(&group).Error; err != nil {

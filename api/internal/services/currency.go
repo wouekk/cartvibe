@@ -25,12 +25,12 @@ type currencyContext struct {
 }
 
 func loadCurrencyContext() (currencyContext, error) {
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		return currencyContext{}, err
 	}
 
-	rates, err := repositories.NewExchangeRateRepository(repositories.ImplicitCell(), nil).GetAll()
+	rates, err := repositories.NewExchangeRateRepository(nil).GetAll()
 	if err != nil {
 		return currencyContext{}, err
 	}
@@ -133,7 +133,7 @@ func ApplyRatesToWaitingReceipts() (int, error) {
 		return 0, err
 	}
 
-	productRepository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil)
+	productRepository := repositories.NewReceiptProductRepository(nil)
 	changed := 0
 	for _, receipt := range waiting {
 		rate, found := context.lookup(receipt.OriginalCurrency)

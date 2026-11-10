@@ -22,7 +22,7 @@ func GetDashboardLayout(w http.ResponseWriter, r *http.Request) {
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-			layout, err := repositories.NewDashboardLayoutRepository(repositories.ImplicitCell(), nil).GetDashboardLayout(token.UserId)
+			layout, err := repositories.NewDashboardLayoutRepository(nil).GetDashboardLayout(token.UserId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -72,7 +72,7 @@ func UpdateDashboardLayout(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			layout, err := repositories.NewDashboardLayoutRepository(repositories.ImplicitCell(), nil).SaveDashboardLayout(token.UserId, command.Layout)
+			layout, err := repositories.NewDashboardLayoutRepository(nil).SaveDashboardLayout(token.UserId, command.Layout)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

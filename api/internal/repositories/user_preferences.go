@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"gorm.io/gorm/clause"
 	"regexp"
@@ -14,11 +13,10 @@ type UserPreferncesRepository struct {
 	BaseRepository
 }
 
-func NewUserPreferencesRepository(h cell.Handle, tx *gorm.DB) UserPreferncesRepository {
+func NewUserPreferencesRepository(tx *gorm.DB) UserPreferncesRepository {
 	repository := UserPreferncesRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

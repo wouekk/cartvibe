@@ -49,7 +49,7 @@ func NewGroupService(tx *gorm.DB) GroupService {
 //     more-privileged member.
 func (service GroupService) AuthorizeGroupMemberChanges(callerId uint, groupId uint, submitted []commands.UpsertGroupMemberCommand) error {
 	permissionService := NewPermissionService(service.TX)
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
+	roleRepository := repositories.NewRoleRepository(service.TX)
 
 	callerPerms, err := permissionService.GetGroupPermissionsForUser(callerId, groupId)
 	if err != nil {
@@ -177,7 +177,7 @@ func (service GroupService) AuthorizeGroupMemberChanges(callerId uint, groupId u
 }
 
 func (service GroupService) GetGroupIdsForUser(userId string) ([]uint, error) {
-	groupMemberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil)
+	groupMemberRepository := repositories.NewGroupMemberRepository(nil)
 	groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(userId)
 	if err != nil {
 		return nil, err
@@ -222,7 +222,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		return err
 	}
 
-	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
+	groupRepository := repositories.NewGroupRepository(nil)
 
 	if !allowAllGroupDelete {
 		isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
@@ -254,18 +254,18 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		}
 
 		// Delete shopping lists in group, with their trips and items. Trips first: they reference the lists.
-		tripPhotoPaths, txErr = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripsForGroup(uintGroupId)
+		tripPhotoPaths, txErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}
 
-		txErr = repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).DeleteShoppingListsForGroup(uintGroupId)
+		txErr = repositories.NewShoppingListRepository(tx).DeleteShoppingListsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}
 
 		// Delete the group's remembered product corrections
-		txErr = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).DeleteCorrectionsForGroup(uintGroupId)
+		txErr = repositories.NewFoodClassificationRepository(tx).DeleteCorrectionsForGroup(uintGroupId)
 		if txErr != nil {
 			return txErr
 		}

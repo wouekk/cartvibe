@@ -19,7 +19,7 @@ func NewSystemSettingsService(tx *gorm.DB) SystemSettingsService {
 }
 
 func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, error) {
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(service.TX)
 	featureConfig := structs.FeatureConfig{
 		// Initialized before anything can fail, and only ever overwritten on
 		// success, so this can never serialize as null. See the field's doc comment.
@@ -38,7 +38,7 @@ func (service SystemSettingsService) GetFeatureConfig() (structs.FeatureConfig, 
 	featureConfig.ShopLogosEnabled = systemSettings.ShopLogoKeySet || HasShopLogos()
 	featureConfig.WebPushPublicKey = WebPushPublicKey()
 
-	providers, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), service.TX).GetAllEnabledOidcProviders()
+	providers, err := repositories.NewOidcProviderRepository(service.TX).GetAllEnabledOidcProviders()
 	if err != nil {
 		return structs.FeatureConfig{}, err
 	}
