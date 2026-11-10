@@ -30,6 +30,9 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
   let status: WritableSignal<ShoppingListStreamStatus>;
   let online: WritableSignal<boolean>;
   let stalled: WritableSignal<boolean>;
+  let drained: Mock;
+  let setShoppingListChecked: Mock;
+  let snackbarError: Mock;
 
   const testId = (id: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
   const text = (id: string): string => (testId(id)?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -53,6 +56,9 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     status = signal<ShoppingListStreamStatus>("connecting");
     online = signal(true);
     stalled = signal(false);
+    drained = vi.fn().mockResolvedValue(true);
+    setShoppingListChecked = vi.fn().mockImplementation(() => of({ ...lists()[0], items: [{ ...milk, isChecked: true }] }));
+    snackbarError = vi.fn();
 
     await TestBed.configureTestingModule({
       declarations: [ShoppingListsPageComponent],
@@ -63,11 +69,14 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
         provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: { paramMap: of(new Map([["groupId", "1"]]) as any), snapshot: undefined } },
         { provide: Router, useValue: { navigate: vi.fn() } },
-        { provide: ShoppingListService, useValue: { getShoppingListsForGroup } },
+        { provide: ShoppingListService, useValue: { getShoppingListsForGroup, setShoppingListChecked } },
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status } },
-        { provide: ShoppingListSyncService, useValue: { stalled } },
+        { provide: ShoppingListSyncService, useValue: { stalled, drained } },
         { provide: OnlineStatusService, useValue: { online } },
-        { provide: SnackbarService, useValue: { error: vi.fn(), success: vi.fn(), hint: vi.fn() } },
+        {
+          provide: SnackbarService,
+          useValue: { error: snackbarError, success: vi.fn(), hint: vi.fn(), successFromTemplate: vi.fn().mockReturnValue({ dismiss: vi.fn() }) },
+        },
         { provide: AppDialog, useValue: { open: vi.fn() } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
@@ -138,6 +147,44 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     expect([text("shopping-list-connection-label"), testId("shopping-list-pending-count")?.getAttribute("title")]).toEqual(["Offline", "Waiting to be sent: 1"]);
     expect(testId("shopping-list-connection")?.getAttribute("data-state")).toBe("offline");
     expect(text("shopping-list-offline")).toContain("sent when the connection is back");
+  });
+
+  describe("a whole-list action while changes wait", () => {
+    const settled = () => new Promise<void>((resolve) => setTimeout(resolve));
+
+    // "Mark as complete" acts on the list as the server has it, and its Undo needs the server's item ids.
+    it("sends the waiting changes first, then completes the list", async () => {
+      await create();
+      status.set("live");
+      store.dispatch(new QueueShoppingListChange({ kind: "toggle", opId: "t", groupId: 1, listId: 1, itemId: 10, isChecked: false }));
+      await fixture.whenStable();
+
+      fixture.componentInstance.completeList(fixture.componentInstance.selectedList()!);
+      expect(setShoppingListChecked).not.toHaveBeenCalled();
+      expect(fixture.componentInstance.completing()).toBe(true);
+
+      // The queue goes out (the sync service's job): nothing waits any more.
+      store.reset({ ...store.snapshot(), shoppingLists: { ...store.snapshot().shoppingLists, pending: [] } });
+      await settled();
+
+      expect(drained).toHaveBeenCalledTimes(1);
+      expect(setShoppingListChecked).toHaveBeenCalledWith(1, { isChecked: true, itemIds: undefined });
+    });
+
+    it("does nothing, and says why, when they cannot be sent", async () => {
+      drained.mockResolvedValue(false);
+      await create();
+      await crossOffMilk();
+      store.dispatch(new QueueShoppingListChange({ kind: "toggle", opId: "u", groupId: 1, listId: 1, itemId: 10, isChecked: false }));
+      await fixture.whenStable();
+
+      fixture.componentInstance.completeList(fixture.componentInstance.selectedList()!);
+      await settled();
+
+      expect(setShoppingListChecked).not.toHaveBeenCalled();
+      expect(snackbarError).toHaveBeenCalledTimes(1);
+      expect(fixture.componentInstance.completing()).toBe(false);
+    });
   });
 
   it("explains an empty page when there is neither a connection nor a copy on the device", async () => {

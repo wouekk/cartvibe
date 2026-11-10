@@ -19,7 +19,8 @@ export function isWorthRetrying(error: unknown): boolean {
  * `work` resolves true when nothing is left to do and false when the server could not be reached.
  */
 export class RetryWhenReachable {
-  private running = false;
+  /** The attempt under way, so a caller that asks meanwhile can wait for it (and for the one that follows it). */
+  private current?: Promise<void>;
 
   private kickedWhileRunning = false;
 
@@ -45,29 +46,34 @@ export class RetryWhenReachable {
     void this.run();
   }
 
-  /** Resolves when the current attempt has ended (done, or put off until later). */
-  public async run(): Promise<void> {
-    if (this.running) {
+  /**
+   * Resolves when the work has been tried with everything asked for so far: done, or put off until later. Asked
+   * during an attempt, it resolves when that attempt and the one it triggers have ended.
+   */
+  public run(): Promise<void> {
+    if (this.current) {
       this.kickedWhileRunning = true;
-      return;
+      return this.current;
     }
 
-    this.running = true;
+    this.current = this.attempt();
+    return this.current;
+  }
+
+  private async attempt(): Promise<void> {
     this.clearTimer();
     let done = false;
-    try {
-      done = await this.work();
-    } catch {
-      done = false;
-    } finally {
-      this.running = false;
-    }
-
-    if (this.kickedWhileRunning) {
+    do {
       this.kickedWhileRunning = false;
-      return this.run();
-    }
+      try {
+        done = await this.work();
+      } catch {
+        done = false;
+      }
+    } while (this.kickedWhileRunning);
 
+    // Nothing below waits, so a `run()` that arrives from here on starts a fresh attempt.
+    this.current = undefined;
     if (done) {
       this.delayMs = INITIAL_RETRY_DELAY_MS;
       return;

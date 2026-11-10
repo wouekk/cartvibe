@@ -60,7 +60,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
         { provide: Router, useValue: { navigate } },
         { provide: ShoppingListService, useValue: service },
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
-        { provide: ShoppingListSyncService, useValue: { stalled: signal(false) } },
+        { provide: ShoppingListSyncService, useValue: { stalled: signal(false), drained: vi.fn().mockResolvedValue(true) } },
         { provide: SnackbarService, useValue: snackbar },
         { provide: AppDialog, useValue: { open } },
       ],

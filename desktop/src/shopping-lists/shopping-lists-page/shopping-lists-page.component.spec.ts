@@ -75,7 +75,7 @@ describe("ShoppingListsPageComponent", () => {
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: shoppingListService },
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
-        { provide: ShoppingListSyncService, useValue: { stalled: signal(false) } },
+        { provide: ShoppingListSyncService, useValue: { stalled: signal(false), drained: vi.fn().mockResolvedValue(true) } },
         { provide: SnackbarService, useValue: snackbarService },
         {
           provide: AppDialog,

@@ -3,9 +3,10 @@ import { Component, computed, ElementRef, inject, input, signal, ChangeDetection
 import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { filter, switchMap, take } from "rxjs";
+import { EMPTY, filter, from, map, of, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState } from "../../store/auth.state";
@@ -67,6 +68,8 @@ export class ShoppingListComponent {
   }
 
   private readonly host = inject(ElementRef<HTMLElement>);
+
+  private readonly sync = inject(ShoppingListSyncService);
 
   constructor(
     private store: Store,
@@ -185,12 +188,27 @@ export class ShoppingListComponent {
       });
   }
 
+  /**
+   * Clears what the server has as crossed off, so this device's waiting cross-offs are sent first (otherwise a row
+   * would vanish here and come back crossed off). When they cannot be sent, nothing is cleared.
+   */
   public clearCrossedOff(): void {
-    const itemIds = this.checkedItems().map((item) => item.id);
-    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count: itemIds.length }), marker("Remove"))
-      .pipe(switchMap(() => this.shoppingListService.clearCheckedShoppingListItems(this.list().id)))
+    const count = this.checkedItems().length;
+    this.confirm(marker("Clear Crossed Off"), this.translation.t("Remove all {count} crossed-off items from this list?", { count }), marker("Remove"))
+      .pipe(
+        switchMap(() => (this.pendingItemIds().size > 0 ? from(this.sync.drained()) : of(true))),
+        switchMap((sent) => {
+          if (!sent) {
+            this.snackbarService.error(OFFLINE_MESSAGE);
+            return EMPTY;
+          }
+          // Read after the queue went out: a row added a moment ago has the server's id by now.
+          const itemIds = this.checkedItems().map((item) => item.id);
+          return this.shoppingListService.clearCheckedShoppingListItems(this.list().id).pipe(map(() => itemIds));
+        })
+      )
       .subscribe({
-        next: () =>
+        next: (itemIds) =>
           this.store.dispatch(
             new ApplyShoppingListEvent({
               type: ShoppingListEventType.CheckedCleared,

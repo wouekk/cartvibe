@@ -170,8 +170,10 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   /** Nothing to show: the lists could be read neither from the server nor from the device. */
   public readonly loadFailed = computed(() => this.loadFailedGroupId() === this.groupId());
 
-  /** A change of this device just failed to reach the server (`ShoppingListSyncService.stalled`). */
-  private readonly sendStalled = inject(ShoppingListSyncService).stalled;
+  private readonly sync = inject(ShoppingListSyncService);
+
+  /** A change of this device just failed to reach the server. */
+  private readonly sendStalled = this.sync.stalled;
 
   /**
    * What the page says about the connection, from what is known rather than guessed: "live" while the stream is
@@ -296,6 +298,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
    * shopped. The toast's Undo puts back exactly the items this crossed off.
    */
   public completeList(list: ShoppingList): void {
+    if (this.pendingCount() > 0) {
+      // The ids below must be the server's, and a row added a moment ago may not have one yet.
+      this.afterQueueSent(() => this.completeList(this.lists().find((candidate) => candidate.id === list.id) ?? list));
+      return;
+    }
+
     const itemIds = list.items.filter((item) => !item.isChecked).map((item) => item.id);
     if (itemIds.length === 0) {
       return;
@@ -332,7 +340,28 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     this.setListChecked(list, false, undefined, () => this.selectList(list.id));
   }
 
+  /**
+   * A whole-list action acts on the list as the server has it, so this device's waiting adds and cross-offs go
+   * first. When they cannot be sent the action does not happen, and the person is told why.
+   */
+  private afterQueueSent(action: () => void): void {
+    this.completing.set(true);
+    void this.sync.drained().then((sent) => {
+      this.completing.set(false);
+      if (sent) {
+        action();
+      } else {
+        this.snackbarService.error(marker("Couldn't reach the server. Check your connection and try again."));
+      }
+    });
+  }
+
   private setListChecked(list: ShoppingList, isChecked: boolean, itemIds: number[] | undefined, done: () => void): void {
+    if (this.pendingCount() > 0) {
+      this.afterQueueSent(() => this.setListChecked(list, isChecked, itemIds, done));
+      return;
+    }
+
     this.completing.set(true);
     this.shoppingListService
       .setShoppingListChecked(list.id, { isChecked, itemIds })

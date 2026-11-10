@@ -224,6 +224,44 @@ describe("ShoppingListSyncService", () => {
     expect(store.selectSnapshot(ShoppingListState.checkedItems)).toEqual([]);
   });
 
+  describe("drained()", () => {
+    it("is true at once when nothing waits", async () => {
+      const service = await start();
+
+      expect(await service.drained()).toBe(true);
+      expect(api.setShoppingListItemChecked).not.toHaveBeenCalled();
+    });
+
+    it("waits for the send under way before answering", async () => {
+      const service = await start();
+      const answer = new Subject<ShoppingListItem>();
+      api.setShoppingListItemChecked.mockReturnValue(answer);
+      store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+      await settled();
+
+      let result: boolean | undefined;
+      void service.drained().then((value) => (result = value));
+      await settled();
+      expect(result).toBeUndefined();
+
+      answer.next(item(2, { isChecked: true }));
+      answer.complete();
+      await settled();
+
+      expect(result).toBe(true);
+    });
+
+    it("is false when the server cannot be reached", async () => {
+      const service = await start();
+      api.setShoppingListItemChecked.mockImplementation(offline);
+      store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+      await settled();
+
+      expect(await service.drained()).toBe(false);
+      expect(pending().map((change) => change.opId)).toEqual(["t"]);
+    });
+  });
+
   it("renews the session before sending, and waits when that cannot be done", async () => {
     await start();
     ensureFreshToken.mockResolvedValue(false);

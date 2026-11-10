@@ -87,6 +87,17 @@ export class ShoppingListSyncService implements OnDestroy {
     return this.retry.run();
   }
 
+  /**
+   * For an action that acts on the list as the server has it (clearing what is crossed off, completing or
+   * restoring a list): sends the queue first and says whether the server now has everything. False means it could
+   * not be reached, and the action should not go ahead on a list the server sees differently.
+   */
+  public async drained(): Promise<boolean> {
+    await this.ready;
+    await this.flush();
+    return this.store.selectSnapshot(ShoppingListState.pending).length === 0;
+  }
+
   private async restore(): Promise<void> {
     const kept = await this.storage.get<PendingChange[]>(SHOPPING_LIST_OUTBOX_KEY);
     if (Array.isArray(kept) && kept.length > 0 && this.store.selectSnapshot(AuthState.isLoggedIn)) {

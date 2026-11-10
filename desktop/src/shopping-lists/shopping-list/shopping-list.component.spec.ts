@@ -10,6 +10,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -33,8 +34,9 @@ describe("ShoppingListComponent", () => {
   let fixture: ComponentFixture<ShoppingListComponent>;
   let component: ShoppingListComponent;
   let store: Store;
-  let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification", Mock>;
+  let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification" | "clearCheckedShoppingListItems", Mock>;
   let snackbarService: { error: Mock };
+  let drained: Mock;
 
   beforeEach(async () => {
     shoppingListService = {
@@ -42,8 +44,10 @@ describe("ShoppingListComponent", () => {
       setShoppingListItemChecked: vi.fn(),
       addShoppingListItem: vi.fn(),
       setShoppingListItemClassification: vi.fn(),
+      clearCheckedShoppingListItems: vi.fn().mockReturnValue(of(undefined)),
     };
     snackbarService = { error: vi.fn() };
+    drained = vi.fn().mockResolvedValue(true);
 
     await TestBed.configureTestingModule({
       declarations: [ShoppingListComponent],
@@ -58,6 +62,8 @@ describe("ShoppingListComponent", () => {
         provideHttpClientTesting(),
         { provide: ShoppingListService, useValue: shoppingListService },
         { provide: SnackbarService, useValue: snackbarService },
+        // Sending the queue has its own spec; here it only answers whether the queue went out.
+        { provide: ShoppingListSyncService, useValue: { drained } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -170,6 +176,56 @@ describe("ShoppingListComponent", () => {
     expect(store.selectSnapshot(ShoppingListState.pending)[1]).toEqual(
       expect.objectContaining({ kind: "toggle", itemId: bread.id, clientId: bread.clientId, isChecked: true })
     );
+  });
+
+  describe("clearing what is crossed off", () => {
+    const confirmClear = () => {
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ componentInstance: {}, afterClosed: () => of(true) } as never);
+      component.clearCrossedOff();
+    };
+
+    const settled = () => new Promise<void>((resolve) => setTimeout(resolve));
+
+    it("clears at once when nothing of this device's is waiting", async () => {
+      await setCanUpdate(true);
+      store.reset({
+        ...store.snapshot(),
+        shoppingLists: { ...store.snapshot().shoppingLists, lists: [{ ...supermarket, items: [{ ...milk, isChecked: true }] }] },
+      });
+
+      confirmClear();
+
+      expect(drained).not.toHaveBeenCalled();
+      expect(shoppingListService.clearCheckedShoppingListItems).toHaveBeenCalledWith(1);
+      expect(store.selectSnapshot(ShoppingListState.lists)[0].items).toEqual([]);
+    });
+
+    // The server clears what it has as crossed off: a cross-off still waiting here must reach it first, or the row
+    // would vanish on this device and come back crossed off.
+    it("sends the waiting cross-offs first", async () => {
+      await setCanUpdate(true);
+      component.toggleItem(milk);
+
+      confirmClear();
+      expect(shoppingListService.clearCheckedShoppingListItems).not.toHaveBeenCalled();
+      await settled();
+
+      expect(drained).toHaveBeenCalledTimes(1);
+      expect(shoppingListService.clearCheckedShoppingListItems).toHaveBeenCalledWith(1);
+    });
+
+    it("clears nothing, and says why, when the waiting changes cannot be sent", async () => {
+      await setCanUpdate(true);
+      drained.mockResolvedValue(false);
+      component.toggleItem(milk);
+
+      confirmClear();
+      await settled();
+
+      expect(shoppingListService.clearCheckedShoppingListItems).not.toHaveBeenCalled();
+      expect(snackbarService.error).toHaveBeenCalledTimes(1);
+      expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([1]);
+    });
   });
 
   it("takes back an item that has not reached the server without calling it", async () => {

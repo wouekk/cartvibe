@@ -166,7 +166,9 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
     live, else 2 to 30 s), any other answer drops the change and rereads the lists (an add says which item). Requests
     carry `QUIET_ERRORS` so the interceptor does not toast each retry.
   - Everything else (edit, delete, clear, complete, lists) still waits for the server and toasts when it cannot be
-    reached. A local row can be crossed off and deleted (`DiscardLocalShoppingListItem`), not edited. The Dashboard's
+    reached. Clear all, Mark as complete, Undo and Restore act on the list as the server has it, so they send the
+    queue first (`ShoppingListSyncService.drained()`) and do nothing, with a toast, when it cannot go out. A local
+    row can be crossed off and deleted (`DiscardLocalShoppingListItem`), not edited. The Dashboard's
     list preview keeps its own online-only cross-off. `Logout` empties the slice and `OfflineStorageService`.
   - *What the page says.* `ShoppingListStreamService.status` (`idle`, `connecting`, `live`, `reconnecting`) plus
     `ShoppingListSyncService.stalled` (a send just failed) and `navigator.onLine` give `connection()`: Live,
