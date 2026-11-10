@@ -184,7 +184,7 @@ export class BackupService {
 
     /**
      * Export the whole household
-     * Streams a ZIP with manifest.json, one CSV per entity and, with includeFiles, the receipt photos and PDFs. No secrets are included. Admin only (app.backup.export); paid-by and member visibility are not applied.
+     * Streams a ZIP with manifest.json, one CSV per entity and, with includeFiles, the receipt photos and PDFs. No secrets are included. Admin only (app.backup.export), because it holds every household and person of the install.
      * @param includeFiles Include the receipt photos, PDFs and shopping-trip photos (default false)
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

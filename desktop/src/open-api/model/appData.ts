@@ -14,7 +14,6 @@ import { Claims } from './claims';
 import { CurrencySeparator } from './currencySeparator';
 import { FeatureConfig } from './featureConfig';
 import { UserView } from './userView';
-import { ReceiptRequirements } from './receiptRequirements';
 import { Icon } from './icon';
 import { Tag } from './tag';
 import { CurrencySymbolPosition } from './currencySymbolPosition';
@@ -82,15 +81,11 @@ export interface AppData {
      */
     groupPermissions: { [key: string]: Array<string>; };
     /**
-     * What the calling user must supply on each group\'s receipts, keyed by group id, resolved from their group role with the group\'s waivers applied. Only groups where something is required are present; an absent group requires nothing. Always an object, never null.
-     */
-    groupReceiptRequirements?: { [key: string]: ReceiptRequirements; };
-    /**
-     * The categories the calling user may use in each group, keyed by group id. Filtered to the user\'s group-role grants (the full pool when unrestricted). Non-admins receive categories only through this map.
+     * The categories the calling user may use in each group, keyed by group id: the whole pool, for every household they are in. People without app.categories.read receive categories only through this map.
      */
     groupCategories?: { [key: string]: Array<Category>; };
     /**
-     * The tags the calling user may use in each group, keyed by group id. Filtered to the user\'s group-role grants (the full pool when unrestricted). Non-admins receive tags only through this map.
+     * The tags the calling user may use in each group, keyed by group id: the whole pool, for every household they are in. People without app.tags.read receive tags only through this map.
      */
     groupTags?: { [key: string]: Array<Tag>; };
 }
