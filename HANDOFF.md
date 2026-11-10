@@ -15,12 +15,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     `feature/dependency-updates`, `feature/dashboard-requests` (pages ask once, a refused request is sent again,
     APP-18), `feature/receipts-phone` (the receipts page on a phone) and `feature/toolchain-majors` (Go 1.27, Node
     26.13, jsdom 31).
-  - Sprint 6 is `feature/sprint-6-releases-ci`. It took over the four commits of `feature/releases-and-ci` (another
-    session's branch, still checked out in the main checkout: leave that checkout alone) and holds
-    `feature/litestream-05` (Litestream 0.5.18 with a restore drill in CI). Merge it into `preview` once its CI is
-    green, then publish `:preview` from `preview`.
-  - Next, one branch each from `preview`: sprint 7 (AI and files), 8 (fixed roles), 9 (identity-provider screens),
-    10 (app cleanup), then 11 onward. The audit report lists what each holds.
+  - Sprints 6 and 7 are in `preview` too (green CI on `feature/sprint-6-releases-ci` and `feature/ai-and-files`,
+    2026-11-10). Sprint 6 took over the four commits of `feature/releases-and-ci` (another session's branch, still
+    checked out in the main checkout: leave that checkout alone) and holds `feature/litestream-05`. Sprint 7's AI
+    settings are proved against fake servers only: no provider key is available to the agent.
+  - Next, one branch each from `preview`: sprint 8 (fixed roles), 9 (identity-provider screens), 10 (app cleanup),
+    then 11 onward. The audit report lists what each holds.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac
