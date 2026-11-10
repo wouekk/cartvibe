@@ -353,30 +353,30 @@ describe("ReceiptsTableComponent", () => {
       expect(component.totalCount()).toEqual(2);
     });
 
-    // The period picker asks for its page as soon as it mounts, while the first load is still out: a slow first
-    // response must not repaint the table over the newer, filtered one.
-    it("does not let the initial page overwrite a refresh requested while it was in flight", () => {
-      const initial = new Subject<any>();
-      const filtered = new Subject<any>();
-      refetch.mockReturnValueOnce(initial).mockReturnValueOnce(filtered);
-      (component as any).groupId = "1";
-      (component as any).getInitialData();
+    // The period picker hands over its period as soon as it mounts, and that is the page's one first request.
+    it("asks for the first page once, when the period picker hands over its period", () => {
+      refetch.mockReturnValue(of({ data: [{ id: 1 }, { id: 2 }], totalCount: 2 } as any));
+      component.groupId = "1";
 
-      component.getFilteredReceipts();
+      component.periodSelected({ from: "2026-10-01", to: "2026-10-31", label: "" });
 
-      filtered.next({ data: [{ id: 2 }], totalCount: 1 });
-      expect(component.totalCount()).toEqual(1);
-
-      initial.next({ data: [{ id: 1 }, { id: 2 }, { id: 3 }], totalCount: 3 });
-      expect(component.totalCount()).toEqual(1);
+      expect(refetch).toHaveBeenCalledTimes(1);
+      expect(component.totalCount()).toEqual(2);
+      expect(component.loaded()).toBe(true);
     });
 
-    it("still paints the initial page when no refresh was requested", () => {
-      refetch.mockReturnValueOnce(of({ data: [{ id: 1 }, { id: 2 }], totalCount: 2 } as any));
-      (component as any).groupId = "1";
-      (component as any).getInitialData();
+    it("loads the stored filter when the picker's first range is unusable, and leaves later ones alone", () => {
+      refetch.mockReturnValue(of({ data: [{ id: 1 }], totalCount: 1 } as any));
+      component.groupId = "1";
 
-      expect(component.totalCount()).toEqual(2);
+      component.periodSelected(undefined);
+
+      expect(refetch).toHaveBeenCalledTimes(1);
+      expect(component.totalCount()).toEqual(1);
+
+      component.periodSelected(undefined);
+
+      expect(refetch).toHaveBeenCalledTimes(1);
     });
 
     // switchMap completes the outer stream on an error unless the inner one

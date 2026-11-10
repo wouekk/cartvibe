@@ -9,6 +9,8 @@ import { marker } from "../i18n/marker";
 
 const FORBIDDEN_MESSAGE = marker("You do not have permission to perform this action.");
 
+const TOO_MANY_REQUESTS_MESSAGE = marker("Too many requests at once. Try again in a moment.");
+
 /**
  * Set on a request whose failure its caller reports itself (or retries without a word): work sent in the
  * background, such as the shopping list's waiting changes, would otherwise toast on every attempt while a server
@@ -61,6 +63,9 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
 
         if (serverMessage) {
           snackbarService.error(serverMessage);
+        } else if (e.status === 429) {
+          // The request limit in front of the API refused it, and the tries after it (rateLimitRetryInterceptor).
+          snackbarService.error(TOO_MANY_REQUESTS_MESSAGE);
         } else if (e.status >= 500) {
           snackbarService.error(e.message);
         }

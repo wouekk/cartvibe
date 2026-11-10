@@ -125,7 +125,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private readonly refreshRequested = new Subject<void>();
 
-  /** Set by the first refresh: from then on the initial page (still in flight, maybe) is superseded. */
+  /** Set by the first refresh, which the period picker asks for when it mounts. */
   private refreshWasRequested = false;
 
   private groups = this.store.selectSignal(GroupState.groups);
@@ -259,9 +259,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     );
 
     this.reconcileColumnConfig();
-
-    this.getInitialData();
-    // getInitialData stays on its own one-shot subscription because it owns the single setColumns() call.
+    // No request from here: the period picker hands over its period as soon as it mounts, and that one asks for the
+    // page (periodSelected). A request of this page's own was sent and then thrown away on every visit.
   }
 
   /**
@@ -314,26 +313,6 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId));
   }
 
-  private getInitialData(): void {
-    this.receiptFilterService
-      .getPagedReceiptsForGroups(this.groupId)
-      .pipe(
-        take(1),
-        tap((pagedData) => {
-          // The period picker asks for its own page as soon as it mounts. That request is newer than this one, so
-          // when it has been made this response must not repaint the table (it would show receipts the filter
-          // excludes, or the other way round).
-          if (!this.refreshWasRequested) {
-            this.dataSource.set(new TableDataSource<PagedDataDataInner>(pagedData.data));
-            this.totalCount.set(pagedData.totalCount);
-            this.loaded.set(true);
-          }
-          this.setColumns();
-        })
-      )
-      .subscribe();
-  }
-
   private setCanEdit(): void {
     const groupId = Number.parseInt(this.groupId);
     this.canEdit = this.store.selectSnapshot(
@@ -358,6 +337,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public ngAfterViewInit(): void {
+    // The cell templates exist from here on.
+    this.setColumns();
     this.setSelectedReceiptIdsObservable();
   }
 
@@ -543,6 +524,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
    */
   public periodSelected(period: ResolvedPeriod | undefined): void {
     if (!period) {
+      // The picker's first word loads the page whatever it says: with no usable range, the stored filter as it is.
+      if (!this.refreshWasRequested) {
+        this.getFilteredReceipts();
+      }
       return;
     }
 
