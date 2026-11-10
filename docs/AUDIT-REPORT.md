@@ -75,7 +75,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     two statuses in sprint 10; a line without an amount is marked instead); dialogs as bottom sheets on a phone
     (F9); the Dashboard's own Quick Scan and New list buttons, which stay beside the tab bar's; Playwright on a phone
     (sprint 6 adds the project, so the phone layout has unit specs only).
-- [x] 5. Jobs in SQLite, Valkey removed (`feature/sqlite-jobs`, on `main` since 2026-11-10, except B2.4): B1, B2.2 to B2.4, S10
+- [x] 5. Jobs in SQLite, Valkey removed (`feature/sqlite-jobs`, on `main` since 2026-11-10; B2.4 on `feature/sqlite-pools`): B1, B2.2 to B2.4, S10
   - Done on the branch on 2026-11-10: a `jobs` table with one worker (claimed by a conditional UPDATE, retried after
     20 s, 1 min and 3 min, kept as FAILED for the activity list, deleted on success, put back after a restart) runs
     quick scans and household imports; the sweeps and clean-ups are timers that cannot overlap themselves and end
@@ -88,10 +88,15 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
   - Beyond the plan: the daily tasks counted a whole day from each start, so a server restarted nightly never made
     its daily snapshot or ran its clean-ups; the snapshot now goes by the newest copy's own time and the clean-ups
     run ten minutes after a start.
-  - **Not done: B2.4 (a writer pool and a reader pool).** A one-connection writer pool turns any write made on a
-    second connection inside a transaction from an error after 5 s into a hang, and the pool comment in `db.go`
-    says such paths exist. Each has to be found and moved onto its `tx` first, with a test that would hang
-    otherwise; that is a branch of its own, and one household gains little from it until then.
+  - B2.4, on its own branch (`feature/sqlite-pools`, 2026-11-10): the database opens as a writer of one
+    connection and eight read-only readers (`repositories/sqlite_pools.go`). The feared hang cannot happen: a
+    write outside its transaction by the same goroutine is refused at once by name, and any other wait for the
+    writer ends after 30 s. Looking for such writes found none: the whole Go suite runs on the same pools and no
+    test trips the refusal (the `services.DeleteUser` tests included, which `db.go` named as using a second
+    connection), and a scan of the 56 transaction bodies for calls that do not go through the `tx` came back
+    empty. A path no test covers is not proved by that; it now fails by name instead of hanging. Not done from
+    B2's text: "readers stop taking the write lock at BEGIN" (a transaction cannot say it will only read; such
+    code still takes the writer).
   - Left as they are: the `task_queue_configurations` table and the `task_concurrency` column in existing
     databases (migrations are additive), and the column name `asynq_task_id` behind `SystemTask.JobId`.
 - [ ] 6. Releases, CI and hardening: B3, B7, B8, S4, S8, S12, S13, S16, S19, S20

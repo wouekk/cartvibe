@@ -31,35 +31,52 @@ func connectSqliteForTest(t *testing.T) *gorm.DB {
 	setDB(previous)
 
 	t.Cleanup(func() {
-		if sqlDB, err := connected.DB(); err == nil {
-			sqlDB.Close()
-		}
+		closePools(connected)
 	})
 
 	return connected
 }
 
 // The server's database must open in WAL (Litestream replicates the WAL; readers run while a writer
-// commits), wait for locks, and enforce foreign keys on every pooled connection, not only the first.
+// commits), wait for locks, and enforce foreign keys on every pooled connection, not only the first: the
+// one writing connection and each of the readers, which alone are query_only.
 func TestConnectSqliteAppliesPragmasOnEveryConnection(t *testing.T) {
 	connected := connectSqliteForTest(t)
 
-	sqlDB, err := connected.DB()
-	if err != nil {
-		t.Fatal(err)
+	pool, ok := poolsOf(connected)
+	if !ok {
+		t.Fatalf("Connect must open the database through the split pools")
 	}
-	if got := sqlDB.Stats().MaxOpenConnections; got != sqliteMaxOpenConns {
-		t.Fatalf("expected the pool capped at %d, got %d", sqliteMaxOpenConns, got)
+	if got := pool.writer.Stats().MaxOpenConnections; got != 1 {
+		t.Fatalf("expected one writing connection, got %d", got)
+	}
+	if got := pool.reader.Stats().MaxOpenConnections; got != sqliteReaderConns {
+		t.Fatalf("expected the readers capped at %d, got %d", sqliteReaderConns, got)
+	}
+	if sqlDB, err := connected.DB(); err != nil || sqlDB != pool.writer {
+		t.Fatalf("DB() must hand out the writer, got %v", err)
 	}
 
-	// Hold every connection of the pool at once, so each pragma is read on distinct connections.
+	// Hold every connection of both pools at once, so each pragma is read on distinct connections.
 	ctx := t.Context()
-	for i := 0; i < sqliteMaxOpenConns; i++ {
-		conn, err := sqlDB.Conn(ctx)
+	for i := 0; i <= sqliteReaderConns; i++ {
+		source, expectedQueryOnly := pool.reader, 1
+		if i == sqliteReaderConns {
+			source, expectedQueryOnly = pool.writer, 0
+		}
+		conn, err := source.Conn(ctx)
 		if err != nil {
 			t.Fatal(err)
 		}
 		defer conn.Close()
+
+		var queryOnly int
+		if err := conn.QueryRowContext(ctx, "PRAGMA query_only").Scan(&queryOnly); err != nil {
+			t.Fatal(err)
+		}
+		if queryOnly != expectedQueryOnly {
+			t.Errorf("connection %d: query_only %d, expected %d", i, queryOnly, expectedQueryOnly)
+		}
 
 		var journalMode string
 		var busyTimeout, foreignKeys, journalSizeLimit, tempStore, cacheSize int

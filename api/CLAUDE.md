@@ -61,11 +61,17 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - **SQLite opens through `sqliteParams`** (`repositories/db.go`; the test DB too): WAL (Litestream needs it),
   `busy_timeout` 5 s, `synchronous(NORMAL)`, foreign keys, `_txlock=immediate` (a transaction takes the write lock at
   BEGIN, so a read-then-write never fails on the upgrade), `journal_size_limit` 64 MB, `temp_store(MEMORY)`, an 8 MB
-  page cache per connection, pool capped at 8. A write on a second connection inside a transaction waits for that
-  transaction and fails after 5 s: write through the `tx`. Once a day `OptimizeDatabase` runs `PRAGMA optimize` and
-  a truncating checkpoint. One pool serves readers and writers; splitting it is not done (the audit's B2.4): a
-  one-connection writer pool turns any write made outside the `tx` inside a transaction from a 5 s error into a hang,
-  so every such path has to be found and fixed first.
+  page cache per connection. Once a day `OptimizeDatabase` runs `PRAGMA optimize` and a truncating checkpoint.
+- **Two pools over the one file** (`repositories/sqlite_pools.go`, the test DB too): a writer of exactly one
+  connection takes every transaction and every statement that is not a plain `SELECT`, so writers queue in Go and
+  never meet "database is locked"; eight `query_only` readers take a `SELECT` made outside a transaction. Traps:
+  - **Inside a transaction, write through the `tx`.** A write (or a second `Transaction`) on the process database
+    by the goroutine that holds a transaction is refused at once with `ErrWriteOutsideTransaction`; from another
+    goroutine it waits 30 s and fails with `ErrWriterBusy`, as does any write stuck behind a transaction that long.
+  - A read outside the `tx` runs on a reader and does not see what the transaction has not committed.
+  - A transaction that only reads still takes the writer; do not wrap plain reads in one.
+  - A raw statement that reads but does not start with `SELECT` (a `WITH`, a `PRAGMA`) runs on the writer.
+    `db.DB()` hands out the writer.
 - **Snapshots** (`repositories/snapshot.go`, `VACUUM INTO sqlite/backups/`): `main.go` takes one before
   `MakeMigrations` when `VERSION` differs from the one that last booted (five kept), and the `DatabaseSnapshot`
   clean-up task takes one a day (seven kept). A failed snapshot is logged and never stops the boot. They are why a
