@@ -47,7 +47,7 @@ export class AppComponent implements OnInit {
     // A phone that was asleep or without signal skipped its renewals: catch up when the connection or the app
     // comes back, instead of waiting for the next quarter of an hour.
     const catchUp = () => {
-      if (document.visibilityState === "visible" && this.store.selectSnapshot(AuthState.isTokenExpired)) {
+      if (document.visibilityState === "visible" && AuthState.isAccessTokenExpired(this.store)) {
         this.refreshSession();
       }
     };

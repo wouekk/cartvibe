@@ -9,7 +9,10 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -79,6 +82,46 @@ func writeShoppingListResponse(w http.ResponseWriter, data any) (int, error) {
 	return 0, nil
 }
 
+// writeRevalidatedShoppingListResponse answers a read the app repeats often (every return to the tab, every
+// reconnect of the stream) with an ETag over the body. "no-cache" makes the browser keep the answer and ask
+// again each time with If-None-Match; when nothing changed the answer is a 304 without a body, which is what a
+// phone on a weak connection in the shop needs. Authorization has already run by the time this is reached, and
+// "private" keeps the answer out of any shared cache.
+func writeRevalidatedShoppingListResponse(w http.ResponseWriter, r *http.Request, data any) (int, error) {
+	bytes, err := utils.MarshalResponseData(data)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	sum := sha256.Sum256(bytes)
+	etag := `"` + hex.EncodeToString(sum[:16]) + `"`
+	w.Header().Set("ETag", etag)
+	w.Header().Set("Cache-Control", "private, no-cache")
+
+	if etagMatches(r.Header.Get("If-None-Match"), etag) {
+		w.WriteHeader(http.StatusNotModified)
+		return 0, nil
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(bytes)
+
+	return 0, nil
+}
+
+// etagMatches reads an If-None-Match header: a list of quoted tags, each possibly marked weak (a proxy that
+// compresses the answer turns ours into W/"…"), or "*".
+func etagMatches(header string, etag string) bool {
+	for _, candidate := range strings.Split(header, ",") {
+		candidate = strings.TrimPrefix(strings.TrimSpace(candidate), "W/")
+		if candidate == "*" || candidate == etag {
+			return true
+		}
+	}
+
+	return false
+}
+
 func GetShoppingListsForGroup(w http.ResponseWriter, r *http.Request) {
 	groupId := chi.URLParam(r, "groupId")
 
@@ -108,7 +151,7 @@ func GetShoppingListsForGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			return writeShoppingListResponse(w, lists)
+			return writeRevalidatedShoppingListResponse(w, r, lists)
 		},
 	}
 

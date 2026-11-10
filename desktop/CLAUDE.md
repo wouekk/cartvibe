@@ -27,7 +27,8 @@ feature.
   describe the past. Most components are still `standalone: false` in NgModules; new leaf components may be
   standalone, a non-standalone one must be declared (and exported if another module uses it).
 - **State:** NGXS in `src/store/`; read with `store.selectSignal(...)` or `selectSnapshot`, never `@Select` / `| async`.
-  Persisted slices are listed in `store.module.ts`.
+  Persisted slices are listed in `ngxsStorageKeys` (`app.config.ts`); the shopping lists keep their own copy in
+  IndexedDB instead (`src/offline/`).
 - **Zoneless traps.** Only signal writes, template/host events, `markForCheck()` and `setInput()` repaint. A plain
   field written in `subscribe`, `setTimeout`, a promise or **`finalize()`** never repaints (the login spinner once stuck
   forever on the failure path). Keep template state in signals and test the error branch. Arrays and Sets in signals
@@ -116,6 +117,13 @@ feature.
   answers 401 or 403 (the one 401 in the API). A network error, a 429 or a 5xx keeps the session, so a dead zone in
   the shop never signs anyone out; storage is cleared with `clearSessionStorage()`, never `localStorage.clear()`
   (`docs/features.md` → Installable app).
+- **Work that waits for the connection** (the list's adds and cross-offs, Quick Scan photos; `docs/features.md` →
+  Shopping lists, Receipts): kept in `OfflineStorageService`, sent by a root service through `RetryWhenReachable`
+  after `TokenRefreshService.ensureFreshToken()`, with `QUIET_ERRORS` on the request (the interceptor stays silent;
+  the service reports a refusal itself). Queue a write only when the API makes it safe to send twice, and treat only
+  no connection, 5xx, 429 and 408 as "try again" (`isWorthRetrying`): any other answer is the server's and is final.
+- **Never read the clock in an NGXS `@Selector`:** its answer is remembered until the slice changes. Time-dependent
+  checks are plain functions over a selector's value (`AuthState.isAccessTokenExpired(store)`).
 - **One toast per error, and the server's `errorMsg` wins.** The generic `HttpErrorResponse.message` is a fallback
   only for a 5xx with no `errorMsg`. A form with two writes toasts success only after both land.
 - **App time zone** (`SystemSettingsState.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the

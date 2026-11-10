@@ -1,8 +1,10 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
-import { ShoppingListItem } from "../../open-api";
+import { NgxsModule, Store } from "@ngxs/store";
+import { ShoppingListItem, User } from "../../open-api";
+import { UserState } from "../../store/user.state";
+import { SetUsers } from "../../store/user.state.actions";
 import { ShoppingListsModule } from "../shopping-lists.module";
 import { ShoppingListItemClassification, ShoppingListItemComponent } from "./shopping-list-item.component";
 
@@ -132,5 +134,69 @@ describe("ShoppingListItemComponent", () => {
     menuItem("shopping-list-item-health-UNHEALTHY")!.click();
 
     expect(corrections).toEqual([{ item: { ...milk, seasonality: "SEASONAL" }, health: "UNHEALTHY" }]);
+  });
+
+  describe("a change that waits for the connection", () => {
+    it("carries no mark by default", async () => {
+      await render(milk, true);
+      expect(el("shopping-list-item-pending")).toBeNull();
+    });
+
+    it("is marked as not sent yet, in words a screen reader gets too", async () => {
+      fixture.componentRef.setInput("pending", true);
+      await render(milk, true);
+
+      expect(el("shopping-list-item-pending")?.textContent?.trim()).toBe("Not sent yet");
+    });
+
+    it("can be crossed off and deleted but not edited while the server has not seen the row", async () => {
+      await render({ ...milk, id: -1700000000000001, clientId: "a" } as ShoppingListItem, true);
+      expect((el("shopping-list-item-toggle") as HTMLButtonElement).disabled).toBe(false);
+
+      await openMenu();
+
+      expect(menuItem("shopping-list-item-edit")).toBeNull();
+      expect(menuItem("shopping-list-item-tags")).toBeNull();
+      expect(menuItem("shopping-list-item-delete")).not.toBeNull();
+    });
+  });
+});
+
+describe("ShoppingListItemComponent: who crossed it off", () => {
+  let fixture: ComponentFixture<ShoppingListItemComponent>;
+
+  const el = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+
+  const render = async (item: ShoppingListItem) => {
+    fixture.componentRef.setInput("item", item);
+    await fixture.whenStable();
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ShoppingListsModule, NgxsModule.forRoot([UserState])],
+      providers: [provideZonelessChangeDetection(), provideRouter([])],
+    }).compileComponents();
+    TestBed.inject(Store).dispatch(new SetUsers([{ id: 7, displayName: "Ola", username: "ola" } as User]));
+    fixture = TestBed.createComponent(ShoppingListItemComponent);
+  });
+
+  afterEach(() => fixture.destroy());
+
+  it("shows that person's avatar on a crossed-off row", async () => {
+    await render({ ...milk, isChecked: true, checkedByUserId: 7 } as ShoppingListItem);
+
+    expect(el("shopping-list-item-checked-by")?.textContent?.trim()).toBe("O");
+  });
+
+  it("shows none on a row still to buy, or when the person is no longer known", async () => {
+    await render({ ...milk, isChecked: false, checkedByUserId: 7 } as ShoppingListItem);
+    expect(el("shopping-list-item-checked-by")).toBeNull();
+
+    await render({ ...milk, isChecked: true, checkedByUserId: 99 } as ShoppingListItem);
+    expect(el("shopping-list-item-checked-by")).toBeNull();
+
+    await render({ ...milk, isChecked: true } as ShoppingListItem);
+    expect(el("shopping-list-item-checked-by")).toBeNull();
   });
 });

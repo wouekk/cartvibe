@@ -12,6 +12,7 @@ const (
 	MaxShoppingListItemNameLength     = 200
 	MaxShoppingListItemQuantityLength = 50
 	MaxShoppingListItemNoteLength     = 500
+	MaxShoppingListItemClientIdLength = 64
 )
 
 // ShoppingListUnits are the units an item's amount may be in. The unit is a plain string on the API
@@ -32,7 +33,11 @@ func IsShoppingListUnit(unit string) bool {
 type ShoppingListItem struct {
 	BaseModel
 	ShoppingList    ShoppingList     `json:"-"`
-	ShoppingListId  uint             `gorm:"not null;index:idx_shopping_list_item_list_id" json:"shoppingListId"`
+	ShoppingListId  uint             `gorm:"not null;index:idx_shopping_list_item_list_id;uniqueIndex:idx_shopping_list_item_client_id,priority:1" json:"shoppingListId"`
+	// ClientId is the key the adding client made up for this item, unique within its list. An add that is sent
+	// again (a phone that lost its signal before the answer arrived) finds the item by it instead of adding a
+	// second line. Nil for items added without one; SQLite lets any number of rows share a NULL in a unique index.
+	ClientId        *string          `gorm:"type:varchar(64);uniqueIndex:idx_shopping_list_item_client_id,priority:2" json:"clientId,omitempty"`
 	Name            string           `gorm:"type:varchar(200);not null" json:"name"`
 	Amount          *decimal.Decimal `gorm:"type:decimal(10,3)" json:"amount"`
 	Unit            string           `gorm:"type:varchar(20);not null;default:''" json:"unit"`

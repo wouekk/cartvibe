@@ -40,7 +40,7 @@ export class AuthGuard {
       return this.router.createUrlTree(["/auth/login"]);
     }
 
-    if (!this.store.selectSnapshot(AuthState.isTokenExpired)) {
+    if (!AuthState.isAccessTokenExpired(this.store)) {
       return true;
     }
 

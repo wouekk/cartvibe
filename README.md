@@ -202,7 +202,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 
 | Feature | What it does |
 | :--- | :--- |
-| **Live shared shopping lists** | Build the list on your phone in the shop. What you add shows on every phone in the family; cross things off as you go and mark the trip done. |
+| **Live shared shopping lists** | Build the list on your phone in the shop. What you add shows on every phone in the family; cross things off as you go and mark the trip done. No signal between the shelves? The list still opens, you keep adding and crossing off, and it catches up when the phone is back online. |
 | **Receipt line scanning** | Upload a photo or a PDF and every line is read out. Money is kept as exact decimals, so the lines add up to the cent and any mismatch is flagged. |
 | **Optional AI labels** | With an AI key (Claude, Gemini, ChatGPT, or a local model via LM Studio or Ollama), each line gets a category, a health rating, and a planned or not-on-the-list flag. If the AI is down, nothing fails, and it never assigns your tags. |
 | **Household overview and goals** | One Dashboard for groceries, eating out, transport, travel, leisure, and bills, with a monthly goal you can watch fill up. |

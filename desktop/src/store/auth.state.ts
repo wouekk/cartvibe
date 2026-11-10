@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { Action, createSelector, Selector, State, StateContext } from "@ngxs/store";
+import { Action, createSelector, Selector, State, StateContext, Store } from "@ngxs/store";
 
 import { hasAll, hasAny } from "../utils/permission.utils";
 import { receiptRequirementsFor } from "../utils/receipt-requirements";
@@ -41,7 +41,7 @@ export class AuthState {
   /**
    * A session exists in this browser: the person signed in and has not signed out. The 20-minute access token may
    * have run out meanwhile (a phone asleep or without signal); `TokenRefreshService` renews it, and only the server's
-   * refusal ends the session. Use `isTokenExpired` to decide whether a renewal is due.
+   * refusal ends the session. Use `AuthState.isAccessTokenExpired(store)` to decide whether a renewal is due.
    */
   @Selector()
   static isLoggedIn(state: AuthStateInterface): boolean {
@@ -53,13 +53,20 @@ export class AuthState {
     return state.userId ?? "";
   }
 
+  /** When the access token runs out, in milliseconds since the epoch; undefined without a session. */
   @Selector()
-  static isTokenExpired(state: AuthStateInterface): boolean {
-    if (state.expirationDate) {
-      return new Date() >= new Date(Number(state.expirationDate) * 1000);
-    } else {
-      return true;
-    }
+  static tokenExpiresAt(state: AuthStateInterface): number | undefined {
+    return state.expirationDate ? Number(state.expirationDate) * 1000 : undefined;
+  }
+
+  /**
+   * Whether the access token has run out (or there is none). A plain function, not a selector: a selector's answer
+   * is remembered until the auth state changes, and time passing changes nothing there, so a selector that read the
+   * clock kept answering "not expired" for as long as the app stayed open.
+   */
+  static isAccessTokenExpired(store: { selectSnapshot: Store["selectSnapshot"] }, now: number = Date.now()): boolean {
+    const expiresAt = store.selectSnapshot(AuthState.tokenExpiresAt);
+    return expiresAt === undefined || now >= expiresAt;
   }
 
   @Selector()

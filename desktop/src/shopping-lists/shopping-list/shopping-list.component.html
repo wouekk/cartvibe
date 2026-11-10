@@ -24,7 +24,6 @@
           class="size-9"
           [attr.aria-label]="'Add item' | t"
           data-testid="shopping-list-add-submit"
-          [disabled]="adding()"
         >
           <app-icon name="add"></app-icon>
         </button>
@@ -38,6 +37,7 @@
     <app-shopping-list-item
       [item]="item"
       [canUpdate]="canUpdate()"
+      [pending]="pendingItemIds().has(item.id)"
       (toggled)="toggleItem($event)"
       (editClicked)="editItem($event)"
       (deleteClicked)="deleteItem($event)"
@@ -83,6 +83,7 @@
           <app-shopping-list-item
             [item]="item"
             [canUpdate]="canUpdate()"
+            [pending]="pendingItemIds().has(item.id)"
             (toggled)="toggleItem($event)"
             (editClicked)="editItem($event)"
             (deleteClicked)="deleteItem($event)"

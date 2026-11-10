@@ -9,6 +9,7 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { setRequired } from "../../form";
 import { Category, GroupReceiptSettings, Permission, ReceiptService, ReceiptStatus, Tag } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
 import { AuthState, GroupState } from "../../store";
 import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
@@ -67,6 +68,8 @@ export class QuickScanDialogComponent implements OnInit {
   private readonly commentPermissionByGroup = new Map<number, boolean>();
 
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly queuedScans = inject(QueuedScanService);
 
   constructor(
     private dialogRef: AppDialogRef<QuickScanDialogComponent>,
@@ -341,18 +344,29 @@ export class QuickScanDialogComponent implements OnInit {
       return;
     }
     if (this.form.valid && this.images.length > 0) {
+      // The scan as it is sent, kept in case it cannot be: the form may change while the upload runs.
+      const scan: QueuedScan = {
+        files: this.images.map((i) => i.file),
+        groupIds: [...this.groupIds.value],
+        paidByUserIds: [...this.paidByUserIds.value],
+        statuses: [...this.statuses.value],
+        categoryIds: this.joinIds(this.categories),
+        tagIds: this.joinIds(this.tags),
+        // Already one string per image - no id joining needed, unlike categories/tags.
+        comments: [...this.comments.value],
+      };
+
       this.uploadStage.set({ stage: "uploading", percent: 0 });
       withUploadProgress(
         this.receiptService
         .quickScanReceipt(
-          this.images.map((i) => i.file),
-          this.groupIds.value,
-          this.paidByUserIds.value,
-          this.statuses.value,
-          this.joinIds(this.categories),
-          this.joinIds(this.tags),
-          // Already one string per image - no id joining needed, unlike categories/tags.
-          this.comments.value,
+          scan.files,
+          scan.groupIds,
+          scan.paidByUserIds,
+          scan.statuses,
+          scan.categoryIds,
+          scan.tagIds,
+          scan.comments,
           "events",
           true
         ),
@@ -369,7 +383,19 @@ export class QuickScanDialogComponent implements OnInit {
           // A refused or failed upload (the interceptor already reports it) leaves the dialog open and the bar away.
           finalize(() => this.uploadStage.set(null))
         )
-        .subscribe({ error: () => undefined });
+        .subscribe({
+          error: (error: unknown) => {
+            // No connection at the till: the photos stay on this device and go up by themselves later.
+            if (QueuedScanService.shouldQueue(error)) {
+              void this.queuedScans.queue(scan).then(() => {
+                this.snackbarService.info(
+                  marker("No connection. The photos are kept on this device and uploaded when the connection is back.")
+                );
+                this.dialogRef.close();
+              });
+            }
+          },
+        });
     }
     if (this.images.length === 0) {
       this.snackbarService.error("Please select images to upload");

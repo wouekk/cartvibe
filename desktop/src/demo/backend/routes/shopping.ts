@@ -303,9 +303,15 @@ export function registerShopping(router: DemoRouter): void {
       return notFound("List not found");
     }
     const command = body<UpsertShoppingListItemCommand>(ctx);
+    // Like the API: the same add sent twice (the same client id) answers with the item the first one made.
+    const already = command.clientId ? list.items.find((candidate) => candidate.clientId === command.clientId) : undefined;
+    if (already) {
+      return already;
+    }
     const item: ShoppingListItem = {
       id: nextId(ctx.db, "item"),
       shoppingListId: list.id,
+      clientId: command.clientId || undefined,
       name: command.name,
       quantity: "",
       unit: "pcs",

@@ -17,13 +17,26 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   one transaction, keeps the stamp of items already in that state, and sends the list whole as `LIST_UPDATED` only when
   something changed ("Mark as complete", Restore, Undo).
   Adding the name of a crossed-off item on the same list (case-insensitive via `LOWER()` both sides) revives it.
+- **Changes made without a connection** (the web app queues adds and cross-offs and sends them later, possibly
+  twice). An add may carry a `clientId` (letters, digits, `-`, `_`; 64 at most), stored on the item and unique within
+  its list (`idx_shopping_list_item_client_id`; NULL for items added without one). `AddShoppingListItem` looks the id
+  up first, inside the add's own transaction: a repeat answers with the item as it is now and sends no event and no
+  notification. An add that revives a crossed-off item moves its `clientId` onto that item, so its repeat finds it
+  too. Cross-off was already a "set". Any new write the app is to queue needs the same property before it is queued.
+- `GET /shopping-list/group/{groupId}` carries an `ETag` over the body and `Cache-Control: private, no-cache`; a
+  matching `If-None-Match` (weak or strong: nginx's gzip turns ours weak) answers 304 with no body, after the
+  permission check. The browser does the revalidation by itself, so the app's code sees an ordinary 200.
 - **SSE** `GET /shopping-list/group/{groupId}/stream`: `ShoppingListHub` is in-process pub/sub (single container). Publish
   happens after the write commits and never blocks; a subscriber with a full 32-event buffer is dropped and refetches.
   `Events` is never closed (a racing publisher would panic), only `Dropped`. The stream clears its write deadline
   (`main.go` has a 5-minute `WriteTimeout`), returns `(0, nil)` so `HandleRequest` writes no error body mid-stream,
   heartbeats every 25 s re-checking the permission, and ends after 15 minutes so a reconnect re-authenticates.
-  `X-Accel-Buffering: no` plus a dedicated nginx location disable proxy buffering. Trip changes send only
-  `TRIPS_CHANGED` (no payload); clients refetch.
+  The heartbeat is an event named `PING` (data `{}`), not a comment: the page reopens a stream that has been silent
+  for 70 s, which is how a phone out of signal stops showing "Live". `X-Accel-Buffering: no` plus a dedicated nginx
+  location disable proxy buffering. Trip changes send only `TRIPS_CHANGED` (no payload); clients refetch.
+  `RECEIPT_READ` carries a `receiptId` and nothing of the receipt (`shoppingListId` 0): the product sweep sends it
+  after every outcome of a read and Quick Scan after an inline read (`publishReceiptRead`), and the open receipt
+  page refetches through the receipt's own call. Both callers build the service without an outer transaction.
 - Notifications (`services/shopping_notifications.go`): new lists, added items (one bell per 15 min per message) and
   `POST /shopping-list/group/{id}/going-shopping` notify the rest of the group, never the actor; best-effort.
 - **Recipe import** (`internal/recipeimport/`, no AI, nothing translated; names and units stay in the recipe's language).

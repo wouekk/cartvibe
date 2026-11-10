@@ -112,6 +112,10 @@ func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint)
 // The revived item keeps its amount and note unless the request supplies new ones (an amount in
 // either form replaces both forms). A matching item that is NOT crossed off is left alone: two lines
 // of the same thing are allowed.
+//
+// An add that carries a client id is safe to send twice: the second one finds the item the first one made (or
+// brought back) and answers with it as it is now, without a second line, event or notification. A phone that
+// lost its signal before the answer arrived relies on that.
 func (service ShoppingListService) AddShoppingListItem(
 	groupId uint,
 	listId uint,
@@ -120,9 +124,26 @@ func (service ShoppingListService) AddShoppingListItem(
 ) (models.ShoppingListItem, error) {
 	var item models.ShoppingListItem
 	eventType := models.ShoppingListEventItemAdded
+	alreadyAdded := false
+	var clientId *string
+	if len(command.ClientId) > 0 {
+		clientId = &command.ClientId
+	}
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
 		repository := repositories.NewShoppingListRepository(tx)
+
+		if clientId != nil {
+			added, err := repository.FindShoppingListItemByClientId(listId, *clientId)
+			if err == nil {
+				item = added
+				alreadyAdded = true
+				return nil
+			}
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
 
 		existing, err := repository.FindCheckedShoppingListItemByName(listId, command.Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -156,6 +177,14 @@ func (service ShoppingListService) AddShoppingListItem(
 				return err
 			}
 
+			// The add's key moves onto the item it brought back, so the same add sent again finds it.
+			if clientId != nil {
+				err = repository.SetShoppingListItemClientId(existing.ID, *clientId)
+				if err != nil {
+					return err
+				}
+			}
+
 			// Back on the list, possibly in another month: its seasonality is worked out again. A
 			// person's own correction is kept.
 			if !existing.ClassificationOverridden {
@@ -173,6 +202,7 @@ func (service ShoppingListService) AddShoppingListItem(
 		item, err = repository.CreateShoppingListItem(models.ShoppingListItem{
 			BaseModel:      models.BaseModel{CreatedBy: &userId},
 			ShoppingListId: listId,
+			ClientId:       clientId,
 			Name:           command.Name,
 			Amount:         command.Amount,
 			Unit:           command.Unit,
@@ -184,6 +214,9 @@ func (service ShoppingListService) AddShoppingListItem(
 	if err != nil {
 		return models.ShoppingListItem{}, err
 	}
+	if alreadyAdded {
+		return item, nil
+	}
 
 	publishShoppingListEvent(models.ShoppingListEvent{
 		Type:           eventType,
@@ -191,7 +224,7 @@ func (service ShoppingListService) AddShoppingListItem(
 		ShoppingListId: listId,
 		Item:           &item,
 	})
-notifyItemAdded(groupId, userId, listId)
+	notifyItemAdded(groupId, userId, listId)
 
 	return item, nil
 }

@@ -19,6 +19,15 @@ that setting), and you can add `stop_grace_period: 30s` to your stack as the REA
 server finish what it is doing.
 
 ### Added
+- **The shopping list works without a connection.** A list you opened before opens again in a dead zone, as you last
+  saw it. Adding an item and crossing one off work there too: they show at once, are kept on the phone (also when the
+  app is closed) and are sent when the server can be reached again, each exactly once. Editing, deleting and new
+  lists still need a connection. Signing out removes what the phone kept *(LIST-18)*.
+- **The list says whether it is live.** Under the list's name: *Live*, *Reconnecting* or *Offline*, with the number of
+  your changes still waiting, and a small mark on each row that has not been sent yet *(LIST-19)*.
+- **Who crossed it off.** A crossed-off item shows the picture of the person who crossed it off *(LIST-20)*.
+- **A Quick Scan is never lost to a dead zone.** With no connection the photos stay on the phone and upload by
+  themselves later *(SCAN-12)*.
 - **Pull down to refresh in the installed app.** Hold the top of a page and drag down; let go once the arrow has turned
   and the page reloads with fresh data *(APP-11)*.
 - **The server copies its own database.** Once before a new version changes anything and once a day, into
@@ -41,8 +50,19 @@ server finish what it is doing.
   again on every visit).
 - **A server that is too busy says so.** Every rate limit now answers "429 Too Many Requests" instead of
   "503 Service Unavailable".
+- **A receipt's lines appear the moment the AI is done.** The open receipt page used to ask every half minute; it now
+  hears it on the household's live connection, and falls back to asking where that is not available *(SCAN-13)*.
+- **Reopening a list sends less.** The lists are only sent again when something changed since the phone last asked,
+  which matters on a weak connection in the shop *(LIST-02)*.
+- **The list's notice about a lost connection tells the truth.** It used to say changes "may not be saved"; it now
+  says they are kept and sent later, and how many are waiting *(LIST-13)*.
 
 ### Fixed
+- **A session that ran out is noticed while the app stays open.** The check for an expired session remembered its
+  first answer, so a phone that woke up after a long pause carried on with an expired session until something else
+  refreshed it. It now looks at the clock every time *(APP-13)*.
+- **The add box on a list is empty after every add.** A name typed and entered very quickly (or pasted) could stay
+  in the box, and the next item was added with both names joined *(LIST-04)*.
 - **A lost connection no longer signs you out.** Opening the app in a dead zone, a server restarting during an update
   or a busy server used to sign you out and reset the theme, palette and language. Now only a session the server
   really refuses ends, and those three choices are kept even then *(APP-13)*.

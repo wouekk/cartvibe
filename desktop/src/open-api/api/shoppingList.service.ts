@@ -133,7 +133,7 @@ export class ShoppingListService {
 
     /**
      * Add shopping list item
-     * This will add an item to a shopping list [group.shopping-lists.update]. When the name matches a crossed-off item on the same list (ignoring case), that item is un-checked instead of a duplicate being created; a supplied quantity or note replaces the stored one.
+     * This will add an item to a shopping list [group.shopping-lists.update]. When the name matches a crossed-off item on the same list (ignoring case), that item is un-checked instead of a duplicate being created; a supplied quantity or note replaces the stored one. An add that carries a clientId may be sent again safely: the repeat answers with the same item and adds nothing.
      * @param listId Id of the shopping list to add the item to
      * @param upsertShoppingListItemCommand Item to add
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -751,7 +751,7 @@ export class ShoppingListService {
 
     /**
      * Get shopping lists for a group
-     * This will get every shopping list in a group, each with its items [group.shopping-lists.read]
+     * This will get every shopping list in a group, each with its items [group.shopping-lists.read]. The answer carries an ETag and \&quot;Cache-Control: private, no-cache\&quot;: a request with a matching If-None-Match is answered 304 without a body.
      * @param groupId Id of the group the shopping lists belong to. The \&quot;All\&quot; group is rejected with 400.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1397,7 +1397,7 @@ export class ShoppingListService {
 
     /**
      * Stream shopping list updates
-     * Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read]. Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON. A comment heartbeat is sent every 25 seconds, and the server ends the stream after 15 minutes (or when the caller loses access) so that reconnecting re-authenticates. Events missed while disconnected are not replayed; refetch the lists after (re)connecting.
+     * Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read]. Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON. A heartbeat event named PING (data \&quot;{}\&quot;) is sent every 25 seconds, so a client can tell a stream that went silent from a quiet one, and the server ends the stream after 15 minutes (or when the caller loses access) so that reconnecting re-authenticates. Events missed while disconnected are not replayed; refetch the lists after (re)connecting.
      * @param groupId Id of the group to receive shopping list updates for
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

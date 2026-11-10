@@ -269,7 +269,11 @@ which day an instant falls on and what "today" means.
   other units go into the free-text `quantity` (`docs/domain.md`).
 - **SSE** (`ShoppingListHub`, in-process, single container): publish after the write commits and never block; never
   close `Events` (a racing publisher would panic), only `Dropped`. The stream clears its write deadline and returns
-  `(0, nil)` so `HandleRequest` writes no error body mid-stream.
+  `(0, nil)` so `HandleRequest` writes no error body mid-stream. Its heartbeat is the `PING` event the page counts
+  on; `RECEIPT_READ` rides the same stream with a receipt id only.
+- **The web app sends list adds and cross-offs again after a lost connection,** so both must stay safe to repeat:
+  an add by its `clientId`, a cross-off because it sets a state. A repeat sends no event and no notification
+  (`docs/domain.md`). Keep that true before letting the app queue any other write.
 - **Categories and tags live on product lines** (`receipt_products.category_id`, `receipt_product_tags`); a person's
   choice (`category_overridden`, `classificationOverridden`) survives sweeps, renames and Read again.
   `ReceiptProduct.MarshalJSON` serializes nil tags as `[]`. Receipt-level categories/tags still drive grants and filters.

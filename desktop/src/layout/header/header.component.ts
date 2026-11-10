@@ -122,7 +122,8 @@ export class HeaderComponent {
             tap((n) => {
               this.notificationCount.set(n > 0 ? n : undefined);
             })
-          ).subscribe();
+            // An app opened without a connection has no count to show; that is not an error to throw.
+          ).subscribe({ error: () => undefined });
         });
       }
     });

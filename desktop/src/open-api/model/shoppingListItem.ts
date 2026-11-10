@@ -18,6 +18,10 @@ export interface ShoppingListItem {
      * List the item belongs to
      */
     shoppingListId: number;
+    /**
+     * The key the adding client made up for this item (see UpsertShoppingListItemCommand); absent on items added without one
+     */
+    clientId?: string;
     name: string;
     /**
      * How much to buy, as a decimal string (e.g. \"1.5\"); null when not given

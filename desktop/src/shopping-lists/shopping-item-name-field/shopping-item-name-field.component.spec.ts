@@ -47,6 +47,28 @@ describe("ShoppingItemNameFieldComponent", () => {
     expect(component.options()).toEqual([]);
   });
 
+  // The list clears the control in the same turn as the Enter that adds the item. A name typed since the last paint
+  // was never bound, so the binding alone would leave it in the box and the next item would be appended to it.
+  it("empties the box when the control is cleared before the typed name was ever painted", async () => {
+    const box = fixture.nativeElement.querySelector("input") as HTMLInputElement;
+
+    box.value = "Oats";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(control.value).toBe("Oats");
+    // No whenStable() here: the add happens before the next paint.
+    control.reset("");
+    // Empty at once, not on the next paint: a next name typed straight away must not be appended to this one.
+    expect(box.value).toBe("");
+    await fixture.whenStable();
+
+    expect(box.value).toBe("");
+
+    // And the same name can be typed again: the box reports it as a change.
+    box.value = "Oats";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(control.value).toBe("Oats");
+  });
+
   it("picking a suggestion sets the name and tells the list", () => {
     const picked = vi.fn();
     component.picked.subscribe(picked);

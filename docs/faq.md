@@ -137,8 +137,14 @@ dropped over plain HTTP, so nobody reaching CartVibe that way can sign in until 
 * **Updates:** after you deploy a new image, the app notices the next time you open it and loads the new version on the
   following page change. Close and reopen it if a screen still looks old.
 * **Remove it:** press and hold the icon, then choose to uninstall (Android) or **Remove App** (iPhone).
-* **The server still has to be reachable.** Only the app shell is kept on the phone; receipts, lists and scans always come
-  from your server, so the app needs your network (or your HTTPS address from outside the house) to show your data.
+* **What works without a connection.** A shopping list you have opened on the phone before opens again in a dead zone,
+  and you can add items and cross them off there: the list says *Offline* and how many changes are waiting, and sends them
+  when the phone reaches your server again. A receipt photographed with Quick Scan is kept on the phone and uploaded
+  later. Editing or deleting items, new lists, receipts, the Dashboard and reports come from your server, so they need
+  your network (or your HTTPS address from outside the house).
+* **Opening the app in a dead zone needs HTTPS too.** On a plain `http://` address an app that is already open keeps
+  working as described, but the phone cannot start it without a connection, because browsers keep the app's own files
+  only for an HTTPS address.
 
 ## How do I check that my backup really restores?
 

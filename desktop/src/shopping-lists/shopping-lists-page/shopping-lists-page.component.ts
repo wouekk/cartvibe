@@ -22,6 +22,7 @@ import { ToastRef } from "../../toast/toast.service";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
@@ -40,6 +41,9 @@ import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
+
+const SENDING = marker("Sending: {count}");
+const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
 
 @Component({
   selector: "app-shopping-lists-page",
@@ -156,6 +160,60 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly online = inject(OnlineStatusService).online;
 
+  /** This device's changes of the open household that the server has not confirmed yet. */
+  public readonly pendingCount = this.store.selectSignal(ShoppingListState.pendingCount);
+
+  private readonly streamStatus = this.shoppingListStreamService.status;
+
+  private readonly loadFailedGroupId = this.store.selectSignal(ShoppingListState.loadFailedGroupId);
+
+  /** Nothing to show: the lists could be read neither from the server nor from the device. */
+  public readonly loadFailed = computed(() => this.loadFailedGroupId() === this.groupId());
+
+  private readonly sync = inject(ShoppingListSyncService);
+
+  /** A change of this device just failed to reach the server. */
+  private readonly sendStalled = this.sync.stalled;
+
+  /**
+   * What the page says about the connection, from what is known rather than guessed: "live" while the stream is
+   * open and nothing of this device's failed to get through, "offline" when the browser itself reports no network,
+   * "reconnecting" when the stream was lost or a change could not be sent, and both are being tried again. Nothing
+   * while the first connection is still being made.
+   */
+  public readonly connection = computed<"live" | "reconnecting" | "offline" | undefined>(() => {
+    const status = this.streamStatus();
+    const stalled = this.sendStalled();
+    if (status === "live" && !stalled) {
+      return "live";
+    }
+    if (!this.online()) {
+      return "offline";
+    }
+    return status === "reconnecting" || stalled ? "reconnecting" : undefined;
+  });
+
+  public readonly connectionLabel = computed(() => {
+    switch (this.connection()) {
+      case "live":
+        return this.translation.t("Live");
+      case "offline":
+        return this.translation.t("Offline");
+      default:
+        return this.translation.t("Reconnecting");
+    }
+  });
+
+  /** "Sending: 2" while they travel, "Waiting to be sent: 2" while they cannot. */
+  public readonly pendingLabel = computed(() =>
+    this.translation.t(this.connection() === "live" ? SENDING : WAITING_TO_BE_SENT, { count: this.pendingCount() })
+  );
+
+  /** The notice that explains what happens to changes while the server cannot be reached. */
+  public readonly showOfflineNotice = computed(
+    () => this.connection() === "offline" || (this.connection() === "reconnecting" && this.pendingCount() > 0)
+  );
+
   public readonly canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   /** A recipe shared from a phone's share sheet, waiting for the lists to load before the import dialog opens on it. */
@@ -240,6 +298,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
    * shopped. The toast's Undo puts back exactly the items this crossed off.
    */
   public completeList(list: ShoppingList): void {
+    if (this.pendingCount() > 0) {
+      // The ids below must be the server's, and a row added a moment ago may not have one yet.
+      this.afterQueueSent(() => this.completeList(this.lists().find((candidate) => candidate.id === list.id) ?? list));
+      return;
+    }
+
     const itemIds = list.items.filter((item) => !item.isChecked).map((item) => item.id);
     if (itemIds.length === 0) {
       return;
@@ -276,7 +340,28 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     this.setListChecked(list, false, undefined, () => this.selectList(list.id));
   }
 
+  /**
+   * A whole-list action acts on the list as the server has it, so this device's waiting adds and cross-offs go
+   * first. When they cannot be sent the action does not happen, and the person is told why.
+   */
+  private afterQueueSent(action: () => void): void {
+    this.completing.set(true);
+    void this.sync.drained().then((sent) => {
+      this.completing.set(false);
+      if (sent) {
+        action();
+      } else {
+        this.snackbarService.error(marker("Couldn't reach the server. Check your connection and try again."));
+      }
+    });
+  }
+
   private setListChecked(list: ShoppingList, isChecked: boolean, itemIds: number[] | undefined, done: () => void): void {
+    if (this.pendingCount() > 0) {
+      this.afterQueueSent(() => this.setListChecked(list, isChecked, itemIds, done));
+      return;
+    }
+
     this.completing.set(true);
     this.shoppingListService
       .setShoppingListChecked(list.id, { isChecked, itemIds })

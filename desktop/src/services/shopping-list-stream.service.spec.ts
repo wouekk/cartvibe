@@ -136,6 +136,92 @@ describe("ShoppingListStreamService", () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  it("says whether changes made elsewhere arrive right now", () => {
+    expect(service.status()).toBe("idle");
+
+    service.connect(1);
+    expect(service.status()).toBe("connecting");
+
+    latest().open();
+    expect(service.status()).toBe("live");
+
+    // A blip: the browser reconnects by itself (readyState stays CONNECTING).
+    latest().readyState = 0;
+    latest().emit("error");
+    expect(service.status()).toBe("reconnecting");
+
+    latest().open();
+    expect(service.status()).toBe("live");
+
+    latest().failPermanently();
+    expect(service.status()).toBe("reconnecting");
+
+    service.disconnect();
+    expect(service.status()).toBe("idle");
+  });
+
+  it("is live at once with a source that is already open (the demo's stand-in never fires open)", () => {
+    service.setEventSourceFactory(() => {
+      const source = new FakeEventSource("demo");
+      source.readyState = 1;
+      sources.push(source);
+      return source as unknown as EventSource;
+    });
+
+    service.connect(1);
+
+    expect(service.status()).toBe("live");
+  });
+
+  it("catches up when the browser reports a connection again", () => {
+    service.connect(1);
+    latest().open();
+    latest().failPermanently();
+    dispatch.mockClear();
+    const before = sources.length;
+
+    window.dispatchEvent(new Event("online"));
+
+    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+    expect(sources.length).toBe(before + 1);
+  });
+
+  it("takes an open stream that went silent for lost, and opens it again", () => {
+    service.connect(1);
+    latest().open();
+    const silent = latest();
+    dispatch.mockClear();
+
+    // The server's heartbeat keeps a quiet stream alive...
+    vi.advanceTimersByTime(60_000);
+    silent.emit("PING", { data: "{}" });
+    vi.advanceTimersByTime(60_000);
+    expect(service.status()).toBe("live");
+    expect(sources.length).toBe(1);
+
+    // ...and without it (a phone out of signal, which leaves the stream "open") the page stops saying Live.
+    vi.advanceTimersByTime(10_000);
+    expect(service.status()).toBe("reconnecting");
+    expect(silent.closed).toBe(true);
+    expect(sources.length).toBe(2);
+
+    latest().open();
+    expect(service.status()).toBe("live");
+    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+  });
+
+  it("does not wait for a heartbeat from a stream that never opened, or after disconnecting", () => {
+    service.connect(1);
+    vi.advanceTimersByTime(300_000);
+    expect(sources.length).toBe(1);
+
+    latest().open();
+    service.disconnect();
+    vi.advanceTimersByTime(300_000);
+    expect(sources.length).toBe(1);
+    expect(service.status()).toBe("idle");
+  });
+
   it("keeps a single stream when switching groups", () => {
     service.connect(3);
     const first = latest();

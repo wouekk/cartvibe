@@ -1,6 +1,6 @@
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -10,6 +10,7 @@ import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from 
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -73,7 +74,8 @@ describe("ShoppingListsPageComponent", () => {
         { provide: ActivatedRoute, useValue: { paramMap: of(new Map([["groupId", "1"]]) as any), snapshot: undefined } },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: shoppingListService },
-        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn() } },
+        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
+        { provide: ShoppingListSyncService, useValue: { stalled: signal(false), drained: vi.fn().mockResolvedValue(true) } },
         { provide: SnackbarService, useValue: snackbarService },
         {
           provide: AppDialog,

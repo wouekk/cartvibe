@@ -1,6 +1,7 @@
 import { HttpBackend, HttpInterceptorFn } from "@angular/common/http";
 import { EnvironmentProviders, Provider, inject, provideAppInitializer } from "@angular/core";
 import { AppInitService } from "../services/app-init.service";
+import { ReceiptReadStreamService } from "../services/receipt-read-stream.service";
 import { ShoppingListStreamService } from "../services/shopping-list-stream.service";
 import { DemoAppInitService } from "./demo-app-init.service";
 import { demoEventSourceFactory } from "./demo-event-source";
@@ -25,5 +26,6 @@ export const demoProviders: (Provider | EnvironmentProviders)[] = [
   { provide: AppInitService, useExisting: DemoAppInitService },
   provideAppInitializer(() => {
     inject(ShoppingListStreamService).setEventSourceFactory(demoEventSourceFactory);
+    inject(ReceiptReadStreamService).setEventSourceFactory(demoEventSourceFactory);
   }),
 ];

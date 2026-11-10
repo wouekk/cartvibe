@@ -56,7 +56,9 @@ Round 3 changes in how the suite is run and written:
 
 Specs rewritten for the current UI: `group-viewer-visibility` (provisions through the API, a denied route lands on the Dashboard or
 the receipts list), `shopping-list` (list cards, not tabs; the Legacy Viewer base can edit lists, so the read-only role switches
-those off), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `skip-default-group` (a new account joins
+those off; one case cuts the connection with `context.setOffline(true)`, adds and crosses off, reconnects and reads the list
+back through the admin API, since the page alone shows its own copy; an add is done once `shopping-list-item-pending` is
+gone, not when the row appears), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `skip-default-group` (a new account joins
 "Household"; `createUserWithRole({ createdWithRole: true })` creates it on the role at once), `chip-select-close-on-select` (the
 Categories picker of the receipts filter dialog), `member-grant-visibility` (the product line's category menu on the receipt
 form), `member-grant-assignment`, `receipt-comment-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
