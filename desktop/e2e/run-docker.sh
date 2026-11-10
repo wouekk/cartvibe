@@ -13,13 +13,10 @@ case "${1:-}" in
     docker network create e2e >/dev/null 2>&1 || true
     docker run -d --name cartvibe --network e2e -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key \
       -e ENCRYPTION_KEY=ci-encryption-key -e DB_ENGINE=sqlite -e DB_FILENAME=app.db "$IMAGE" >/dev/null
-    # The specs (and the app's own page loads) exceed nginx's production request limits (10 a second, 30 logins a
-    # minute) and the app does not retry a 429, which showed up as random empty tables. Run the suite with the same
-    # config but generous rates; the limits themselves are not under test here.
+    # The specs pass nginx's production request limits and the app does not retry a 429, which showed up as random
+    # empty tables: run the suite with the same config but generous rates (relax-rate-limits.sh says why).
     for i in $(seq 1 30); do docker exec cartvibe test -f /etc/nginx/conf.d/default.conf 2>/dev/null && break; sleep 1; done
-    sed -e 's|rate=10r/s|rate=1000r/s|' -e 's|zone=login:10m rate=30r/m|zone=login:10m rate=3000r/m|' ../docker/default.conf \
-      | docker exec -i cartvibe sh -c 'cat > /etc/nginx/conf.d/default.conf'
-    docker exec cartvibe nginx -s reload
+    bash e2e/relax-rate-limits.sh cartvibe
     # The runner shares the app's network namespace so the page is on http://localhost (a secure context, like CI).
     docker run -d --name runner --network container:cartvibe \
       -v "$PWD/e2e:/w/e2e" -v "$PWD/playwright.config.ts:/w/playwright.config.ts" \
