@@ -44,6 +44,18 @@ describe("PeriodPickerComponent", () => {
     expect(last.to).toBe(toDayKey(new Date(now.getFullYear(), now.getMonth() + 1, 0)));
   });
 
+  // On a phone the strip names the period; the two fields are drawn for a custom range only.
+  it("marks From and To as hidden on a phone until the range is custom", async () => {
+    const range: HTMLElement = fixture.nativeElement.querySelector('[data-testid="overview-custom-range"]');
+    expect(range.classList.contains("max-md:hidden")).toBe(true);
+
+    component.selectPeriod("CUSTOM");
+    await fixture.whenStable();
+
+    expect(range.classList.contains("max-md:hidden")).toBe(false);
+    expect(component.fromText()).not.toBe("");
+  });
+
   it("shows the period in From and To and turns custom when one is typed", async () => {
     component.selectPeriod("THIS_YEAR");
     await fixture.whenStable();

@@ -10,7 +10,9 @@ import { marker } from "../../i18n/marker";
   changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="valueChange.emit($event)">
-      <hlm-tabs-list class="max-w-full cv-scroll-x" [attr.aria-label]="ariaLabel() | t">
+      <!-- justify-start: the helm list centres its tabs, and a centred strip that overflows cuts its first tab off
+           where no scrolling can reach it. -->
+      <hlm-tabs-list class="max-w-full justify-start cv-scroll-x" [attr.aria-label]="ariaLabel() | t">
         @for (tab of tabs(); track tab.value) {
           <button class="filter-tab" [hlmTabsTrigger]="tab.value" [class.active]="value() === tab.value" [attr.data-testid]="tab.testId ?? null">
             @if (tab.icon) {

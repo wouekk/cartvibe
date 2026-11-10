@@ -12,7 +12,12 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   Requests send `from` / `to` as `yyyy-MM-dd` in the app zone (`overview-period.ts`). **It emits its period as soon
   as it mounts.** The Dashboard therefore compares its `request` by value (the same days in a new object must not
   send every panel's request again), and the receipts table sends no first request of its own: the picker's first
-  word is its first page (`periodSelected`).
+  word is its first page (`periodSelected`). On a phone (`max-md`) From / To are hidden unless the preset is
+  `CUSTOM`, and their labels are `sr-only`.
+- **The receipts page on a phone** puts Add (plus only) and the menu in the title row, the filter and reset buttons
+  beside the search (`filterButtons` template, drawn there or in the period row by `isHandset()`), and hides the
+  subtitle. `skin.css` gives every `app-table-header h1` a full row on a phone; this page undoes that with
+  `max-md:[&_h1]:flex-1`. In an arbitrary Tailwind variant `_` is a space, so `[&_.a__b]` never matches a BEM class.
 - Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy,
   Warranties (`warrantyCount`, opens `/warranties/group/:groupId`), one per tag marked "Show on the Dashboard".
 - **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two

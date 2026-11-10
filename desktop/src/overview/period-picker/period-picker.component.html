@@ -2,9 +2,11 @@
   <div class="period__tabs min-w-0 max-w-full shrink cv-scroll-x">
     <app-filter-bar [tabs]="periodTabs" [value]="preset()" (valueChange)="selectPeriod($event)"></app-filter-bar>
   </div>
-  <div class="period__range flex flex-wrap items-center gap-2" data-testid="overview-custom-range">
+  <!-- On a phone the two fields show for a custom range only (the strip names every other period), side by side
+       with their labels read out but not drawn. -->
+  <div class="period__range flex flex-wrap items-center gap-2" [class.max-md:hidden]="preset() !== 'CUSTOM'" data-testid="overview-custom-range">
     <label class="cv-field-box">
-      <span class="cv-field-box__label">{{ 'From' | t }}</span>
+      <span class="cv-field-box__label max-md:sr-only">{{ 'From' | t }}</span>
       <input
         hlmInput
         type="text"
@@ -22,7 +24,7 @@
       <input #fromPicker type="date" class="pointer-events-none absolute bottom-0 right-0 size-px opacity-0" tabindex="-1" aria-hidden="true" (change)="pickDay('from', $event)" />
     </label>
     <label class="cv-field-box">
-      <span class="cv-field-box__label">{{ 'To' | t }}</span>
+      <span class="cv-field-box__label max-md:sr-only">{{ 'To' | t }}</span>
       <input
         hlmInput
         type="text"
