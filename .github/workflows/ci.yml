@@ -12,6 +12,11 @@ on:
       - 'docker/**'
       - '.dockerignore'
       - '.github/workflows/**'
+  # A pull request from a fork: CONTRIBUTING.md asks for green CI, and a fork's push runs nothing here. It runs with
+  # a read-only token and no secrets. A pull request from a branch of this repository is skipped (detect-changes):
+  # its push already ran.
+  pull_request:
+    branches: [main]
   # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
   workflow_dispatch:
 
@@ -29,7 +34,13 @@ jobs:
   # push with the one before it, a skipped job counts as passed, and publish-image.yml publishes :latest after a
   # passing run, so a filtered run on main could publish a commit whose failing tests were never run again.
   detect-changes:
+    # Every other job needs this one, so skipping it skips the run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The filter reads a pull request's changed files through the API.
+      pull-requests: read
     outputs:
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
@@ -93,9 +104,11 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          if ! go test -coverprofile=coverage.out -covermode=atomic -v ./... 2>&1 | tee test.log; then
+          # -race: a data race between goroutines (the job workers, the list streams, the two SQLite pools) fails
+          # the run. It needs cgo, which this container has and the Windows stub build does not.
+          if ! go test -race -coverprofile=coverage.out -covermode=atomic -v ./... 2>&1 | tee test.log; then
             # Only failures: a passing test's t.Log lines look like assertion output too.
-            grep -E -B3 -- "^\s*--- FAIL|^panic:" test.log | grep -vE "^\s*(=== RUN|--- PASS)" | head -60 | while IFS= read -r line; do
+            grep -E -B3 -- "^\s*--- FAIL|^panic:|^WARNING: DATA RACE" test.log | grep -vE "^\s*(=== RUN|--- PASS)" | head -60 | while IFS= read -r line; do
               echo "::error::${line}"
             done
             exit 1
@@ -122,6 +135,10 @@ jobs:
       # The English catalogue is generated from the code and every language file must match it (see desktop/CLAUDE.md).
       - name: Check translations
         run: npm run i18n:check
+        working-directory: ./desktop
+      # The traps the guides warn about (desktop/tools/check-traps.cjs says which and why).
+      - name: Check the known traps
+        run: npm run check:traps
         working-directory: ./desktop
       - name: Run tests
         run: npm run test:ci
@@ -261,8 +278,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: ./desktop
-      - name: Install the browser
-        run: npx playwright install --with-deps chromium
+      # Chromium for the desktop and the Pixel specs, WebKit for the iPhone ones (playwright.config.ts).
+      - name: Install the browsers
+        run: npx playwright install --with-deps chromium webkit
         working-directory: ./desktop
       # Every spec shares this runner's address and the app does not retry a 429, so under the production limit a
       # run lost a handful of requests and a spec or two needed a second try (desktop/docs/e2e.md). The access log's

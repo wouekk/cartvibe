@@ -20,12 +20,20 @@ still has them keeps working; they are simply no longer used. A scan that was st
 moment of the update is not carried over: upload that receipt again. On a server set up from
 `docker-compose.vps.yml`, also remove `VALKEY_PASSWORD` from `.env`.
 
+**Check one thing before you update.** Look at your container's log for the words "so the API runs as root". If
+they are there, your folders refuse the container's own user, and this version will not start until you say what
+you want: set `PUID` and `PGID` to the user who owns the folders (the README's Synology steps show how), or add
+`ALLOW_ROOT=1` to keep running as root. If the words are not there, nothing changes for you.
+
 Nothing else is needed by hand. The server copies its database before this version changes anything (see *Added*).
 Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed that setting),
 and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the server finish what
 it is doing.
 
 ### Added
+- **Releases have their own image tags.** From 0.19 on, a release is published as `:v0.19.0`, which never changes,
+  and `:0.19`, which follows the fixes of that release line. `:latest` still follows the newest tested version
+  *(ADM-16)*.
 - **A tab bar on phones.** Dashboard, Lists, Scan, Receipts and More sit at the bottom of the screen, under the
   thumb. Scan opens Quick Scan from any page; More opens the menu with everything else *(APP-14)*.
 - **Shop mode.** In a list's menu: the list alone, taller rows, and a screen that stays awake. It starts by itself
@@ -55,6 +63,14 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **The server never runs as root by accident.** When the folders refused the container's own user, the server
+  used to carry on as root with one line in the log. It now stops and says what to set; running as root is a
+  switch (`ALLOW_ROOT=1`), and the About page reminds an admin while it is on. The container also keeps only
+  the few system rights its start needs and cannot gain more (both compose files) *(ADM-17)*.
+- **The log file stops growing.** `logs/app.log` grew for as long as the install lived. It now starts anew at
+  10 MB and keeps one older file, so the two never pass 20 MB; the log viewer shows both *(ADM-06)*.
+- **An image is checked before it is published.** A build with a critical security hole that already has a fix
+  is rebuilt once with fresh system packages, and not published if the hole is still there.
 - **CartVibe is one container.** Reading receipts, reminders and clean-up used to queue through a second service
   (Valkey), and the app would not start without it. They now live in CartVibe's own database: one container to run,
   one thing to back up, and nothing that can be missing at start. A scan interrupted by a restart or an update carries

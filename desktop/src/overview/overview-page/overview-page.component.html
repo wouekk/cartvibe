@@ -399,7 +399,7 @@
                                     type="button"
                                     class="inline-flex size-4 flex-none cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     [attr.aria-pressed]="focusedSegment() === segment.name"
-                                    [attr.aria-label]="'Focus ' + segment.name"
+                                    [attr.aria-label]="'Focus on: {name}' | t: { name: segment.name }"
                                     [attr.data-testid]="'overview-donut-focus-' + segment.name"
                                     (click)="toggleFocus(segment.name); $event.stopPropagation()"
                                   >

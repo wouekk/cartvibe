@@ -7,6 +7,7 @@
     "build": "ng build",
     "check:csp": "node tools/check-csp-hash.cjs",
     "check:demo": "node tools/check-demo-bundle.cjs",
+    "check:traps": "node tools/check-traps.cjs",
     "build:demo": "ng build --configuration demo",
     "start:demo": "ng serve --configuration demo",
     "watch": "ng build --watch --configuration development",
@@ -20,10 +21,10 @@
     "i18n:import": "node scripts/i18n/import-ts.mjs",
     "e2e": "playwright test",
     "e2e:ci": "playwright test --fail-on-flaky-tests",
-    "e2e:smoke": "playwright test auth.spec dashboard-charts generate-password report-template-list member-grant-security shopping-list.spec quick-scan-dialog.spec receipts.spec",
+    "e2e:smoke": "playwright test auth.spec dashboard-charts generate-password report-template-list member-grant-security shopping-list.spec quick-scan-dialog.spec receipts.spec phone-shell",
     "e2e:demo": "playwright test -c playwright.demo.config.ts",
     "e2e:ui": "playwright test --ui",
-    "e2e:install": "playwright install --with-deps chromium"
+    "e2e:install": "playwright install --with-deps chromium webkit"
   },
   "private": true,
   "dependencies": {

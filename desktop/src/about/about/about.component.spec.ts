@@ -5,7 +5,11 @@ import { provideStore, Store } from "@ngxs/store";
 
 import { AboutComponent } from "./about.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { Permission } from "../../open-api";
 import { AboutState } from "../../store/about.state";
+import { SetAbout } from "../../store/about.state.actions";
+import { AuthState } from "../../store/auth.state";
+import { SetPermissions } from "../../store/auth.state.actions";
 import { FeatureConfigState } from "../../store/feature-config.state";
 import { SetFeatureConfig } from "../../store/feature-config.state.actions";
 
@@ -20,7 +24,7 @@ describe("AboutComponent", () => {
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-        provideStore([AboutState, FeatureConfigState])
+        provideStore([AboutState, AuthState, FeatureConfigState])
       ]
     })
       .compileComponents();
@@ -58,5 +62,33 @@ describe("AboutComponent", () => {
     expect(hrefs("about-credits-licences")).toEqual(["3rdpartylicenses.txt", "assets/licenses/NOTICES.txt"]);
   });
 
+  // docker/entrypoint.sh: ALLOW_ROOT=1 runs the API as root when its folders refuse the unprivileged user.
+  describe("a server that runs as root", () => {
+    const warning = (): HTMLElement | null => fixture.nativeElement.querySelector('[data-testid="about-runs-as-root"]');
+    const set = async (runsAsRoot: boolean, appPermissions: string[]): Promise<void> => {
+      const store = TestBed.inject(Store);
+      store.dispatch(new SetAbout({ version: "v0.19.0", buildDate: "unknown", runsAsRoot }));
+      store.dispatch(new SetPermissions(appPermissions, {}));
+      await fixture.whenStable();
+    };
+
+    it("tells the person who can change the server's settings", async () => {
+      await set(true, [Permission.AppSystemSettingsUpdate]);
+
+      expect(warning()?.textContent).toContain("The server runs as root");
+    });
+
+    it("says nothing to anyone else", async () => {
+      await set(true, []);
+
+      expect(warning()).toBeNull();
+    });
+
+    it("says nothing when the server is unprivileged", async () => {
+      await set(false, [Permission.AppSystemSettingsUpdate]);
+
+      expect(warning()).toBeNull();
+    });
+  });
 
 });

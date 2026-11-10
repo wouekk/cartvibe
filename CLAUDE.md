@@ -15,17 +15,20 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 - Work on `feature/<name>` from `main`, or on `preview` when the user says so. Agents merge finished work into `preview`.
   **IMPORTANT:** merging or pushing code to `main` waits for the user's go. A docs-only change (Markdown files only; no
   code, config or workflow) may follow `preview` to `main` without asking.
-- CI (`ci.yml`) runs on `main`, `feature/**` and Dependabot's branches: Go build, vet, static analysis, a vulnerability
-  scan and tests; desktop `npm audit`, Vitest and `ng build` (the spec build compiles components JIT, so template errors
-  only show in the build). A feature branch runs the jobs its change touches; `main` runs all of them. CI is the judge;
-  never claim tests passed that did not run. The `e2e-smoke` job runs a few Playwright specs (`npm run e2e:smoke`)
-  against the built image, started alone as on the NAS, and checks the container itself; the rest of the suite is not run in CI.
+- CI (`ci.yml`) runs on `main`, `feature/**`, Dependabot's branches and a pull request from a fork: Go build, vet,
+  static analysis, a vulnerability scan and tests under the race detector; desktop `npm audit`, `check:traps`, Vitest
+  (with a coverage floor) and `ng build` (the spec build compiles components JIT, so template errors only show in the
+  build). A feature branch runs the jobs its change touches; `main` runs all of them. CI is the judge;
+  never claim tests passed that did not run. The `e2e-smoke` job runs a few Playwright specs (`npm run e2e:smoke`,
+  one of them on a phone in Chromium and in WebKit) against the built image, started alone as on the NAS with the
+  compose files' security options, and checks the container itself; the rest of the suite is not run in CI.
 - A `swagger.yml` change pushed on `feature/**` regenerates `desktop/src/open-api/` and commits it; pull, then build the
   desktop against the generated names.
 - Preview on the NAS: once a feature branch's CI is green, publish it to `:preview` without asking
   (`gh workflow run publish-image.yml --repo wouekk/cartvibe --ref <branch>`). If two or more branches are ready, ask
   which one first: the tag holds one branch at a time. `:latest` and `:sha-<commit>` publish from `main` after
-  green CI. Deploy on the NAS = pull, then redeploy in Dockhand, then hard-refresh.
+  green CI; a pushed `vX.Y.Z` tag on `main` publishes `:vX.Y.Z` and `:X.Y`, once `CHANGELOG.md` has its section.
+  Deploy on the NAS = pull, then redeploy in Dockhand, then hard-refresh.
 - Use `gh` for CI (`gh run list`, `gh run view <id> --log-failed`) rather than polling the anonymous REST API.
 
 ## Rules that are easy to break
@@ -43,7 +46,7 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 - A receipt `date` is a calendar day stored as midnight UTC; "today", "this month" and timestamps use the app time zone.
   Filters send `yyyy-MM-dd`.
 - Keep `LICENSE`, `NOTICE.md` and the upstream credit in `README.md` and `site/`; never rewrite history. Releases are
-  SemVer tags on `main` with Conventional Commits and a `CHANGELOG.md` entry.
+  SemVer tags on `main` with Conventional Commits and a `CHANGELOG.md` entry; the tag is the only version number.
 
 ## Code changes
 
