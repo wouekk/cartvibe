@@ -1,11 +1,15 @@
+<!-- On a phone (below 768px) the page spends three rows before the list: the title with Add and the menu, the search
+     with the filter beside it, and the period strip. The subtitle goes, and From / To show for a custom range only. -->
 <app-table-header
+  class="max-md:[&_h1]:flex-1 max-md:[&_p]:hidden"
   [headerText]="headerText"
   subtitle="Everything the household bought, to check and look back on."
 >
-  <div class="flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1">
+  <div class="flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1 max-md:contents">
     <!-- Searches the shop, name, comments and product lines, tolerating typos and receipt abbreviations. The phrase rides
          the receipts filter, so the totals below follow it. -->
-    <div hlmInputGroup class="me-2 w-full sm:w-64" data-testid="receipts-search-box">
+    <div class="me-2 flex w-full items-center gap-2 md:w-64 max-md:order-last max-md:me-0" data-testid="receipts-search-row">
+    <div hlmInputGroup class="min-w-0 flex-1" data-testid="receipts-search-box">
       <div hlmInputGroupAddon><app-icon name="search"></app-icon></div>
       <input
         hlmInputGroupInput
@@ -26,10 +30,16 @@
         </div>
       }
     </div>
+      @if (isHandset()) {
+        <ng-container *ngTemplateOutlet="filterButtons"></ng-container>
+      }
+    </div>
 
+    <div class="flex items-center gap-x-2">
+    <!-- On a phone the label is read out but not drawn: the title row has room for the plus alone. -->
     <app-add-button
       *ngIf="canCreate"
-      class="me-2"
+      class="me-2 max-md:me-0 max-md:[&_span.font-medium]:sr-only"
       data-testid="receipt-add"
       [buttonText]="'Add Receipt' | t"
       [tooltip]="'Add Receipt' | t"
@@ -122,13 +132,21 @@
       }
     </div>
 </ng-template>
+    </div>
   </div>
 </app-table-header>
 
 <!-- The same period row as the Dashboard: quick ranges plus From / To (they set the Receipt Date filter), then the
-     filter and its reset. It starts under the title, left-aligned, rather than wrapping on the right of the header. -->
+     filter and its reset (beside the search on a phone). It starts under the title, left-aligned, rather than
+     wrapping on the right of the header. -->
 <div class="mb-4 mt-4 flex flex-wrap items-center gap-2" data-testid="receipts-period-row">
   <app-period-picker data-testid="receipts-period" [initial]="initialPeriod" (periodChange)="periodSelected($event)"></app-period-picker>
+  @if (!isHandset()) {
+    <ng-container *ngTemplateOutlet="filterButtons"></ng-container>
+  }
+</div>
+
+<ng-template #filterButtons>
   <app-button
     class="relative inline-flex size-control flex-none items-center justify-center self-center [&_button]:size-control [&_button]:p-0"
     data-testid="receipts-filter"
@@ -151,7 +169,7 @@
     color="accent"
     (clicked)="resetFilterButtonClicked()"
   ></app-button>
-</div>
+</ng-template>
 
 
 @if (filterChips().length > 0) {

@@ -68,6 +68,10 @@ it is doing.
   reading never waits for them.
 - **A clean stop leaves one whole database file.** When the server stops it folds its write-ahead file back into
   `app.db`, so a copy of that file taken while the container is stopped is complete by itself *(ADM-08)*.
+- **The receipts page starts with receipts on a phone.** The title, search, period fields and filter buttons used
+  to fill most of a phone screen before the first receipt. They now take three rows: the title with *Add* and the
+  menu, the search with the filter beside it, and the period strip. The From and To fields show when you pick
+  *Custom*, on the Dashboard as well *(RCPT-10, DASH-02)*.
 - **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity
   log no longer scroll sideways on a phone: each row is a card with one ⋮ menu, and *Sort by* replaces the column
   headers. A receipt's product lines are cards as well *(APP-17)*.
@@ -111,6 +115,9 @@ it is doing.
 - **The Dashboard and the receipts list ask for their data once.** Opening the Dashboard sent each of its requests
   twice, and the receipts list loaded its first page twice; both now load once, which also keeps a busy household
   well under the server's limit *(DASH-01)*.
+- **The first quick period is no longer cut off on a phone.** *This month* was half hidden at the left edge of the
+  period strip, and no scrolling could bring it back; the same went for any tab strip wider than the screen
+  *(DASH-02)*.
 - **Signing out clears the session from the browser at once.** The browser used to keep its short-lived access for
   up to 20 minutes after *Logout*; the server now removes it with the sign-out *(APP-13)*.
 - **A session that ran out is noticed while the app stays open.** The check for an expired session remembered its
