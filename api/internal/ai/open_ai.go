@@ -115,9 +115,11 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		request.ResponseFormat = jsonObject
 	}
 	// With a schema the answer is asked for in that shape. Not strict: strict mode wants every key in every
-	// answer, and the prompts leave out what could not be read (fewer output tokens, which set the wait).
+	// answer, and the prompts leave out what could not be read (fewer output tokens, which set the wait). It is
+	// tried whatever EnforceJsonResponseFormat says: that switch is about the plain json_object format, which
+	// LM Studio refuses while it takes a schema.
 	schema := openAi.Options.ResponseSchema
-	structured := schema != nil && openAi.ReceiptProcessingSettings.EnforceJsonResponseFormat && !wantsPlainAnswer(openAi.ReceiptProcessingSettings)
+	structured := schema != nil && !wantsPlainAnswer(openAi.ReceiptProcessingSettings)
 	if structured {
 		schemaBytes, err := json.Marshal(schema.Schema)
 		if err != nil {
@@ -133,10 +135,13 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	defer cancel()
 	resp, err := client.CreateChatCompletion(ctx, request)
 	// A server that does not know the schema setting (an older model, a compatible server) answers 400: ask once
-	// more for plain JSON rather than fail the read.
+	// more the way it was asked before schemas rather than fail the read.
 	var apiErr *openai.APIError
 	if err != nil && structured && errors.As(err, &apiErr) && apiErr.HTTPStatusCode == http.StatusBadRequest {
-		request.ResponseFormat = jsonObject
+		request.ResponseFormat = nil
+		if openAi.ReceiptProcessingSettings.EnforceJsonResponseFormat {
+			request.ResponseFormat = jsonObject
+		}
 		resp, err = client.CreateChatCompletion(ctx, request)
 		if err == nil {
 			rememberPlainAnswer(openAi.ReceiptProcessingSettings)

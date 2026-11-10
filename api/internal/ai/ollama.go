@@ -62,7 +62,7 @@ func (ollama OllamaClient) GetChatCompletion() (structs.ChatCompletionResult, er
 
 	// "json" asks for any JSON; a schema asks for JSON of that shape (Ollama 0.5 and later).
 	schema := ollama.Options.ResponseSchema
-	structured := schema != nil && ollama.ReceiptProcessingSettings.EnforceJsonResponseFormat && !wantsPlainAnswer(ollama.ReceiptProcessingSettings)
+	structured := schema != nil && !wantsPlainAnswer(ollama.ReceiptProcessingSettings)
 	if ollama.ReceiptProcessingSettings.EnforceJsonResponseFormat {
 		body["format"] = "json"
 	}
@@ -74,9 +74,12 @@ func (ollama OllamaClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	if err != nil {
 		return result, err
 	}
-	// A server that does not know a schema as a format answers 400: ask once more for plain JSON.
+	// A server that does not know a schema as a format answers 400: ask once more the way it was asked before.
 	if status == http.StatusBadRequest && structured {
-		body["format"] = "json"
+		delete(body, "format")
+		if ollama.ReceiptProcessingSettings.EnforceJsonResponseFormat {
+			body["format"] = "json"
+		}
 		status, responseBody, err = ollama.post(body)
 		if err != nil {
 			return result, err

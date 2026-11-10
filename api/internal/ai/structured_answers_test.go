@@ -153,16 +153,22 @@ func TestOpenAiAsksForTheSchemaAndFallsBackToPlainJson(t *testing.T) {
 	}
 }
 
-func TestOpenAiSendsNoSchemaWhenJsonAnswersAreSwitchedOff(t *testing.T) {
-	server, bodies := newSequenceServer(t, [2]any{200, openAiSuccessBody("hello")})
+// LM Studio refuses the plain json_object format (so the app saves such servers with JSON answers switched off)
+// and takes a schema: the schema is tried anyway, and a refusal falls back to no format at all.
+func TestOpenAiTriesTheSchemaOnAServerWithJsonAnswersSwitchedOff(t *testing.T) {
+	server, bodies := newSequenceServer(t, [2]any{400, `{"error": {"message": "unsupported", "type": "invalid_request_error"}}`}, [2]any{200, openAiSuccessBody("hello")})
 
 	client := openAiClientWithSchema(server.URL)
 	client.ReceiptProcessingSettings.EnforceJsonResponseFormat = false
 	if _, err := client.GetChatCompletion(); err != nil {
 		t.Fatal(err)
 	}
-	if (*bodies)[0]["response_format"] != nil {
-		t.Errorf("a server set up without a response format gets none: %v", (*bodies)[0]["response_format"])
+	first, _ := (*bodies)[0]["response_format"].(map[string]any)
+	if first["type"] != "json_schema" {
+		t.Errorf("the schema is tried first: %v", first)
+	}
+	if (*bodies)[1]["response_format"] != nil {
+		t.Errorf("after the refusal the server gets no response format, as before: %v", (*bodies)[1]["response_format"])
 	}
 }
 
