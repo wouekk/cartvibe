@@ -15,8 +15,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Last release v0.18.0 (2026-11-05)**, not seen on the NAS yet. Avatars and the household look are not in the
   export. Skipped on purpose: `app-button`'s `color="warn"` API.
-- **Dependabot opened nine pull requests** on 2026-11-10 (its config reached `main`); none looked at. Go 1.27, Node 26
-  and `@types/node` 26 are majors the guides warn about; the excelize one is the tagged release `api/CLAUDE.md` asks for.
+- **Dependabot:** five of its nine pull requests of 2026-11-10 are merged into `feature/dependency-updates` (#16 to
+  #20: the Go group with chromedp 0.23, excelize 2.11.1, the app's and the site's npm groups, `docker/login-action`
+  4.8); they close by themselves when the branch reaches `main`. Left open on purpose: #14 Go 1.27 and #15 Node 26
+  images and #21 `@types/node` 26 (majors the guides warn about, and the Dockerfile is sprint 6's), #22 jsdom 31
+  (a major: `image-canvas.component.spec.ts` fails on it, its sizes come out as NaN; the spec's stubs need work).
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
 - `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
   lines in its `go.mod` and run them on the copy.

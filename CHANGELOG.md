@@ -96,6 +96,9 @@ it is doing.
   which matters on a weak connection in the shop *(LIST-02)*.
 - **The list's notice about a lost connection tells the truth.** It used to say changes "may not be saved"; it now
   says they are kept and sent later, and how many are waiting *(LIST-13)*.
+- **Dependency updates.** Angular 22.2.5, Chart.js 4.6.1, Tailwind 4.3.5 and Vitest 5.1 in the app; chromedp 0.23
+  (report PDFs), the tagged excelize 2.11.1 (Excel reports), `x/oauth2` 0.38 and the Gemini client 1.77 in the
+  server; Astro 7.4.7 for the project page.
 
 ### Fixed
 - **Signing out clears the session from the browser at once.** The browser used to keep its short-lived access for
