@@ -45,6 +45,18 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 	}
 
+	// A short ENCRYPTION_KEY stops a new install and warns an existing one (S12). Development and test runs keep
+	// their short keys.
+	if config.GetDeployEnv() == "prod" {
+		warning, err := repositories.CheckEncryptionKeyOfThisDatabase(config.GetEncryptionKey())
+		if err != nil {
+			logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
+		}
+		if warning != "" {
+			logging.LogStd(logging.LOG_LEVEL_ERROR, warning)
+		}
+	}
+
 	// A different version starting on existing data: copy the database before the schema is touched, so a release
 	// that goes wrong has a snapshot from the moment before it (sqlite/backups). A failed copy is reported and the
 	// start goes on: a full disk must not keep the household out of its lists.

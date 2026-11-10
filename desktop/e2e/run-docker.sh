@@ -12,7 +12,7 @@ case "${1:-}" in
     docker rm -f cartvibe runner >/dev/null 2>&1 || true
     docker network create e2e >/dev/null 2>&1 || true
     docker run -d --name cartvibe --network e2e -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key \
-      -e ENCRYPTION_KEY=ci-encryption-key -e DB_ENGINE=sqlite -e DB_FILENAME=app.db "$IMAGE" >/dev/null
+      -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars -e DB_ENGINE=sqlite -e DB_FILENAME=app.db "$IMAGE" >/dev/null
     # The specs (and the app's own page loads) exceed nginx's production request limits (10 a second, 30 logins a
     # minute) and the app does not retry a 429, which showed up as random empty tables. Run the suite with the same
     # config but generous rates; the limits themselves are not under test here.

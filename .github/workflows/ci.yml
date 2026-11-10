@@ -193,7 +193,7 @@ jobs:
       - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
@@ -249,7 +249,7 @@ jobs:
       # sqlite/backups before it migrates, then record the version it started as.
       - name: A new version snapshots the database first
         run: |
-          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe             -e VERSION=ci-next -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe             -e VERSION=ci-next -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
           for i in $(seq 1 30); do
             if docker exec cartvibe-next grep -qx ci-next /app/cartvibe-api/sqlite/backups/last-version 2> /dev/null; then
               docker exec cartvibe-next sh -c 'ls -l /app/cartvibe-api/sqlite/backups/app-upgrade-*.db'
