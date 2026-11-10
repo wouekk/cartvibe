@@ -6,6 +6,7 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
+	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"context"
@@ -17,6 +18,7 @@ import (
 )
 
 func teardownLoginTests() {
+	services.ResetLoginThrottle()
 	repositories.TruncateTestDb()
 }
 
@@ -63,8 +65,8 @@ func TestLogin_UserNotFound(t *testing.T) {
 
 	Login(w, r)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -78,8 +80,8 @@ func TestLogin_WrongPassword(t *testing.T) {
 
 	Login(w, r)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -102,8 +104,8 @@ func TestLogin_DummyUserRejected(t *testing.T) {
 
 	Login(w, r)
 
-	if w.Result().StatusCode != http.StatusInternalServerError {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusInternalServerError)
+	if w.Result().StatusCode != http.StatusUnauthorized {
+		utils.PrintTestError(t, w.Result().StatusCode, http.StatusUnauthorized)
 	}
 }
 
@@ -282,3 +284,37 @@ func TestLogin_TokensInBodyQuery(t *testing.T) {
 	}
 }
 
+
+func TestLogin_ThrottlesAUserNameAfterRepeatedFailures(t *testing.T) {
+	defer teardownLoginTests()
+	createAdminUser(t, "guessed", "correctpassword")
+
+	for attempt := 1; attempt <= 6; attempt++ {
+		w := httptest.NewRecorder()
+		Login(w, loginRequest(commands.LoginCommand{Username: "guessed", Password: "wrong"}, "", ""))
+		if w.Code != http.StatusUnauthorized {
+			t.Fatalf("attempt %d: expected 401, got %d", attempt, w.Code)
+		}
+	}
+
+	// The sixth failure starts a wait: even the right password is not checked until it is over.
+	w := httptest.NewRecorder()
+	Login(w, loginRequest(commands.LoginCommand{Username: "GUESSED", Password: "correctpassword"}, "", ""))
+	if w.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected 429 while the name waits, got %d", w.Code)
+	}
+	if !strings.Contains(w.Body.String(), "Too many failed sign-ins") {
+		t.Errorf("expected the wait message, got %s", w.Body.String())
+	}
+	if len(w.Result().Cookies()) != 0 {
+		t.Errorf("a throttled sign-in set cookies")
+	}
+
+	// Another account is not affected.
+	createAdminUser(t, "other", "otherpassword")
+	other := httptest.NewRecorder()
+	Login(other, loginRequest(commands.LoginCommand{Username: "other", Password: "otherpassword"}, "", ""))
+	if other.Code != http.StatusOK {
+		t.Fatalf("expected another account to sign in, got %d", other.Code)
+	}
+}
