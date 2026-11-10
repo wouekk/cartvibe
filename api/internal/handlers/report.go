@@ -571,34 +571,3 @@ func GenerateReportFromTemplate(w http.ResponseWriter, r *http.Request) {
 
 	HandleRequest(handler)
 }
-
-// GetReportTemplateOptions returns every report template as a lightweight
-// {id, name, groupIds} option for the role-form access matrix. It is gated on
-// app.roles.read (the admin role editor), NOT app.reports.read: the admin building a
-// role may not personally hold report permissions, exactly like GET /permission.
-func GetReportTemplateOptions(w http.ResponseWriter, r *http.Request) {
-	handler := structs.Handler{
-		ErrorMessage:   "Error getting report template options",
-		Writer:         w,
-		Request:        r,
-		ResponseType:   constants.ApplicationJson,
-		AppPermissions: []string{permissions.AppRolesRead},
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			options, err := repositories.NewReportTemplateRepository(nil).GetAllTemplateOptions()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			bytes, err := utils.MarshalResponseData(options)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(bytes)
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}

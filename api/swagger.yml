@@ -180,31 +180,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-  /report/template/options:
-    get:
-      tags:
-        - Report
-      summary: Get report template options
-      description:
-        Returns every report template as a lightweight {id, name, groupIds} option
-        for the role-form access matrix. Gated on app.roles.read (the admin role
-        editor may not personally hold report permissions), not a report permission.
-      operationId: getReportTemplateOptions
-      responses:
-        200:
-          description: The report template options
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ReportTemplateOption"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
   /report/template/{id}:
     get:
       tags:
@@ -212,7 +187,7 @@ paths:
       summary: Get a report template
       description:
         Returns a saved report template by id. Access is resolved per template
-        (readAll, or the per-group ceiling plus the per-template matrix).
+        (readAll, or read plus group.reports.read in every household it covers).
       operationId: getReportTemplate
       parameters:
         - in: path
@@ -340,9 +315,9 @@ paths:
         - Report
       summary: Generate a report from a saved template
       description:
-        Generates a saved report template by id and streams the file. Enforces the
-        per-template generate grant (generateAll, or the per-group ceiling plus the
-        matrix), loading the stored configuration server-side.
+        Generates a saved report template by id and streams the file. Access is resolved
+        per template (generateAll, or generate plus group.reports.read in every household
+        it covers), and the stored configuration is loaded server-side.
       operationId: generateReportFromTemplate
       parameters:
         - in: path
@@ -583,7 +558,7 @@ paths:
       summary: Export the whole household
       description:
         Streams a ZIP with manifest.json, one CSV per entity and, with includeFiles, the receipt photos and PDFs.
-        No secrets are included. Admin only (app.backup.export); paid-by and member visibility are not applied.
+        No secrets are included. Admin only (app.backup.export), because it holds every household and person of the install.
       operationId: exportBackup
       parameters:
         - in: query
@@ -970,69 +945,6 @@ paths:
                 $ref: "#/components/schemas/GroupReceiptSettings"
         400:
           $ref: "#/components/responses/BadRequest"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-  /group/{groupId}/member/{userId}/grants:
-    put:
-      tags:
-        - Groups
-      summary: Update a group member's category and tag assignment
-      description: >-
-        Replaces one member's per-member category/tag grants. These narrow WITHIN
-        the ceiling set by the member's group role — the two layers intersect — so
-        every submitted id must be one the role already allows, or the request is
-        rejected with 400. Duplicate ids within either array are also rejected
-        with 400.
-
-
-        An empty array clears that resource's restriction. What the member then
-        sees depends on their group role: when the role's
-        requiresIndividualCategoryGrants (resp. requiresIndividualTagGrants) is
-        false — the default — they fall back to the role's set; when it is true
-        the assignment is mandatory, so clearing it leaves them seeing NOTHING for
-        that resource. That is deliberate: it fails closed, so forgetting to
-        assign a newly added member cannot silently widen their visibility.
-
-
-        Deliberately a dedicated endpoint rather than a field on the group-member
-        upsert: it carries its own permission (group.members.grants.update), so a
-        member who can manage the roster cannot thereby widen their own visibility.
-      operationId: updateGroupMemberGrants
-      parameters:
-        - in: path
-          name: groupId
-          schema:
-            type: integer
-          required: true
-          description: Group the membership belongs to
-        - in: path
-          name: userId
-          schema:
-            type: integer
-          required: true
-          description: Member whose assignment is being replaced
-      requestBody:
-        description: The category and tag ids to assign
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateGroupMemberGrantsCommand"
-      responses:
-        200:
-          description: The member's updated assignment
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UpdateGroupMemberGrantsCommand"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/Internal"
       security:
@@ -2401,8 +2313,8 @@ paths:
         - User
       summary: Get a person's avatar photo
       description:
-        Serves a person's avatar photo (JPEG, PNG, WebP or GIF) to a signed-in viewer allowed to see that person. A
-        person without a photo, and one hidden from the viewer by member isolation, both answer 404. The web app adds
+        Serves a person's avatar photo (JPEG, PNG, WebP or GIF) to any signed-in viewer. A
+        person without a photo answers 404. The web app adds
         ?v=<avatarUpdatedAt> so a new photo is a new address.
       operationId: getUserAvatar
       parameters:
@@ -3461,7 +3373,10 @@ paths:
       tags:
         - Role
       summary: List all roles
-      description: Returns the full pool of roles, both app-scoped and group-scoped.
+      description: >-
+        Returns the roles, app-scoped and group-scoped. They are fixed: Admin and User in the app (the rows are
+        named "Legacy Admin" and "User"), Owner and Member in a household ("Legacy Owner" and "Member"). No route
+        creates, changes or deletes a role.
       operationId: getRoles
       responses:
         200:
@@ -3472,139 +3387,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Role"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-    post:
-      tags:
-        - Role
-      summary: Create role
-      description: This will create an app-scoped or group-scoped role.
-      operationId: createRole
-      requestBody:
-        description: Role to create
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertRoleCommand"
-      responses:
-        200:
-          description: The created role
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Role"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-  /role/{roleId}:
-    parameters:
-      - in: path
-        name: roleId
-        schema:
-          type: integer
-        required: true
-        description: Id of the role to update
-    put:
-      tags:
-        - Role
-      summary: Update role
-      description: >-
-        Updates an existing app-scoped or group-scoped role. A role's type
-        cannot be changed: the scope in the request must match the existing
-        role's scope. System roles cannot be modified.
-      operationId: updateRole
-      requestBody:
-        description: Role to update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertRoleCommand"
-      responses:
-        200:
-          description: The updated role
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Role"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-    delete:
-      tags:
-        - Role
-      summary: Delete role
-      description: >-
-        Deletes an app-scoped or group-scoped role. The scope query parameter
-        disambiguates the role id, since app and group role ids overlap. A role
-        cannot be deleted while it is assigned to any user or group member, and
-        system roles cannot be deleted.
-      operationId: deleteRole
-      parameters:
-        - in: query
-          name: scope
-          required: true
-          schema:
-            $ref: "#/components/schemas/PermissionScope"
-          description: Scope of the role to delete
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-  /role/{roleId}/default:
-    parameters:
-      - in: path
-        name: roleId
-        schema:
-          type: integer
-        required: true
-        description: Id of the role to make the default for its scope
-    put:
-      tags:
-        - Role
-      summary: Set default role
-      description: >-
-        Makes the role the default for its scope — the role assigned to new
-        accounts (APP) or to group creators (GROUP) — clearing the previous
-        default. The scope query parameter disambiguates the role id, since app
-        and group role ids overlap. System roles may be made default.
-      operationId: setDefaultRole
-      parameters:
-        - in: query
-          name: scope
-          required: true
-          schema:
-            $ref: "#/components/schemas/PermissionScope"
-          description: Scope of the role to make default
-      responses:
-        200:
-          description: The updated role
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Role"
-        400:
-          $ref: "#/components/responses/BadRequest"
-        404:
-          $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/Internal"
       security:
@@ -3987,8 +3769,7 @@ paths:
       summary: Get a shopping list's trips
       description: >-
         This will return the list's most recent trips (receipts attached to it), newest first, with
-        what was bought that was not on the list [group.shopping-lists.read, group.receipts.read]. A
-        receipt hidden from the caller by their paid-by visibility shows no details and no result.
+        what was bought that was not on the list [group.shopping-lists.read, group.receipts.read].
       operationId: getShoppingTrips
       responses:
         200:
@@ -4775,10 +4556,7 @@ components:
         - "app.oidc-providers.read"
         - "app.oidc-providers.update"
         - "app.oidc-providers.delete"
-        - "app.roles.create"
         - "app.roles.read"
-        - "app.roles.update"
-        - "app.roles.delete"
         - "app.notifications.read"
         - "app.notifications.delete"
         - "app.user-preferences.read"
@@ -4805,7 +4583,6 @@ components:
         - "group.members.create"
         - "group.members.update"
         - "group.members.delete"
-        - "group.members.grants.update"
         - "group.receipts.create"
         - "group.receipts.read"
         - "group.receipts.update"
@@ -5681,188 +5458,6 @@ components:
         assignedCount:
           type: integer
           description: Number of users or group members currently assigned this role
-        categoryGrants:
-          type: array
-          description: >-
-            Category ids a GROUP role restricts its members to. Empty means
-            unrestricted (members may use every category). Always empty for app
-            roles.
-          items:
-            type: integer
-            format: uint64
-        tagGrants:
-          type: array
-          description: >-
-            Tag ids a GROUP role restricts its members to. Empty means
-            unrestricted (members may use every tag). Always empty for app roles.
-          items:
-            type: integer
-            format: uint64
-        paidByUserGrants:
-          type: array
-          description: >-
-            User ids whose receipts a GROUP role lets its members see (by the
-            receipt's "paid by" user). Empty with includeOwnPaidReceipts false
-            means unrestricted (members see every payer's receipts). Always empty
-            for app roles.
-          items:
-            type: integer
-            format: uint64
-        includeOwnPaidReceipts:
-          type: boolean
-          description: >-
-            Whether a GROUP role lets each member see receipts they paid for. Part
-            of the paid-by visibility filter; always false for app roles.
-        seesAllMembers:
-          type: boolean
-          description: >-
-            Whether a GROUP role exempts its members from member-presence isolation
-            (they see, and are seen by, every member of an isolated group). Always
-            false for app roles.
-        skipDefaultGroupCreation:
-          type: boolean
-          description: >-
-            Whether users created with this APP role skip the automatic personal
-            "My Receipts" group. The virtual "All" group is always created. Applies
-            at user-creation time only — changing it never adds or removes a group
-            for an existing user. Always false for group roles.
-        requiresIndividualCategoryGrants:
-          type: boolean
-          description: >-
-            Whether a GROUP role requires per-member category assignment. When true, a
-            member holding this role with no individual category grants sees NO
-            categories, rather than falling back to the role's set. Always false for
-            app roles.
-        requiresIndividualTagGrants:
-          type: boolean
-          description: >-
-            Tag counterpart of requiresIndividualCategoryGrants. Always false for app
-            roles.
-        requireReceiptComment:
-          type: boolean
-          description: >-
-            Whether a GROUP role requires its members to keep at least one comment
-            on the group's receipts (waived when the group hides comments or the
-            member lacks group.comments.create). Always false for app roles.
-        requireReceiptImage:
-          type: boolean
-          description: >-
-            Whether a GROUP role requires its members to keep at least one image on
-            the group's receipts (waived when the group hides images). Always false
-            for app roles.
-        reportTemplateGrants:
-          type: array
-          description: >-
-            Per-template action grants restricting which report templates a GROUP
-            role's members may act on. Empty means unrestricted (every template the
-            role's group access reaches). Always empty for app roles.
-          items:
-            $ref: "#/components/schemas/ReportTemplateGrant"
-    UpsertRoleCommand:
-      type: object
-      required:
-        - name
-        - scope
-        - permissions
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        scope:
-          $ref: "#/components/schemas/PermissionScope"
-        permissions:
-          type: array
-          items:
-            $ref: "#/components/schemas/Permission"
-        categoryGrants:
-          type: array
-          description: >-
-            Category ids to restrict a GROUP role's members to. Only valid on
-            group roles; omit or leave empty for unrestricted access.
-          items:
-            type: integer
-            format: uint64
-        tagGrants:
-          type: array
-          description: >-
-            Tag ids to restrict a GROUP role's members to. Only valid on group
-            roles; omit or leave empty for unrestricted access.
-          items:
-            type: integer
-            format: uint64
-        paidByUserGrants:
-          type: array
-          description: >-
-            User ids whose receipts a GROUP role's members may see (by the
-            receipt's "paid by" user). Only valid on group roles; omit or leave
-            empty (with includeOwnPaidReceipts false) for unrestricted access.
-          items:
-            type: integer
-            format: uint64
-        includeOwnPaidReceipts:
-          type: boolean
-          description: >-
-            Whether to also let each member see receipts they paid for. Only valid
-            on group roles.
-        seesAllMembers:
-          type: boolean
-          description: >-
-            Whether a GROUP role exempts its members from member-presence isolation
-            (they see, and are seen by, every member of an isolated group). Only
-            valid on group roles.
-        skipDefaultGroupCreation:
-          type: boolean
-          description: >-
-            Whether users created with this APP role skip the automatic personal
-            "My Receipts" group (the virtual "All" group is always created). Only
-            valid on app roles; applies at user-creation time only.
-        requiresIndividualCategoryGrants:
-          type: boolean
-          description: >-
-            Whether this GROUP role requires per-member category assignment. When
-            true, a member with no individual category grants sees NO categories
-            instead of falling back to the role's set, so an unassigned member fails
-            closed. Only valid on group roles.
-        requiresIndividualTagGrants:
-          type: boolean
-          description: >-
-            Tag counterpart of requiresIndividualCategoryGrants. Only valid on group
-            roles.
-        requireReceiptComment:
-          type: boolean
-          description: >-
-            Whether members of this GROUP role must keep at least one comment on
-            the group's receipts. Only valid on group roles.
-        requireReceiptImage:
-          type: boolean
-          description: >-
-            Whether members of this GROUP role must keep at least one image on the
-            group's receipts. Only valid on group roles.
-        reportTemplateGrants:
-          type: array
-          description: >-
-            Per-template action grants for a GROUP role, restricting which report
-            templates its members may act on. Only valid on group roles; omit or
-            leave empty for unrestricted access.
-          items:
-            $ref: "#/components/schemas/ReportTemplateGrant"
-    ReportTemplateGrant:
-      type: object
-      required:
-        - reportTemplateId
-        - permissions
-      properties:
-        reportTemplateId:
-          type: integer
-          format: uint64
-        permissions:
-          type: array
-          description: >-
-            The actions a GROUP role may perform on this report template
-            (read, generate, update, delete, duplicate).
-          items:
-            type: string
     SortDirection:
       type: string
       enum:
@@ -6178,12 +5773,6 @@ components:
         isAllGroup:
           type: boolean
           description: Is all group for user
-        isolateMembers:
-          type: boolean
-          description: >-
-            Whether member-presence isolation is enabled for the group. When on,
-            members cannot discover other members unless they hold a group role
-            flagged seesAllMembers. Defaults to false.
         icon:
           type: string
           description: >-
@@ -6223,12 +5812,6 @@ components:
         isAllGroup:
           type: boolean
           description: Is all group for user
-        isolateMembers:
-          type: boolean
-          description: >-
-            Whether to enable member-presence isolation for the group. When on,
-            members cannot discover other members unless they hold a group role
-            flagged seesAllMembers. Defaults to false.
         icon:
           type: string
           nullable: true
@@ -6269,52 +5852,7 @@ components:
           description: User compound primary key
           format: uint64
           x-go-name: UserID
-        categoryGrants:
-          type: array
-          description: >-
-            Category ids this individual member may see, narrowing WITHIN whatever
-            their group role allows (the two layers intersect). Empty means the
-            member adds no narrowing of their own: they fall back to the role's
-            set, EXCEPT when the role sets requiresIndividualCategoryGrants, in
-            which case an unassigned member sees no categories at all (fail
-            closed). Read only here — write via
-            PUT /group/{groupId}/member/{userId}/grants.
-          items:
-            type: integer
-            format: uint64
-        tagGrants:
-          type: array
-          description: >-
-            Tag counterpart of categoryGrants. Restricted independently of
-            categories.
-          items:
-            type: integer
-            format: uint64
       description: Group member
-    UpdateGroupMemberGrantsCommand:
-      type: object
-      properties:
-        categoryGrants:
-          type: array
-          description: >-
-            Category ids to assign to this member. Every id must sit within the
-            ceiling set by the member's group role, or the request is rejected with
-            400; duplicate ids are rejected with 400 as well. An empty array clears
-            the member's category restriction — handing them back to their role's
-            set, or, when the role sets requiresIndividualCategoryGrants, leaving
-            them with no categories at all (fail closed).
-          items:
-            type: integer
-            format: uint64
-        tagGrants:
-          type: array
-          description: Tag counterpart of categoryGrants.
-          items:
-            type: integer
-            format: uint64
-      description: >-
-        Per-member category/tag assignment. The membership being edited is taken
-        from the URL, never this body.
     UpsertGroupMemberCommand:
       required:
         - groupId
@@ -7491,18 +7029,6 @@ components:
           items:
             type: string
             format: binary
-    ReceiptRequirements:
-      type: object
-      required:
-        - commentRequired
-        - imageRequired
-      properties:
-        commentRequired:
-          type: boolean
-          description: At least one comment is required on the group's receipts
-        imageRequired:
-          type: boolean
-          description: At least one image is required on the group's receipts
     ReceiptFileUploadCommand:
       type: object
       required:
@@ -7640,21 +7166,12 @@ components:
             type: array
             items:
               type: string
-        groupReceiptRequirements:
-          type: object
-          description: >-
-            What the calling user must supply on each group's receipts, keyed by
-            group id, resolved from their group role with the group's waivers
-            applied. Only groups where something is required are present; an
-            absent group requires nothing. Always an object, never null.
-          additionalProperties:
-            $ref: "#/components/schemas/ReceiptRequirements"
         groupCategories:
           type: object
           description: >-
             The categories the calling user may use in each group, keyed by group
-            id. Filtered to the user's group-role grants (the full pool when
-            unrestricted). Non-admins receive categories only through this map.
+            id: the whole pool, for every household they are in. People without
+            app.categories.read receive categories only through this map.
           additionalProperties:
             type: array
             items:
@@ -7662,9 +7179,9 @@ components:
         groupTags:
           type: object
           description: >-
-            The tags the calling user may use in each group, keyed by group id.
-            Filtered to the user's group-role grants (the full pool when
-            unrestricted). Non-admins receive tags only through this map.
+            The tags the calling user may use in each group, keyed by group id:
+            the whole pool, for every household they are in. People without
+            app.tags.read receive tags only through this map.
           additionalProperties:
             type: array
             items:
@@ -8648,21 +8165,3 @@ components:
                 populated only on the list response. Drives the row action buttons.
               items:
                 type: string
-    ReportTemplateOption:
-      type: object
-      required:
-        - id
-        - name
-        - groupIds
-      properties:
-        id:
-          type: integer
-          format: uint64
-        name:
-          type: string
-        groupIds:
-          type: array
-          description: The ids of the groups this template covers.
-          items:
-            type: integer
-            format: uint64

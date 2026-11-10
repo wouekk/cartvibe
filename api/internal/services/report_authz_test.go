@@ -99,6 +99,61 @@ func otherActionThan(action string) string {
 	return "read"
 }
 
+// CanActOnTemplate for every action: the "*All" permission is enough on its own;
+// otherwise the action's own app permission and group.reports.read in every
+// household the template covers are both needed. A group role narrows nothing
+// further: there is no per-template matrix.
+func TestCanActOnTemplate_AppPermissionAndGroupCeiling(t *testing.T) {
+	for _, action := range reportScopableActions {
+		t.Run(action+"/all permission needs no household", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "all-"+action, []string{allPermFor(action)})
+			outsider := seedAppUser(t, "owner-"+action, nil)
+			groupId, _ := joinGroup(t, outsider, "elsewhere-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{groupId})
+
+			assertCanAct(t, userId, templateId, action, true)
+		})
+
+		t.Run(action+"/own permission and every household readable", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "base-"+action, []string{basePermFor(action)})
+			first, _ := joinGroup(t, userId, "first-"+action, []string{permissions.GroupReportsRead})
+			second, _ := joinGroup(t, userId, "second-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{first, second})
+
+			assertCanAct(t, userId, templateId, action, true)
+		})
+
+		t.Run(action+"/one household not readable", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "ceiling-"+action, []string{basePermFor(action)})
+			readable, _ := joinGroup(t, userId, "readable-"+action, []string{permissions.GroupReportsRead})
+			unreadable, _ := joinGroup(t, userId, "unreadable-"+action, []string{permissions.GroupReceiptsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{readable, unreadable})
+
+			assertCanAct(t, userId, templateId, action, false)
+		})
+
+		t.Run(action+"/another action's permission", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "other-"+action, []string{basePermFor(otherActionThan(action))})
+			groupId, _ := joinGroup(t, userId, "group-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{groupId})
+
+			assertCanAct(t, userId, templateId, action, false)
+		})
+	}
+}
+
 func TestCanActOnTemplate_UnknownActionErrors(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	resetAuthzCaches()
