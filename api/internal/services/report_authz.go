@@ -27,10 +27,8 @@ var reportActionPerms = map[string]struct {
 var reportScopableActions = []string{"read", "generate", "update", "delete", "duplicate"}
 
 // CanActOnTemplate reports whether the user may perform action on a saved report
-// template. The three axes are ANDed: the "*All" bypass short-circuits to allowed;
-// otherwise the base app permission is required, plus — in EVERY group the template
-// covers — group.reports.read AND the group role's per-template matrix must permit
-// (template, action). Most-restrictive-wins across the covered groups.
+// template: the "*All" bypass short-circuits to allowed; otherwise the base app
+// permission is required, plus group.reports.read in EVERY group the template covers.
 func (service PermissionService) CanActOnTemplate(userId uint, templateId uint, action string) (bool, error) {
 	actionPerms, ok := reportActionPerms[action]
 	if !ok {
@@ -58,16 +56,21 @@ func (service PermissionService) CanActOnTemplate(userId uint, templateId uint, 
 		return false, err
 	}
 
-	return service.templateActionPassesGroupScope(userId, templateId, groupIds, action)
+	return service.canReportInEveryGroup(userId, groupIds)
 }
 
 // AllowedActionsForTemplate returns the subset of scopable actions the user may
-// perform on a template, factoring in the base/"*All" app permissions, the
-// group-access ceiling, and the per-template matrix. It drives the list's per-row
+// perform on a template, factoring in the base/"*All" app permissions and the
+// group-access ceiling. It drives the list's per-row
 // action buttons, so the client can gate purely off this set. The template's
 // covered groups are loaded once and reused across every action.
 func (service PermissionService) AllowedActionsForTemplate(userId uint, templateId uint) ([]string, error) {
 	groupIds, err := repositories.NewReportTemplateRepository(service.TX).GetGroupIdsByTemplateId(templateId)
+	if err != nil {
+		return nil, err
+	}
+
+	inEveryGroup, err := service.canReportInEveryGroup(userId, groupIds)
 	if err != nil {
 		return nil, err
 	}
@@ -89,15 +92,7 @@ func (service PermissionService) AllowedActionsForTemplate(userId uint, template
 		if err != nil {
 			return nil, err
 		}
-		if !hasBase {
-			continue
-		}
-
-		ok, err := service.templateActionPassesGroupScope(userId, templateId, groupIds, action)
-		if err != nil {
-			return nil, err
-		}
-		if ok {
+		if hasBase && inEveryGroup {
 			allowed = append(allowed, action)
 		}
 	}
@@ -109,7 +104,7 @@ func (service PermissionService) AllowedActionsForTemplate(userId uint, template
 // When the user holds app.reports.readAll the result is unrestricted (a nil id
 // slice and unrestricted=true, so the repository applies no filter); a user without
 // even base app.reports.read sees nothing; otherwise every indexed template is
-// evaluated against the read scope (ceiling + matrix) and the passers collected.
+// evaluated against the read ceiling and the passers collected.
 func (service PermissionService) VisibleTemplateIds(userId uint) (ids []uint, unrestricted bool, err error) {
 	hasReadAll, err := service.HasAppPermissions(userId, permissions.AppReportsReadAll)
 	if err != nil {
@@ -134,7 +129,7 @@ func (service PermissionService) VisibleTemplateIds(userId uint) (ids []uint, un
 
 	visible := make([]uint, 0, len(mappings))
 	for templateId, groupIds := range mappings {
-		ok, err := service.templateActionPassesGroupScope(userId, templateId, groupIds, "read")
+		ok, err := service.canReportInEveryGroup(userId, groupIds)
 		if err != nil {
 			return nil, false, err
 		}
@@ -177,11 +172,11 @@ func (service PermissionService) CanReportOverGroups(userId uint, groupIds []str
 	return true, nil
 }
 
-// templateActionPassesGroupScope checks the group-access ceiling (group.reports.read)
-// AND the per-template matrix for a single (template, action) across the template's
-// covered groups, most-restrictive-wins. It does NOT check the app-permission axis
-// or the "*All" bypass — callers handle those.
-func (service PermissionService) templateActionPassesGroupScope(userId uint, templateId uint, groupIds []uint, action string) (bool, error) {
+// canReportInEveryGroup checks the group-access ceiling: group.reports.read in every
+// group a template covers. It does NOT check the app-permission axis or the "*All"
+// bypass — callers handle those. The per-template matrix a group role could carry
+// went with fixed roles (2026-11).
+func (service PermissionService) canReportInEveryGroup(userId uint, groupIds []uint) (bool, error) {
 	for _, groupId := range groupIds {
 		hasRead, err := service.HasGroupPermissions(userId, groupId, permissions.GroupReportsRead)
 		if err != nil {
@@ -191,40 +186,7 @@ func (service PermissionService) templateActionPassesGroupScope(userId uint, tem
 			return false, nil
 		}
 
-		allowed, err := service.roleAllowsTemplateAction(userId, groupId, templateId, action)
-		if err != nil {
-			return false, err
-		}
-		if !allowed {
-			return false, nil
-		}
 	}
 
 	return true, nil
-}
-
-// roleAllowsTemplateAction reports whether the user's group role in groupId permits
-// action on templateId under the per-template matrix. A non-member (or a role with
-// no matrix that never opted into restriction) is unrestricted; a role that opted
-// into restriction but whose matrix is now empty sees nothing (fail closed); a role
-// with a matrix allows only the listed (template, action) pairs.
-func (service PermissionService) roleAllowsTemplateAction(userId uint, groupId uint, templateId uint, action string) (bool, error) {
-	entry, err := service.resolveGroupRoleGrants(userId, groupId)
-	if err != nil {
-		return false, err
-	}
-	if entry == nil {
-		return true, nil
-	}
-
-	if len(entry.reportTemplateGrants) == 0 {
-		return !entry.reportTemplateGrantsRestricted, nil
-	}
-
-	actions, ok := entry.reportTemplateGrants[templateId]
-	if !ok {
-		return false, nil
-	}
-	_, ok = actions[action]
-	return ok, nil
 }

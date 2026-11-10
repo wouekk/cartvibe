@@ -15,7 +15,6 @@ func BuildGroupRouter() *chi.Mux {
 	groupRouter.Post("/", handlers.CreateGroup)
 	groupRouter.Put("/{groupId}", handlers.UpdateGroup)
 	groupRouter.Put("/{groupId}/groupReceiptSettings", handlers.UpdateGroupReceiptSettings)
-	groupRouter.Put("/{groupId}/member/{userId}/grants", handlers.UpdateGroupMemberGrants)
 	groupRouter.With(middleware.CanDeleteGroup).Delete("/{groupId}", handlers.DeleteGroup)
 	groupRouter.Post("/getPagedGroups", handlers.GetPagedGroups)
 

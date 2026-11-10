@@ -46,10 +46,9 @@ func NewReceiptService(tx *gorm.DB) ReceiptService {
 
 // GetReceiptForUser is the single, shared "read one receipt" operation used by
 // both the REST handler and the MCP tool. It fetches the receipt and applies the
-// full read enforcement chain — group.receipts.read, paid-by visibility, and
-// category/tag grant stripping — so the two ingress points cannot drift. Missing,
-// forbidden, and paid-by-hidden receipts all collapse to ErrReceiptAccessDenied so
-// the caller cannot infer a receipt's existence.
+// read gate, group.receipts.read in the receipt's household, so the two ingress
+// points cannot drift. A missing and a forbidden receipt both collapse to
+// ErrReceiptAccessDenied so the caller cannot infer a receipt's existence.
 func (service ReceiptService) GetReceiptForUser(userId uint, receiptId string) (models.Receipt, error) {
 	receiptRepository := repositories.NewReceiptRepository(service.TX)
 	permissionService := NewPermissionService(service.TX)
@@ -73,37 +72,17 @@ func (service ReceiptService) GetReceiptForUser(userId uint, receiptId string) (
 		return models.Receipt{}, ErrReceiptAccessDenied
 	}
 
-	visible, err := permissionService.ReceiptPaidByVisible(userId, authReceipt.GroupId, authReceipt.PaidByUserID)
-	if err != nil {
-		return models.Receipt{}, err
-	}
-	if !visible {
-		return models.Receipt{}, ErrReceiptAccessDenied
-	}
-
 	receipt, err := receiptRepository.GetFullyLoadedReceiptById(receiptId)
 	if err != nil {
 		return models.Receipt{}, err
 	}
 
 	// Guard the window between the authorization read and this full load: if the
-	// receipt's identity, group, or payer changed (or it was deleted — Find leaves
-	// a zero-value row), the prior authorization no longer applies, so deny rather
+	// receipt moved to another household (or it was deleted — Find leaves a
+	// zero-value row), the prior authorization no longer applies, so deny rather
 	// than return data that was never authorized.
-	if receipt.ID != authReceipt.ID ||
-		receipt.GroupId != authReceipt.GroupId ||
-		receipt.PaidByUserID != authReceipt.PaidByUserID {
+	if receipt.ID != authReceipt.ID || receipt.GroupId != authReceipt.GroupId {
 		return models.Receipt{}, ErrReceiptAccessDenied
-	}
-
-	if err := permissionService.FilterReceiptCategoriesTagsForReceipt(userId, &receipt); err != nil {
-		return models.Receipt{}, err
-	}
-
-	// Mask user references (created-by, charged-to) and drop non-visible comment
-	// authors outside the caller's member-visible set.
-	if err := permissionService.MaskReceiptForMemberVisibility(userId, &receipt); err != nil {
-		return models.Receipt{}, err
 	}
 
 	return receipt, nil
@@ -111,8 +90,7 @@ func (service ReceiptService) GetReceiptForUser(userId uint, receiptId string) (
 
 // SearchReceiptsForUser is the single, shared receipt-search operation used by both
 // the REST handler and the MCP tool. It enforces app.receipts.search, scopes to the
-// caller's groups, applies paid-by visibility in SQL before the limit, and maps to
-// SearchResult. A blank query returns no results (matching the REST search bar).
+// caller's groups, and maps to SearchResult. A blank query returns no results (matching the REST search bar).
 func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, limit int) ([]structs.SearchResult, error) {
 	permissionService := NewPermissionService(service.TX)
 
@@ -154,7 +132,7 @@ func (service ReceiptService) SearchReceiptsForUser(userId uint, query string, l
 	}
 
 	receiptRepository := repositories.NewReceiptRepository(service.TX)
-	receipts, err := receiptRepository.SearchReceiptsByGroupIds(readableGroupIds, query, limit, permissionService.PaidByListResolver(userId))
+	receipts, err := receiptRepository.SearchReceiptsByGroupIds(readableGroupIds, query, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -588,11 +566,6 @@ func (service ReceiptService) resolveQuickScanCategories(
 		recordsById[record.ID] = record
 	}
 
-	allowed, unrestricted, err := service.resolveAllowedCategoryIds(userId, groupId)
-	if err != nil {
-		return nil, err
-	}
-
 	resolved := make([]commands.UpsertCategoryCommand, 0, len(orderedIds))
 	for _, id := range orderedIds {
 		record, ok := recordsById[id]
@@ -601,11 +574,6 @@ func (service ReceiptService) resolveQuickScanCategories(
 		}
 		if record.Skipped && !pickedByPerson[id] {
 			continue // switched off for the AI (Manage Categories); a person may still pick it
-		}
-		if !unrestricted {
-			if _, visible := allowed[id]; !visible {
-				continue // category the user is not allowed to see
-			}
 		}
 
 		recordId := record.ID
@@ -656,21 +624,11 @@ func (service ReceiptService) resolveQuickScanTags(
 		recordsById[record.ID] = record
 	}
 
-	allowed, unrestricted, err := service.resolveAllowedTagIds(userId, groupId)
-	if err != nil {
-		return nil, err
-	}
-
 	resolved := make([]commands.UpsertTagCommand, 0, len(orderedIds))
 	for _, id := range orderedIds {
 		record, ok := recordsById[id]
 		if !ok {
 			continue // id did not resolve to a real tag
-		}
-		if !unrestricted {
-			if _, visible := allowed[id]; !visible {
-				continue // tag the user is not allowed to see
-			}
 		}
 
 		recordId := record.ID
@@ -682,35 +640,6 @@ func (service ReceiptService) resolveQuickScanTags(
 	}
 
 	return resolved, nil
-}
-
-// resolveAllowedCategoryIds returns the set of category ids the triggering user may see in the group,
-// or unrestricted=true (see-all) when the user bypasses grants (holds app.categories.read) or their
-// group role grants nothing for categories. The returned set is shared grant-cache state and must
-// only be read.
-func (service ReceiptService) resolveAllowedCategoryIds(userId uint, groupId uint) (map[uint]struct{}, bool, error) {
-	permissionService := NewPermissionService(service.TX)
-	bypass, err := permissionService.userBypassesGrants(userId, permissions.AppCategoriesRead)
-	if err != nil {
-		return nil, false, err
-	}
-	if bypass {
-		return nil, true, nil
-	}
-	return permissionService.GetGroupCategoryIdsForUser(userId, groupId)
-}
-
-// resolveAllowedTagIds is the tag counterpart of resolveAllowedCategoryIds.
-func (service ReceiptService) resolveAllowedTagIds(userId uint, groupId uint) (map[uint]struct{}, bool, error) {
-	permissionService := NewPermissionService(service.TX)
-	bypass, err := permissionService.userBypassesGrants(userId, permissions.AppTagsRead)
-	if err != nil {
-		return nil, false, err
-	}
-	if bypass {
-		return nil, true, nil
-	}
-	return permissionService.GetGroupTagIdsForUser(userId, groupId)
 }
 
 // DuplicateReceipt copies a receipt, its items, comments and images, all or
@@ -751,21 +680,6 @@ func (service ReceiptService) DuplicateReceipt(
 	}
 
 	systemTaskCommand.GroupId = &receipt.GroupId
-
-	// Strip categories/tags the duplicating user cannot see so they are not
-	// copied onto the new receipt.
-	permissionService := NewPermissionService(nil)
-	err = permissionService.FilterReceiptCategoriesTagsForReceipt(userId, &receipt)
-	if err != nil {
-		return models.Receipt{}, err
-	}
-
-	// Mask user references outside the caller's member-visible set (e.g. an item
-	// charged to a non-visible user) so they are not carried onto the copy.
-	err = permissionService.MaskReceiptForMemberVisibility(userId, &receipt)
-	if err != nil {
-		return models.Receipt{}, err
-	}
 
 	copier.Copy(&newReceipt, receipt)
 

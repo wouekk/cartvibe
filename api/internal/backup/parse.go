@@ -115,7 +115,7 @@ func Parse(archive *Archive) (*Household, error) {
 		}},
 		{"groups", func(c cells) {
 			group := models.Group{BaseModel: c.base(), Name: c.text("name"), IsDefaultGroup: c.boolean("is_default_group"),
-				Status: models.GroupStatus(c.text("status")), IsolateMembers: c.boolean("isolate_members")}
+				Status: models.GroupStatus(c.text("status"))}
 			if !utils.IsSafePathComponent(group.Name) || strings.ContainsAny(group.Name, `/\`) {
 				c.fail("name", "is not a usable household name")
 			}

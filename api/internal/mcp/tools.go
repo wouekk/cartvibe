@@ -1,7 +1,6 @@
 package mcp
 
 import (
-	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
@@ -95,8 +94,7 @@ func handleGetReceipt(ctx context.Context, req *mcpsdk.CallToolRequest, in getRe
 		return nil, nil, errors.New("id is required")
 	}
 
-	// Delegate to the shared enforced read (permission + paid-by visibility +
-	// category/tag stripping). Collapse every access failure to a non-leaking
+	// Delegate to the shared enforced read. Collapse every access failure to a non-leaking
 	// "receipt not found" so we don't disclose the existence of receipts in
 	// other users' groups.
 	receipt, err := services.NewReceiptService(nil).GetReceiptForUser(claims.UserId, in.Id)
@@ -122,12 +120,6 @@ func handleListGroups(ctx context.Context, req *mcpsdk.CallToolRequest, _ emptyI
 		return nil, nil, err
 	}
 
-	// Member-presence isolation: strip each roster to the members the caller may see.
-	permissionService := services.NewPermissionService(nil)
-	if err := permissionService.FilterGroupMembersForGroups(claims.UserId, groups); err != nil {
-		return nil, nil, err
-	}
-
 	return nil, map[string]any{"groups": groups}, nil
 }
 
@@ -142,16 +134,7 @@ func handleListCategories(ctx context.Context, req *mcpsdk.CallToolRequest, _ em
 		return nil, nil, err
 	}
 
-	permissionService := services.NewPermissionService(nil)
-	visible, err := visibleByGrants(
-		claims.UserId,
-		categories,
-		func(category models.Category) uint { return category.ID },
-		permissions.AppCategoriesRead,
-		func(groupId uint) (map[uint]struct{}, bool, error) {
-			return permissionService.GetGroupCategoryIdsForUser(claims.UserId, groupId)
-		},
-	)
+	visible, err := visibleCatalog(claims.UserId, categories, permissions.AppCategoriesRead)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -170,16 +153,7 @@ func handleListTags(ctx context.Context, req *mcpsdk.CallToolRequest, _ emptyInp
 		return nil, nil, err
 	}
 
-	permissionService := services.NewPermissionService(nil)
-	visible, err := visibleByGrants(
-		claims.UserId,
-		tags,
-		func(tag models.Tag) uint { return tag.ID },
-		permissions.AppTagsRead,
-		func(groupId uint) (map[uint]struct{}, bool, error) {
-			return permissionService.GetGroupTagIdsForUser(claims.UserId, groupId)
-		},
-	)
+	visible, err := visibleCatalog(claims.UserId, tags, permissions.AppTagsRead)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -187,19 +161,11 @@ func handleListTags(ctx context.Context, req *mcpsdk.CallToolRequest, _ emptyInp
 	return nil, map[string]any{"tags": visible}, nil
 }
 
-// visibleByGrants filters a global catalog (categories or tags) to what the user
-// may actually see, mirroring how GetAppData builds the per-group catalogs.
-// Holders of the app-level read permission see the whole pool (consistent with
-// the admin-only REST global list); everyone else sees the union of their group
-// roles' grants across their groups — being unrestricted in any group means the
-// full pool, and a user with no groups or no grants sees nothing.
-func visibleByGrants[T any](
-	userId uint,
-	all []T,
-	idOf func(T) uint,
-	appReadPermission string,
-	resolve func(groupId uint) (map[uint]struct{}, bool, error),
-) ([]T, error) {
+// visibleCatalog answers a global catalog (categories or tags) as the user may see
+// it, mirroring how GetAppData builds the per-group catalogs: holders of the
+// app-level read permission and every member of a household see the whole pool;
+// a user in no household sees nothing.
+func visibleCatalog[T any](userId uint, all []T, appReadPermission string) ([]T, error) {
 	bypass, err := services.NewPermissionService(nil).HasAppPermissions(userId, appReadPermission)
 	if err != nil {
 		return nil, err
@@ -212,28 +178,10 @@ func visibleByGrants[T any](
 	if err != nil {
 		return nil, err
 	}
-
-	allowed := make(map[uint]struct{})
-	for _, groupId := range groupIds {
-		ids, unrestricted, err := resolve(groupId)
-		if err != nil {
-			return nil, err
-		}
-		if unrestricted {
-			return all, nil
-		}
-		for id := range ids {
-			allowed[id] = struct{}{}
-		}
+	if len(groupIds) == 0 {
+		return []T{}, nil
 	}
-
-	visible := make([]T, 0, len(allowed))
-	for _, item := range all {
-		if _, ok := allowed[idOf(item)]; ok {
-			visible = append(visible, item)
-		}
-	}
-	return visible, nil
+	return all, nil
 }
 
 // claimsFromRequest retrieves the verified user claims that verifyToken stashed

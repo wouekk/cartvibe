@@ -291,9 +291,9 @@ func publishTripsChanged(groupId uint, listId uint) {
 	})
 }
 
-// GetTripsForList returns a list's recent trips as the user may see them: a receipt hidden from them
-// by their paid-by visibility shows no details and no result.
-func (service ShoppingTripService) GetTripsForList(listId uint, userId uint) ([]structs.ShoppingTripView, error) {
+// GetTripsForList returns a list's recent trips, each with its receipt's details and result. The
+// handler asks for group.receipts.read as well as the list read, so the receipts are the caller's to see.
+func (service ShoppingTripService) GetTripsForList(listId uint) ([]structs.ShoppingTripView, error) {
 	repository := repositories.NewShoppingTripRepository(service.TX)
 	trips, err := repository.GetTripsForList(listId, shoppingTripsShownPerList)
 	if err != nil {
@@ -318,13 +318,9 @@ func (service ShoppingTripService) GetTripsForList(listId uint, userId uint) ([]
 		}
 	}
 
-	visible, err := NewPermissionService(service.TX).FilterReceiptsByPaidBy(userId, receipts)
-	if err != nil {
-		return []structs.ShoppingTripView{}, err
-	}
 	visibleReceipts := map[uint]models.Receipt{}
 	visibleIds := []uint{}
-	for _, receipt := range visible {
+	for _, receipt := range receipts {
 		visibleReceipts[receipt.ID] = receipt
 		visibleIds = append(visibleIds, receipt.ID)
 	}

@@ -2,6 +2,8 @@ package structs
 
 import "cartvibe/api/internal/permissions"
 
+// RoleView is one of the fixed roles as the people pages read it: its id to
+// assign, its scope, and the permission keys it holds.
 type RoleView struct {
 	Id            uint              `json:"id"`
 	Name          string            `json:"name"`
@@ -11,46 +13,4 @@ type RoleView struct {
 	IsSystem      bool              `json:"isSystem"`
 	Permissions   []string          `json:"permissions"`
 	AssignedCount int               `json:"assignedCount"`
-	// CategoryGrants / TagGrants are the category/tag ids a group role restricts
-	// its members to. Empty means unrestricted (see all). Always group-scoped;
-	// app roles serialize empty slices.
-	CategoryGrants []uint `json:"categoryGrants"`
-	TagGrants      []uint `json:"tagGrants"`
-	// PaidByUserGrants are the user ids whose receipts a group role lets its
-	// members see; IncludeOwnPaidReceipts adds the member's own receipts. Empty +
-	// false means unrestricted. Always group-scoped; app roles serialize an empty
-	// slice and false.
-	PaidByUserGrants       []uint `json:"paidByUserGrants"`
-	IncludeOwnPaidReceipts bool   `json:"includeOwnPaidReceipts"`
-	// SeesAllMembers marks a group role whose members are exempt from member-presence
-	// isolation (they see, and are seen by, every member of an isolated group).
-	// Always group-scoped; app roles serialize false.
-	SeesAllMembers bool `json:"seesAllMembers"`
-	// SkipDefaultGroupCreation marks an app role whose new users skip the personal
-	// "My Receipts" group (the virtual "All" group is always created). Always
-	// app-scoped; group roles serialize false.
-	SkipDefaultGroupCreation bool `json:"skipDefaultGroupCreation"`
-	// RequiresIndividualCategoryGrants / RequiresIndividualTagGrants mark a group
-	// role that requires per-member category/tag assignment: a member with no
-	// individual grants sees nothing rather than the role's set. Always
-	// group-scoped; app roles serialize false.
-	RequiresIndividualCategoryGrants bool `json:"requiresIndividualCategoryGrants"`
-	RequiresIndividualTagGrants      bool `json:"requiresIndividualTagGrants"`
-	// RequireReceiptComment / RequireReceiptImage mark a group role whose members
-	// must supply at least one comment / image on the group's receipts. Always
-	// group-scoped; app roles serialize false.
-	RequireReceiptComment bool `json:"requireReceiptComment"`
-	RequireReceiptImage   bool `json:"requireReceiptImage"`
-	// ReportTemplateGrants restrict which report templates a group role's members
-	// may act on, per action. Empty means unrestricted (every template the role's
-	// group access reaches). Always group-scoped; app roles serialize an empty
-	// slice.
-	ReportTemplateGrants []ReportTemplateGrantView `json:"reportTemplateGrants"`
-}
-
-// ReportTemplateGrantView is one row of a group role's report-template access
-// matrix: a template id and the actions the role may perform on it.
-type ReportTemplateGrantView struct {
-	ReportTemplateId uint     `json:"reportTemplateId"`
-	Permissions      []string `json:"permissions"`
 }

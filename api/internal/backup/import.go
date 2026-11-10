@@ -351,7 +351,7 @@ func (run *importRun) writeGroups() error {
 			continue
 		}
 
-		created := models.Group{Name: group.Name, Status: group.Status, IsDefaultGroup: group.IsDefaultGroup, IsolateMembers: group.IsolateMembers}
+		created := models.Group{Name: group.Name, Status: group.Status, IsDefaultGroup: group.IsDefaultGroup}
 		created.CreatedAt = group.CreatedAt
 		if err := run.tx.Create(&created).Error; err != nil {
 			return err

@@ -498,16 +498,6 @@ func (service ReceiptProcessingService) getCategoriesString() (string, error) {
 		}
 	}
 
-	// Restrict the candidate categories to the triggering user's grants (no-op
-	// for system-initiated processing or an unrestricted user).
-	if service.UserId > 0 && service.Group.ID > 0 {
-		permissionService := NewPermissionService(service.TX)
-		categories, err = permissionService.GetVisibleCategoriesForUser(service.UserId, service.Group.ID, categories)
-		if err != nil {
-			return "", err
-		}
-	}
-
 	// Only what the AI chooses by: the full rows carried timestamps and flags, many tokens per category.
 	type promptCategory struct {
 		Id          uint   `json:"id"`

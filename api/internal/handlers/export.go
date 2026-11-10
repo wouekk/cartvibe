@@ -7,7 +7,6 @@ import (
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -38,15 +37,6 @@ func ExportAllReceiptsFromGroup(w http.ResponseWriter, r *http.Request) {
 			token := structs.GetClaims(r)
 			permissionService := services.NewPermissionService(nil)
 
-			uintGroupId, err := utils.StringToUint(groupId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			err = permissionService.IntersectReceiptFilterWithGrants(token.UserId, uintGroupId, &pagedRequest.Filter)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
 			receiptRepository := repositories.NewReceiptRepository(nil)
 			receipts, _, err := receiptRepository.
 				GetPagedReceiptsByGroupId(
@@ -54,25 +44,8 @@ func ExportAllReceiptsFromGroup(w http.ResponseWriter, r *http.Request) {
 					groupId,
 					pagedRequest,
 					getExportReceiptAssociations(),
-					permissionService.PaidByListResolver(token.UserId),
-					// The export honours the table's sort, which may be the
-					// Comment column.
-					permissionService.CommentAuthorVisibilityResolver(token.UserId),
 					permissionService.GroupPermissionResolver(token.UserId, permissions.GroupReceiptsRead),
-					permissionService.CategoryTagVisibilityResolver(token.UserId),
 				)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			err = permissionService.FilterReceiptCategoriesTags(token.UserId, receipts)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			// Mask user references (created-by, item charged-to) the caller may
-			// not see before they are rendered into the CSV.
-			err = permissionService.MaskReceiptsForMemberVisibility(token.UserId, receipts)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -110,22 +83,8 @@ func ExportReceiptsById(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			token := structs.GetClaims(r)
 			receiptRepository := repositories.NewReceiptRepository(nil)
 			receipts, err := receiptRepository.GetReceiptsByIds(receiptIds, getExportReceiptAssociations())
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			permissionService := services.NewPermissionService(nil)
-			err = permissionService.FilterReceiptCategoriesTags(token.UserId, receipts)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			// Mask user references (created-by, item charged-to) the caller may
-			// not see before they are rendered into the CSV.
-			err = permissionService.MaskReceiptsForMemberVisibility(token.UserId, receipts)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

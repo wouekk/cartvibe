@@ -15,13 +15,6 @@ type Group struct {
 	Status               GroupStatus          `gorm:"default:'ACTIVE'; not null" json:"status"`
 	IsAllGroup           bool                 `json:"isAllGroup" gorm:"default:false"`
 
-	// IsolateMembers turns on member-presence isolation for this group: members
-	// cannot discover that other members exist (through the user directory, group
-	// roster, receipts, comments, activities, or notifications) unless
-	// they hold a group role flagged SeesAllMembers, or the app-level app.users.read.
-	// Default false ⇒ existing groups behave exactly as before (no migration).
-	IsolateMembers bool `json:"isolateMembers" gorm:"not null;default:false"`
-
 	// IsHousehold marks the install's one shared household (Phase 3 M5): later accounts join it. It is a flag, not
 	// the name "Household", so the household can be renamed. Old installs get it from the data migration
 	// mark-household-group-v1; a lookup that finds no flagged group falls back to the name.
