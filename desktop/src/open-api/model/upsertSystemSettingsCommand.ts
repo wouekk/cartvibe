@@ -7,7 +7,6 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { UpsertTaskQueueConfiguration } from './upsertTaskQueueConfiguration';
 import { CurrencySeparator } from './currencySeparator';
 import { CurrencySymbolPosition } from './currencySymbolPosition';
 
@@ -38,14 +37,9 @@ export interface UpsertSystemSettingsCommand {
      */
     fallbackReceiptProcessingSettingsId?: number;
     /**
-     * Concurrency for task worker
-     */
-    taskConcurrency: number;
-    /**
      * DPI used when rasterizing PDFs for OCR/vision processing
      */
     pdfDpi?: number;
-    taskQueueConfigurations?: Array<UpsertTaskQueueConfiguration>;
     /**
      * Whether the OAuth 2.1-protected MCP server is enabled
      */

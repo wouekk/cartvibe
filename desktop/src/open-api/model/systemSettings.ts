@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { CurrencySeparator } from './currencySeparator';
-import { TaskQueueConfiguration } from './taskQueueConfiguration';
 import { CurrencySymbolPosition } from './currencySymbolPosition';
 
 
@@ -49,14 +48,9 @@ export interface SystemSettings {
      */
     fallbackReceiptProcessingSettingsId?: number;
     /**
-     * Concurrency for task worker
-     */
-    taskConcurrency?: number;
-    /**
      * DPI used when rasterizing PDFs for OCR/vision processing
      */
     pdfDpi?: number;
-    taskQueueConfigurations: Array<TaskQueueConfiguration>;
     /**
      * Whether the OAuth 2.1-protected MCP server is enabled
      */
