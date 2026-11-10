@@ -157,7 +157,7 @@ jobs:
           output: both
           badge: true
 
-  # The image as it ships (nginx, the Go API, the built app) next to a real Valkey, driven by the Playwright specs that
+  # The image as it ships (nginx, the Go API, the built app), on its own as on the NAS, driven by the Playwright specs that
   # are known to pass (`e2e:smoke`, see desktop/docs/e2e.md). The rest of the suite is not run here: many specs predate
   # the family rework. The job also proves what only a running container can show: compression and cache headers, a
   # clean stop, and the database snapshot a new version takes before it migrates.
@@ -189,10 +189,10 @@ jobs:
           tags: cartvibe:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Start Valkey and the app
+      # One container and nothing else: the job queue lives in the app's own database.
+      - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name valkey --network e2e valkey/valkey:9.1-alpine valkey-server --appendonly no
           docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
@@ -263,7 +263,6 @@ jobs:
         if: failure()
         run: |
           docker logs cartvibe --tail 200
-          docker logs valkey --tail 50
       - uses: actions/upload-artifact@v7
         if: failure()
         with:

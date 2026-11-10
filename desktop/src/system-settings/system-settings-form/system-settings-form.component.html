@@ -1,17 +1,4 @@
-@if (showRestartTaskServerAlert()) {
-  <div class="mb-4">
-    <app-alert
-      #alert
-      class="scroll-mt-[4.6875rem]"
-      animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
-      animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
-      type="warning"
-      message="Please restart the task server for the changes to take effect."
-    ></app-alert>
-  </div>
-}
-
-<!-- Tasks & Storage: the task monitor sits above the worker settings. The tables live outside the form so
+<!-- Tasks & Storage: the task monitor sits above the retention setting. The tables live outside the form so
      none of their buttons can submit it. -->
 @if (section === "tasks" && canReadSystemTasks()) {
   <div class="mb-4" data-testid="settings-card-system-tasks">
@@ -284,33 +271,13 @@
 
   <!-- Tasks & Storage -->
   @if (shows("tasks")) {
-    <app-settings-section testId="settings-card-worker" title="Worker & retention">
-      <app-button
-        sectionActions
-        matButtonType="iconButton"
-        icon="restart_alt"
-        color="accent"
-        [tooltip]="'Restart Task Server' | t"
-        (clicked)="restartTaskServer()"
-      ></app-button>
-      <div class="cv-section" data-testid="settings-section-worker">
-        <div class="cv-section__head">
-          <h3 class="cv-section__title">{{ 'Worker' | t }}</h3>
-        </div>
-        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))] gap-x-4">
-          <app-input
-            [label]="'Task Concurrency' | t"
-            type="number"
-            hint="The most tasks that run at once. 0 or a negative number uses every CPU core."
-            [inputFormControl]="form | formGet:'taskConcurrency'"
-          ></app-input>
-        </div>
-      </div>
+    <!-- Background work needs no settings: scans are read one at a time and the sweeps run on their own timers. -->
+    <app-settings-section testId="settings-card-retention" title="Retention">
       <div class="cv-section" data-testid="settings-section-retention">
         <div class="cv-section__head">
           <h3 class="cv-section__title">{{ 'Temporary files' | t }}</h3>
           <p class="cv-section__desc">
-            {{ 'A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
+            {{ 'A quick scan that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).' | t }}
           </p>
         </div>
         <div data-testid="duration-row" class="flex gap-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
@@ -328,32 +295,6 @@
             [options]="durationUnits"
           ></app-select>
         </div>
-      </div>
-      <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
-    </app-settings-section>
-    <app-settings-section testId="settings-card-queues" title="Task queue priorities">
-      <div class="cv-section" data-testid="settings-section-queues">
-        <div class="cv-section__head">
-          <h3 class="cv-section__title">{{ 'Priorities' | t }}</h3>
-          <p class="cv-section__desc">{{ 'A higher number means a higher priority.' | t }}</p>
-        </div>
-        <ul class="cv-list m-0 list-none p-0">
-          @for (data of queueData; track data.value) {
-            <li data-testid="queue-row" class="flex items-center justify-between gap-4 py-2.5">
-              <div class="flex min-w-0 flex-col">
-                <strong>{{ data.displayValue }}</strong>
-                <small class="text-muted-foreground">{{ data.description }}</small>
-              </div>
-              <input
-                type="number"
-                class="h-control w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
-                [attr.aria-label]="data.displayValue + ' priority'"
-                [attr.data-testid]="'queue-priority-' + data.value"
-                [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"
-              />
-            </li>
-          }
-        </ul>
       </div>
       <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>

@@ -33,8 +33,6 @@ services:
     depends_on:
       litestream-restore:
         condition: service_completed_successfully
-      valkey:
-        condition: service_healthy
     # No published port: only Caddy reaches it, over the compose network.
     expose:
       - "80"
@@ -45,8 +43,8 @@ services:
       - ENCRYPTION_KEY=${ENCRYPTION_KEY:?ENCRYPTION_KEY must be set}
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # The app finds Valkey as "valkey" on port 6379; only the password is needed.
-      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
+      # Background jobs are kept in the same database: there is no queue service any more. A stack from before had
+      # a "valkey" service, a "valkey-data" volume and VALKEY_PASSWORD in .env; all three can be deleted.
       - PUID=${PUID:-10001}
       - PGID=${PGID:-10001}
       # Warranty reminders as device notifications (Web Push). Generate the pair once with
@@ -89,23 +87,6 @@ services:
       - ./deploy/vps/restic-backup.sh:/backup.sh:ro
       - restic-cache:/root/.cache/restic
 
-  # Replaces the Redis 7.4 service of earlier versions (container cartvibe-redis, volume redis-data: remove them by
-  # hand once this is up; only jobs still waiting in the queue are lost).
-  valkey:
-    image: valkey/valkey:9.1-alpine
-    container_name: cartvibe-valkey
-    restart: unless-stopped
-    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${VALKEY_PASSWORD}"]
-    healthcheck:
-      test: ["CMD-SHELL", "valkey-cli -a \"$$VALKEY_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    environment:
-      - VALKEY_PASSWORD=${VALKEY_PASSWORD}
-    volumes:
-      - valkey-data:/data
-
   # TLS with automatic Let's Encrypt certificates for CARTVIBE_DOMAIN.
   caddy:
     image: caddy:2.11.7-alpine
@@ -126,7 +107,6 @@ services:
       - caddy-config:/config
 
 volumes:
-  valkey-data:
   restic-cache:
   caddy-data:
   caddy-config:

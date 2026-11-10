@@ -1,7 +1,7 @@
-import { AfterViewInit, Component, DestroyRef, ElementRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { formatDate } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter, startWith, switchMap, take, tap } from "rxjs";
@@ -16,7 +16,6 @@ import {
   CurrencySymbolPosition,
   FeatureConfigService,
   Permission,
-  QueueName,
   ReceiptProcessingSettings,
   ShopLogoService,
   ShopLogoStatus,
@@ -35,10 +34,6 @@ import { absoluteUrlValidator, durationValueValidator } from "../../validators";
 import { ExchangeRatesComponent } from "../exchange-rates/exchange-rates.component";
 import { CURRENCY_PRESETS, CUSTOM_CURRENCY, matchCurrencyPreset } from "./currency-presets";
 import { marker } from "../../i18n/marker";
-
-interface QueueData extends FormOption {
-  description: string;
-}
 
 /** The tab a settings form is placed on (route data `section`). */
 export type SystemSettingsSection = "general" | "logos" | "security" | "tasks";
@@ -69,11 +64,10 @@ export function shopLogoKeyValidator(): ValidatorFn {
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
-export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit, AfterViewInit {
+export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit {
   // Optional: the processing pickers are no longer rendered (Phase 3 M1).
   public readonly fallbackReceiptProcessingSettings = viewChild<AutocomleteComponent>("fallbackReceiptProcessingSettings");
 
-  public readonly alert = viewChild.required("alert", { read: ElementRef });
 
   /** Only on the General tab; its rates save with this form's Save changes. */
   public readonly exchangeRates = viewChild(ExchangeRatesComponent);
@@ -88,26 +82,10 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
 
   public filteredReceiptProcessingSettings: ReceiptProcessingSettings[] = [];
 
-  /** A signal, so the alert appears when a save finishes (zoneless change detection). */
-  public readonly showRestartTaskServerAlert = signal(false);
-
   /** Which tab's cards this form shows (route data); undefined shows every card. */
   public section?: SystemSettingsSection;
 
   public readonly canReadSystemTasks = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemTasksRead));
-
-  public readonly queueData: QueueData[] = [
-    {
-      value: QueueName.QuickScan,
-      displayValue: "Quick Scan",
-      description: marker("Processes quick scan receipts")
-    },
-    {
-      value: QueueName.SystemCleanUp,
-      displayValue: marker("System Clean Up"),
-      description: marker("Expires refresh tokens and reclaims temporary files")
-    }
-  ];
 
   /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
   public shows(section: SystemSettingsSection): boolean {
@@ -209,7 +187,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.allReceiptProcessingSettings = this.activatedRoute.snapshot.data?.["allReceiptProcessingSettings"];
     this.originalSystemSettings = this.activatedRoute.snapshot.data?.["systemSettings"];
     this.section = this.activatedRoute.snapshot.data?.["section"];
-    this.showRestartTaskServerAlert.set(this.activatedRoute.snapshot?.queryParams?.["restartTaskServer"] === "true");
     this.initForm();
     if (this.section === "logos") {
       this.refreshLogoStatus();
@@ -296,16 +273,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       });
   }
 
-  public ngAfterViewInit(): void {
-    setTimeout(() => {
-
-      if (this.showRestartTaskServerAlert()) {
-        this.alert().nativeElement.scrollIntoView({ behavior: "smooth" });
-      }
-
-    }, 0);
-  }
-
   private initForm(): void {
     const refreshTokenLifetime = splitHours(this.originalSystemSettings?.refreshTokenValidForHours);
     const mcpRefreshTokenLifetime = splitHours(this.originalSystemSettings?.mcpRefreshTokenValidForHours);
@@ -331,8 +298,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       receiptProcessingSettingsId: [this.originalSystemSettings?.receiptProcessingSettingsId],
       fallbackReceiptProcessingSettingsId: [this.originalSystemSettings?.fallbackReceiptProcessingSettingsId],
       pdfDpi: [this.originalSystemSettings?.pdfDpi, [Validators.min(72), Validators.max(1200)]],
-      taskConcurrency: [this.originalSystemSettings?.taskConcurrency, [Validators.min(0), Validators.required]],
-      taskQueueConfigurations: this.formBuilder.array(this.buildAsynqQueueConfigurations()),
       mcpEnabled: [this.originalSystemSettings?.mcpEnabled],
       mcpPublicUrl: [this.originalSystemSettings?.mcpPublicUrl],
       // Always sent, never conditionally required: the backend accepts a blank
@@ -428,16 +393,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
       .subscribe();
   }
 
-  // TODO: finish implementing UI for taskQueueConfigurations
-  private buildAsynqQueueConfigurations(): FormGroup[] {
-    return (this.originalSystemSettings?.taskQueueConfigurations ?? []).map(config => {
-      return this.formBuilder.group({
-        name: [config.name],
-        priority: [config.priority],
-      });
-    });
-  }
-
   private listenForReceiptProcessingSettingsChanges(): void {
     this.form.get("receiptProcessingSettingsId")?.valueChanges
       .pipe(
@@ -525,21 +480,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     return this.allReceiptProcessingSettings.find((rps) => rps.id === id)?.name ?? "";
   }
 
-  private doesTaskServerRequiresRestart(): boolean {
-    let requiresRestart = this.originalSystemSettings.taskConcurrency !== this.form.get("taskConcurrency")?.value;
-    for (let i = 0; i < this.originalSystemSettings.taskQueueConfigurations.length; i++) {
-      const originalConfig = this.originalSystemSettings.taskQueueConfigurations[i];
-      const formConfig = (this.form.get("taskQueueConfigurations") as FormArray).controls.find((control) => control.get("name")?.value === originalConfig.name);
-
-      if (originalConfig.priority !== formConfig?.get("priority")?.value) {
-        requiresRestart = true;
-        break;
-      }
-    }
-
-    return requiresRestart;
-  }
-
   public submit(): void {
     const rates = this.exchangeRates();
     if (this.form.pristine && rates?.dirty()) {
@@ -577,12 +517,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     } else {
       formValue["shopLogoKey"] = String(formValue["shopLogoKey"] ?? "").trim();
     }
-    formValue["taskConcurrency"] = Number.parseInt(formValue["taskConcurrency"]);
     formValue["pdfDpi"] = Number.parseInt(formValue["pdfDpi"]);
-    (formValue["taskQueueConfigurations"] as Array<any>).forEach(config => {
-      config.priority = Number.parseInt(config.priority);
-    });
-    const restartTaskServer = this.doesTaskServerRequiresRestart();
 
     this.systemSettingsService.updateSystemSettings(formValue)
       .pipe(
@@ -599,7 +534,6 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
             this.logoStatusTimer = setTimeout(() => this.refreshLogoStatus(), 1000);
           }
           this.form.markAsPristine();
-          this.showRestartTaskServerAlert.set(restartTaskServer);
           if (rates?.dirty()) {
             rates.save(true);
           }
@@ -619,15 +553,5 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
         switchMap(() => this.store.dispatch(new SetDateFormat(formValue["dateFormat"]))),
       )
       .subscribe();
-  }
-
-  public restartTaskServer(): void {
-    this.systemSettingsService.restartTaskServer().pipe(
-      take(1),
-      tap(() => {
-          this.snackbarService.success("Task server restarted successfully");
-          this.showRestartTaskServerAlert.set(false);
-        },
-      )).subscribe();
   }
 }
