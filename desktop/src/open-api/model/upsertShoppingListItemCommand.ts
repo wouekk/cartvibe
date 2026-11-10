@@ -21,5 +21,9 @@ export interface UpsertShoppingListItemCommand {
     unit?: string;
     quantity?: string;
     note?: string;
+    /**
+     * A key the client makes up for a new item (a UUID; letters, digits, \"-\" and \"_\"), unique within the list. Sending the same add again with the same key answers with the item the first one made, as it is now, instead of adding a second line. Read by an add only.
+     */
+    clientId?: string;
 }
 

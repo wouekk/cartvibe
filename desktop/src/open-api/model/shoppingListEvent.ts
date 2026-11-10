@@ -16,7 +16,7 @@ import { ShoppingListItem } from './shoppingListItem';
  */
 export interface ShoppingListEvent { 
     /**
-     * One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the list\'s trips, which need receipt access the stream does not check. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
+     * One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED, ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED, RECEIPT_READ. TRIPS_CHANGED carries no entity: refetch the list\'s trips, which need receipt access the stream does not check. RECEIPT_READ carries receiptId only (shoppingListId is 0): the AI finished with that receipt, so a page showing it refetches its product lines. Deliberately a plain string rather than an enum, so a client built before a new event type ships can ignore it instead of failing to deserialize.
      */
     type: string;
     groupId: number;
@@ -27,5 +27,9 @@ export interface ShoppingListEvent {
      * Ids of the items removed by CHECKED_CLEARED
      */
     itemIds?: Array<number>;
+    /**
+     * The receipt a RECEIPT_READ is about
+     */
+    receiptId?: number;
 }
 
