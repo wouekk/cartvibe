@@ -18,5 +18,9 @@ export interface About {
      * Version
      */
     version: string;
+    /**
+     * True when the server process is root (the container was started with ALLOW_ROOT=1)
+     */
+    runsAsRoot?: boolean;
 }
 
