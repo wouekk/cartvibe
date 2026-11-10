@@ -24,7 +24,7 @@ COPY docker/default.conf /tmp/default.conf
 RUN node tools/check-csp-hash.cjs dist/cartvibe/browser/index.html /tmp/default.conf
 
 # ---- API: system libraries, Go modules, then the source
-FROM golang:1.26-trixie AS api-build
+FROM golang:1.27-trixie AS api-build
 
 ENV BASE_PATH="/app/cartvibe-api"
 WORKDIR /app/cartvibe-api
