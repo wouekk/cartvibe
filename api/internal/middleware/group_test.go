@@ -75,7 +75,7 @@ func grantAppPermsToUser(t *testing.T, userId uint, perms ...string) {
 	t.Helper()
 	services.ClearRolePermissionCacheForTests()
 
-	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateAppRole("Test App Role", "", perms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole("Test App Role", "", perms, false)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
 	}

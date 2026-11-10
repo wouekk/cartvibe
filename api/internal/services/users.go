@@ -36,7 +36,7 @@ func DeleteUser(userId string) error {
 			return txErr
 		}
 		if isAdmin {
-			roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), tx)
+			roleRepository := repositories.NewRoleRepository(tx)
 			adminCount, txErr := roleRepository.CountUsersWithAppPermission(permissions.AppUsersRead)
 			if txErr != nil {
 				return txErr
@@ -48,8 +48,8 @@ func DeleteUser(userId string) error {
 
 		var receipts []models.Receipt
 		var groupIdsToNotDelete []uint
-		notificationsRepository := repositories.NewNotificationRepository(repositories.ImplicitCell(), tx)
-		userPreferncesRepository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), tx)
+		notificationsRepository := repositories.NewNotificationRepository(tx)
+		userPreferncesRepository := repositories.NewUserPreferencesRepository(tx)
 		groupService := NewGroupService(tx)
 		receiptService := NewReceiptService(tx)
 
@@ -234,7 +234,7 @@ var ErrDeleteConfirmationRequired = errors.New("confirm the deletion by signing 
 // request happened to fill. A code is not a way around a password, and an
 // account with no password cannot be confirmed by guessing one.
 func DeleteAccountForUser(userId uint, command commands.DeleteAccountCommand) (int, error) {
-	passwordless, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).IsAccountPasswordless(userId)
+	passwordless, err := repositories.NewOidcIdentityRepository(nil).IsAccountPasswordless(userId)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -282,7 +282,7 @@ func spendDeleteConfirmation(userId uint, code string) (int, error) {
 
 	// utils.Sha256Hash is the hash the OIDC callback stored the code under
 	// (oidc.hashSecret), so both sides agree on the lookup key.
-	consumed, err := repositories.NewOidcSessionRepository(repositories.ImplicitCell(), nil).ConsumeDeleteConfirmation(utils.Sha256Hash([]byte(code)), userId)
+	consumed, err := repositories.NewOidcSessionRepository(nil).ConsumeDeleteConfirmation(utils.Sha256Hash([]byte(code)), userId)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

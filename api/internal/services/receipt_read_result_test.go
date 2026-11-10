@@ -49,7 +49,7 @@ func TestApplyProductsDecidesFromTheReceiptAsItIsNow(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	before := seedExtractionReceipt(t, false)
 	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", before.ID).Update("name", "Receipt 20 Oct 2026")
-	if err := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(before.ID); err != nil {
+	if err := repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(before.ID); err != nil {
 		t.Fatalf("queue: %v", err)
 	}
 

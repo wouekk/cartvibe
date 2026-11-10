@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"time"
 
@@ -12,12 +11,11 @@ type OidcSessionRepository struct {
 	BaseRepository
 }
 
-func NewOidcSessionRepository(h cell.Handle, tx *gorm.DB) OidcSessionRepository {
+func NewOidcSessionRepository(tx *gorm.DB) OidcSessionRepository {
 	repository := OidcSessionRepository{}
 	repository.BaseRepository = BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}
 
 	return repository

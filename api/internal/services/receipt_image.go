@@ -31,12 +31,12 @@ func ReadReceiptImage(receiptImageId string) (commands.UpsertReceiptCommand, com
 		return result, commands.ReceiptProcessingMetadata{}, err
 	}
 
-	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
+	receiptImageRepository := repositories.NewReceiptImageRepository(nil)
 	receiptImage, err := receiptImageRepository.GetReceiptImageById(receiptImageUint)
 	if err != nil {
 		return result, commands.ReceiptProcessingMetadata{}, err
 	}
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+	fileRepository := repositories.NewFileRepository(nil)
 
 	receiptImagePath, err := fileRepository.BuildFilePath(utils.UintToString(receiptImage.ReceiptId), receiptImageId, receiptImage.Name)
 	if err != nil {
@@ -84,7 +84,7 @@ func MagicFillFromImage(command commands.MagicFillCommand, groupId string, userI
 // magicFillFromImage reads an image into a receipt; includeProducts asks the same call for the product lines,
 // which only a caller that saves the receipt (quick scan) can use.
 func magicFillFromImage(command commands.MagicFillCommand, groupId string, userId uint, includeProducts bool) (commands.UpsertReceiptCommand, commands.ReceiptProcessingMetadata, error) {
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+	fileRepository := repositories.NewFileRepository(nil)
 	receiptProcessingService, err := NewSystemReceiptProcessingService(nil, groupId)
 	if err != nil {
 		return commands.UpsertReceiptCommand{}, commands.ReceiptProcessingMetadata{}, err
@@ -110,7 +110,7 @@ func magicFillFromImage(command commands.MagicFillCommand, groupId string, userI
 
 func GetReceiptImagesForGroup(groupId string, userId string) ([]models.FileData, error) {
 	db := repositories.GetDB()
-	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), nil)
+	groupRepository := repositories.NewGroupRepository(nil)
 	groupService := NewGroupService(nil)
 	groupIds := make([]uint, 0)
 
@@ -158,7 +158,7 @@ func GetReceiptFromReceiptImageId(receiptImageId string) (models.Receipt, error)
 
 	receiptIdString := utils.UintToString(fileData.ReceiptId)
 
-	receiptRepository := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil)
+	receiptRepository := repositories.NewReceiptRepository(nil)
 	receipt, err = receiptRepository.GetReceiptById(receiptIdString)
 	if err != nil {
 		return models.Receipt{}, err

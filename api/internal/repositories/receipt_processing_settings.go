@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -15,11 +14,10 @@ type ReceiptProcessingSettingsRepository struct {
 	BaseRepository
 }
 
-func NewReceiptProcessingSettings(h cell.Handle, tx *gorm.DB) ReceiptProcessingSettingsRepository {
+func NewReceiptProcessingSettings(tx *gorm.DB) ReceiptProcessingSettingsRepository {
 	repository := ReceiptProcessingSettingsRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

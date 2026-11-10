@@ -30,7 +30,7 @@ func categoryIdSet(categories []models.Category) map[uint]struct{} {
 // user bypasses grant filtering for those resources.
 func grantUserAppPermissions(t *testing.T, userId uint, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateAppRole("Bypass Role", "", perms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole("Bypass Role", "", perms, false)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestFilterReceiptBatchPerGroup(t *testing.T) {
 	db := repositories.GetDB()
 	groupB := models.Group{Name: "group-b"}
 	db.Create(&groupB)
-	roleB, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole("Role B", "", []string{permissions.GroupReceiptsRead}, []uint{catB}, nil, nil, false, false)
+	roleB, err := repositories.NewRoleRepository(nil).CreateGroupRole("Role B", "", []string{permissions.GroupReceiptsRead}, []uint{catB}, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("create role B: %v", err)
 	}
@@ -304,7 +304,7 @@ func TestMergeHiddenReceiptCategoriesTagsMemberLevel(t *testing.T) {
 
 	// The ROLE allows both; only the member's individual assignment narrows.
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-merge-member", []uint{allowedCat, hiddenCat}, nil)
-	err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).
+	err := repositories.NewGroupMemberRepository(nil).
 		ReplaceMemberGrants(userId, groupId, []uint{allowedCat}, nil)
 	if err != nil {
 		t.Fatalf("ReplaceMemberGrants: %v", err)
@@ -349,7 +349,7 @@ func TestFilterReceiptStripsMemberHiddenCategories(t *testing.T) {
 	allowedCat := makeCategory(t, "Child A")
 	hiddenCat := makeCategory(t, "Child B")
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-strip-member", []uint{allowedCat, hiddenCat}, nil)
-	err := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).
+	err := repositories.NewGroupMemberRepository(nil).
 		ReplaceMemberGrants(userId, groupId, []uint{allowedCat}, nil)
 	if err != nil {
 		t.Fatalf("ReplaceMemberGrants: %v", err)

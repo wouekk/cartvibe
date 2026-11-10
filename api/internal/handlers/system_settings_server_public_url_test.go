@@ -12,7 +12,7 @@ import (
 func storedServerPublicUrl(t *testing.T) string {
 	t.Helper()
 
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatal(err)
 	}

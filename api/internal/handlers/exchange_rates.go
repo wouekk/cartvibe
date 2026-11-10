@@ -35,11 +35,11 @@ func exchangeRatesView(settings models.SystemSettings, rates []models.ExchangeRa
 }
 
 func writeExchangeRates(w http.ResponseWriter) (int, error) {
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	rates, err := repositories.NewExchangeRateRepository(repositories.ImplicitCell(), nil).GetAll()
+	rates, err := repositories.NewExchangeRateRepository(nil).GetAll()
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -90,7 +90,7 @@ func UpdateExchangeRates(w http.ResponseWriter, r *http.Request) {
 				return http.StatusBadRequest, err
 			}
 
-			settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+			settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -101,7 +101,7 @@ func UpdateExchangeRates(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			if _, err := repositories.NewExchangeRateRepository(repositories.ImplicitCell(), nil).ReplaceAll(rates); err != nil {
+			if _, err := repositories.NewExchangeRateRepository(nil).ReplaceAll(rates); err != nil {
 				return http.StatusInternalServerError, err
 			}
 

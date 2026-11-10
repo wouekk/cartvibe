@@ -61,7 +61,7 @@ func TestShouldCreateReceipt(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// Create command for new receipt
 	command := commands.UpsertReceiptCommand{
@@ -144,7 +144,7 @@ func TestCreateReceiptRecordsFailedUploadTaskWhenItOwnsTheTask(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	_, err := NewReceiptRepository(ImplicitCell(), nil).CreateReceipt(failingReceiptCommand(), 1, true)
+	_, err := NewReceiptRepository(nil).CreateReceipt(failingReceiptCommand(), 1, true)
 	if err == nil {
 		utils.PrintTestError(t, err, "an error")
 		return
@@ -177,7 +177,7 @@ func TestCreateReceiptLeavesFailedUploadTaskToTheCaller(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	_, err := NewReceiptRepository(ImplicitCell(), nil).CreateReceipt(failingReceiptCommand(), 1, false)
+	_, err := NewReceiptRepository(nil).CreateReceipt(failingReceiptCommand(), 1, false)
 	if err == nil {
 		utils.PrintTestError(t, err, "an error")
 		return
@@ -200,7 +200,7 @@ func TestShouldCreateReceiptWithinOuterTransaction(t *testing.T) {
 	tx := GetDB().Begin()
 	defer tx.Rollback()
 
-	repository := NewReceiptRepository(ImplicitCell(), tx)
+	repository := NewReceiptRepository(tx)
 
 	command := commands.UpsertReceiptCommand{
 		Name:         "Tx Receipt",
@@ -240,7 +240,7 @@ func TestShouldGetReceiptById(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	receipt, err := repository.GetReceiptById("1")
 	if err != nil {
@@ -266,7 +266,7 @@ func TestShouldGetFullyLoadedReceiptById(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	receipt, err := repository.GetFullyLoadedReceiptById("1")
 	if err != nil {
@@ -284,7 +284,7 @@ func TestShouldGetReceiptGroupIdByReceiptId(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	groupId, err := repository.GetReceiptGroupIdByReceiptId("1")
 	if err != nil {
@@ -302,7 +302,7 @@ func TestShouldUpdateReceipt(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// Create command for updating receipt
 	command := commands.UpsertReceiptCommand{
@@ -360,7 +360,7 @@ func TestShouldGetPagedReceiptsByGroupId(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// Create paged request command
 	pagedRequest := commands.ReceiptPagedRequestCommand{
@@ -403,7 +403,7 @@ func TestGetPagedReceiptsAppliesPaidByVisibilitySingleGroup(t *testing.T) {
 	setupReceiptTest()
 	createTestReceipts() // group 1: one receipt paid by user 1, one by user 2
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// Restrict visibility to receipts paid by user 1 only.
 	restrictedToUser1 := func(groupId uint) ([]uint, bool, error) {
@@ -492,7 +492,7 @@ func TestGetPagedReceiptsAppliesPaidByVisibilityAllGroup(t *testing.T) {
 		return nil, true, nil
 	}
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 	receipts, count, err := repository.GetPagedReceiptsByGroupId(member.ID, utils.UintToString(allGroup.ID), pagedRequestAllReceipts(), nil, resolver, nil, nil, nil)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -551,7 +551,7 @@ func TestApplyPaidByDisjunctionFiltersBeforeLimit(t *testing.T) {
 		return []uint{visiblePayer.ID}, false, nil
 	}
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 	query := db.Table("receipts").Where("group_id = ?", group.ID)
 	query, err := repository.ApplyPaidByDisjunction(query, []uint{group.ID}, resolver)
 	if err != nil {
@@ -593,7 +593,7 @@ func TestApplyPaidByDisjunctionEmptyGroupsFailsClosed(t *testing.T) {
 
 	resolver := func(groupId uint) ([]uint, bool, error) { return nil, true, nil }
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 	// No member groups => the helper must fail closed (return zero rows), not leave
 	// the query unfiltered.
 	query, err := repository.ApplyPaidByDisjunction(db.Table("receipts"), []uint{}, resolver)
@@ -616,7 +616,7 @@ func TestShouldBuildGormFilterQuery(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// Test simple filter
 	pagedRequest := commands.ReceiptPagedRequestCommand{
@@ -687,7 +687,7 @@ func TestGetPagedReceiptsAppliesGroupFilter(t *testing.T) {
 		return request
 	}
 
-	repository := NewReceiptRepository(ImplicitCell(), nil)
+	repository := NewReceiptRepository(nil)
 
 	// All-groups view filtered to group1: only group1's receipts return.
 	receipts, count, err := repository.GetPagedReceiptsByGroupId(
@@ -761,7 +761,7 @@ func TestGetPagedReceiptsSortsByShopFallingBackToTheName(t *testing.T) {
 	request.OrderBy = "shop_name"
 	request.SortDirection = commands.ASCENDING
 
-	receipts, _, err := NewReceiptRepository(ImplicitCell(), nil).GetPagedReceiptsByGroupId(1, "1", request, nil, nil, nil, nil, nil)
+	receipts, _, err := NewReceiptRepository(nil).GetPagedReceiptsByGroupId(1, "1", request, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

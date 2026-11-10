@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"time"
 
@@ -13,11 +12,10 @@ type ShoppingListRepository struct {
 	BaseRepository
 }
 
-func NewShoppingListRepository(h cell.Handle, tx *gorm.DB) ShoppingListRepository {
+func NewShoppingListRepository(tx *gorm.DB) ShoppingListRepository {
 	repository := ShoppingListRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
@@ -175,7 +173,7 @@ func (repository ShoppingListRepository) CreateShoppingListItem(item models.Shop
 }
 
 // FindCheckedShoppingListItemByName finds the most recently crossed-off item on a list whose name
-// matches, ignoring case. LOWER() on both sides is portable across SQLite, MySQL and Postgres.
+// matches, ignoring case. SQLite's LOWER() folds ASCII letters only, so "Żurek" and "żurek" count as two names.
 // Returns gorm.ErrRecordNotFound when there is none.
 func (repository ShoppingListRepository) FindCheckedShoppingListItemByName(listId uint, name string) (models.ShoppingListItem, error) {
 	db := repository.GetDB()

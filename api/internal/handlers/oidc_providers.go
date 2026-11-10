@@ -40,7 +40,7 @@ func GetPagedOidcProviders(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			providers, count, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetPagedOidcProviders(pagedRequestCommand)
+			providers, count, err := repositories.NewOidcProviderRepository(nil).GetPagedOidcProviders(pagedRequestCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -82,7 +82,7 @@ func GetOidcProviderById(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			provider, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderById(id)
+			provider, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderById(id)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					return http.StatusNotFound, err
@@ -177,7 +177,7 @@ func UpdateOidcProvider(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			repository := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil)
+			repository := repositories.NewOidcProviderRepository(nil)
 			existing, err := repository.GetOidcProviderById(id)
 			if err != nil {
 				if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -205,7 +205,7 @@ func UpdateOidcProvider(w http.ResponseWriter, r *http.Request) {
 			// Drop the cached discovery so an issuer or client-id change takes effect
 			// immediately on this process. The UpdatedAt fingerprint already covers
 			// correctness (including on other replicas); this just frees it promptly.
-			oidc.InvalidateProvider(repositories.ImplicitCell().ID(), id)
+			oidc.InvalidateProvider(id)
 
 			bytes, err := json.Marshal(view)
 			if err != nil {
@@ -235,12 +235,12 @@ func DeleteOidcProvider(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			err = repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).DeleteOidcProvider(id)
+			err = repositories.NewOidcProviderRepository(nil).DeleteOidcProvider(id)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			oidc.InvalidateProvider(repositories.ImplicitCell().ID(), id)
+			oidc.InvalidateProvider(id)
 
 			w.WriteHeader(http.StatusOK)
 

@@ -3,11 +3,10 @@ package routers
 import (
 	"cartvibe/api/internal/handlers"
 
-	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/go-chi/chi/v5"
 )
 
-func BuildFeatureConfigRouter(tokenValidator *jwtmiddleware.JWTMiddleware) *chi.Mux {
+func BuildFeatureConfigRouter() *chi.Mux {
 	featureConfigRouter := chi.NewRouter()
 	featureConfigRouter.Get("/", handlers.GetFeatureConfig)
 

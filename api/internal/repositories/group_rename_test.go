@@ -27,7 +27,7 @@ func seedGroupWithReceiptFile(t *testing.T, groupName string) (models.Group, mod
 		t.Fatalf("seed receipt: %v", err)
 	}
 
-	path, err := NewFileRepository(ImplicitCell(), nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
+	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
 	if err != nil {
 		t.Fatalf("build path: %v", err)
 	}
@@ -60,7 +60,7 @@ func renameCommand(group models.Group, name string) commands.UpsertGroupCommand 
 
 func readReceiptFile(t *testing.T, receipt models.Receipt) []byte {
 	t.Helper()
-	path, err := NewFileRepository(ImplicitCell(), nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
+	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
 	if err != nil {
 		t.Fatalf("build path: %v", err)
 	}
@@ -161,14 +161,14 @@ func TestGroupFolderMove_UndoMovesTheFolderBack(t *testing.T) {
 
 func TestRenamedHouseholdStillTakesInNewAccounts(t *testing.T) {
 	defer TruncateTestDb()
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		t.Fatal(err)
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		t.Fatal(err)
 	}
 
-	users := NewUserRepository(ImplicitCell(), nil)
+	users := NewUserRepository(nil)
 	first, err := users.CreateUser(commands.SignUpCommand{Username: "first", DisplayName: "f", Password: "a really secure password"})
 	if err != nil {
 		t.Fatal(err)

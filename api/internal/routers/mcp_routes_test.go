@@ -19,7 +19,7 @@ const testMcpPublicUrl = "https://receipts.example.com"
 func enableMcp(t *testing.T, enabled bool) {
 	t.Helper()
 
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to load system settings: %v", err)
 	}

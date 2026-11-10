@@ -219,7 +219,7 @@ func (service PermissionService) resolveEffectiveGrants(userId uint, groupId uin
 // composition. Split out so the caching stays readable and testable apart from the
 // rule it caches.
 func (service PermissionService) loadEffectiveGrants(userId uint, groupId uint) (*effectiveGrantSet, error) {
-	memberRepository := repositories.NewGroupMemberRepository(repositories.ImplicitCell(), service.TX)
+	memberRepository := repositories.NewGroupMemberRepository(service.TX)
 
 	member, err := memberRepository.GetMemberGrantContext(userId, groupId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -233,7 +233,7 @@ func (service PermissionService) loadEffectiveGrants(userId uint, groupId uint) 
 	// assignment is optional, individual assignment is not conditional on it.
 	var role *grantEntry
 	if member.GroupRoleID != nil {
-		role, err = loadGroupRoleGrants(repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX), *member.GroupRoleID)
+		role, err = loadGroupRoleGrants(repositories.NewRoleRepository(service.TX), *member.GroupRoleID)
 		if err != nil {
 			return nil, err
 		}
@@ -323,7 +323,7 @@ func composeGrantLayer(
 // paid-by and report-template grant types; category/tag visibility goes through
 // resolveEffectiveGrants, which layers individual membership grants on top.
 func (service PermissionService) resolveGroupRoleGrants(userId uint, groupId uint) (*grantEntry, error) {
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
+	roleRepository := repositories.NewRoleRepository(service.TX)
 
 	groupRoleId, err := roleRepository.GetGroupMemberRoleId(userId, groupId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -342,7 +342,7 @@ func (service PermissionService) resolveGroupRoleGrants(userId uint, groupId uin
 // loadGroupRoleGrants returns a group role's grant sets, consulting the cache
 // first and populating it on a miss (mirroring loadRolePermissions).
 func loadGroupRoleGrants(roleRepository repositories.RoleRepository, roleId uint) (*grantEntry, error) {
-	if cached, ok := getCachedGroupRoleGrants(roleRepository.Cell.ID(), roleId); ok {
+	if cached, ok := getCachedGroupRoleGrants(roleId); ok {
 		return cached, nil
 	}
 
@@ -391,7 +391,7 @@ func loadGroupRoleGrants(roleRepository repositories.RoleRepository, roleId uint
 		requiresIndividualTagGrants:      requiresIndividualTagGrants,
 	}
 
-	setCachedGroupRoleGrants(roleRepository.Cell.ID(), roleId, entry, observedGen)
+	setCachedGroupRoleGrants(roleId, entry, observedGen)
 	return entry, nil
 }
 

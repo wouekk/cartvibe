@@ -20,7 +20,7 @@ import (
 func resolveShoppingTripGroupId(w http.ResponseWriter, tripIdParam string) (uint, uint, bool) {
 	tripId, err := utils.StringToUint(tripIdParam)
 	if err == nil {
-		groupId, lookupErr := repositories.NewShoppingTripRepository(repositories.ImplicitCell(), nil).GetGroupIdForTrip(tripId)
+		groupId, lookupErr := repositories.NewShoppingTripRepository(nil).GetGroupIdForTrip(tripId)
 		if lookupErr == nil {
 			return tripId, groupId, true
 		}

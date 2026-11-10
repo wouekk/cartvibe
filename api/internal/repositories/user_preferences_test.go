@@ -15,7 +15,7 @@ func TestUpdateUserPreferencesRoundTripsCloseChipSelectOnSelect(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 
 	created, err := repository.GetUserPreferencesOrCreate(1)
 	if err != nil {
@@ -54,7 +54,7 @@ func TestUpdateUserPreferencesTurnsCloseChipSelectOnSelectBackOff(t *testing.T) 
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 
 	_, err := repository.GetUserPreferencesOrCreate(1)
 	if err != nil {
@@ -92,7 +92,7 @@ func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testi
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -173,7 +173,7 @@ func TestUpdateUserPreferencesStoresTheAiLanguage(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func TestUpdateUserPreferencesStoresTheAiLanguage(t *testing.T) {
 func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 	defer TruncateTestDb()
 
-	created, err := NewUserRepository(ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
+	created, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{
 		Username:    "newcomer",
 		DisplayName: "Newcomer",
 		Password:    "a really secure password",
@@ -209,7 +209,7 @@ func TestOnboardingPendingIsOnForNewAccountsAndTurnsOff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	preferences, err := repository.GetUserPreferencesOrCreate(created.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -246,7 +246,7 @@ func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestUser()
 
-	repository := NewUserPreferencesRepository(ImplicitCell(), nil)
+	repository := NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(1); err != nil {
 		t.Fatal(err)
 	}

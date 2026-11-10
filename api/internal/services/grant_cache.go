@@ -3,7 +3,6 @@ package services
 import (
 	"sync"
 
-	"cartvibe/api/internal/cell"
 )
 
 // grantEntry holds the category/tag ids a group role grants its members, as sets
@@ -47,8 +46,7 @@ type grantEntry struct {
 }
 
 // groupRoleGrantCache memoizes a group role's category/tag grant id sets, keyed
-// by (cell, group-role id): grants only exist on group roles, and two cells hold the
-// same role ids. Like the permission
+// by group-role id: grants only exist on group roles. Like the permission
 // cache, only a role's grant *lists* are cached — a user's role *assignment* is
 // resolved fresh on every check, so re-assigning a user takes effect
 // immediately. Invalidated whenever a group role is updated or deleted.
@@ -60,15 +58,15 @@ type grantEntry struct {
 // just-removed restriction — or a just-added one — applied incorrectly).
 var (
 	groupRoleGrantCacheMutex      sync.RWMutex
-	groupRoleGrantCache           = map[cell.CellKey[uint]]*grantEntry{}
+	groupRoleGrantCache           = map[uint]*grantEntry{}
 	groupRoleGrantCacheGeneration uint64
 )
 
-func getCachedGroupRoleGrants(cellID cell.ID, roleId uint) (*grantEntry, bool) {
+func getCachedGroupRoleGrants(roleId uint) (*grantEntry, bool) {
 	groupRoleGrantCacheMutex.RLock()
 	defer groupRoleGrantCacheMutex.RUnlock()
 
-	entry, ok := groupRoleGrantCache[cell.KeyIn(cellID, roleId)]
+	entry, ok := groupRoleGrantCache[roleId]
 	return entry, ok
 }
 
@@ -85,7 +83,7 @@ func groupRoleGrantCacheGen() uint64 {
 // setCachedGroupRoleGrants stores entry only if no eviction has happened since
 // observedGen was captured; otherwise the value is considered potentially stale
 // and discarded (the next check re-reads from the database).
-func setCachedGroupRoleGrants(cellID cell.ID, roleId uint, entry *grantEntry, observedGen uint64) {
+func setCachedGroupRoleGrants(roleId uint, entry *grantEntry, observedGen uint64) {
 	groupRoleGrantCacheMutex.Lock()
 	defer groupRoleGrantCacheMutex.Unlock()
 
@@ -93,18 +91,18 @@ func setCachedGroupRoleGrants(cellID cell.ID, roleId uint, entry *grantEntry, ob
 		return
 	}
 
-	groupRoleGrantCache[cell.KeyIn(cellID, roleId)] = entry
+	groupRoleGrantCache[roleId] = entry
 }
 
 // clearGroupRoleGrantCache evicts a single group role's cached grants and bumps
 // the generation. Call this after a group role's grants change or the role is
 // deleted.
-func clearGroupRoleGrantCache(cellID cell.ID, roleId uint) {
+func clearGroupRoleGrantCache(roleId uint) {
 	groupRoleGrantCacheMutex.Lock()
 	defer groupRoleGrantCacheMutex.Unlock()
 
 	groupRoleGrantCacheGeneration++
-	delete(groupRoleGrantCache, cell.KeyIn(cellID, roleId))
+	delete(groupRoleGrantCache, roleId)
 }
 
 // clearGroupRoleGrantCacheAll empties the cache entirely and bumps the
@@ -114,7 +112,7 @@ func clearGroupRoleGrantCacheAll() {
 	defer groupRoleGrantCacheMutex.Unlock()
 
 	groupRoleGrantCacheGeneration++
-	groupRoleGrantCache = map[cell.CellKey[uint]]*grantEntry{}
+	groupRoleGrantCache = map[uint]*grantEntry{}
 }
 
 // ClearGroupRoleGrantCacheForTests empties the entire grant cache. Exported so
@@ -125,24 +123,10 @@ func ClearGroupRoleGrantCacheForTests() {
 	clearGroupRoleGrantCacheAll()
 }
 
-// clearGroupRoleGrantCacheForCell empties one cell's grants and bumps the generation. Another cell's roles are
-// untouched: a report template deleted in one household says nothing about another's.
-func clearGroupRoleGrantCacheForCell(cellID cell.ID) {
-	groupRoleGrantCacheMutex.Lock()
-	defer groupRoleGrantCacheMutex.Unlock()
-
-	groupRoleGrantCacheGeneration++
-	for key := range groupRoleGrantCache {
-		if key.Cell == cellID {
-			delete(groupRoleGrantCache, key)
-		}
-	}
-}
-
-// EvictAllGroupRoleGrants empties a cell's grant cache. Called when a report
+// EvictAllGroupRoleGrants empties the grant cache. Called when a report
 // template is deleted: its grant rows cascade out of every role's matrix, so any
-// role's cached report-template grants in that cell may now be stale. A full flush of the cell is cheap for
+// role's cached report-template grants may now be stale. A full flush is cheap for
 // a rare admin action and avoids tracking which roles referenced the template.
-func EvictAllGroupRoleGrants(cellID cell.ID) {
-	clearGroupRoleGrantCacheForCell(cellID)
+func EvictAllGroupRoleGrants() {
+	clearGroupRoleGrantCacheAll()
 }

@@ -18,7 +18,7 @@ func StartEmbeddedAsynqServer() error {
 	queuePriorityMap := map[string]int{}
 	defaultQueueConfigurationMap := models.GetDefaultQueueConfigurationMap()
 
-	systemSettingsRepository := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil)
+	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
 	systemSettings, err := systemSettingsRepository.GetSystemSettings()
 	if err != nil {
 		return err

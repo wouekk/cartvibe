@@ -17,7 +17,7 @@ func TestAuthorizeGroupMemberChanges(t *testing.T) {
 	ClearRolePermissionCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	group := models.Group{Name: "authz-group"}
 	if err := db.Create(&group).Error; err != nil {

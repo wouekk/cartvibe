@@ -62,7 +62,7 @@ func seedHousehold(t *testing.T) seeded {
 	logoKey := "logo-backup-test-secret"
 	passwordHash := "$2a$14$backupTestPasswordHashValue"
 
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("settings: %v", err)
 	}
@@ -119,7 +119,7 @@ func seedHousehold(t *testing.T) seeded {
 	fileBytes := []byte("%PDF-1.4 backup test")
 	file := models.FileData{Name: "scan.pdf", FileType: "application/pdf", Size: uint(len(fileBytes)), ReceiptId: receipt.ID}
 	mustCreate(&file)
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+	fileRepository := repositories.NewFileRepository(nil)
 	path, err := fileRepository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(file.ID), file.Name)
 	if err != nil {
 		t.Fatalf("file path: %v", err)

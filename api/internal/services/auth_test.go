@@ -168,7 +168,7 @@ func TestShouldLogInUserCorrectly(t *testing.T) {
 	expectedUsername := "Another username"
 	password := "Password"
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 
 	createdUser, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    expectedUsername,
@@ -182,7 +182,7 @@ func TestShouldLogInUserCorrectly(t *testing.T) {
 	// "First admin to login" is now defined by the app.users.read permission
 	// (the modern replacement for the removed UserRole == ADMIN check), so the
 	// user must hold an admin role for the firstAdminToLogin path to be exercised.
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	adminRole, err := roleRepository.CreateAppRole("Login Admin Role", "", []string{permissions.AppUsersRead}, false)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -217,7 +217,7 @@ func TestShouldNotLogUserInWithWrongPassword(t *testing.T) {
 	expectedUsername := "Another username"
 	password := "Password"
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    expectedUsername,
@@ -455,7 +455,7 @@ func TestCookiesAreSecureWhenTheSettingIsOn(t *testing.T) {
 func TestGetAppData_PopulatesFields(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "appdata-user",
 		Password:    "Password",
@@ -563,7 +563,7 @@ func TestGetAppData_IsolationHidesPeerFromDirectoryAndRoster(t *testing.T) {
 func TestGetAppData_WithRequestPopulatesClaims(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "claims-user",
 		Password:    "Password",
@@ -603,7 +603,7 @@ func TestGetAppData_PopulatesPermissions(t *testing.T) {
 	ClearRolePermissionCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	appPerms := []string{permissions.AppUsersRead, permissions.AppUsersCreate}
 	appRole, err := roleRepository.CreateAppRole("AppData App Role", "", appPerms, false)
@@ -656,7 +656,7 @@ func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	grantedCategory := models.Category{Name: "Groceries"}
 	db.Create(&grantedCategory)
@@ -713,7 +713,7 @@ func TestGetAppData_MemberGrantsNarrowGroupCatalog(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	assignedCategory := models.Category{Name: "Child A"}
 	roleOnlyCategory := models.Category{Name: "Child B"}
@@ -746,7 +746,7 @@ func TestGetAppData_MemberGrantsNarrowGroupCatalog(t *testing.T) {
 	if err := db.Create(&models.GroupMember{GroupID: group.ID, UserID: user.ID, GroupRoleID: &groupRole.ID}).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
-	err = repositories.NewGroupMemberRepository(repositories.ImplicitCell(), nil).
+	err = repositories.NewGroupMemberRepository(nil).
 		ReplaceMemberGrants(user.ID, group.ID, []uint{assignedCategory.ID}, nil)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -792,7 +792,7 @@ func TestGetAppData_AdminGetsFlatCategoriesUnrestrictedGroup(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	db.Create(&models.Category{Name: "Groceries"})
 	db.Create(&models.Category{Name: "Salary"})
@@ -837,7 +837,7 @@ func TestGetAppData_NoRolePermissionsEmpty(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "appdata-no-role-user",
 		Password:    "Password",
@@ -873,7 +873,7 @@ func TestLoginUserRejectsDummyUser(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "ghost",
 		DisplayName: "Ghost",
@@ -899,7 +899,7 @@ func TestLoginUserRejectsEmptyPassword(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	_, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    "realuser",
 		Password:    "Password",
@@ -959,7 +959,7 @@ func TestLoginUserRejectsPasswordlessOidcAccount(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
 		Username:    "oidconly",
 		Password:    "Password",
 		DisplayName: "OIDC Only",
@@ -984,7 +984,7 @@ func TestLoginUserRejectsPasswordlessOidcAccount(t *testing.T) {
 
 	// An administrator's password reset gives the account a password of its own,
 	// which is the documented way back in.
-	if err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).ClearProvisionedFlagForUser(user.ID); err != nil {
+	if err := repositories.NewOidcIdentityRepository(nil).ClearProvisionedFlagForUser(user.ID); err != nil {
 		t.Fatalf("failed to clear the provisioned flag: %v", err)
 	}
 
@@ -999,7 +999,7 @@ func TestLoginUserAllowsLinkedAccountWithItsOwnPassword(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
 
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
 		Username:    "linkeduser",
 		Password:    "Password",
 		DisplayName: "Linked User",
@@ -1024,7 +1024,7 @@ func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
 	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	allowedCategory := models.Category{Name: "AllGroup-Allowed"}
 	hiddenCategory := models.Category{Name: "AllGroup-Hidden"}

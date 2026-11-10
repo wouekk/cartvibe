@@ -20,7 +20,7 @@ import (
 
 func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	errMessage := "Error uploading image."
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+	fileRepository := repositories.NewFileRepository(nil)
 
 	// Each of these ends the request: going on after the error answer wrote a second one behind it and, with no
 	// file in the form, closed a nil file.
@@ -67,7 +67,7 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
+			fileImageRepository := repositories.NewReceiptImageRepository(nil)
 			fileData := models.FileData{
 				Name:      fileHeader.Filename,
 				Size:      uint(fileHeader.Size),
@@ -136,7 +136,7 @@ func GetReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+			fileRepository := repositories.NewFileRepository(nil)
 			bytes, err = fileRepository.GetBytesForFileData(fileData)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -186,7 +186,7 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 		Request:          r,
 		ResponseType:     "",
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+			fileRepository := repositories.NewFileRepository(nil)
 
 			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
 			if err != nil {
@@ -239,7 +239,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+			fileRepository := repositories.NewFileRepository(nil)
 			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), id, fileData.Name)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -399,7 +399,7 @@ func ConvertToJpg(w http.ResponseWriter, r *http.Request) {
 		Request:      r,
 		ResponseType: constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
+			fileRepository := repositories.NewFileRepository(nil)
 			result := make(map[string]string)
 
 			err := r.ParseMultipartForm(50 << 20)
@@ -449,7 +449,7 @@ func validateReceiptImageAccess(r *http.Request, requiredPermission string, rece
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	receiptImageRepository := repositories.NewReceiptImageRepository(repositories.ImplicitCell(), nil)
+	receiptImageRepository := repositories.NewReceiptImageRepository(nil)
 
 	receiptImage, err := receiptImageRepository.GetReceiptImageById(receiptImageIdUint)
 	if err != nil {

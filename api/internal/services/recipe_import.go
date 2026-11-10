@@ -110,7 +110,7 @@ func (service RecipeImportService) ImportItems(
 	changed := false
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
+		repository := repositories.NewShoppingListRepository(tx)
 
 		list, err := repository.GetShoppingListById(listId)
 		if err != nil {
@@ -193,7 +193,7 @@ func (service RecipeImportService) ImportItems(
 				// Back on the list, possibly in another month: its seasonality is worked out again. A
 				// person's own correction is kept.
 				if !item.ClassificationOverridden {
-					err = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).
+					err = repositories.NewFoodClassificationRepository(tx).
 						ResetClassification(repositories.ClassificationKindItem, op.ID)
 					if err != nil {
 						return err

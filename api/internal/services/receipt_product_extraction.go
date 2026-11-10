@@ -150,7 +150,7 @@ func InlineProductPrompt(tx *gorm.DB, groupId uint, language string) (string, er
 	if err != nil {
 		return "", err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).CorrectionsForGroup(groupId)
+	corrections, err := repositories.NewFoodClassificationRepository(tx).CorrectionsForGroup(groupId)
 	if err != nil {
 		return "", err
 	}
@@ -197,7 +197,7 @@ func NewReceiptProductExtractionService(tx *gorm.DB) ReceiptProductExtractionSer
 // stops the batch; only a database error does. A cancelled ctx (the task's timeout, a shutdown) stops it
 // before the next receipt is claimed.
 func (service ReceiptProductExtractionService) ProcessDueExtractions(ctx context.Context) (int, error) {
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 	processed := 0
 
 	for processed < productExtractionBatchSize && ctx.Err() == nil {
@@ -221,9 +221,9 @@ func (service ReceiptProductExtractionService) ProcessDueExtractions(ctx context
 
 // extract reads one claimed receipt and records the outcome on its extraction row.
 func (service ReceiptProductExtractionService) extract(extraction models.ReceiptProductExtraction) error {
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 
-	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetReceiptById(utils.UintToString(extraction.ReceiptId))
+	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(extraction.ReceiptId))
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// Deleted since it was queued; nothing left to read.
 		return repository.DeleteReceiptProducts(extraction.ReceiptId)
@@ -244,7 +244,7 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	if err != nil {
 		return err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).CorrectionsForGroup(receipt.GroupId)
+	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
 	if err != nil {
 		return err
 	}
@@ -286,13 +286,13 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 		return false, nil
 	}
 
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 	_, claimed, err := repository.ClaimPendingExtraction(receiptId, time.Now())
 	if err != nil || !claimed {
 		return false, err
 	}
 
-	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).GetReceiptById(utils.UintToString(receiptId))
+	receipt, err := repositories.NewReceiptRepository(service.TX).GetReceiptById(utils.UintToString(receiptId))
 	if err != nil {
 		return false, err
 	}
@@ -300,7 +300,7 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 	if err != nil {
 		return false, err
 	}
-	corrections, err := repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).CorrectionsForGroup(receipt.GroupId)
+	corrections, err := repositories.NewFoodClassificationRepository(service.TX).CorrectionsForGroup(receipt.GroupId)
 	if err != nil {
 		return false, err
 	}
@@ -346,9 +346,9 @@ func (service ReceiptProductExtractionService) applyProducts(
 
 	return service.GetDB().Transaction(func(tx *gorm.DB) error {
 		txService := NewReceiptProductExtractionService(tx)
-		repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), tx)
+		repository := repositories.NewReceiptProductRepository(tx)
 
-		receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), tx).GetReceiptById(utils.UintToString(receiptId))
+		receipt, err := repositories.NewReceiptRepository(tx).GetReceiptById(utils.UintToString(receiptId))
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Deleted while the AI was reading it.
 			return repository.DeleteReceiptProducts(receiptId)
@@ -388,7 +388,7 @@ func (service ReceiptProductExtractionService) applyProducts(
 }
 
 func (service ReceiptProductExtractionService) recordOutage(extraction models.ReceiptProductExtraction, aiErr error) error {
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 	message := truncateRunes("The AI was not available: "+aiErr.Error(), 500)
 
 	if time.Since(extraction.CreatedAt) > productExtractionRetryWindow {
@@ -423,7 +423,7 @@ func (service ReceiptProductExtractionService) recordOutage(extraction models.Re
 }
 
 func (service ReceiptProductExtractionService) recordBadAnswer(extraction models.ReceiptProductExtraction, answerErr error) error {
-	repository := repositories.NewReceiptProductRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewReceiptProductRepository(service.TX)
 	attempts := extraction.Attempts + 1
 	message := truncateRunes("The AI's answer could not be read: "+answerErr.Error(), 500)
 
@@ -448,7 +448,7 @@ func (service ReceiptProductExtractionService) receiptImagePaths(receipt models.
 		return nil, err
 	}
 
-	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX)
+	fileRepository := repositories.NewFileRepository(service.TX)
 	paths := make([]string, 0, len(files))
 
 	for _, file := range files {
@@ -658,7 +658,7 @@ func truncateRunes(text string, max int) string {
 
 // RequestReceiptProductRead queues one receipt to be (re-)read, e.g. after its read failed.
 func RequestReceiptProductRead(receiptId uint) error {
-	return repositories.NewReceiptProductRepository(repositories.ImplicitCell(), nil).MarkReceiptProductsPending(receiptId)
+	return repositories.NewReceiptProductRepository(nil).MarkReceiptProductsPending(receiptId)
 }
 
 // parseShopName reads the optional "shop" of the AI's answer; "" when absent or unreadable.
@@ -745,7 +745,7 @@ func (service ReceiptProductExtractionService) applyReadResult(
 	}
 
 	// Stamps the resolved date, as every other way of resolving does.
-	return repositories.NewReceiptRepository(repositories.ImplicitCell(), service.TX).AfterReceiptUpdated(&receipt)
+	return repositories.NewReceiptRepository(service.TX).AfterReceiptUpdated(&receipt)
 }
 
 // productClassificationName is the name a product's correction is remembered under: its plain name.

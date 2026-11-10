@@ -231,7 +231,7 @@ func TestReportService_BucketsAndFooterUseTheAppTimeZone(t *testing.T) {
 func TestGetAppData_CarriesTheAppTimeZone(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).CreateUser(commands.SignUpCommand{
+	user, err := repositories.NewUserRepository(nil).CreateUser(commands.SignUpCommand{
 		Username: "appdata-tz-user", Password: "Password", DisplayName: "TZ",
 	})
 	if err != nil {

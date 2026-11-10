@@ -201,7 +201,7 @@ func TestImportRecipeMergesIntoTheList(t *testing.T) {
 	addShoppingListItemForTest(t, 1, list.ID, `{"name":"Mleko","amount":"1","unit":"l"}`)
 
 	hub := services.GetShoppingListHub()
-	subscriber := hub.Subscribe(services.ImplicitCellID(), 1)
+	subscriber := hub.Subscribe(1)
 	defer hub.Unsubscribe(subscriber)
 
 	w := importRecipeForTest(t, 1, list.ID, `{"items":[

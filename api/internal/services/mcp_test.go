@@ -10,7 +10,7 @@ import (
 func setMcpSettings(t *testing.T, enabled bool, publicUrl string) {
 	t.Helper()
 
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to load system settings: %v", err)
 	}

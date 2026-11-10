@@ -62,7 +62,7 @@ func createTestProvider(t *testing.T, issuerUrl string, options providerOptions)
 		Enabled:           true,
 	}
 
-	provider, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).CreateOidcProvider(command, nil)
+	provider, err := repositories.NewOidcProviderRepository(nil).CreateOidcProvider(command, nil)
 	if err != nil {
 		t.Fatalf("failed to create the test provider: %v", err)
 	}

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"errors"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/env"
@@ -16,12 +15,11 @@ type OidcProviderRepository struct {
 	BaseRepository
 }
 
-func NewOidcProviderRepository(h cell.Handle, tx *gorm.DB) OidcProviderRepository {
+func NewOidcProviderRepository(tx *gorm.DB) OidcProviderRepository {
 	repository := OidcProviderRepository{}
 	repository.BaseRepository = BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}
 
 	return repository

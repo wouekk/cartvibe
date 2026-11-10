@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"errors"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
@@ -15,11 +14,10 @@ type RoleRepository struct {
 	BaseRepository
 }
 
-func NewRoleRepository(h cell.Handle, tx *gorm.DB) RoleRepository {
+func NewRoleRepository(tx *gorm.DB) RoleRepository {
 	repository := RoleRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }

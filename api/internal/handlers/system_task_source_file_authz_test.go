@@ -32,7 +32,7 @@ func seedSourceFileAuthzFixture(t *testing.T) sourceFileAuthzFixture {
 	services.ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 
 	group := models.Group{Name: "iso-source-file", IsolateMembers: true}
 	if err := db.Create(&group).Error; err != nil {

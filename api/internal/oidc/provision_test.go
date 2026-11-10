@@ -47,7 +47,7 @@ func TestResolveUserProvisionsWhenEnabled(t *testing.T) {
 		t.Errorf("expected the username to come from preferred_username, got %q", user.Username)
 	}
 
-	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(provider.ID, "new-subject")
+	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(provider.ID, "new-subject")
 	if err != nil {
 		t.Fatalf("expected an identity to be linked: %v", err)
 	}
@@ -114,7 +114,7 @@ func TestResolveUserLinksByUsernameOnlyWhenEnabled(t *testing.T) {
 		t.Errorf("expected to land on the existing account %d, got %d", existing.ID, user.ID)
 	}
 
-	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(provider.ID, "alice-subject")
+	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(provider.ID, "alice-subject")
 	if err != nil {
 		t.Fatalf("expected an identity to be linked: %v", err)
 	}
@@ -225,7 +225,7 @@ func TestResolveLinkAttachesWithoutMatchingOrProvisioning(t *testing.T) {
 		t.Fatalf("expected linking to succeed, got %v", err)
 	}
 
-	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(provider.ID, "erin-subject")
+	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(provider.ID, "erin-subject")
 	if err != nil {
 		t.Fatalf("expected an identity: %v", err)
 	}
@@ -284,7 +284,7 @@ func TestUnlinkRefusesToStrandAProvisionedAccount(t *testing.T) {
 		t.Errorf("expected ErrWouldLockOut, got %v", err)
 	}
 
-	if _, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityForUser(provider.ID, user.ID); err != nil {
+	if _, err := repositories.NewOidcIdentityRepository(nil).GetIdentityForUser(provider.ID, user.ID); err != nil {
 		t.Errorf("the identity should still exist after a refused unlink: %v", err)
 	}
 }
@@ -302,7 +302,7 @@ func TestUnlinkSucceedsForAnAccountThatHasAPassword(t *testing.T) {
 		t.Fatalf("expected the unlink to succeed, got %v", err)
 	}
 
-	_, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityForUser(provider.ID, user.ID)
+	_, err := repositories.NewOidcIdentityRepository(nil).GetIdentityForUser(provider.ID, user.ID)
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Errorf("expected the identity to be gone, got %v", err)
 	}
@@ -335,12 +335,9 @@ func TestDeriveUsernameFallsBackThroughTheClaims(t *testing.T) {
 // TestLinkByUsernameRequiresAnExactUsernameMatch pins the match as byte-for-byte
 // in Go rather than whatever the column's collation happens to be.
 //
-// GetUserByUsername compares in SQL, and users.username pins no collation, so
-// MySQL and MariaDB -- both supported engines -- default to a case-insensitive
-// one where an identity provider account named "ADMIN" resolves the local
-// "admin". SQLite (this suite) and Postgres compare case-sensitively, so without
-// the Go-side re-assertion this test passes here and the hole exists only in
-// production on MySQL.
+// GetUserByUsername compares in SQL. SQLite's default collation compares bytes,
+// so this test passes with or without the Go-side re-assertion; the rule itself
+// is tested in TestUsernameMatchesClaim below.
 func TestLinkByUsernameRequiresAnExactUsernameMatch(t *testing.T) {
 	defer teardownOidcTest()
 	_, provider := setupOidcTest(t, oidcTestOptions{linkByUsername: true})
@@ -354,7 +351,7 @@ func TestLinkByUsernameRequiresAnExactUsernameMatch(t *testing.T) {
 		t.Fatalf("expected a case-differing username to be refused, got %v", err)
 	}
 
-	_, err = repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(provider.ID, "attacker-subject")
+	_, err = repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(provider.ID, "attacker-subject")
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Errorf("no identity may be linked on a refused match, got %v", err)
 	}
@@ -375,8 +372,7 @@ func TestLinkByUsernameRequiresAnExactUsernameMatch(t *testing.T) {
 // It has to be tested directly: this suite runs on SQLite, whose `=` is
 // case-sensitive, so the lookup in linkByUsername never returns a case-differing
 // row here and an assertion driven through resolveUser would pass whether or not
-// the rule exists. The engine that actually needs it, MySQL, is not exercised by
-// the suite at all.
+// the rule exists.
 func TestUsernameMatchesClaim(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -385,7 +381,7 @@ func TestUsernameMatchesClaim(t *testing.T) {
 		want   bool
 	}{
 		{"identical", "admin", "admin", true},
-		{"claim upper-cased -- the MySQL collation hazard", "admin", "ADMIN", false},
+		{"claim upper-cased -- the collation hazard", "admin", "ADMIN", false},
 		{"stored upper-cased", "ADMIN", "admin", false},
 		{"mixed case", "Admin", "aDmIn", false},
 		{"leading whitespace", "admin", " admin", false},
@@ -421,7 +417,7 @@ func TestLinkByUsernameInexactMatchRefusesRatherThanDuplicating(t *testing.T) {
 		t.Fatalf("expected ErrAccountExists, got %v", err)
 	}
 
-	_, err = repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityBySubject(provider.ID, "dana-upper-subject")
+	_, err = repositories.NewOidcIdentityRepository(nil).GetIdentityBySubject(provider.ID, "dana-upper-subject")
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		t.Errorf("no identity may be linked on a refused match, got %v", err)
 	}
@@ -484,7 +480,7 @@ func TestUnlinkRefusesEvenAfterTheProvisioningIdentityIsGone(t *testing.T) {
 		t.Fatalf("expected ErrWouldLockOut on the last identity, got %v", err)
 	}
 
-	count, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).CountIdentitiesForUser(user.ID)
+	count, err := repositories.NewOidcIdentityRepository(nil).CountIdentitiesForUser(user.ID)
 	if err != nil {
 		t.Fatalf("failed to count identities: %v", err)
 	}
@@ -515,7 +511,7 @@ func TestLinkingToAPasswordlessAccountInheritsTheFlag(t *testing.T) {
 		t.Fatalf("expected the second provider to link, got %v", err)
 	}
 
-	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityForUser(second.ID, user.ID)
+	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityForUser(second.ID, user.ID)
 	if err != nil {
 		t.Fatalf("failed to load the linked identity: %v", err)
 	}
@@ -538,7 +534,7 @@ func TestLinkingToAnAccountWithAPasswordDoesNotSetTheFlag(t *testing.T) {
 		t.Fatalf("expected the link to succeed, got %v", err)
 	}
 
-	identity, err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).GetIdentityForUser(provider.ID, user.ID)
+	identity, err := repositories.NewOidcIdentityRepository(nil).GetIdentityForUser(provider.ID, user.ID)
 	if err != nil {
 		t.Fatalf("failed to load the linked identity: %v", err)
 	}
@@ -569,7 +565,7 @@ func TestClearingTheProvisionedFlagUnblocksTheUnlink(t *testing.T) {
 		t.Fatalf("expected ErrWouldLockOut before a password is set, got %v", err)
 	}
 
-	if err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).ClearProvisionedFlagForUser(user.ID); err != nil {
+	if err := repositories.NewOidcIdentityRepository(nil).ClearProvisionedFlagForUser(user.ID); err != nil {
 		t.Fatalf("failed to clear the provisioned flag: %v", err)
 	}
 
@@ -664,7 +660,7 @@ func TestProvisionLeavesNoOrphanWhenTheIdentityInsertFails(t *testing.T) {
 
 	// And the account is still reachable next time, which is the behaviour the
 	// orphan destroyed: retrying now provisions cleanly.
-	if err := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil).DeleteIdentity(1, winner.ID); err != nil {
+	if err := repositories.NewOidcIdentityRepository(nil).DeleteIdentity(1, winner.ID); err != nil {
 		t.Fatalf("failed to clear the winning identity: %v", err)
 	}
 

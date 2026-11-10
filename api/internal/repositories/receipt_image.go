@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"path/filepath"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
@@ -29,18 +28,17 @@ func SetReceiptImageWriterForTests(write func(path string, data []byte) error) (
 	return func() { writeReceiptImageFile = previous }
 }
 
-func NewReceiptImageRepository(h cell.Handle, tx *gorm.DB) ReceiptImageRepository {
+func NewReceiptImageRepository(tx *gorm.DB) ReceiptImageRepository {
 	repository := ReceiptImageRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
 
 // TODO: Move to service
 func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.FileData, fileBytes []byte) (models.FileData, error) {
-	fileRepository := NewFileRepository(repository.Cell, repository.TX)
+	fileRepository := NewFileRepository(repository.TX)
 	db := repository.GetDB()
 
 	// TODO: refactor to use command
@@ -97,7 +95,7 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 	// Every receipt image passes through here (quick scan, email, the receipt form, uploads), so this
 	// is the one place a receipt gets queued for its products to be read. Inside the caller's
 	// transaction, so a rolled-back receipt leaves no orphan in the queue.
-	err = NewReceiptProductRepository(repository.Cell, repository.TX).MarkReceiptProductsPending(fileData.ReceiptId)
+	err = NewReceiptProductRepository(repository.TX).MarkReceiptProductsPending(fileData.ReceiptId)
 	if err != nil {
 		return fileData, err
 	}

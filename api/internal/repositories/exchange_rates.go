@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 
@@ -12,8 +11,8 @@ type ExchangeRateRepository struct {
 	BaseRepository
 }
 
-func NewExchangeRateRepository(h cell.Handle, tx *gorm.DB) ExchangeRateRepository {
-	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: h.DB(), TX: tx, Cell: h}}
+func NewExchangeRateRepository(tx *gorm.DB) ExchangeRateRepository {
+	return ExchangeRateRepository{BaseRepository: BaseRepository{DB: GetDB(), TX: tx}}
 }
 
 // GetAll returns every listed currency, ordered by code.
@@ -70,8 +69,8 @@ func (repository ExchangeRateRepository) ReplaceAll(rates []models.ExchangeRate)
 
 // SeedExchangeRates lists the currencies the household starts with (rates empty, to be typed in), once:
 // only when the table is empty, so an administrator's removals stay removed. The main currency is skipped.
-func SeedExchangeRates(h cell.Handle, codes []string, mainCode string) error {
-	db := h.DB()
+func SeedExchangeRates(codes []string, mainCode string) error {
+	db := GetDB()
 
 	var count int64
 	if err := db.Model(&models.ExchangeRate{}).Count(&count).Error; err != nil || count > 0 {
@@ -90,13 +89,12 @@ func SeedExchangeRates(h cell.Handle, codes []string, mainCode string) error {
 	return nil
 }
 
-// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install. It reads the
-// System Settings and writes the rates through the same handle, so one cell's currency never seeds another's list.
-func SeedDefaultExchangeRates(h cell.Handle) error {
-	settings, err := NewSystemSettingsRepository(h, nil).GetSystemSettings()
+// SeedDefaultExchangeRates lists CHF, PLN, GBP and USD (less the main currency) on a fresh install.
+func SeedDefaultExchangeRates() error {
+	settings, err := NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		return err
 	}
 
-	return SeedExchangeRates(h, []string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
+	return SeedExchangeRates([]string{"CHF", "PLN", "GBP", "USD"}, utils.MainCurrencyCode(settings.CurrencyDisplay))
 }

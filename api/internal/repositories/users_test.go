@@ -16,7 +16,7 @@ func TestShouldCreateAdminUserWithGroup(t *testing.T) {
 		DisplayName: "test",
 		Password:    "a really secure password",
 	}
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	createdUser, err := userRepository.CreateUser(userToCreate)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -40,7 +40,7 @@ func TestShouldCreateNonAdminUserWithGroup(t *testing.T) {
 		DisplayName: "test",
 		Password:    "a really secure password",
 	}
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	createdUser, err := userRepository.CreateUser(userToCreate)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -57,17 +57,17 @@ func TestShouldCreateNonAdminUserWithGroup(t *testing.T) {
 func TestCreateUserAssignsDefaultAppRole(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
-	roleRepository := NewRoleRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
+	roleRepository := NewRoleRepository(nil)
 
 	// The first user becomes ADMIN and must get the Legacy Admin role (never the
 	// configurable default), so the bootstrap admin is never locked out.
@@ -108,17 +108,17 @@ func TestCreateUserAssignsDefaultAppRole(t *testing.T) {
 func TestCreateUserHonorsExplicitAppRole(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
-	roleRepository := NewRoleRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
+	roleRepository := NewRoleRepository(nil)
 
 	legacyAdminId, err := roleRepository.GetAppRoleIdByName(LegacyAdminRoleName)
 	if err != nil || legacyAdminId == nil {
@@ -190,17 +190,17 @@ func groupNamesForUser(t *testing.T, userId uint) []string {
 func TestCreateUserSkipsDefaultGroupForFlaggedAppRole(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
-	roleRepository := NewRoleRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
+	roleRepository := NewRoleRepository(nil)
 
 	// Occupy the first-user slot so the accounts below take their explicit role
 	// rather than the bootstrap Legacy Admin.
@@ -244,7 +244,7 @@ func TestCreateUserSkipsDefaultGroupForFlaggedAppRole(t *testing.T) {
 // context errors.)
 func TestAppRoleSkipsDefaultGroupBestEffortBranches(t *testing.T) {
 	defer TruncateTestDb()
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 
 	skip, err := userRepository.appRoleSkipsDefaultGroup(nil, nil)
 	if err != nil {
@@ -267,16 +267,16 @@ func TestAppRoleSkipsDefaultGroupBestEffortBranches(t *testing.T) {
 func TestCreateUserCreatesDefaultGroupForUnflaggedAppRole(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 
 	if _, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username: "bootstrap", DisplayName: "b", Password: "a really secure password",
@@ -318,17 +318,17 @@ func TestCreateUserCreatesDefaultGroupForUnflaggedAppRole(t *testing.T) {
 func TestUpdateUserAssignsAppRole(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
-	roleRepository := NewRoleRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
+	roleRepository := NewRoleRepository(nil)
 
 	created, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username: "user", DisplayName: "u", Password: "a really secure password",
@@ -365,16 +365,16 @@ func TestUpdateUserAssignsAppRole(t *testing.T) {
 func TestUpdateUserPreservesAppRoleWhenIdOmitted(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 
 	// First user → Legacy Admin app role.
 	created, err := userRepository.CreateUser(commands.SignUpCommand{
@@ -416,7 +416,7 @@ func TestUpdateUserPreservesAppRoleWhenIdOmitted(t *testing.T) {
 func TestCreateUserLeavesAppRoleNilWhenUnseeded(t *testing.T) {
 	defer TruncateTestDb()
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	created, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username: "noroles", DisplayName: "n", Password: "a really secure password",
 	})
@@ -439,7 +439,7 @@ func TestShouldReturnErrorWhenCreatingUserWithDuplicateUsername(t *testing.T) {
 		DisplayName: "test",
 		Password:    "a really secure password",
 	}
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	_, err := userRepository.CreateUser(userToCreate)
 	if err == nil {
 		utils.PrintTestError(t, err, "error")
@@ -452,11 +452,11 @@ func TestShouldBeFirstAdminToLogin(t *testing.T) {
 	// IsFirstAdminToLogin identifies administrators by the modern app-role
 	// permission (app.users.read), so the system roles must be seeded for the first
 	// user to resolve to the Legacy Admin role.
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
@@ -466,7 +466,7 @@ func TestShouldBeFirstAdminToLogin(t *testing.T) {
 		DisplayName: "test",
 		Password:    "a really secure password",
 	}
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	createdUser, err := userRepository.CreateUser(userToCreate)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -490,11 +490,11 @@ func TestShouldNotBeFirstAdminToLogin(t *testing.T) {
 	// IsFirstAdminToLogin identifies administrators by the modern app-role
 	// permission (app.users.read), so the system roles must be seeded for the first
 	// user to resolve to the Legacy Admin role.
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
@@ -504,7 +504,7 @@ func TestShouldNotBeFirstAdminToLogin(t *testing.T) {
 		DisplayName: "test",
 		Password:    "a really secure password",
 	}
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	createdUser, err := userRepository.CreateUser(userToCreate)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -540,7 +540,7 @@ func validateUser(t *testing.T, createdUser models.User, userToCreate commands.S
 		utils.PrintTestError(t, createdUser.DefaultAvatarColor, "#27b1ff")
 	}
 
-	roleRepository := NewRoleRepository(ImplicitCell(), nil)
+	roleRepository := NewRoleRepository(nil)
 	var expectedRoleId *uint
 	var err error
 	if isFirstUser {
@@ -602,7 +602,7 @@ func TestGetPagedUsers_ReturnsRowsAndCount(t *testing.T) {
 	createUserWithUsername("beta")
 	createUserWithUsername("alpha")
 
-	repository := NewUserRepository(ImplicitCell(), nil)
+	repository := NewUserRepository(nil)
 	users, count, err := repository.GetPagedUsers(pagedUsersCommand("username", commands.ASCENDING))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
@@ -633,7 +633,7 @@ func TestGetPagedUsers_SecondPage(t *testing.T) {
 	command.Page = 2
 	command.PageSize = 2
 
-	users, count, err := NewUserRepository(ImplicitCell(), nil).GetPagedUsers(command)
+	users, count, err := NewUserRepository(nil).GetPagedUsers(command)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -655,7 +655,7 @@ func TestGetPagedUsers_SecondPage(t *testing.T) {
 func TestGetPagedUsers_EmptyReturnsZeroCount(t *testing.T) {
 	defer TruncateTestDb()
 
-	users, count, err := NewUserRepository(ImplicitCell(), nil).GetPagedUsers(pagedUsersCommand("username", commands.ASCENDING))
+	users, count, err := NewUserRepository(nil).GetPagedUsers(pagedUsersCommand("username", commands.ASCENDING))
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return
@@ -672,7 +672,7 @@ func TestGetPagedUsers_RejectsInvalidColumn(t *testing.T) {
 	defer TruncateTestDb()
 
 	// An order-by outside the allow-list is rejected rather than interpolated as raw SQL.
-	_, _, err := NewUserRepository(ImplicitCell(), nil).GetPagedUsers(pagedUsersCommand("password", commands.ASCENDING))
+	_, _, err := NewUserRepository(nil).GetPagedUsers(pagedUsersCommand("password", commands.ASCENDING))
 	if err == nil {
 		utils.PrintTestError(t, nil, "an invalid column error")
 	}
@@ -684,7 +684,7 @@ func TestGetPagedUsers_SortsByAllowedColumns(t *testing.T) {
 	createUserWithUsername("alpha")
 	createUserWithUsername("beta")
 
-	repository := NewUserRepository(ImplicitCell(), nil)
+	repository := NewUserRepository(nil)
 
 	// username is covered above; display_name, created_at and updated_at must also
 	// execute through Sort/Find without error (they are on the allow-list but were
@@ -707,16 +707,16 @@ func TestGetPagedUsers_SortsByAllowedColumns(t *testing.T) {
 func TestSecondUserJoinsHouseholdAsMemberWithoutAPersonalGroup(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(ImplicitCell()); err != nil {
+	if err := SeedSystemRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
-	if err := EnsureDefaultRoles(ImplicitCell()); err != nil {
+	if err := EnsureDefaultRoles(); err != nil {
 		utils.PrintTestError(t, err, nil)
 		return
 	}
 
-	userRepository := NewUserRepository(ImplicitCell(), nil)
+	userRepository := NewUserRepository(nil)
 	first, _ := userRepository.CreateUser(commands.SignUpCommand{Username: "first", DisplayName: "f", Password: "a really secure password"})
 	second, err := userRepository.CreateUser(commands.SignUpCommand{Username: "second", DisplayName: "s", Password: "a really secure password"})
 	if err != nil {
@@ -738,7 +738,7 @@ func TestSecondUserJoinsHouseholdAsMemberWithoutAPersonalGroup(t *testing.T) {
 		return
 	}
 
-	memberRoleId, _ := NewRoleRepository(ImplicitCell(), nil).GetGroupRoleIdByName(FamilyMemberRoleName)
+	memberRoleId, _ := NewRoleRepository(nil).GetGroupRoleIdByName(FamilyMemberRoleName)
 	for _, member := range members {
 		if member.UserID == second.ID && !uintPtrEqual(member.GroupRoleID, memberRoleId) {
 			utils.PrintTestError(t, member.GroupRoleID, memberRoleId)
@@ -755,7 +755,7 @@ func TestInstallWithoutHouseholdKeepsPersonalGroups(t *testing.T) {
 	CreateTestUser()
 	CreateTestGroup()
 
-	user, err := NewUserRepository(ImplicitCell(), nil).CreateUser(commands.SignUpCommand{Username: "later", DisplayName: "l", Password: "a really secure password"})
+	user, err := NewUserRepository(nil).CreateUser(commands.SignUpCommand{Username: "later", DisplayName: "l", Password: "a really secure password"})
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 		return

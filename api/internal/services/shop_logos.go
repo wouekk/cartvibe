@@ -30,7 +30,7 @@ func ShopLogos() (*shoplogos.Store, *shoplogos.Syncer, error) {
 
 // shopLogoKey reads the household's Logo.dev secret key; "" without one.
 func shopLogoKey() string {
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		return ""
 	}

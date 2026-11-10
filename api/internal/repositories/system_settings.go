@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/models"
@@ -18,11 +17,10 @@ type SystemSettingsRepository struct {
 	BaseRepository
 }
 
-func NewSystemSettingsRepository(h cell.Handle, tx *gorm.DB) SystemSettingsRepository {
+func NewSystemSettingsRepository(tx *gorm.DB) SystemSettingsRepository {
 	repository := SystemSettingsRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
@@ -194,8 +192,8 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 				return txErr
 			}
 
-			// Which names already have a row is read up front rather than inferred
-			// from RowsAffected, which a no-change UPDATE reports as 0 on MySQL.
+			// Which names already have a row is read up front, so each one is either
+			// updated or created.
 			existingNames := make(map[models.QueueName]bool, len(persistedNames))
 			for _, name := range persistedNames {
 				existingNames[models.QueueName(name)] = true
@@ -248,8 +246,8 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 // SeedEuroForNewInstall gives a brand-new install euros as its currency (Phase 3 M7). It only acts
 // when no settings row exists yet, so an existing install keeps what it has. It is called from InitDB,
 // not from GetSystemSettings, so the test database (which never runs InitDB) keeps the model's `$`.
-func SeedEuroForNewInstall(h cell.Handle) error {
-	db := h.DB()
+func SeedEuroForNewInstall() error {
+	db := GetDB()
 
 	var count int64
 	if err := db.Model(&models.SystemSettings{}).Count(&count).Error; err != nil {

@@ -69,8 +69,8 @@ var usernameSanitizer = regexp.MustCompile(`[^a-z0-9._-]+`)
 // In every branch that succeeds the subject is persisted, so step 1 handles every
 // subsequent login.
 func resolveUser(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	identityRepository := repositories.NewOidcIdentityRepository(nil)
+	userRepository := repositories.NewUserRepository(nil)
 
 	identity, err := identityRepository.GetIdentityBySubject(provider.ID, claims.Subject)
 	if err == nil {
@@ -117,20 +117,18 @@ func resolveUser(provider models.OidcProvider, claims idTokenClaims) (structs.Us
 // usernameMatchesClaim re-asserts, byte for byte in Go, that a row the database
 // handed back really does carry the username the claim asked for.
 //
-// It exists because the lookup that produced that row compared in SQL, and
-// users.username pins no collation -- so the same claim resolves differently per
-// engine. MySQL and MariaDB, both supported here, default to a case-INSENSITIVE
-// collation, where an identity provider account named "ADMIN" resolves the local
-// "admin"; SQLite and Postgres compare case-sensitively and would not. This path
-// is premised on an EXACT, opt-in username match, and a fuzzy one is precisely
-// the account-takeover vector OidcProvider.LinkByUsername's doc comment warns
-// about. A boundary that holds on one supported engine and not another is not a
-// boundary, so the decisive comparison is made here rather than left to the
-// column.
+// It exists because the lookup that produced that row compared in SQL, where the
+// answer depends on the column's collation. SQLite's default compares bytes, so
+// today the lookup is already exact; a NOCASE collation on users.username (or a
+// LOWER() added to the lookup) would let an identity provider account named
+// "ADMIN" resolve the local "admin". This path is premised on an EXACT, opt-in
+// username match, and a fuzzy one is precisely the account-takeover vector
+// OidcProvider.LinkByUsername's doc comment warns about, so the decisive
+// comparison is made here rather than left to the column.
 //
-// Kept as a named function rather than inlined because the test database is
-// SQLite: an inline check would be unreachable there, so the rule would ship
-// with no test that can fail on it.
+// Kept as a named function rather than inlined because the lookup never returns
+// a case-differing row on SQLite: an inline check would be unreachable in the
+// tests, so the rule would ship with no test that can fail on it.
 func usernameMatchesClaim(storedUsername string, claimedUsername string) bool {
 	return storedUsername == claimedUsername
 }
@@ -138,9 +136,9 @@ func usernameMatchesClaim(storedUsername string, claimedUsername string) bool {
 // linkByUsername attaches an unseen identity to an existing local account whose
 // username matches the preferred_username claim.
 func linkByUsername(provider models.OidcProvider, claims idTokenClaims) (structs.UserView, error) {
-	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
+	identityRepository := repositories.NewOidcIdentityRepository(nil)
 
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(claims.PreferredUsername)
+	user, err := repositories.NewUserRepository(nil).GetUserByUsername(claims.PreferredUsername)
 	if err != nil {
 		return structs.UserView{}, err
 	}
@@ -184,7 +182,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	// Username uniqueness is normally enforced by middleware.ValidateUserData,
 	// which this path does not go through, so check here -- and refuse rather than
 	// suffix (see ErrAccountExists).
-	_, err := repositories.NewUserRepository(repositories.ImplicitCell(), nil).GetUserByUsername(username)
+	_, err := repositories.NewUserRepository(nil).GetUserByUsername(username)
 	if err == nil {
 		return structs.UserView{}, ErrAccountExists
 	}
@@ -226,7 +224,7 @@ func provisionUser(provider models.OidcProvider, claims idTokenClaims) (structs.
 	err = repositories.GetDB().Transaction(func(tx *gorm.DB) error {
 		var txErr error
 
-		created, txErr = repositories.NewUserRepository(repositories.ImplicitCell(), tx).CreateUser(commands.SignUpCommand{
+		created, txErr = repositories.NewUserRepository(tx).CreateUser(commands.SignUpCommand{
 			Username:    username,
 			Password:    password,
 			DisplayName: displayName,
@@ -278,7 +276,7 @@ func createIdentityTx(tx *gorm.DB, provider models.OidcProvider, userId uint, cl
 		LastLoginAt:       &now,
 	}
 
-	return repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), tx).CreateIdentity(&identity)
+	return repositories.NewOidcIdentityRepository(tx).CreateIdentity(&identity)
 }
 
 // deriveUsername builds a candidate username from the claims, preferring the
@@ -327,7 +325,7 @@ func emailLocalPart(email string) string {
 // match/provision decision tree above is skipped and the link is written
 // directly. Neither AllowProvisioning nor LinkByUsername is consulted here.
 func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint) error {
-	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
+	identityRepository := repositories.NewOidcIdentityRepository(nil)
 
 	// This identity may not already belong to somebody else. Re-pointing it would
 	// silently transfer an account.
@@ -382,12 +380,12 @@ func resolveLink(provider models.OidcProvider, claims idTokenClaims, userId uint
 // dropping GitHub passed it too (that row was not the provisioning one), leaving
 // an account with no identities and a bcrypt hash of a password nobody knew.
 func UnlinkIdentity(userId uint, providerName string) error {
-	providerRow, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderByName(providerName)
+	providerRow, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderByName(providerName)
 	if err != nil {
 		return err
 	}
 
-	identityRepository := repositories.NewOidcIdentityRepository(repositories.ImplicitCell(), nil)
+	identityRepository := repositories.NewOidcIdentityRepository(nil)
 
 	identity, err := identityRepository.GetIdentityForUser(providerRow.ID, userId)
 	if err != nil {

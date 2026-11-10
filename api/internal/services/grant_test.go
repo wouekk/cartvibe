@@ -21,7 +21,7 @@ func seedMemberWithGroupRoleGrants(t *testing.T, username string, categoryGrantI
 		t.Fatalf("seed group: %v", err)
 	}
 
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	role, err := roleRepository.CreateGroupRole("Grant Role "+username, "", []string{permissions.GroupReceiptsRead}, categoryGrantIds, tagGrantIds, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
@@ -163,7 +163,7 @@ func TestGetVisibleCategoriesForUserFilters(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-vis", []uint{cat1, cat3}, nil)
 	service := NewPermissionService(nil)
 
-	allCategories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
+	allCategories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
 	if err != nil {
 		t.Fatalf("get all categories: %v", err)
 	}
@@ -194,7 +194,7 @@ func TestGetVisibleCategoriesUnrestrictedPassThrough(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-open2", nil, nil)
 	service := NewPermissionService(nil)
 
-	allCategories, err := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil).GetAllCategories("*")
+	allCategories, err := repositories.NewCategoryRepository(nil).GetAllCategories("*")
 	if err != nil {
 		t.Fatalf("get all categories: %v", err)
 	}
@@ -217,7 +217,7 @@ func TestGetVisibleTagsForUserFilters(t *testing.T) {
 	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "u-tagvis", nil, []uint{tag1})
 	service := NewPermissionService(nil)
 
-	allTags, err := repositories.NewTagsRepository(repositories.ImplicitCell(), nil).GetAllTags("*")
+	allTags, err := repositories.NewTagsRepository(nil).GetAllTags("*")
 	if err != nil {
 		t.Fatalf("get all tags: %v", err)
 	}
@@ -301,7 +301,7 @@ func TestGrantCacheReturnsCachedUntilCleared(t *testing.T) {
 	}
 
 	// After an explicit eviction, the fresh DB value {cat2} is read.
-	clearGroupRoleGrantCache(implicitCellID(), roleId)
+	clearGroupRoleGrantCache(roleId)
 	allowed, _, err = service.GetGroupCategoryIdsForUser(userId, groupId)
 	if err != nil {
 		t.Fatalf("fresh resolve: %v", err)

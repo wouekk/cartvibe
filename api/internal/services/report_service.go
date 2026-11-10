@@ -155,7 +155,7 @@ func (service ReportService) buildModel(
 	now time.Time,
 	rowLimit int,
 ) (reportBuild, error) {
-	settings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).GetSystemSettings()
+	settings, err := repositories.NewSystemSettingsRepository(service.TX).GetSystemSettings()
 	if err != nil {
 		return reportBuild{}, err
 	}
@@ -268,7 +268,7 @@ func (service ReportService) receipts(
 	command commands.ReportRequestCommand,
 	now time.Time,
 ) (structs.PagedData, error) {
-	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), service.TX).AppLocation(), i18n.English)
+	filter, _ := prepareReportFilter(userId, command, now, repositories.NewSystemSettingsRepository(service.TX).AppLocation(), i18n.English)
 	dataService := NewReportDataService(service.TX)
 
 	// Each group loads only its newest reportReceiptsCap receipts, which is enough:
@@ -440,7 +440,7 @@ func (service ReportService) assembleDownload(name string, files []renderedFile)
 		contents[index] = file.bytes
 	}
 
-	zipBytes, err := repositories.NewFileRepository(repositories.ImplicitCell(), service.TX).ZipFiles(names, contents)
+	zipBytes, err := repositories.NewFileRepository(service.TX).ZipFiles(names, contents)
 	if err != nil {
 		return GeneratedReport{}, err
 	}
@@ -452,7 +452,7 @@ func (service ReportService) assembleDownload(name string, files []renderedFile)
 }
 
 func (service ReportService) groupNames(groupIds []string) ([]string, error) {
-	groupRepository := repositories.NewGroupRepository(repositories.ImplicitCell(), service.TX)
+	groupRepository := repositories.NewGroupRepository(service.TX)
 	names := make([]string, 0, len(groupIds))
 	for _, groupId := range groupIds {
 		group, err := groupRepository.GetGroupById(groupId, false, false)
@@ -481,7 +481,7 @@ func (service ReportService) readerLanguage(userId uint) i18n.Translator {
 }
 
 func (service ReportService) userDisplayName(userId uint, tr i18n.Translator) string {
-	user, err := repositories.NewUserRepository(repositories.ImplicitCell(), service.TX).GetUserById(userId)
+	user, err := repositories.NewUserRepository(service.TX).GetUserById(userId)
 	if err != nil {
 		return tr.T("Unknown User")
 	}

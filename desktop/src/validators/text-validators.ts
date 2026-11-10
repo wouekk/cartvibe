@@ -5,9 +5,8 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
  * code units like `Validators.maxLength`.
  *
  * The Go backend measures its string limits in runes (e.g. the quick-scan
- * comment's `models.MaxCommentLength`, checked with `utf8.RuneCountInString`),
- * and a `varchar(n)` column counts characters on MySQL/Postgres. JavaScript's
- * `String.length` counts UTF-16 code units, so anything outside the BMP counts
+ * comment's `models.MaxCommentLength`, checked with `utf8.RuneCountInString`).
+ * JavaScript's `String.length` counts UTF-16 code units, so anything outside the BMP counts
  * twice: `"😀".repeat(500)` has a `length` of 1000 and would be rejected here
  * while the server accepts it happily. Counting code points keeps the client
  * from refusing input the API would take.

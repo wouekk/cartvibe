@@ -147,7 +147,7 @@ func TestShouldNotAllowUserToUpdateUser(t *testing.T) {
 }
 
 func createTestUser(t *testing.T, username string, password string) models.User {
-	userRepository := repositories.NewUserRepository(repositories.ImplicitCell(), nil)
+	userRepository := repositories.NewUserRepository(nil)
 	user, err := userRepository.CreateUser(commands.SignUpCommand{
 		Username:    username,
 		DisplayName: username,
@@ -233,7 +233,7 @@ func TestDeleteAccountShouldPreventLastAdminDeletion(t *testing.T) {
 	grantAppPerms(t, user.ID, permissions.AppUsersRead, permissions.AppAccountDelete)
 
 	// Ensure no other admins exist
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), nil)
+	roleRepository := repositories.NewRoleRepository(nil)
 	adminCount, err := roleRepository.CountUsersWithAppPermission(permissions.AppUsersRead)
 	if err != nil {
 		t.Fatalf("count admins: %v", err)

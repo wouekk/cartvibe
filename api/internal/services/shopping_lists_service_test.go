@@ -38,7 +38,7 @@ func newShoppingListFixture(t *testing.T) shoppingListFixture {
 		t.Fatal(err)
 	}
 
-	subscriber := GetShoppingListHub().Subscribe(ImplicitCellID(), group.ID)
+	subscriber := GetShoppingListHub().Subscribe(group.ID)
 	t.Cleanup(func() {
 		GetShoppingListHub().Unsubscribe(subscriber)
 		repositories.TruncateTestDb()

@@ -753,7 +753,7 @@ func TestUpdateReceiptProcessingSettingsSwitchingToALocalServerDropsTheStoredKey
 		t.Fatalf("expected 200, got %d %s", w.Result().StatusCode, w.Body.String())
 	}
 
-	stored, err := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil).GetReceiptProcessingSettingsById("1")
+	stored, err := repositories.NewReceiptProcessingSettings(nil).GetReceiptProcessingSettingsById("1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -773,7 +773,7 @@ func TestUpdateReceiptProcessingSettingsSameProviderKeepsTheStoredKey(t *testing
 		t.Fatalf("expected 200, got %d %s", w.Result().StatusCode, w.Body.String())
 	}
 
-	stored, _ := repositories.NewReceiptProcessingSettings(repositories.ImplicitCell(), nil).GetReceiptProcessingSettingsById("1")
+	stored, _ := repositories.NewReceiptProcessingSettings(nil).GetReceiptProcessingSettingsById("1")
 	key, _ := utils.DecryptB64EncodedData(config.GetEncryptionKey(), stored.Key)
 	if key != "gemini-secret" {
 		t.Fatalf("expected the stored key to stay, got %q", key)

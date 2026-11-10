@@ -32,7 +32,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		t.Fatalf("seed group: %v", err)
 	}
 
-	settingsRepository := repositories.NewGroupReceiptSettingsRepository(repositories.ImplicitCell(), nil)
+	settingsRepository := repositories.NewGroupReceiptSettingsRepository(nil)
 	if _, err := settingsRepository.CreateGroupReceiptSettings(group.ID); err != nil {
 		t.Fatalf("seed group receipt settings: %v", err)
 	}
@@ -57,7 +57,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 		rolePermissions = append(rolePermissions, permissions.GroupCommentsCreate)
 	}
 
-	role, err := repositories.NewRoleRepository(repositories.ImplicitCell(), nil).CreateGroupRole(
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
 		"Quick Scan Commenter", "", rolePermissions, nil, nil, nil, false, false)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
@@ -212,10 +212,8 @@ func TestResolveQuickScanFields_CommentTooLongRejected(t *testing.T) {
 	}
 }
 
-// The limit counts characters, not bytes. The Comment column is varchar(500), which MySQL and
-// Postgres both measure in characters, so a byte-based check would reject an accented or non-Latin
-// comment the column has ample room for. 500 two-byte runes is 1000 bytes: accepted here, rejected
-// by a len() check.
+// The limit counts characters, not bytes: a byte-based check would reject an accented or non-Latin
+// comment of 500 characters. 500 two-byte runes is 1000 bytes: accepted here, rejected by a len() check.
 func TestResolveQuickScanFields_CommentLengthCountsCharactersNotBytes(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	userId, groupId := seedQuickScanCommenter(t, true, models.GroupReceiptSettings{

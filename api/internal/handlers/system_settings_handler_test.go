@@ -145,12 +145,11 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 			},
 			expect: http.StatusBadRequest,
 		},
-		"bad num workers": {
+		"no task concurrency and no queues": {
 			input: commands.UpsertSystemSettingsCommand{
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
-				NumWorkers:                          0,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencyDecimalSeparator:            models.DOT,
 				CurrencySymbolPosition:              models.START,
@@ -162,7 +161,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
-				NumWorkers:                          1,
 				CurrencyDecimalSeparator:            models.DOT,
 				CurrencySymbolPosition:              models.START,
 				TaskConcurrency:                     10,
@@ -175,7 +173,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
-				NumWorkers:                          1,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencySymbolPosition:              models.START,
 				TaskConcurrency:                     10,
@@ -188,7 +185,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
-				NumWorkers:                          1,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencyDecimalSeparator:            models.DOT,
 				TaskConcurrency:                     10,
@@ -202,7 +198,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				EnableLocalSignUp:                   true,
 				ReceiptProcessingSettingsId:         &id,
 				FallbackReceiptProcessingSettingsId: &id2,
-				NumWorkers:                          1,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencyDecimalSeparator:            models.DOT,
 				CurrencySymbolPosition:              models.START,
@@ -292,7 +287,7 @@ func TestUpdateSystemSettingsPreservesOmittedRefreshTokenLifetimes(t *testing.T)
 		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
 	}
 
-	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}
@@ -365,7 +360,7 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
 	}
 
-	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}
@@ -413,7 +408,7 @@ func TestUpdateSystemSettingsSucceedsOnAnInstallMissingAQueueConfiguration(t *te
 
 	// Build the queue list the way the settings form does: from the payload the
 	// server just handed the client, never from the client's own enum.
-	served, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	served, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read system settings: %v", err)
 	}
@@ -455,7 +450,7 @@ func TestUpdateSystemSettingsSucceedsOnAnInstallMissingAQueueConfiguration(t *te
 
 	// A 200 that dropped the value would be the worse outcome of the two, so the
 	// setting the save exists to change is asserted alongside the status.
-	updated, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
+	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
 	if err != nil {
 		t.Fatalf("failed to read back system settings: %v", err)
 	}

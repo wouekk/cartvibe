@@ -41,7 +41,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 		GroupPermissions: []string{permissions.GroupCommentsCreate},
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			commentRepository := repositories.NewCommentRepository(repositories.ImplicitCell(), nil)
+			commentRepository := repositories.NewCommentRepository(nil)
 
 			// Member isolation: a recipient who may not see the comment author IN THE
 			// RECEIPT'S GROUP must not receive an author-revealing notification.
@@ -94,7 +94,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 		GroupPermissions: []string{permissions.GroupCommentsDelete},
 		ResponseType:     "",
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			commentRepository := repositories.NewCommentRepository(repositories.ImplicitCell(), nil)
+			commentRepository := repositories.NewCommentRepository(nil)
 			token := structs.GetClaims(r)
 
 			allowed, err := enforceCommentDeleteKeepsRequired(w, token.UserId, comment.ReceiptId, commentId)

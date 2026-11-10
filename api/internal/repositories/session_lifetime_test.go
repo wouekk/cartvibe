@@ -19,7 +19,7 @@ func storedLifetimes(t *testing.T) (int, int) {
 func setStoredLifetimes(t *testing.T, sessionHours int, mcpHours int) {
 	t.Helper()
 
-	if _, err := NewSystemSettingsRepository(ImplicitCell(), nil).GetSystemSettings(); err != nil {
+	if _, err := NewSystemSettingsRepository(nil).GetSystemSettings(); err != nil {
 		t.Fatal(err)
 	}
 	err := GetDB().Model(&models.SystemSettings{}).Where("1 = 1").Updates(map[string]any{

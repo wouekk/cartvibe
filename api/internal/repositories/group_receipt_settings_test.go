@@ -8,7 +8,7 @@ import (
 )
 
 func setupGroupReceiptSettingsRepository() GroupReceiptSettingsRepository {
-	return NewGroupReceiptSettingsRepository(ImplicitCell(), nil)
+	return NewGroupReceiptSettingsRepository(nil)
 }
 
 func TestCreateGroupReceiptSettingsAppliesQuickScanDefaults(t *testing.T) {

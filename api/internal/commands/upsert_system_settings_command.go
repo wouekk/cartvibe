@@ -41,7 +41,6 @@ type UpsertSystemSettingsCommand struct {
 	CurrencyDecimalSeparator            models.CurrencySeparator              `json:"currencyDecimalSeparator"`
 	CurrencySymbolPosition              models.CurrencySymbolPosition         `json:"currencySymbolPosition"`
 	CurrencyHideDecimalPlaces           bool                                  `json:"currencyHideDecimalPlaces"`
-	NumWorkers                          int                                   `json:"numWorkers"`
 	ReceiptProcessingSettingsId         *uint                                 `json:"receiptProcessingSettingsId"`
 	FallbackReceiptProcessingSettingsId *uint                                 `json:"fallbackReceiptProcessingSettingsId"`
 	TaskConcurrency                     int                                   `json:"taskConcurrency"`
@@ -330,8 +329,7 @@ func (command *UpsertSystemSettingsCommand) ToSystemSettings(id uint) (models.Sy
 // value onto the row instead (see ApplyOmittedValues) would still write it, so
 // two requests that each set one field and omit the other would clobber each
 // other with the values they read before the write. A column that is never
-// written cannot be clobbered, and unlike a row lock this works identically on
-// SQLite, MySQL and Postgres.
+// written cannot be clobbered.
 func (command *UpsertSystemSettingsCommand) OmittedColumns() []string {
 	columns := make([]string, 0, 6)
 

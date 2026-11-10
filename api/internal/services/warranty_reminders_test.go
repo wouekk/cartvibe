@@ -50,7 +50,7 @@ func warrantyRemindersFor(t *testing.T, receiptId uint) map[uint]models.Warranty
 
 func setLeadDays(t *testing.T, userId uint, days int) {
 	t.Helper()
-	repository := repositories.NewUserPreferencesRepository(repositories.ImplicitCell(), nil)
+	repository := repositories.NewUserPreferencesRepository(nil)
 	if _, err := repository.GetUserPreferencesOrCreate(userId); err != nil {
 		t.Fatal(err)
 	}
@@ -301,7 +301,7 @@ func TestWarrantiesEndingSoonFilter(t *testing.T) {
 			WarrantyEndsBy: today.AddDate(0, 2, 0).Format(time.DateOnly),
 		},
 	}
-	receipts, count, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetPagedReceiptsByGroupId(
+	receipts, count, err := repositories.NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
 		fx.memberBId, utils.UintToString(fx.groupId), request, nil, nil, nil, nil, nil,
 	)
 	if err != nil {

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
@@ -15,11 +14,10 @@ type GroupRepository struct {
 	BaseRepository
 }
 
-func NewGroupRepository(h cell.Handle, tx *gorm.DB) GroupRepository {
+func NewGroupRepository(tx *gorm.DB) GroupRepository {
 	repository := GroupRepository{BaseRepository: BaseRepository{
-		DB:   h.DB(),
+		DB: GetDB(),
 		TX:   tx,
-		Cell: h,
 	}}
 	return repository
 }
@@ -44,7 +42,7 @@ func (repository GroupRepository) GetPagedGroups(command commands.PagedGroupRequ
 	if command.GroupFilter.AssociatedGroup == commands.ASSOCIATED_GROUP_ALL {
 		query.Count(&count)
 	} else {
-		groupMemberRepository := NewGroupMemberRepository(repository.Cell, nil)
+		groupMemberRepository := NewGroupMemberRepository(nil)
 		groupMembers, err := groupMemberRepository.GetGroupMembersByUserId(userId)
 		if err != nil {
 			return nil, 0, err
@@ -120,7 +118,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 
 	err := db.Transaction(func(tx *gorm.DB) error {
 		repository.SetTransaction(tx)
-		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.Cell, tx)
+		groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(tx)
 
 		txErr := tx.Model(&groupToCreate).Create(&groupToCreate).Error
 		if txErr != nil {
@@ -131,7 +129,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		// Assign the creator the modern default group role so the membership is
 		// not locked out under permission enforcement. Best-effort: nil when no
 		// default is seeded (e.g. an unseeded test database).
-		roleRepository := NewRoleRepository(repository.Cell, tx)
+		roleRepository := NewRoleRepository(tx)
 		defaultGroupRoleId, txErr := roleRepository.GetDefaultGroupRoleId()
 		if txErr != nil {
 			repository.ClearTransaction()
@@ -163,7 +161,7 @@ func (repository GroupRepository) CreateGroup(command commands.UpsertGroupComman
 		return models.Group{}, err
 	}
 
-	// Read back through the same handle the group was written with: inside a caller's transaction (CreateUser),
+	// Read back through the same connection the group was written with: inside a caller's transaction (CreateUser),
 	// another connection cannot see the uncommitted row yet.
 	err = db.Model(models.Group{}).Where("id = ?", groupToCreate.ID).Preload("GroupMembers").Find(&returnGroup).Error
 	if err != nil {
@@ -304,7 +302,7 @@ func (repository GroupRepository) GetGroupById(id string,
 		return models.Group{}, err
 	}
 
-	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.Cell, repository.TX)
+	groupReceiptSettingsRepository := NewGroupReceiptSettingsRepository(repository.TX)
 
 	if group.GroupReceiptSettings.ID == 0 && createMissingGroupReceiptSettings {
 		_, err := groupReceiptSettingsRepository.CreateGroupReceiptSettings(group.ID)

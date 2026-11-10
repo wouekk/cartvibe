@@ -1,7 +1,7 @@
 package models
 
-// MaxShoppingListNameLength matches the column definition below. Writing a longer name fails at the
-// database on MySQL/Postgres, so the upsert command rejects an over-length one up front.
+// MaxShoppingListNameLength is the longest list name, in characters. SQLite does not enforce the
+// column's size, so the upsert command's check is the only limit.
 const MaxShoppingListNameLength = 100
 
 // ShoppingList is a named, long-lived list (e.g. "Supermarket") belonging to a group. Items are

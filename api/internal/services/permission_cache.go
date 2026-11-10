@@ -3,23 +3,21 @@ package services
 import (
 	"sync"
 
-	"cartvibe/api/internal/cell"
 	"cartvibe/api/internal/permissions"
 )
 
-// rolePermissionRef names a role inside one cell: scope + role id. App and group role
+// rolePermissionRef names a role: scope + role id. App and group role
 // ids overlap (separate tables), so the scope is part of it.
 type rolePermissionRef struct {
 	scope  permissions.Scope
 	roleId uint
 }
 
-// rolePermissionCacheEntry keys the cache by (cell, scope, role id). Two cells hold the same role ids, so a
-// key without the cell would hand one household's role permissions to another.
-type rolePermissionCacheEntry = cell.CellKey[rolePermissionRef]
+// rolePermissionCacheEntry keys the cache by (scope, role id).
+type rolePermissionCacheEntry = rolePermissionRef
 
-func rolePermissionKey(cellID cell.ID, scope permissions.Scope, roleId uint) rolePermissionCacheEntry {
-	return cell.KeyIn(cellID, rolePermissionRef{scope: scope, roleId: roleId})
+func rolePermissionKey(scope permissions.Scope, roleId uint) rolePermissionCacheEntry {
+	return rolePermissionRef{scope: scope, roleId: roleId}
 }
 
 // rolePermissionCache memoizes the permission strings granted by a role. Only
@@ -32,19 +30,18 @@ func rolePermissionKey(cellID cell.ID, scope permissions.Scope, roleId uint) rol
 // carries the generation observed before its DB read (see loadRolePermissions)
 // and is dropped if the generation has since advanced — this prevents an
 // in-flight cache miss from resurrecting stale permissions after a concurrent
-// eviction, which would otherwise leave revoked permissions authorized. The generation is shared by every cell: an
-// eviction in one cell also drops in-flight writes of another, which only costs a cache miss.
+// eviction, which would otherwise leave revoked permissions authorized.
 var (
 	rolePermissionCacheMutex      sync.RWMutex
 	rolePermissionCache           = map[rolePermissionCacheEntry][]string{}
 	rolePermissionCacheGeneration uint64
 )
 
-func getCachedRolePermissions(cellID cell.ID, scope permissions.Scope, roleId uint) ([]string, bool) {
+func getCachedRolePermissions(scope permissions.Scope, roleId uint) ([]string, bool) {
 	rolePermissionCacheMutex.RLock()
 	defer rolePermissionCacheMutex.RUnlock()
 
-	perms, ok := rolePermissionCache[rolePermissionKey(cellID, scope, roleId)]
+	perms, ok := rolePermissionCache[rolePermissionKey(scope, roleId)]
 	return perms, ok
 }
 
@@ -61,7 +58,7 @@ func rolePermissionCacheGen() uint64 {
 // setCachedRolePermissions stores perms only if no eviction has happened since
 // observedGen was captured; otherwise the value is considered potentially stale
 // and discarded (the next check re-reads from the database).
-func setCachedRolePermissions(cellID cell.ID, scope permissions.Scope, roleId uint, perms []string, observedGen uint64) {
+func setCachedRolePermissions(scope permissions.Scope, roleId uint, perms []string, observedGen uint64) {
 	rolePermissionCacheMutex.Lock()
 	defer rolePermissionCacheMutex.Unlock()
 
@@ -69,18 +66,18 @@ func setCachedRolePermissions(cellID cell.ID, scope permissions.Scope, roleId ui
 		return
 	}
 
-	rolePermissionCache[rolePermissionKey(cellID, scope, roleId)] = perms
+	rolePermissionCache[rolePermissionKey(scope, roleId)] = perms
 }
 
-// clearRolePermissionCache evicts a single role's cached permissions in one cell and bumps
+// clearRolePermissionCache evicts a single role's cached permissions and bumps
 // the generation. Call this after a role's permissions change or the role is
 // deleted.
-func clearRolePermissionCache(cellID cell.ID, scope permissions.Scope, roleId uint) {
+func clearRolePermissionCache(scope permissions.Scope, roleId uint) {
 	rolePermissionCacheMutex.Lock()
 	defer rolePermissionCacheMutex.Unlock()
 
 	rolePermissionCacheGeneration++
-	delete(rolePermissionCache, rolePermissionKey(cellID, scope, roleId))
+	delete(rolePermissionCache, rolePermissionKey(scope, roleId))
 }
 
 // clearRolePermissionCacheAll empties the cache entirely and bumps the

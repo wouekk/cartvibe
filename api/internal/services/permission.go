@@ -162,7 +162,7 @@ func validateRequiredPermissions(scope permissions.Scope, required []string) err
 // with no app role assigned — or a missing/deleted user — resolves to no
 // permissions (deny) rather than an error.
 func (service PermissionService) resolveAppPermissions(userId uint) ([]string, error) {
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
+	roleRepository := repositories.NewRoleRepository(service.TX)
 
 	appRoleId, err := roleRepository.GetUserAppRoleId(userId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -182,7 +182,7 @@ func (service PermissionService) resolveAppPermissions(userId uint) ([]string, e
 // group. A user who is not a member, or whose membership has no group role,
 // resolves to no permissions (deny).
 func (service PermissionService) resolveGroupPermissions(userId uint, groupId uint) ([]string, error) {
-	roleRepository := repositories.NewRoleRepository(repositories.ImplicitCell(), service.TX)
+	roleRepository := repositories.NewRoleRepository(service.TX)
 
 	groupRoleId, err := roleRepository.GetGroupMemberRoleId(userId, groupId)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -201,7 +201,7 @@ func (service PermissionService) resolveGroupPermissions(userId uint, groupId ui
 // loadRolePermissions returns a role's permission strings, consulting the cache
 // first and populating it on a miss. Callers must not mutate the returned slice.
 func loadRolePermissions(roleRepository repositories.RoleRepository, scope permissions.Scope, roleId uint) ([]string, error) {
-	if cached, ok := getCachedRolePermissions(roleRepository.Cell.ID(), scope, roleId); ok {
+	if cached, ok := getCachedRolePermissions(scope, roleId); ok {
 		return cached, nil
 	}
 
@@ -220,6 +220,6 @@ func loadRolePermissions(roleRepository repositories.RoleRepository, scope permi
 		return nil, err
 	}
 
-	setCachedRolePermissions(roleRepository.Cell.ID(), scope, roleId, perms, observedGen)
+	setCachedRolePermissions(scope, roleId, perms, observedGen)
 	return perms, nil
 }

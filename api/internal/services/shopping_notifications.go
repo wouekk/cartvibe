@@ -27,7 +27,7 @@ func notifyHousehold(groupId uint, actorUserId uint, title string, body string, 
 		}
 	}
 
-	err := repositories.NewNotificationRepository(repositories.ImplicitCell(), nil).SendNotificationToGroup(
+	err := repositories.NewNotificationRepository(nil).SendNotificationToGroup(
 		groupId,
 		title,
 		body,

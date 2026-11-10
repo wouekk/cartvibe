@@ -25,7 +25,7 @@ func NewShoppingListService(tx *gorm.DB) ShoppingListService {
 }
 
 func (service ShoppingListService) GetShoppingListsForGroup(groupId uint) ([]models.ShoppingList, error) {
-	return repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX).GetShoppingListsByGroupId(groupId)
+	return repositories.NewShoppingListRepository(service.TX).GetShoppingListsByGroupId(groupId)
 }
 
 func (service ShoppingListService) CreateShoppingList(
@@ -33,7 +33,7 @@ func (service ShoppingListService) CreateShoppingList(
 	command commands.UpsertShoppingListCommand,
 	userId uint,
 ) (models.ShoppingList, error) {
-	list, err := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX).CreateShoppingList(models.ShoppingList{
+	list, err := repositories.NewShoppingListRepository(service.TX).CreateShoppingList(models.ShoppingList{
 		BaseModel: models.BaseModel{CreatedBy: &userId},
 		GroupId:   groupId,
 		Name:      command.Name,
@@ -58,7 +58,7 @@ func (service ShoppingListService) UpdateShoppingList(
 	listId uint,
 	command commands.UpsertShoppingListCommand,
 ) (models.ShoppingList, error) {
-	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewShoppingListRepository(service.TX)
 
 	err := repository.UpdateShoppingListName(listId, command.Name)
 	if err != nil {
@@ -85,12 +85,12 @@ func (service ShoppingListService) DeleteShoppingList(groupId uint, listId uint)
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
 		// Trips first: they reference the list.
 		var tripErr error
-		photoPaths, tripErr = repositories.NewShoppingTripRepository(repositories.ImplicitCell(), tx).DeleteTripsForList(listId)
+		photoPaths, tripErr = repositories.NewShoppingTripRepository(tx).DeleteTripsForList(listId)
 		if tripErr != nil {
 			return tripErr
 		}
 
-		return repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).DeleteShoppingList(listId)
+		return repositories.NewShoppingListRepository(tx).DeleteShoppingList(listId)
 	})
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (service ShoppingListService) AddShoppingListItem(
 	eventType := models.ShoppingListEventItemAdded
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
+		repository := repositories.NewShoppingListRepository(tx)
 
 		existing, err := repository.FindCheckedShoppingListItemByName(listId, command.Name)
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -159,7 +159,7 @@ func (service ShoppingListService) AddShoppingListItem(
 			// Back on the list, possibly in another month: its seasonality is worked out again. A
 			// person's own correction is kept.
 			if !existing.ClassificationOverridden {
-				err = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), tx).ResetClassification(repositories.ClassificationKindItem, existing.ID)
+				err = repositories.NewFoodClassificationRepository(tx).ResetClassification(repositories.ClassificationKindItem, existing.ID)
 				if err != nil {
 					return err
 				}
@@ -201,7 +201,7 @@ func (service ShoppingListService) UpdateShoppingListItem(
 	itemId uint,
 	command commands.UpsertShoppingListItemCommand,
 ) (models.ShoppingListItem, error) {
-	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewShoppingListRepository(service.TX)
 
 	existing, err := repository.GetShoppingListItemById(itemId)
 	if err != nil {
@@ -221,7 +221,7 @@ func (service ShoppingListService) UpdateShoppingListItem(
 
 	// A different product now: its tags (and any correction, which was about the old one) no longer apply.
 	if models.NormalizeProductName(existing.Name) != models.NormalizeProductName(command.Name) {
-		err = repositories.NewFoodClassificationRepository(repositories.ImplicitCell(), service.TX).ResetClassification(repositories.ClassificationKindItem, itemId)
+		err = repositories.NewFoodClassificationRepository(service.TX).ResetClassification(repositories.ClassificationKindItem, itemId)
 		if err != nil {
 			return models.ShoppingListItem{}, err
 		}
@@ -254,7 +254,7 @@ func (service ShoppingListService) SetShoppingListItemChecked(
 	changed := false
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
+		repository := repositories.NewShoppingListRepository(tx)
 
 		current, err := repository.GetShoppingListItemById(itemId)
 		if err != nil {
@@ -305,7 +305,7 @@ func (service ShoppingListService) SetShoppingListChecked(
 	var changedIds []uint
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
-		repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx)
+		repository := repositories.NewShoppingListRepository(tx)
 
 		var err error
 		changedIds, err = repository.SetShoppingListItemsChecked(listId, itemIds, isChecked, userId)
@@ -333,7 +333,7 @@ func (service ShoppingListService) SetShoppingListChecked(
 }
 
 func (service ShoppingListService) DeleteShoppingListItem(groupId uint, itemId uint) error {
-	repository := repositories.NewShoppingListRepository(repositories.ImplicitCell(), service.TX)
+	repository := repositories.NewShoppingListRepository(service.TX)
 
 	item, err := repository.GetShoppingListItemById(itemId)
 	if err != nil {
@@ -360,7 +360,7 @@ func (service ShoppingListService) ClearCheckedShoppingListItems(groupId uint, l
 
 	err := service.GetDB().Transaction(func(tx *gorm.DB) error {
 		var err error
-		itemIds, err = repositories.NewShoppingListRepository(repositories.ImplicitCell(), tx).ClearCheckedShoppingListItems(listId)
+		itemIds, err = repositories.NewShoppingListRepository(tx).ClearCheckedShoppingListItems(listId)
 		return err
 	})
 	if err != nil {
@@ -383,5 +383,5 @@ func (service ShoppingListService) ClearCheckedShoppingListItems(groupId uint, l
 // "after commit" because the handlers construct this service without an outer transaction; a caller
 // that passes one must not expect the broadcast to wait for its commit.
 func publishShoppingListEvent(event models.ShoppingListEvent) {
-	GetShoppingListHub().Publish(implicitCellID(), event)
+	GetShoppingListHub().Publish(event)
 }

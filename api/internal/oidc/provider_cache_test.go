@@ -4,8 +4,6 @@ import (
 	"sync"
 	"testing"
 
-	"cartvibe/api/internal/cell"
-	"cartvibe/api/internal/cell/celltest"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 )
@@ -17,11 +15,11 @@ func TestGetProviderCachesDiscovery(t *testing.T) {
 	// Caching is not an optimization: oidc.NewProvider makes a network round trip
 	// every call, and the *oidc.Provider is what holds the cached JWKS, so
 	// rebuilding it would refetch the signing keys on every single login.
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("first discovery failed: %v", err)
 	}
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("second discovery failed: %v", err)
 	}
 
@@ -38,7 +36,7 @@ func TestGetProviderRebuildsWhenTheRowChanges(t *testing.T) {
 	defer teardownOidcTest()
 	idp, provider := setupOidcTest(t, oidcTestOptions{})
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("first discovery failed: %v", err)
 	}
 
@@ -51,12 +49,12 @@ func TestGetProviderRebuildsWhenTheRowChanges(t *testing.T) {
 		t.Fatalf("failed to touch the provider: %v", err)
 	}
 
-	updated, err := repositories.NewOidcProviderRepository(repositories.ImplicitCell(), nil).GetOidcProviderById(provider.ID)
+	updated, err := repositories.NewOidcProviderRepository(nil).GetOidcProviderById(provider.ID)
 	if err != nil {
 		t.Fatalf("failed to reload the provider: %v", err)
 	}
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), updated); err != nil {
+	if _, err := GetProvider(updated); err != nil {
 		t.Fatalf("rebuild failed: %v", err)
 	}
 
@@ -69,14 +67,14 @@ func TestGetProviderRebuildsWhenTheIssuerChanges(t *testing.T) {
 	defer teardownOidcTest()
 	idp, provider := setupOidcTest(t, oidcTestOptions{})
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("first discovery failed: %v", err)
 	}
 
 	other := newFakeIdp(t, provider.ClientId)
 	provider.IssuerUrl = other.issuer()
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("rebuild failed: %v", err)
 	}
 
@@ -89,13 +87,13 @@ func TestInvalidateProviderForcesRediscovery(t *testing.T) {
 	defer teardownOidcTest()
 	idp, provider := setupOidcTest(t, oidcTestOptions{})
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("first discovery failed: %v", err)
 	}
 
-	InvalidateProvider(repositories.ImplicitCell().ID(), provider.ID)
+	InvalidateProvider(provider.ID)
 
-	if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+	if _, err := GetProvider(provider); err != nil {
 		t.Fatalf("second discovery failed: %v", err)
 	}
 
@@ -119,7 +117,7 @@ func TestGetProviderIsSafeUnderConcurrency(t *testing.T) {
 		go func() {
 			defer waitGroup.Done()
 
-			if _, err := GetProvider(repositories.ImplicitCell().ID(), provider); err != nil {
+			if _, err := GetProvider(provider); err != nil {
 				errs <- err
 			}
 		}()
@@ -130,37 +128,5 @@ func TestGetProviderIsSafeUnderConcurrency(t *testing.T) {
 
 	for err := range errs {
 		t.Fatalf("concurrent discovery failed: %v", err)
-	}
-}
-
-// Two cells hold the same provider id; an identical row (same id, issuer and UpdatedAt) in each is the case where a
-// cache keyed by the bare id would serve cell A's discovered provider, and its cached signing keys, to cell B. Each
-// cell must discover for itself, so the discovery document is fetched once per cell.
-func TestGetProviderCacheKeepsCellsApart(t *testing.T) {
-	defer teardownOidcTest()
-	idp, provider := setupOidcTest(t, oidcTestOptions{})
-
-	for _, cellID := range []cell.ID{celltest.IDA, celltest.IDB, celltest.IDA, celltest.IDB} {
-		if _, err := GetProvider(cellID, provider); err != nil {
-			t.Fatalf("discovery in cell %s failed: %v", cellID, err)
-		}
-	}
-	if count := idp.discoveryCount(); count != 2 {
-		t.Errorf("expected one discovery per cell (2), got %d: the cache served one cell's provider to the other", count)
-	}
-
-	// Invalidating the provider in A rebuilds A's entry only.
-	InvalidateProvider(celltest.IDA, provider.ID)
-	if _, err := GetProvider(celltest.IDB, provider); err != nil {
-		t.Fatal(err)
-	}
-	if count := idp.discoveryCount(); count != 2 {
-		t.Errorf("an invalidation in cell A forced cell B to discover again (%d fetches)", count)
-	}
-	if _, err := GetProvider(celltest.IDA, provider); err != nil {
-		t.Fatal(err)
-	}
-	if count := idp.discoveryCount(); count != 3 {
-		t.Errorf("cell A should have rediscovered after its invalidation, fetches = %d", count)
 	}
 }

@@ -4,7 +4,6 @@ type SystemSettings struct {
 	BaseModel
 	EnableLocalSignUp                   bool                      `json:"enableLocalSignUp" gorm:"default:false"`
 	DebugOcr                            bool                      `json:"debugOcr" gorm:"default:false"`
-	NumWorkers                          int                       `json:"numWorkers"`
 	CurrencyDisplay                     string                    `json:"currencyDisplay" gorm:"default:$"`
 	CurrencyThousandthsSeparator        CurrencySeparator         `json:"currencyThousandthsSeparator" gorm:"default:,"`
 	CurrencyDecimalSeparator            CurrencySeparator         `json:"currencyDecimalSeparator" gorm:"default:."`

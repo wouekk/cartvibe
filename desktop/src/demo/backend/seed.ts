@@ -680,7 +680,6 @@ export function createDemoDb(today: string): DemoDb {
       currencySymbolPosition: CurrencySymbolPosition.End,
       currencyHideDecimalPlaces: false,
       debugOcr: false,
-      numWorkers: 1,
       receiptProcessingSettingsId: 1,
       taskConcurrency: 2,
       pdfDpi: 150,

@@ -52,7 +52,7 @@ func runQuickScanKeepingThePhoto(
 
 func loadQuickScannedReceipt(t *testing.T, id uint) models.Receipt {
 	t.Helper()
-	receipt, err := repositories.NewReceiptRepository(repositories.ImplicitCell(), nil).GetFullyLoadedReceiptById(utils.UintToString(id))
+	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(id))
 	if err != nil {
 		t.Fatalf("load receipt: %v", err)
 	}
