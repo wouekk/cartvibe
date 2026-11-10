@@ -19,7 +19,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   lines in its `go.mod` and run them on the copy.
 - Playwright: on the Mac `failed-activity-source-file` and `system-task-filter` fail on `main` (15 skipped behind
   them); never run: `dashboard-charts`, `app-time-zone`, `report-period-date-field`. In CI `e2e-smoke` sometimes hits
-  nginx's login limit (429; re-run), and `receipts.spec` "create a basic receipt" is flaky (passes on retry).
+  nginx's login limit (429; re-run), and two cases are flaky the same way, something just created is not on screen
+  within 5 s, and pass on retry: `receipts.spec` "create a basic receipt" (most runs) and, once,
+  `shopping-list.spec` "adds, crosses off, revives and clears items". Cause unknown.
 - The Browser pane does not render while the Claude window is out of view; photograph the built demo with Playwright
   instead (`desktop/docs/demo.md`, Checks).
 - Never run: Safari/Firefox desktop, Lighthouse, Web Push on a real device, any Playwright spec of the real app at a
