@@ -269,13 +269,13 @@ jobs:
           fi
           echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
       # docker-compose.vps.yml: Litestream copies the live database to a bucket (here a throwaway S3 server), with
-      # the image and the configuration that file ships. Started while the app runs, checked after it has stopped.
+      # the image and the configuration that file ships. Started while the app runs (a snapshot, then a change made
+      # after it), checked after the app has stopped.
       - name: Litestream replicates the live database
         run: bash deploy/vps/restore-drill.sh start
         env:
           DRILL_NETWORK: e2e
           DRILL_VOLUME: cartvibe-sqlite
-          UPGRADE_FROM: "0.3.13"
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
