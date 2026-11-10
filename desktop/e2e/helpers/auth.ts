@@ -26,7 +26,8 @@ export function creds(role: Role) {
  * cookies for the whole test.
  */
 export async function stubTokenRefresh(page: Page) {
-  await page.route('**/api/token/**', async (route) => {
+  // Only the refresh itself (POST /api/token/); sign-out at /api/token/logout/ goes to the server.
+  await page.route((url) => url.pathname === '/api/token/' || url.pathname === '/api/token', async (route) => {
     const cookies = await page.context().cookies();
     const jwt = cookies.find((c) => c.name === 'jwt');
     if (!jwt) {

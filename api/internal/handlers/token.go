@@ -29,10 +29,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			accessTokenCookie, refreshTokenCookie := services.BuildTokenCookies(jwt, refreshToken)
-
-			http.SetCookie(w, &accessTokenCookie)
-			http.SetCookie(w, &refreshTokenCookie)
+			services.SetSessionCookies(w, jwt, refreshToken)
 
 			w.WriteHeader(http.StatusOK)
 			w.Write(bytes)

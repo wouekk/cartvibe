@@ -94,11 +94,7 @@ func RevokeRefreshToken(next http.Handler) http.Handler {
 		}
 
 		if result.RowsAffected == 0 {
-			emptyAccessTokenCookie := services.GetEmptyAccessTokenCookie()
-			emptyRefreshTokenCookie := services.GetEmptyRefreshTokenCookie()
-
-			http.SetCookie(w, &emptyAccessTokenCookie)
-			http.SetCookie(w, &emptyRefreshTokenCookie)
+			services.ClearSessionCookies(w)
 
 			utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "Refresh token is invalid or has already been used.")
