@@ -29,12 +29,19 @@ leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.
 try in most runs ("create a basic receipt" most often, sometimes all three tries). The cause, measured in the job:
 the limit refused a handful of the specs' requests per run (seven in the run that was counted: a receipt read, the
 app data, a group update, a template save), because every spec comes from the runner's one address and provisions
-through the API while another spec loads a page, and the app does not retry a 429. One person's page load is 2 to 11
+through the API while another spec loads a page, and the app did not retry a 429 then (it does now:
+`rateLimitRetryInterceptor`). One person's page load is 2 to 11
 requests, so the limit is right for the product. After the specs the job fails if any of their requests was
 refused, so a starved spec can no longer pass as a flaky one. A spec that needs a retry now is wrong, or the app is.
-Three runs on the day: no request refused, "create a basic receipt" first time each run; one run retried the phone
-case of `dashboard-charts` (its single tap on a slice did nothing), which is therefore a fault of that spec or of
-the chart, still open.
+Three runs on the day: no request refused, "create a basic receipt" first time each run.
+
+**A canvas is visible before it is drawn.** One of those runs retried the phone case of `dashboard-charts`: its
+single tap on a slice did nothing. Reproduced against the built demo with the processor slowed six times: a tap sent
+as soon as the canvas is visible lands on an empty canvas (the chart library is still loading) and does nothing, 22
+times of 22, and the page above the donut still moves by a few pixels afterwards; waiting until the slice is drawn
+where the tap will land works 22 times of 22. The hover cases never failed because a resting mouse gets a new event
+when the page under it changes, and a finger does not. The case now polls the pixel under the tap first. A spec that
+taps or clicks a point on a canvas must do the same.
 
 What was wrong, by cause (fixed unless marked open):
 - **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole

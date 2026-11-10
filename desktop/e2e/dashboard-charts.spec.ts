@@ -249,7 +249,19 @@ test.describe('dashboard charts on a 360px phone', () => {
 
     const donut = page.getByTestId('overview-donut');
     await donut.scrollIntoViewIfNeeded();
-    const slice0 = await slicePoint(donut, SHARES[0], SHARES[1]);
+    // The canvas is on screen before Chart.js has drawn on it, and the page above it still settles by a few pixels.
+    // A tap that lands before the slice is there does nothing, and a touch screen sends no second event (a resting
+    // mouse does, which is why the hover cases never failed). So wait for the slice to be drawn where the tap will
+    // land, measuring the point again each time.
+    const chart1 = await tokenColor(page, '--chart-1');
+    let slice0 = await slicePoint(donut, SHARES[0], SHARES[1]);
+    await expect
+      .poll(async () => {
+        slice0 = await slicePoint(donut, SHARES[0], SHARES[1]);
+        const drawn = await pixel(donut.locator('canvas'), slice0.x, slice0.y);
+        return drawn[3] === 255 && sameColor(drawn, chart1);
+      })
+      .toBe(true);
     // Chromium's emulated mouse can send a stray mouse-out right after a tap, so record what was seen.
     await page.evaluate(() => {
       const seen = { active: false, tip: null as { x: number; width: number; text: string } | null };

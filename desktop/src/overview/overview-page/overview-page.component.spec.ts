@@ -182,6 +182,30 @@ describe("OverviewPageComponent", () => {
     expect(component.periodLabel()).toBe("2025");
   });
 
+  // The period picker emits its period when it mounts: the days this page already asked for, in a new object.
+  it("asks nothing again when the picker hands over the period already on show", async () => {
+    const { from, to } = thisMonth();
+    overviewService.getGroupOverview.mockClear();
+    receiptService.getReceiptsForGroup.mockClear();
+
+    component.period.set({ from, to, label: "the same days" });
+    await fixture.whenStable();
+
+    expect(overviewService.getGroupOverview).not.toHaveBeenCalled();
+    expect(receiptService.getReceiptsForGroup).not.toHaveBeenCalled();
+  });
+
+  it("does not load the warranties again for another period", async () => {
+    receiptService.getReceiptsForGroup.mockClear();
+
+    component.period.set({ from: "2025-01-01", to: "2025-12-31", label: "2025" });
+    await fixture.whenStable();
+
+    const commands = receiptService.getReceiptsForGroup.mock.calls.map(([, command]) => command);
+    expect(commands).toHaveLength(1);
+    expect(commands[0].filter.warrantyActive).toBeUndefined();
+  });
+
   it("waits for a complete custom range before asking", async () => {
     overviewService.getGroupOverview.mockClear();
     component.period.set(undefined);

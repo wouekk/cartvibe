@@ -303,10 +303,18 @@ export class OverviewPageComponent {
     () => this.groups().find((group) => group.id === this.groupId())?.name ?? ""
   );
 
-  private readonly request = computed(() => {
-    const period = this.period();
-    return period ? { groupId: this.groupId(), from: period.from, to: period.to } : undefined;
-  });
+  /**
+   * What the panels ask for. Compared by value: the period picker hands over its own period as soon as it mounts (the
+   * same days as the one this page starts on, in a new object), and each new object here used to send every request
+   * of the page a second time.
+   */
+  private readonly request = computed(
+    () => {
+      const period = this.period();
+      return period ? { groupId: this.groupId(), from: period.from, to: period.to } : undefined;
+    },
+    { equal: (a, b) => a?.groupId === b?.groupId && a?.from === b?.from && a?.to === b?.to }
+  );
 
   /** undefined while loading (or a custom range is incomplete), null when the request failed. */
   public readonly overview = toSignal<GroupOverview | null | undefined>(
@@ -376,7 +384,12 @@ export class OverviewPageComponent {
    * covered and soon will not be. The tile counts them; the panel lists their products.
    */
   public readonly warrantiesEndingSoon = toSignal(
-    toObservable(computed(() => ({ groupId: this.request() ? this.groupId() : undefined, reload: this.warrantyReload() }))).pipe(
+    toObservable(
+      computed(() => ({ groupId: this.request() ? this.groupId() : undefined, reload: this.warrantyReload() }), {
+        // The list does not depend on the period, so a new period does not load it again.
+        equal: (a, b) => a.groupId === b.groupId && a.reload === b.reload,
+      })
+    ).pipe(
       switchMap(({ groupId }) => {
         if (groupId === undefined) {
           return of([] as Receipt[]);
