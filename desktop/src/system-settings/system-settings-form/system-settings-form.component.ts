@@ -114,10 +114,12 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     return !this.section || this.section === section;
   }
 
-  // The backend caps a refresh-token lifetime at 720 hours (30 days) and treats
-  // 0 as "unset, use the default". Mirrored here so the form rejects what the
+  // The backend caps a connected assistant's refresh-token lifetime at 720 hours (30 days) and a person's session
+  // at 8760 (one year), and treats 0 as "unset, use the default". Mirrored here so the form rejects what the
   // server would reject.
   public static readonly MAX_TOKEN_LIFETIME_HOURS = 720;
+
+  public static readonly MAX_SESSION_LIFETIME_HOURS = 8760;
 
   // Temp-file retention has its own, much wider bounds — do not reuse the token
   // cap above. 24 hours is a real floor on the server, so it is enforced here
@@ -381,7 +383,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     this.listenForDurationUnitChanges(
       "refreshTokenValidForValue",
       "refreshTokenValidForUnit",
-      SystemSettingsFormComponent.MAX_TOKEN_LIFETIME_HOURS
+      SystemSettingsFormComponent.MAX_SESSION_LIFETIME_HOURS
     );
     this.listenForDurationUnitChanges(
       "mcpRefreshTokenValidForValue",

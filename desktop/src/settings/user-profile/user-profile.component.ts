@@ -1,13 +1,14 @@
-import {Component, computed, OnInit, signal, ChangeDetectionStrategy} from "@angular/core";
+import {Component, computed, inject, OnInit, signal, ChangeDetectionStrategy} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Store} from "@ngxs/store";
-import {catchError, Observable, of, switchMap, take, tap} from "rxjs";
+import {catchError, filter, Observable, of, switchMap, take, tap} from "rxjs";
 import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
 import {FormConfig} from "src/interfaces";
-import {DeleteAccountCommand, OidcConnectionView, OidcService, Permission, User, UserService} from "../../open-api";
+import {AuthService, DeleteAccountCommand, OidcConnectionView, OidcService, Permission, User, UserService} from "../../open-api";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import {ClaimsService, SnackbarService, TokenRefreshService} from "../../services";
 import {AuthState, Logout, UpdateUser} from "../../store";
 import {
@@ -284,6 +285,42 @@ export class UserProfileComponent implements OnInit {
         })),
       },
     };
+  }
+
+  private readonly authService = inject(AuthService);
+
+  /** True from the confirmation until the server answered, so the button cannot fire twice. */
+  public readonly signingOutEverywhere = signal(false);
+
+  /**
+   * Ends every session of this account (each browser, each connected assistant) after a confirmation, then signs
+   * this browser out like Logout does. The server cannot be skipped here: without its answer the other devices
+   * would stay signed in, so a failure leaves this browser signed in too (the interceptor says what went wrong).
+   */
+  public signOutEverywhere(): void {
+    const ref = this.matDialog.open(ConfirmationDialogComponent);
+    ref.componentInstance.headerText = marker("Sign out everywhere");
+    ref.componentInstance.dialogContent = marker(
+      "You will be signed out on every device, this one included, and connected assistants will have to connect again. Continue?"
+    );
+    ref.componentInstance.confirmText = marker("Sign out");
+
+    ref
+      .afterClosed()
+      .pipe(
+        take(1),
+        filter((confirmed) => !!confirmed),
+        tap(() => this.signingOutEverywhere.set(true)),
+        switchMap(() => this.authService.signOutEverywhere()),
+        switchMap(() => this.store.dispatch(new Logout())),
+      )
+      .subscribe({
+        next: () => {
+          this.signingOutEverywhere.set(false);
+          void this.router.navigate(["/"]);
+        },
+        error: () => this.signingOutEverywhere.set(false),
+      });
   }
 
   private deleteAccountAndSignOut(command: DeleteAccountCommand): Observable<void> {

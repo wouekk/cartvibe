@@ -96,6 +96,7 @@ function permissionDescriptors(): PermissionDescriptor[] {
 export function registerSession(router: DemoRouter): void {
   router.post("/login", ({ db }) => ok(buildAppData(db)));
   router.post("/logout", () => ok());
+  router.post("/user/signOutEverywhere", () => ok());
   router.post("/signUp", () => badRequest("Sign up is switched off in the demo."));
   router.post("/token", ({ db }) => ({ ...claimsFor(db), jwt: "demo", refreshToken: "demo" }));
   router.get("/user/appData", ({ db }) => buildAppData(db));

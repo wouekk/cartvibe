@@ -4,7 +4,8 @@ Purpose: how session lifetime, token types, the `Secure` cookie toggle and the p
 
 ## Refresh-token lifetime
 
-System Settings `refreshTokenValidForHours` and `mcpRefreshTokenValidForHours` (whole hours, 1-720). A person's session
+System Settings `refreshTokenValidForHours` (whole hours, 1-8760: up to a year) and `mcpRefreshTokenValidForHours`
+(1-720: up to 30 days; `MaxRefreshTokenValidForHours`, `MaxMcpRefreshTokenValidForHours`). A person's session
 defaults to 720 (30 days: a family member who skips a day should not have to sign in again at the shop door); a
 connector's to 24. The MCP one is separate so a long human session never silently extends third-party connector tokens.
 
@@ -50,6 +51,14 @@ not a refresh token, unknown or already used), on `POST /token` and `POST /logou
 401: the web app signs a person out only on a 401 or 403 from the refresh call, and keeps the session through anything
 else (no connection, a restart, a 429 or a 5xx), so "refused" must not look like "could not ask". A database error
 while checking stays a 500 for the same reason.
+
+**Signing out.** `POST /logout` retires the browser's refresh token (the route's middleware) and clears both session
+cookies (the handler), so the access token does not stay in the browser for its remaining minutes.
+`POST /user/signOutEverywhere` retires every refresh token of the caller (`RevokeRefreshTokensForUser`): each browser
+and each MCP connector, since both keep their tokens in `refresh_tokens` and a row does not say which it is. It
+needs a signed-in caller and no permission, because it only ever touches the caller's own rows. Access tokens are
+not tracked, so another device works until its token runs out (20 minutes at most) and is then refused with the 401
+above. Anything that should end a person's sessions (a future "password changed") calls the same repository function.
 
 ## `Secure` cookies (`secureCookies`)
 

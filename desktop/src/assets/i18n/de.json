@@ -520,7 +520,7 @@
     "How CartVibe looks on this device.": "Wie CartVibe auf diesem Gerät aussieht.",
     "How amounts look with these settings.": "So sehen Beträge mit diesen Einstellungen aus.",
     "How dates are shown everywhere in the app, for everyone in the household.": "Wie Datumsangaben überall in der App angezeigt werden, für alle im Haushalt.",
-    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 720 Stunden (30 Tage).",
+    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 365 days.": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 365 Tage.",
     "Icon": "Symbol",
     "Image actions": "Bildaktionen",
     "Image successfully removed": "Bild wurde entfernt",
@@ -1007,6 +1007,7 @@
     "Server URL": "Server-URL",
     "Server address": "Serveradresse",
     "Session": "Sitzung",
+    "Sessions": "Sitzungen",
     "Set Password for {name}": "Passwort für {name} festlegen",
     "Set password": "Passwort festlegen",
     "Set total to {amount}": "Betrag auf {amount} setzen",
@@ -1041,6 +1042,9 @@
     "Shown instead of your initials, to everyone in the household.": "Wird allen im Haushalt statt deiner Initialen angezeigt.",
     "Sign Up": "Registrieren",
     "Sign in to your household": "Bei deinem Haushalt anmelden",
+    "Sign out": "Abmelden",
+    "Sign out everywhere": "Überall abmelden",
+    "Sign out on every phone and computer, this one included, and disconnect every assistant you connected. A device that is open right now is signed out within 20 minutes.": "Meldet dich auf jedem Telefon und Computer ab, auch auf diesem, und trennt jeden verbundenen Assistenten. Ein gerade geöffnetes Gerät wird innerhalb von 20 Minuten abgemeldet.",
     "Sign up is switched off in the demo.": "Die Registrierung ist in der Demo abgeschaltet.",
     "Sign-up": "Registrierung",
     "Sign-up & session policy": "Registrierung und Sitzungen",
@@ -1371,6 +1375,7 @@
     "You have to add an AI API key to use Quick Scan. Would you like to go to the AI settings?": "Für den Schnellscan musst du einen KI-API-Schlüssel hinzufügen. Möchtest du zu den KI-Einstellungen gehen?",
     "You have unsaved changes.": "Du hast ungespeicherte Änderungen.",
     "You signed in with a different account than the one connected here.": "Du hast dich mit einem anderen Konto angemeldet als dem, das hier verbunden ist.",
+    "You will be signed out on every device, this one included, and connected assistants will have to connect again. Continue?": "Du wirst auf jedem Gerät abgemeldet, auch auf diesem, und verbundene Assistenten müssen sich neu verbinden. Fortfahren?",
     "Your account can't be deleted this way.": "Dein Konto kann so nicht gelöscht werden.",
     "Your account has been successfully deleted": "Dein Konto wurde gelöscht",
     "Your account has no password of its own. To confirm the deletion, sign in again with one of your connected accounts.": "Dein Konto hat kein eigenes Passwort. Um das Löschen zu bestätigen, melde dich erneut mit einem deiner verbundenen Konten an.",
@@ -1686,6 +1691,10 @@
     },
     "Groups to View": {
       "value": "Anzuzeigende Gruppen"
+    },
+    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": {
+      "value": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 720 Stunden (30 Tage).",
+      "closest": "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 365 days."
     },
     "Important:": {
       "value": "Wichtig:"

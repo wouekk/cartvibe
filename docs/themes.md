@@ -16,8 +16,8 @@ The look is two independent choices, remembered per browser (localStorage, no AP
 Zinc is spartan's zinc palette and the base of everything; its black is Tailwind's neutral-950 (a pure grey). Zinc is monochrome; Blue, Indigo,
 Emerald and Violet are **accent only**: the neutral surfaces stay zinc and only the primary, the focus ring and the
 sidebar's primary take the hue. Charts (`--chart-1..5`), status colours, Nutri-Score and the brand tokens are the same in
-every palette. The header's palette menu (`palette-menu`, left of the day/night `theme-toggle`), Settings → Theme and the
-first-sign-in welcome pick a palette and a mode; the look itself is described in `DESIGN.md`.
+every palette. Settings → Theme and the first-sign-in welcome pick a palette and a mode (the header has had no theme
+control since 2026-11-10); the look itself is described in `DESIGN.md`.
 
 ## Files and selectors (`desktop/src/themes/`)
 
@@ -44,8 +44,8 @@ first-sign-in welcome pick a palette and a mode; the look itself is described in
 3. **Register it.** Add `{ key: "<key>", label: marker("<Name>") }` to `PALETTES` in `desktop/src/theme/themes.ts`, then
    `npm run i18n:extract` and fill the label in pl, de, fr and es.
 
-That is all: the palette appears in the header menu (with its `app-palette-swatch`, a dot of the palette's `--primary` and
-`--muted`), on the Theme page and in the welcome, is remembered, and every component follows it. `index.html` applies the
+That is all: the palette appears on the Theme page (with its `app-palette-swatch`, a dot of the palette's `--primary` and
+`--muted`) and in the welcome, is remembered, and every component follows it. `index.html` applies the
 stored key before the first paint and needs no copy of the list (an unknown key just shows zinc).
 
 ## Rules that keep palettes cheap

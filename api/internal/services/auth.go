@@ -52,7 +52,7 @@ func GetRefreshTokenLifetime() time.Duration {
 		return defaultRefreshTokenLifetime
 	}
 
-	return clampRefreshTokenLifetime(systemSettings.RefreshTokenValidForHours, defaultRefreshTokenLifetime)
+	return clampRefreshTokenLifetime(systemSettings.RefreshTokenValidForHours, commands.MaxRefreshTokenValidForHours, defaultRefreshTokenLifetime)
 }
 
 // GetMcpRefreshTokenLifetime returns how long an MCP/OAuth connector refresh
@@ -66,7 +66,7 @@ func GetMcpRefreshTokenLifetime() time.Duration {
 		return defaultMcpRefreshTokenLifetime
 	}
 
-	return clampRefreshTokenLifetime(systemSettings.McpRefreshTokenValidForHours, defaultMcpRefreshTokenLifetime)
+	return clampRefreshTokenLifetime(systemSettings.McpRefreshTokenValidForHours, commands.MaxMcpRefreshTokenValidForHours, defaultMcpRefreshTokenLifetime)
 }
 
 // clampRefreshTokenLifetime converts a configured hour count into a duration,
@@ -74,8 +74,8 @@ func GetMcpRefreshTokenLifetime() time.Duration {
 // the real safety net — it stops a bad stored value (0, negative, absurd) from
 // ever producing a token, independent of whether the value passed command
 // validation on the way in.
-func clampRefreshTokenLifetime(hours int, fallback time.Duration) time.Duration {
-	if hours < commands.MinRefreshTokenValidForHours || hours > commands.MaxRefreshTokenValidForHours {
+func clampRefreshTokenLifetime(hours int, maxHours int, fallback time.Duration) time.Duration {
+	if hours < commands.MinRefreshTokenValidForHours || hours > maxHours {
 		return fallback
 	}
 

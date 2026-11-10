@@ -8064,7 +8064,7 @@ components:
               description: >-
                 How long a refresh token stays valid, in hours. Refresh tokens rotate on every use,
                 so this is how long a user can be away and still return signed in, not an absolute
-                session cap. 1-720 (30 days); 0 means unset and falls back to the default.
+                session cap. 1-8760 (one year); 0 means unset and falls back to the default.
               default: 24
             mcpRefreshTokenValidForHours:
               type: integer
@@ -8163,11 +8163,11 @@ components:
         refreshTokenValidForHours:
           type: integer
           description: >-
-            How long a refresh token stays valid, in hours. Accepted values are 1-720 (30 days), or
-            0 meaning unset, which falls back to the default of 24. Omit the key entirely to leave
-            the currently configured value unchanged.
+            How long a refresh token stays valid, in hours. Accepted values are 1-8760 (one year), or
+            0 meaning unset, which falls back to the default of 720 (30 days). Omit the key entirely
+            to leave the currently configured value unchanged.
           minimum: 0
-          maximum: 720
+          maximum: 8760
         mcpRefreshTokenValidForHours:
           type: integer
           description: >-

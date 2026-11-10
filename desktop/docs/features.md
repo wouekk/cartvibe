@@ -182,23 +182,32 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
-- **Page layout:** the open list comes first, the **Lists** section below it. `ShoppingListState` sorts lists newest
-  first (`createdAt`, then id) and falls back to the newest list still being shopped. Active lists are cards
-  (`activeCards`, `showActiveCards`: left out when the only one is the open list); the latest six finished lists
-  (`recentPastLists`, ordered by their last cross-off) fold away behind a **Completed (n)** chevron toggle
-  (`showCompleted`, closed on every visit, styled like Crossed off), dimmed with a history icon and a sibling `⋮`
-  menu (cards are buttons, so the menu cannot sit inside): Restore and Start a new list from this. Both rows render
-  the one `#listCard` template.
-- **Delete list** in the page header (`shopping-list-delete`, `group.shopping-lists.delete`) always deletes the open
-  list after the usual confirmation; the next list opens, so several go by pressing it again.
+- **Page layout:** the switcher, then the open list, then the finished lists. `ShoppingListState` sorts lists newest
+  first (`createdAt`, then id) and falls back to the newest list still being shopped. Lists being shopped are chips
+  above the open list (`shopping-list-cards`, `shopping-list-card-<id>`, name and what is left to buy;
+  `activeCards`, `showActiveCards`: left out when the only one is the open list), a strip that scrolls sideways on
+  a phone. The latest six finished lists (`recentPastLists`, ordered by their last cross-off) fold away under the
+  list behind a **Completed (n)** chevron toggle (`showCompleted`, closed on every visit, styled like Crossed off),
+  as dimmed cards (`#listCard`) with a history icon and a sibling `⋮` menu (cards are buttons, so the menu cannot
+  sit inside): Restore and Start a new list from this. A phone leaves the subtitle under the page title out.
+- **The add bar** is one row on a phone ("Add an item" and the button); the amount and unit join it at the first
+  focus (`addInUse`, `showAmount`) and it folds back when the focus leaves it with nothing typed. A focus that
+  moves to the unit's menu (a CDK overlay) does not count as leaving.
+- **Delete list** is the last, red entry of the open list's `⋮` menu (`shopping-list-delete`,
+  `group.shopping-lists.delete`), after the usual confirmation; the next list opens.
 - **Mark as complete** (`shopping-list-complete`, next to Going shopping, shown while something is left to buy)
   crosses the whole list off through `PUT /shopping-list/{listId}/checked`, applies the returned list as
   `ListUpdated`, opens the newest list still being shopped and toasts with Undo (`lastCompleted`, 8 s), which sends
   `isChecked: false` with exactly the item ids it crossed. Restore sends `isChecked: false` for every item. The header
   labels fold to icons by the card's width (`@container`, `@max-2xl:sr-only`), so the list's name and its connection
   line (`min-w-32`) keep their room.
-- **In the shop:** `ScreenWakeLockService` (a per-visit switch in the list menu, re-acquired when the tab is visible
-  again, released when the page is left), `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
+- **Shop mode** (`shopMode`, `setShopMode`; `shopping-list-shop-mode` in the list's menu, and by itself after
+  Going shopping; `shopping-list-shop-mode-leave` in the list's header): the open list alone (no page header,
+  switcher, trips, finished lists, Going shopping or Import recipe), larger rows (`[large]` down to
+  `app-shopping-list-item`) and `ScreenWakeLockService` holding the screen on where the browser has the API
+  (re-acquired when the tab is visible again; a refusal is said once and the mode stays). It is per visit: off at
+  first, gone when the page is left. It replaced the "Keep screen on" menu entry.
+- **In the shop:** `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
   the clipboard, `navigator.vibrate?.(10)` on crossing off, and the `shopping-list-offline` notice (shown while
   Offline, or Reconnecting with changes waiting). Menu entries are hidden where the browser lacks the API.
 
@@ -276,10 +285,15 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The look is a palette (Blue, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
   (System, Day, Night). `ThemeService` keeps `mode` (`cartvibe.themeMode`: `system|light|dark`) and `palette`
   (`cartvibe.themePalette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
-  follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`). The
-  header has a palette menu (`palette-menu`, `app-palette-swatch` items) left of the day/night toggle (`theme-toggle`,
-  which leaves System); Settings → Theme has the Appearance (`theme-mode-*`) and Colour palette (`theme-palette-*`)
-  cards; the welcome has `welcome-theme-<mode>` and `welcome-palette-<key>` strips. Tokens: `src/themes/*.css`, with
+  follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`).
+  Settings → Theme has the Appearance (`theme-mode-*`), Colour palette (`theme-palette-*`) and Interface size
+  (`theme-size-*`) cards; the welcome has `welcome-theme-<mode>` and `welcome-palette-<key>` strips. The header has
+  no theme control (removed 2026-11-10).
+- **Interface size** (`cartvibe.interfaceSize`: `100|125|150|200`, `INTERFACE_SIZES`): `ThemeService` writes it as
+  `font-size: N%` on `<html>` (nothing at 100, so the browser's own size shows) and `index.html` applies it before
+  first paint. It replaced the root size tied to the window's width, under which browser zoom did nothing on a wide
+  screen. A browser with no stored size on a screen 1920px or wider is given, and stores, the largest step not above
+  the old scale (`interfaceSizeForScreen`); the key is kept on sign-out and on the demo's Reset like the palette. Tokens: `src/themes/*.css`, with
   `themes.spec.ts` guarding that day and night blocks match (`../../DESIGN.md`, `../../docs/themes.md`).
 - Brand components (`app-cartvibe-logo`, `-icon`, `-loader`, `-splash`) use the supplied SVGs as drawn; their palettes
   switch on the `dark` class via `:host-context(html.dark)`.
@@ -329,6 +343,25 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   middle of a half-drawn app. A failed login fades back to the form; `submit()` ignores presses while it is up.
 
 ## Navigation and settings screens
+
+- **A phone's tab bar** (`src/layout/tab-bar/`, below 768px, `ViewportService.isHandset`): Dashboard, Lists, Scan,
+  Receipts, More (`tab-nav-overview`, `tab-nav-shopping-lists`, `tab-scan`, `tab-nav-receipts`, `tab-more`).
+  The sidebar component renders it as the last child of `<main>`, where it is `sticky bottom-0` and takes its own
+  room (no page needs bottom padding for it). The pages are the sidebar's own entries (`tabItems` picks them from
+  `mainNavItems`, so a page the person may not open is not a tab); Scan needs `group.receipts.quick-scan` on the
+  household being browsed (`addTargetGroupId`) and loads `QuickScanLauncher` on the first tap, keeping the receipts
+  code out of the shell's bundle; More opens the sidebar sheet, which holds everything else. The bar hides while a
+  text field has the focus (`data-state`). On a phone the header shows the household (`header-household`,
+  `shownHousehold`) instead of the sidebar button.
+- **A phone's lists are cards:** `app-table` (`cards`, `cardLayout`) draws one card per row below 768px and a
+  `Sort by` select with a direction button above them (`table-card-sort-*`; the headers that sorted are gone).
+  A column places its cell with `phone`: `title`, `subtitle`, `aside` (right-hand side, the first bold),
+  `meta` (labelled detail), `actions` or `hidden`. With nothing declared the first column is the title, a column
+  called `actions` the actions and the rest labelled details. Selection and expandable rows work on a card. The
+  receipts list declares shop, date, amount and status, and swaps its five row buttons for one `app-row-actions`
+  menu (`receipt-row-menu`, same test ids and permissions as the buttons). A receipt's product lines
+  (`receipt-products`) are cards too: `receipt-product-card`, one `receipt-product-menu` with Edit, the health
+  correction and Remove, and the edit form inside the card.
 
 - **Sidebar** (`src/layout/sidebar/`, `mainNavItems` / `manageNavItems`): everyday pages, then Settings: System
   Settings, Management, User Settings, AI, Theme (`/theme`), Language (`/language`), each behind its permission

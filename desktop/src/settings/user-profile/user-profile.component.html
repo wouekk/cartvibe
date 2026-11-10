@@ -43,6 +43,28 @@
 </ng-template>
 
 
+<!-- A lost phone, or a browser left signed in somewhere: one button ends every session, this one included. -->
+<div class="mt-4" data-testid="sessions-section">
+  <app-settings-section
+    title="Sessions"
+    description="Sign out on every phone and computer, this one included, and disconnect every assistant you connected. A device that is open right now is signed out within 20 minutes."
+  >
+    <div sectionFooter class="cv-card__footer">
+      <button
+        type="button"
+        hlmBtn
+        variant="outline"
+        data-testid="sign-out-everywhere"
+        [disabled]="signingOutEverywhere()"
+        (click)="signOutEverywhere()"
+      >
+        <app-icon name="logout"></app-icon>
+        {{ 'Sign out everywhere' | t }}
+      </button>
+    </div>
+  </app-settings-section>
+</div>
+
 <div class="mt-4" data-testid="danger-zone" *hasAppPermission="Permission.AppAccountDelete">
   <app-settings-section
     tone="destructive"

@@ -19,6 +19,14 @@ that setting), and you can add `stop_grace_period: 30s` to your stack as the REA
 server finish what it is doing.
 
 ### Added
+- **A tab bar on phones.** Dashboard, Lists, Scan, Receipts and More sit at the bottom of the screen, under the
+  thumb. Scan opens Quick Scan from any page; More opens the menu with everything else *(APP-14)*.
+- **Shop mode.** In a list's menu: the list alone, taller rows, and a screen that stays awake. It starts by itself
+  after *Going shopping* *(LIST-21)*.
+- **Interface size.** Settings → Theme can make everything larger on a device: Standard, 125%, 150% or 200%
+  *(APP-15)*.
+- **Sign out everywhere.** Settings → User Settings ends your session on every device at once, for a lost phone or a
+  browser left signed in somewhere *(HH-08)*.
 - **The shopping list works without a connection.** A list you opened before opens again in a dead zone, as you last
   saw it. Adding an item and crossing one off work there too: they show at once, are kept on the phone (also when the
   app is closed) and are sent when the server can be reached again, each exactly once. Editing, deleting and new
@@ -40,9 +48,25 @@ server finish what it is doing.
   *(APP-12)*.
 
 ### Changed
+- **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity
+  log no longer scroll sideways on a phone: each row is a card with one ⋮ menu, and *Sort by* replaces the column
+  headers. A receipt's product lines are cards as well *(APP-17)*.
+- **Buttons and fields are finger-sized on touch screens.** 44 pixels tall instead of 36; nothing changes with a
+  mouse *(APP-16)*.
+- **The theme is chosen in Settings.** The palette menu and the Day/Night switch left the header, which on a phone
+  now names the household instead; both choices are under Settings → Theme, as before *(APP-01, APP-02)*.
+- **A very wide screen no longer sets the size of everything.** The app used to grow with the window above 1920
+  pixels, which also made the browser's zoom do nothing there. The size is now your choice (*Interface size*); a wide
+  screen that never chose starts close to the size it had, and you can change it under Settings → Theme *(APP-06,
+  APP-15)*.
+- **The shopping lists page starts with the list.** The other lists are chips above the open one instead of cards
+  below it, *Delete list* moved into the list's menu, and on a phone the add bar is one row until you tap it
+  *(LIST-09, LIST-10, LIST-22)*.
+- **Keep screen on is part of Shop mode** and no longer its own menu entry *(LIST-11)*.
 - **You stay signed in for 30 days.** A sign-in used to end after one day without opening the app, so a family member
   who skipped a day had to sign in again at the shop door. New installs start at 30 days, and an install still on the
-  old one-day default is moved to 30 days once; a length an admin chose stays *(APP-13)*.
+  old one-day default is moved to 30 days once; a length an admin chose stays. An admin can now choose up to a year
+  (System Settings → Auth & Security); an AI assistant's connection still ends after 30 days at most *(APP-13)*.
 - **Reading a receipt gives up sooner on a stuck AI.** A hosted provider gets 3 minutes instead of 10, so one stuck
   call no longer holds up the scans behind it. A model on your own machine keeps 10 minutes *(SCAN-01)*.
 - **The app's files travel compressed and are cached properly.** Scripts, styles and language files are sent
@@ -58,6 +82,8 @@ server finish what it is doing.
   says they are kept and sent later, and how many are waiting *(LIST-13)*.
 
 ### Fixed
+- **Signing out clears the session from the browser at once.** The browser used to keep its short-lived access for
+  up to 20 minutes after *Logout*; the server now removes it with the sign-out *(APP-13)*.
 - **A session that ran out is noticed while the app stays open.** The check for an expired session remembered its
   first answer, so a phone that woke up after a long pause carried on with an expired session until something else
   refreshed it. It now looks at the clock every time *(APP-13)*.
