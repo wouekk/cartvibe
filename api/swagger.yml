@@ -1075,7 +1075,7 @@ paths:
         500:
           $ref: "#/components/responses/Internal"
       security: []
-  /logout/:
+  /token/logout/:
     post:
       tags:
         - Auth

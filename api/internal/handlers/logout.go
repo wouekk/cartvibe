@@ -52,8 +52,5 @@ func SignOutEverywhere(w http.ResponseWriter, r *http.Request) {
 }
 
 func clearSessionCookies(w http.ResponseWriter) {
-	accessTokenCookie := services.GetEmptyAccessTokenCookie()
-	refreshTokenCookie := services.GetEmptyRefreshTokenCookie()
-	http.SetCookie(w, &accessTokenCookie)
-	http.SetCookie(w, &refreshTokenCookie)
+	services.ClearSessionCookies(w)
 }

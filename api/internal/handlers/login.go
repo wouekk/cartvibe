@@ -62,10 +62,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if !tokensInBodyOnly {
-				accessTokenCookie, refreshTokenCookie := services.BuildTokenCookies(jwt, refreshToken)
-
-				http.SetCookie(w, &accessTokenCookie)
-				http.SetCookie(w, &refreshTokenCookie)
+				services.SetSessionCookies(w, jwt, refreshToken)
 			}
 
 			appData.Claims = accessTokenClaims

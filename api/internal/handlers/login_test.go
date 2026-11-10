@@ -237,8 +237,9 @@ func TestLogin_SetCookieHeadersFollowTheSecureCookiesSetting(t *testing.T) {
 	}
 
 	off := loginSetCookies()
-	if len(off) != 2 || countSecure(off) != 0 {
-		utils.PrintTestError(t, off, "two Set-Cookie headers, neither Secure")
+	// Three: the access cookie, the refresh cookie at /api/token, and the expiry of an old refresh cookie at "/".
+	if len(off) != 3 || countSecure(off) != 0 {
+		utils.PrintTestError(t, off, "three Set-Cookie headers, none Secure")
 	}
 
 	if err := repositories.SetSecureCookiesForTests(true); err != nil {
@@ -246,8 +247,8 @@ func TestLogin_SetCookieHeadersFollowTheSecureCookiesSetting(t *testing.T) {
 	}
 
 	on := loginSetCookies()
-	if len(on) != 2 || countSecure(on) != 2 {
-		utils.PrintTestError(t, on, "two Set-Cookie headers, both Secure")
+	if len(on) != 3 || countSecure(on) != 3 {
+		utils.PrintTestError(t, on, "three Set-Cookie headers, all Secure")
 	}
 }
 
@@ -316,5 +317,27 @@ func TestLogin_ThrottlesAUserNameAfterRepeatedFailures(t *testing.T) {
 	Login(other, loginRequest(commands.LoginCommand{Username: "other", Password: "otherpassword"}, "", ""))
 	if other.Code != http.StatusOK {
 		t.Fatalf("expected another account to sign in, got %d", other.Code)
+	}
+}
+
+func TestLogin_ScopesTheRefreshCookieToTheTokenRoutes(t *testing.T) {
+	defer teardownLoginTests()
+	createAdminUser(t, "cookie-path-admin", "Password")
+
+	w := httptest.NewRecorder()
+	Login(w, loginRequest(commands.LoginCommand{Username: "cookie-path-admin", Password: "Password"}, "", ""))
+
+	var refreshPaths []string
+	for _, cookie := range w.Result().Cookies() {
+		if cookie.Name == constants.RefreshTokenKey {
+			if cookie.Value == "" {
+				refreshPaths = append(refreshPaths, "expired:"+cookie.Path)
+			} else {
+				refreshPaths = append(refreshPaths, cookie.Path)
+			}
+		}
+	}
+	if strings.Join(refreshPaths, ",") != "/api/token,expired:/" {
+		t.Fatalf("expected the refresh cookie at /api/token and the old one at / expired, got %v", refreshPaths)
 	}
 }

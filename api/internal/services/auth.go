@@ -244,9 +244,33 @@ func BuildTokenCookies(jwt string, refreshToken string) (http.Cookie, http.Cooki
 	// Resolved here rather than threaded in from the caller: both call sites
 	// (login and token refresh) are REST-only, never MCP, so the app setting is
 	// always the right one. Costs one extra System Settings read per login.
-	refreshTokenCookie := http.Cookie{Name: constants.RefreshTokenKey, Value: refreshToken, HttpOnly: true, Path: "/", Expires: utils.GetRefreshTokenExpiryDate(GetRefreshTokenLifetime()).Time, SameSite: sameSite, Secure: secure}
+	refreshTokenCookie := http.Cookie{Name: constants.RefreshTokenKey, Value: refreshToken, HttpOnly: true, Path: constants.RefreshTokenCookiePath, Expires: utils.GetRefreshTokenExpiryDate(GetRefreshTokenLifetime()).Time, SameSite: sameSite, Secure: secure}
 
 	return accessTokenCookie, refreshTokenCookie
+}
+
+// SetSessionCookies sets the two session cookies and expires a refresh cookie left at the path "/" by an older
+// version, so the browser keeps one copy only.
+func SetSessionCookies(w http.ResponseWriter, jwt string, refreshToken string) {
+	accessTokenCookie, refreshTokenCookie := BuildTokenCookies(jwt, refreshToken)
+	legacyRefreshTokenCookie := getEmptyLegacyRefreshTokenCookie()
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &legacyRefreshTokenCookie)
+}
+
+// ClearSessionCookies expires both session cookies, the refresh cookie at its old path "/" included.
+func ClearSessionCookies(w http.ResponseWriter) {
+	accessTokenCookie := GetEmptyAccessTokenCookie()
+	refreshTokenCookie := GetEmptyRefreshTokenCookie()
+	legacyRefreshTokenCookie := getEmptyLegacyRefreshTokenCookie()
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &legacyRefreshTokenCookie)
+}
+
+func getEmptyLegacyRefreshTokenCookie() http.Cookie {
+	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: "/", MaxAge: -1, Secure: UseSecureCookies()}
 }
 
 func PrepareAccessTokenClaims(accessTokenClaims structs.Claims) {
@@ -259,7 +283,7 @@ func GetEmptyAccessTokenCookie() http.Cookie {
 }
 
 func GetEmptyRefreshTokenCookie() http.Cookie {
-	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: "/", MaxAge: -1, Secure: UseSecureCookies()}
+	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: constants.RefreshTokenCookiePath, MaxAge: -1, Secure: UseSecureCookies()}
 }
 
 func GenerateJWT(userId uint) (string, string, structs.Claims, error) {

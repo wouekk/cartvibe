@@ -448,10 +448,7 @@ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
 				return statusCode, err
 			}
 
-			accessTokenCookie := services.GetEmptyAccessTokenCookie()
-			refreshTokenCookie := services.GetEmptyRefreshTokenCookie()
-			http.SetCookie(w, &accessTokenCookie)
-			http.SetCookie(w, &refreshTokenCookie)
+			services.ClearSessionCookies(w)
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil
