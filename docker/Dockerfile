@@ -10,7 +10,7 @@
 
 # ---- Desktop: dependencies, then source
 # The Node major CI builds with (ci.yml node-version); the weekly no-cache rebuild picks up its patch releases.
-FROM node:24-alpine AS node
+FROM node:26-alpine AS node
 WORKDIR /app/cartvibe-desktop
 
 COPY desktop/package.json desktop/package-lock.json ./
