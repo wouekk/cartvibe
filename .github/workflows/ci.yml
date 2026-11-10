@@ -177,6 +177,9 @@ jobs:
       E2E_USER_PASSWORD: e2e-user-password
       E2E_ADMIN_USERNAME: e2e-admin
       E2E_ADMIN_PASSWORD: e2e-admin-password
+      APP_ENV: -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars -e DB_ENGINE=sqlite -e DB_FILENAME=app.db
+      # What the compose files give the container: no new privileges, and only the capabilities its start needs.
+      APP_SECURITY: --security-opt no-new-privileges --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER --cap-add SETGID --cap-add SETUID --cap-add NET_BIND_SERVICE --cap-add KILL
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -195,13 +198,36 @@ jobs:
       - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe --network e2e -p 8091:80 $APP_SECURITY $APP_ENV cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
           done
           docker logs cartvibe --tail 100
           exit 1
+      # docker/entrypoint.sh: the API runs as the image's own user, and never as root by accident. A folder that
+      # refuses that user (a Synology ACL; here a root-owned folder in a container that may not chown) stops the
+      # start with exit code 78 and a message, unless ALLOW_ROOT=1 asks for root.
+      - name: The API is unprivileged, and root only when asked
+        run: |
+          api_uid() {
+            docker exec "$1" sh -c 'for p in /proc/[0-9]*; do [ "$(cat "$p/comm" 2> /dev/null)" = api ] && awk "/^Uid:/ {print \$2}" "$p/status"; done'
+          }
+          [ "$(api_uid cartvibe)" = "10001" ]
+          refusing="--cap-drop CHOWN --tmpfs /app/cartvibe-api/logs:mode=0755"
+          code=0
+          docker run --name cartvibe-refused $refusing $APP_ENV cartvibe:ci || code=$?
+          docker logs cartvibe-refused 2>&1 | tail -3
+          [ "$code" = "78" ]
+          docker logs cartvibe-refused 2>&1 | grep -q 'not starting'
+          docker run -d --name cartvibe-root -p 8092:80 $refusing -e ALLOW_ROOT=1 $APP_ENV cartvibe:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8092/api/featureConfig > /dev/null; then break; fi
+            sleep 2
+          done
+          [ "$(api_uid cartvibe-root)" = "0" ]
+          docker logs cartvibe-root 2>&1 | grep -q 'ALLOW_ROOT=1 is set'
+          docker rm -f cartvibe-refused cartvibe-root > /dev/null
       # The image's HEALTHCHECK must turn healthy: docker-compose.vps.yml starts Caddy only then.
       - name: The container reports healthy
         run: |
@@ -276,7 +302,7 @@ jobs:
       # sqlite/backups before it migrates, then record the version it started as.
       - name: A new version snapshots the database first
         run: |
-          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe             -e VERSION=ci-next -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe $APP_SECURITY -e VERSION=ci-next $APP_ENV cartvibe:ci
           for i in $(seq 1 30); do
             if docker exec cartvibe-next grep -qx ci-next /app/cartvibe-api/sqlite/backups/last-version 2> /dev/null; then
               docker exec cartvibe-next sh -c 'ls -l /app/cartvibe-api/sqlite/backups/app-upgrade-*.db'

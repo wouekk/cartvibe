@@ -13,7 +13,7 @@ type AboutRepository struct {
 func NewAboutRepository(tx *gorm.DB) AboutRepository {
 	repository := AboutRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -33,6 +33,8 @@ func (repository AboutRepository) GetAboutData() (structs.About, error) {
 	about := structs.About{
 		Version:   envVersion,
 		BuildDate: envBuildDate,
+		// -1 on Windows, where there is no root to run as.
+		RunsAsRoot: os.Geteuid() == 0,
 	}
 
 	return about, nil

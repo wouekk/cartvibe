@@ -30,6 +30,20 @@ services:
     restart: unless-stopped
     # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
     stop_grace_period: 30s
+    # Nothing in the container can gain rights, and it keeps only the capabilities its start needs (the same set
+    # as docker-compose.yml, which says what each is for).
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+      - KILL
     depends_on:
       litestream-restore:
         condition: service_completed_successfully
