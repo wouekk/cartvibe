@@ -7,11 +7,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 - **The audit of 2026-11-09 is being carried out** (`docs/AUDIT-REPORT.md`: decisions, eleven sprints, progress). The
   owner approved all of it except S1; no hosted plan, ever (a VPS stays a self-hoster's option).
-  - Sprints 1 to 4 are on `main` since 2026-11-10, published as `:latest`, not tagged as a release (the owner's call).
-  - Sprint 5 is done on `feature/sqlite-jobs` (cut from `main`): in `preview` and on `:preview`. **`main` waits for
-    the owner's go**; then tick it in the audit report and bring `preview` to the same commit. It adds a `jobs`
-    table and needs a stack change on the NAS (below). Its B2.4 (writer and reader pools) is not done: see Backlog.
-  - Next: sprint 6, `feature/releases-and-ci`, cut from sprint 5's branch while that is not on `main`.
+  - Sprints 1 to 5 are on `main` since 2026-11-10 (the owner's go each time), with `preview` on the same commit,
+    published as `:latest`, not tagged as a release (the owner's call). Sprint 5 adds a `jobs` table and needs a
+    stack change on the NAS (below). Its B2.4 (writer and reader pools) is not done: see Backlog.
+  - Sprint 6, `feature/releases-and-ci`, was started on 2026-11-10 in another session, from sprint 5's last commit
+    (which is on `main`). Two sessions then shared this checkout: do branch work for `main` in a separate worktree.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Last release v0.18.0 (2026-11-05)**, not seen on the NAS yet. Avatars and the household look are not in the
   export. Skipped on purpose: `app-button`'s `color="warn"` API.
@@ -45,7 +45,7 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - Sprint 4, on a phone: the tab bar; Shop mode keeps the screen on; receipts and a receipt's lines are cards. On the
   4K screen Settings → Theme → Interface size should already be above *Standard*. *Sign out everywhere* from one
   device makes the other ask for the password within 20 minutes.
-- Sprint 5 (`:preview`, later `:latest`): paste the new root `docker-compose.yml` into Dockhand (no `valkey`
+- Sprint 5 (`:latest`): paste the new root `docker-compose.yml` into Dockhand (no `valkey`
   service), redeploy, then delete the `cartvibe-valkey` container and the `valkey-data` volume. Then: a Quick Scan
   is read; redeploy while one is being read and it finishes afterwards; `sqlite/backups` gets an `app-daily-*.db`
   within ten minutes of the start; with the stack stopped, `app.db-wal` is empty or gone.

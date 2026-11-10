@@ -75,7 +75,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     two statuses in sprint 10; a line without an amount is marked instead); dialogs as bottom sheets on a phone
     (F9); the Dashboard's own Quick Scan and New list buttons, which stay beside the tab bar's; Playwright on a phone
     (sprint 6 adds the project, so the phone layout has unit specs only).
-- [ ] 5. Jobs in SQLite, Valkey removed (`feature/sqlite-jobs`): B1, B2.2 to B2.4, S10
+- [x] 5. Jobs in SQLite, Valkey removed (`feature/sqlite-jobs`, on `main` since 2026-11-10, except B2.4): B1, B2.2 to B2.4, S10
   - Done on the branch on 2026-11-10: a `jobs` table with one worker (claimed by a conditional UPDATE, retried after
     20 s, 1 min and 3 min, kept as FAILED for the activity list, deleted on success, put back after a restart) runs
     quick scans and household imports; the sweeps and clean-ups are timers that cannot overlap themselves and end
