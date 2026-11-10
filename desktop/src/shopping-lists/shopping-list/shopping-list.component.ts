@@ -8,8 +8,14 @@ import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-
 import { SnackbarService } from "../../services";
 import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
+import { AuthState } from "../../store/auth.state";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import {
+  ApplyShoppingListEvent,
+  DiscardLocalShoppingListItem,
+  QueueShoppingListChange,
+} from "../../store/shopping-list.state.actions";
+import { isLocalItem, newClientId, nextLocalItemId } from "../shopping-list-pending";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
 import { ShoppingListItemClassification } from "../shopping-list-item/shopping-list-item.component";
 import {
@@ -46,7 +52,8 @@ export class ShoppingListComponent {
 
   public readonly showCrossedOff = signal(false);
 
-  public readonly adding = signal(false);
+  /** The rows with a change the server has not confirmed yet. */
+  public readonly pendingItemIds = this.store.selectSignal(ShoppingListState.pendingItemIds);
 
   public readonly addForm: FormGroup;
 
@@ -79,6 +86,12 @@ export class ShoppingListComponent {
     }
   }
 
+  /**
+   * Adding and crossing off are what a person does in the shop, where the phone loses its signal between the
+   * shelves: both show at once and go into the queue (`QueueShoppingListChange`), which `ShoppingListSyncService`
+   * sends when the server can be reached. The row carries a negative id and a client id until the server's item
+   * takes its place; a name that matches a crossed-off item comes back as that item then.
+   */
   public addItem(): void {
     const command = toUpsertShoppingListItemCommand(this.addForm);
     // An item needs a name: an empty add box shakes and lights up instead of doing nothing.
@@ -87,32 +100,45 @@ export class ShoppingListComponent {
       return;
     }
 
-    if (command.name.length === 0 || this.addForm.invalid || this.adding()) {
+    if (this.addForm.invalid) {
       return;
     }
 
-    this.adding.set(true);
-    this.shoppingListService
-      .addShoppingListItem(this.list().id, command)
-      .pipe(take(1))
-      .subscribe({
-        next: (item) => {
-          // ITEM_ADDED upserts by id, so it also covers a crossed-off item the server revived.
-          this.applyItem(ShoppingListEventType.ItemAdded, item);
-          this.addForm.reset({ name: "", amount: "", unit: DEFAULT_SHOPPING_LIST_UNIT, note: "" });
-          this.adding.set(false);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.reportIfOffline(error);
-          this.adding.set(false);
-        },
-      });
+    const clientId = newClientId();
+    const now = new Date().toISOString();
+    const item: ShoppingListItem = {
+      id: nextLocalItemId(),
+      clientId,
+      shoppingListId: this.list().id,
+      name: command.name,
+      amount: command.amount ?? undefined,
+      unit: command.unit ?? "",
+      quantity: command.quantity ?? "",
+      note: command.note ?? "",
+      isChecked: false,
+      createdAt: now,
+      updatedAt: now,
+      health: "",
+      foodGroup: "",
+      seasonality: "",
+      classificationOverridden: false,
+    };
+
+    this.store.dispatch(
+      new QueueShoppingListChange({
+        kind: "add",
+        opId: clientId,
+        groupId: this.groupId(),
+        listId: this.list().id,
+        clientId,
+        item,
+        command,
+      })
+    );
+    this.addForm.reset({ name: "", amount: "", unit: DEFAULT_SHOPPING_LIST_UNIT, note: "" });
   }
 
-  /**
-   * Crossing off is the one action that has to feel instant in a shop, so it is applied
-   * optimistically and reverted if the server refuses. Everything else waits for the response.
-   */
+  /** Crossed off (or put back) at once and queued; see `addItem`. */
   public toggleItem(item: ShoppingListItem): void {
     const isChecked = !item.isChecked;
     if (isChecked) {
@@ -120,22 +146,19 @@ export class ShoppingListComponent {
       navigator.vibrate?.(10);
     }
 
-    this.applyItem(ShoppingListEventType.ItemToggled, {
-      ...item,
-      isChecked,
-      checkedAt: isChecked ? new Date().toISOString() : undefined,
-    });
-
-    this.shoppingListService
-      .setShoppingListItemChecked(item.id, { isChecked })
-      .pipe(take(1))
-      .subscribe({
-        next: (saved) => this.applyItem(ShoppingListEventType.ItemToggled, saved),
-        error: (error: HttpErrorResponse) => {
-          this.applyItem(ShoppingListEventType.ItemToggled, item);
-          this.reportIfOffline(error);
-        },
-      });
+    this.store.dispatch(
+      new QueueShoppingListChange({
+        kind: "toggle",
+        opId: newClientId(),
+        groupId: this.groupId(),
+        listId: item.shoppingListId,
+        itemId: item.id,
+        clientId: isLocalItem(item) ? item.clientId : undefined,
+        isChecked,
+        checkedAt: isChecked ? new Date().toISOString() : undefined,
+        checkedByUserId: isChecked ? Number(this.store.selectSnapshot(AuthState.userId)) || undefined : undefined,
+      })
+    );
   }
 
   public editItem(item: ShoppingListItem): void {
@@ -145,7 +168,16 @@ export class ShoppingListComponent {
   }
 
   public deleteItem(item: ShoppingListItem): void {
-    this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }), marker("Delete"))
+    const confirmed = this.confirm(marker("Delete Item"), this.translation.t("Delete \"{name}\" from this list?", { name: item.name }), marker("Delete"));
+
+    // A row the server has not seen yet is simply taken back, with whatever was waiting for it.
+    if (isLocalItem(item) && item.clientId) {
+      const clientId = item.clientId;
+      confirmed.subscribe(() => this.store.dispatch(new DiscardLocalShoppingListItem(clientId)));
+      return;
+    }
+
+    confirmed
       .pipe(switchMap(() => this.shoppingListService.deleteShoppingListItem(item.id)))
       .subscribe({
         next: () => this.applyItem(ShoppingListEventType.ItemDeleted, item),

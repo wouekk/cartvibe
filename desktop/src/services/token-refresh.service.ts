@@ -1,9 +1,9 @@
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { catchError, finalize, map, Observable, shareReplay, tap, throwError } from "rxjs";
+import { catchError, finalize, firstValueFrom, map, Observable, shareReplay, tap, throwError } from "rxjs";
 import { AuthService, Claims } from "../open-api";
-import { Logout, SetAuthState } from "../store";
+import { AuthState, Logout, SetAuthState } from "../store";
 import { clearSessionStorage, isSessionRefused } from "../utils/session-storage";
 
 @Injectable({
@@ -48,5 +48,27 @@ export class TokenRefreshService {
     );
 
     return this.refreshInFlight$;
+  }
+
+  /**
+   * For work sent in the background (the shopping list's waiting changes, queued receipt photos): makes sure the
+   * access token is good before a request goes out. A token that ran out while the phone had no signal would make
+   * the server refuse the request, and background work drops what is refused. False means "not now": the renewal
+   * could not reach the server, or the server ended the session (the person is then signed out).
+   */
+  public async ensureFreshToken(): Promise<boolean> {
+    if (!this.store.selectSnapshot(AuthState.isLoggedIn)) {
+      return false;
+    }
+    if (!AuthState.isAccessTokenExpired(this.store)) {
+      return true;
+    }
+
+    try {
+      await firstValueFrom(this.refreshToken());
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

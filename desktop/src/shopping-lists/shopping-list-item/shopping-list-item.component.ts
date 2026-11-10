@@ -1,6 +1,9 @@
 import { Component, computed, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { Store } from "@ngxs/store";
 import { TranslationService } from "../../i18n/translation.service";
 import { ShoppingListItem } from "../../open-api";
+import { UserState } from "../../store/user.state";
+import { isLocalItem } from "../shopping-list-pending";
 import { HEALTH_CHOICES, SEASONALITY_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { formatShoppingListItemAmount } from "../shopping-list-item-form";
 
@@ -25,6 +28,23 @@ export class ShoppingListItemComponent {
   public readonly item = input.required<ShoppingListItem>();
 
   public readonly canUpdate = input<boolean>(false);
+
+  /** A change to this row is kept on the device and has not reached the server yet. */
+  public readonly pending = input<boolean>(false);
+
+  /** A row added on this device that the server has not seen: it has no id to edit by yet. */
+  public readonly isLocal = computed(() => isLocalItem(this.item()));
+
+  private readonly users = inject(Store).selectSignal(UserState.users);
+
+  /** Who crossed the item off, when it is crossed off and that person is still known. */
+  public readonly checkedBy = computed(() => {
+    const item = this.item();
+    if (!item.isChecked || !item.checkedByUserId) {
+      return undefined;
+    }
+    return (this.users() ?? []).find((user) => Number(user.id) === item.checkedByUserId);
+  });
 
   private readonly translation = inject(TranslationService);
 

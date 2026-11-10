@@ -14,12 +14,13 @@ import { PipesModule } from "../../pipes/pipes.module";
 import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
+import { ReceiptReadStreamService } from "../../services/receipt-read-stream.service";
 import { hasAll } from "../../utils/permission.utils";
 import { parseAmountInput } from "./product-amount";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
 
-/** While a read is queued or running, the section checks back this often. */
+/** While a read is queued or running and the live stream cannot be used, the section checks back this often. */
 const REFRESH_INTERVAL_MS = 30_000;
 
 /** And at most this many times, so an abandoned tab stops asking. */
@@ -382,6 +383,14 @@ export class ReceiptProductsComponent {
 
   private refreshSubscription?: Subscription;
 
+  /** The live "this receipt was read" signal, open only while a read is queued or running. */
+  private readSubscription?: Subscription;
+
+  /** True once that stream has opened: the page then waits for it instead of asking on a timer. */
+  private streamLive = false;
+
+  private readonly receiptReadStream = inject(ReceiptReadStreamService);
+
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
@@ -393,9 +402,11 @@ export class ReceiptProductsComponent {
       const receiptId = this.receiptId();
       untracked(() => {
         this.refreshes = 0;
+        this.stopWatchingRead();
         this.load(receiptId);
       });
     });
+    this.destroyRef.onDestroy(() => this.stopWatchingRead());
   }
 
   public readAgain(): void {
@@ -445,12 +456,52 @@ export class ReceiptProductsComponent {
   private show(view: ReceiptProductsView): void {
     this.loadFailed.set(false);
     this.view.set(view);
+    this.watchRead();
     this.scheduleRefresh();
+  }
+
+  /**
+   * While a read is queued or running, the household's live stream says the moment it is over, so the lines appear
+   * at once. The timer below is only the fallback for when that stream cannot be used (no access to the household's
+   * shopping lists, or it never opens).
+   */
+  private watchRead(): void {
+    if (!this.isInProgress()) {
+      this.stopWatchingRead();
+      return;
+    }
+    if (this.readSubscription) {
+      return;
+    }
+    if (!hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupShoppingListsRead)) {
+      return;
+    }
+
+    const receiptId = this.receiptId();
+    const subscription = this.receiptReadStream.watch(this.groupId(), receiptId).subscribe({
+      next: () => {
+        this.streamLive = true;
+        this.load(receiptId);
+      },
+      error: () => {
+        this.readSubscription = undefined;
+        this.streamLive = false;
+        this.scheduleRefresh();
+      },
+    });
+    // A stream that failed at once has already handed over to the timer.
+    this.readSubscription = subscription.closed ? undefined : subscription;
+  }
+
+  private stopWatchingRead(): void {
+    this.readSubscription?.unsubscribe();
+    this.readSubscription = undefined;
+    this.streamLive = false;
   }
 
   private scheduleRefresh(): void {
     this.refreshSubscription?.unsubscribe();
-    if (!this.isInProgress() || this.refreshes >= MAX_REFRESHES) {
+    if (!this.isInProgress() || this.streamLive || this.refreshes >= MAX_REFRESHES) {
       return;
     }
 

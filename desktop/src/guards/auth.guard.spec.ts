@@ -37,8 +37,8 @@ describe('AuthGuard', () => {
               if (selector === AuthState.isLoggedIn) {
                 return hasSession;
               }
-              if (selector === AuthState.isTokenExpired) {
-                return tokenExpired;
+              if (selector === AuthState.tokenExpiresAt) {
+                return Date.now() + (tokenExpired ? -1000 : 60_000);
               }
               return '/overview';
             },

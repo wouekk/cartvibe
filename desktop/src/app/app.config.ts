@@ -8,6 +8,8 @@ import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
 import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
 import { AppUpdateService } from "../services/app-update.service";
+import { QueuedScanService } from "../services/queued-scan.service";
+import { ShoppingListSyncService } from "../services/shopping-list-sync.service";
 import { httpInterceptor } from "../interceptors/http-interceptor";
 import { serviceWorkerBypassInterceptor } from "../interceptors/service-worker-bypass.interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
@@ -48,7 +50,7 @@ const ngxsStates = [
   ReceiptProcessingSettingsTaskTableState,
   ReceiptTableState,
   ReportTemplateTableState,
-  // Not in ngxsStorageKeys: the server is the source of truth.
+  // Not in ngxsStorageKeys: ShoppingListSyncService keeps its copy in IndexedDB (lists and waiting changes).
   ShoppingListState,
   SystemSettingsState,
   SystemTaskTableState,
@@ -86,6 +88,10 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(() => {
       inject(AppUpdateService);
+      // Created at start, not with the lists page: changes made without a connection on an earlier visit are sent
+      // (and queued receipt photos uploaded) wherever the app opens.
+      inject(ShoppingListSyncService);
+      inject(QueuedScanService);
     }),
     provideAppInitializer(() => {
       const initializerFn = (initAppData)(inject(AppInitService));

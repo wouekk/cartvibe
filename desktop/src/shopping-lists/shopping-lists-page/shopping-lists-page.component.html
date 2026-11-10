@@ -30,14 +30,14 @@
     </div>
   </app-table-header>
 
-  @if (!online()) {
+  @if (showOfflineNotice()) {
     <div
       class="mt-4 flex items-center gap-2 rounded-xl border border-border/70 bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
       role="status"
       data-testid="shopping-list-offline"
     >
       <app-icon name="wifi_off" class="shrink-0"></app-icon>
-      <span>{{ 'You are offline. Changes you make now may not be saved.' | t }}</span>
+      <span>{{ 'No connection. What you add or cross off is kept on this device and sent when the connection is back.' | t }}</span>
     </div>
   }
 
@@ -49,7 +49,27 @@
           <header class="flex min-h-14 items-center gap-2 border-b border-border/60 py-2 pr-2 pl-4">
             <div class="min-w-0 flex-1">
               <h2 class="m-0 truncate text-base font-semibold tracking-tight">{{ list.name }}</h2>
-              <p class="m-0 text-xs text-muted-foreground tabular-nums">{{ '{count} to buy' | t: { count: toBuyCount() } }}</p>
+              <p class="m-0 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground tabular-nums">
+                <span>{{ '{count} to buy' | t: { count: toBuyCount() } }}</span>
+                @if (connection(); as state) {
+                  <!-- Whether changes travel right now, and how many of this device's are still waiting. -->
+                  <span
+                    class="inline-flex items-center gap-1"
+                    [class.text-success-text]="state === 'live' && pendingCount() === 0"
+                    [class.text-warning-text]="state === 'offline'"
+                    role="status"
+                    data-testid="shopping-list-connection"
+                    [attr.data-state]="state"
+                  >
+                    <span class="size-1.5 rounded-full bg-current" aria-hidden="true"></span>
+                    <span data-testid="shopping-list-connection-label">{{ connectionLabel() }}</span>
+                    @if (pendingCount() > 0) {
+                      <span aria-hidden="true">·</span>
+                      <span data-testid="shopping-list-pending-count">{{ (state === 'live' ? 'Sending: {count}' : 'Waiting to be sent: {count}') | t: { count: pendingCount() } }}</span>
+                    }
+                  </span>
+                }
+              </p>
             </div>
             @if (canUpdate()) {
               <!-- Tells the rest of the household (a notification), hence the bell. -->
@@ -202,6 +222,16 @@
         }
       </section>
     }
+  } @else if (loadFailed()) {
+    <!-- No connection and no copy on this device: say so instead of an empty page. It loads by itself later. -->
+    <div class="mt-5 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card px-4 py-12 text-center" role="status" data-testid="shopping-list-unavailable">
+      <span class="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <app-icon name="wifi_off"></app-icon>
+      </span>
+      <p class="m-0 max-w-sm text-sm text-muted-foreground">
+        {{ 'These lists were not opened on this device before, so they cannot be shown without a connection. They will appear as soon as the server can be reached.' | t }}
+      </p>
+    </div>
   }
 </div>
 

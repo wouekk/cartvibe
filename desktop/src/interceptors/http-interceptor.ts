@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
 import { inject } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
@@ -9,6 +9,13 @@ import { marker } from "../i18n/marker";
 
 const FORBIDDEN_MESSAGE = marker("You do not have permission to perform this action.");
 
+/**
+ * Set on a request whose failure its caller reports itself (or retries without a word): work sent in the
+ * background, such as the shopping list's waiting changes, would otherwise toast on every attempt while a server
+ * restarts. Pass it as `{ context: new HttpContext().set(QUIET_ERRORS, true) }`.
+ */
+export const QUIET_ERRORS = new HttpContextToken<boolean>(() => false);
+
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(Store);
   const activatedRoute = inject(ActivatedRoute);
@@ -16,6 +23,10 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((e: HttpErrorResponse) => {
+      if (req.context.get(QUIET_ERRORS)) {
+        return throwError(() => e);
+      }
+
       const isLoggedIn = store.selectSnapshot(AuthState.isLoggedIn);
 
       // Don't intercept errors from token refresh requests — let TokenRefreshService handle them

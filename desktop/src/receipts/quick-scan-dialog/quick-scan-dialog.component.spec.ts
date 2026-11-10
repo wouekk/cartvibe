@@ -1,5 +1,5 @@
 import { Subject } from "rxjs";
-import { HttpEvent, HttpEventType } from "@angular/common/http";
+import { HttpErrorResponse, HttpEvent, HttpEventType } from "@angular/common/http";
 import { HttpResponse } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
@@ -15,6 +15,7 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { SnackbarService } from "../../services";
+import { QueuedScanService } from "../../services/queued-scan.service";
 import { AuthState, GroupState } from "../../store";
 import { QUICK_SCAN_COMMENT_MAX_LENGTH, QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -383,6 +384,53 @@ describe("QuickScanDialogComponent", () => {
     } finally {
       URL.createObjectURL = originalCreateObjectURL;
     }
+  });
+
+  describe("without a connection", () => {
+    const originalCreateObjectURL = URL.createObjectURL;
+    let events: Subject<HttpEvent<any>>;
+    let queue: ReturnType<typeof vi.spyOn>;
+    let close: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn().mockReturnValue("blob");
+      store.reset({
+        auth: { groupCategories: {}, groupTags: {} },
+        groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
+      });
+      events = new Subject<HttpEvent<any>>();
+      vi.spyOn(TestBed.inject(ReceiptService), "quickScanReceipt").mockReturnValue(events as any);
+      queue = vi.spyOn(TestBed.inject(QueuedScanService), "queue").mockResolvedValue(undefined);
+      close = vi.spyOn(TestBed.inject(AppDialogRef), "close");
+
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.groupIds.at(0).setValue(2);
+      component.submitButtonClicked();
+    });
+
+    afterEach(() => {
+      URL.createObjectURL = originalCreateObjectURL;
+    });
+
+    it("keeps the scan on the device, exactly as it was being sent, and closes", async () => {
+      events.error(new HttpErrorResponse({ status: 0 }));
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(queue).toHaveBeenCalledTimes(1);
+      expect(queue.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ files: [{ name: "a" }], groupIds: [2], categoryIds: [""], tagIds: [""] })
+      );
+      expect(close).toHaveBeenCalled();
+      expect(component.uploadStage()).toBeNull();
+    });
+
+    it("does not keep a scan the server answered, whatever the answer", () => {
+      events.error(new HttpErrorResponse({ status: 400 }));
+
+      expect(queue).not.toHaveBeenCalled();
+      expect(close).not.toHaveBeenCalled();
+    });
   });
 
   describe("photo rows and drop zone", () => {

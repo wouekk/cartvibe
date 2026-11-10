@@ -1,6 +1,6 @@
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router, convertToParamMap } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -58,7 +58,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
         },
         { provide: Router, useValue: { navigate } },
         { provide: ShoppingListService, useValue: service },
-        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn() } },
+        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
         { provide: SnackbarService, useValue: snackbar },
         { provide: AppDialog, useValue: { open } },
       ],

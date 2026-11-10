@@ -11,14 +11,27 @@
     <app-icon class="shrink-0 text-xl text-muted-foreground transition-colors duration-150 group-hover:text-foreground" [name]="item().isChecked ? 'check_circle' : 'radio_button_unchecked'"></app-icon>
     <span class="flex min-w-0 flex-wrap items-baseline gap-x-2">
       <span class="break-words text-base" [class.line-through]="item().isChecked" [class.text-muted-foreground]="item().isChecked" data-testid="shopping-list-item-name">{{ item().name }}</span>
+      @if (pending()) {
+        <!-- Kept on this device, not on the server yet: a quiet mark, with words for a screen reader. -->
+        <span class="inline-flex items-center self-center text-muted-foreground" data-testid="shopping-list-item-pending" [attr.title]="'Not sent yet' | t">
+          <app-icon class="text-sm" name="cloud_upload"></app-icon>
+          <span class="sr-only">{{ 'Not sent yet' | t }}</span>
+        </span>
+      }
       <app-food-tags class="self-center" [values]="item()"></app-food-tags>
       @if (item().note) {
         <span class="basis-full break-words text-sm text-muted-foreground">{{ item().note }}</span>
       }
     </span>
-    @if (amount()) {
-      <span class="ml-auto shrink-0 whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-bold tabular-nums" data-testid="shopping-list-item-amount">{{ amount() }}</span>
-    }
+    <span class="ml-auto flex shrink-0 items-center gap-2">
+      @if (amount()) {
+        <span class="whitespace-nowrap rounded-md bg-muted px-2.5 py-1 text-sm font-bold tabular-nums" data-testid="shopping-list-item-amount">{{ amount() }}</span>
+      }
+      @if (checkedBy(); as person) {
+        <!-- Who put it in the trolley, so two people in the shop see what the other one already has. -->
+        <app-avatar size="xs" data-testid="shopping-list-item-checked-by" [user]="person"></app-avatar>
+      }
+    </span>
   </button>
 
   @if (canUpdate()) {
@@ -34,14 +47,17 @@
     </button>
     <ng-template #itemMenu>
 <div hlmDropdownMenu class="w-56">
-      <button hlmDropdownMenuItem data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
-        <app-icon name="edit"></app-icon>
-        <span>{{ 'Edit' | t }}</span>
-      </button>
-      <button hlmDropdownMenuItem data-testid="shopping-list-item-tags" [hlmDropdownMenuSubTrigger]="tagsMenu">
-        <app-icon name="sell"></app-icon>
-        <span>{{ 'Correct tags' | t }}</span>
-      </button>
+      <!-- Editing and tag corrections address the server's item, which a row added without a connection is not yet. -->
+      @if (!isLocal()) {
+        <button hlmDropdownMenuItem data-testid="shopping-list-item-edit" (click)="editClicked.emit(item())">
+          <app-icon name="edit"></app-icon>
+          <span>{{ 'Edit' | t }}</span>
+        </button>
+        <button hlmDropdownMenuItem data-testid="shopping-list-item-tags" [hlmDropdownMenuSubTrigger]="tagsMenu">
+          <app-icon name="sell"></app-icon>
+          <span>{{ 'Correct tags' | t }}</span>
+        </button>
+      }
       <button hlmDropdownMenuItem variant="destructive" data-testid="shopping-list-item-delete" (click)="deleteClicked.emit(item())">
         <app-icon name="delete"></app-icon>
         <span>{{ 'Delete' | t }}</span>

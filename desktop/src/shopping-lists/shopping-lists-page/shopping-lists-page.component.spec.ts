@@ -1,6 +1,6 @@
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
@@ -73,7 +73,7 @@ describe("ShoppingListsPageComponent", () => {
         { provide: ActivatedRoute, useValue: { paramMap: of(new Map([["groupId", "1"]]) as any), snapshot: undefined } },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: shoppingListService },
-        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn() } },
+        { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
         { provide: SnackbarService, useValue: snackbarService },
         {
           provide: AppDialog,

@@ -136,6 +136,56 @@ describe("ShoppingListStreamService", () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
+  it("says whether changes made elsewhere arrive right now", () => {
+    expect(service.status()).toBe("idle");
+
+    service.connect(1);
+    expect(service.status()).toBe("connecting");
+
+    latest().open();
+    expect(service.status()).toBe("live");
+
+    // A blip: the browser reconnects by itself (readyState stays CONNECTING).
+    latest().readyState = 0;
+    latest().emit("error");
+    expect(service.status()).toBe("reconnecting");
+
+    latest().open();
+    expect(service.status()).toBe("live");
+
+    latest().failPermanently();
+    expect(service.status()).toBe("reconnecting");
+
+    service.disconnect();
+    expect(service.status()).toBe("idle");
+  });
+
+  it("is live at once with a source that is already open (the demo's stand-in never fires open)", () => {
+    service.setEventSourceFactory(() => {
+      const source = new FakeEventSource("demo");
+      source.readyState = 1;
+      sources.push(source);
+      return source as unknown as EventSource;
+    });
+
+    service.connect(1);
+
+    expect(service.status()).toBe("live");
+  });
+
+  it("catches up when the browser reports a connection again", () => {
+    service.connect(1);
+    latest().open();
+    latest().failPermanently();
+    dispatch.mockClear();
+    const before = sources.length;
+
+    window.dispatchEvent(new Event("online"));
+
+    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+    expect(sources.length).toBe(before + 1);
+  });
+
   it("keeps a single stream when switching groups", () => {
     service.connect(3);
     const first = latest();

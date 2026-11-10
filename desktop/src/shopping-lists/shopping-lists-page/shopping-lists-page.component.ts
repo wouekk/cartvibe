@@ -156,6 +156,48 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly online = inject(OnlineStatusService).online;
 
+  /** This device's changes of the open household that the server has not confirmed yet. */
+  public readonly pendingCount = this.store.selectSignal(ShoppingListState.pendingCount);
+
+  private readonly streamStatus = this.shoppingListStreamService.status;
+
+  private readonly loadFailedGroupId = this.store.selectSignal(ShoppingListState.loadFailedGroupId);
+
+  /** Nothing to show: the lists could be read neither from the server nor from the device. */
+  public readonly loadFailed = computed(() => this.loadFailedGroupId() === this.groupId());
+
+  /**
+   * What the page says about the connection, from what is known rather than guessed: "live" while the stream is
+   * open, "offline" when the browser itself reports no network, "reconnecting" when the stream was lost and is
+   * being tried again. Nothing while the first connection is still being made.
+   */
+  public readonly connection = computed<"live" | "reconnecting" | "offline" | undefined>(() => {
+    const status = this.streamStatus();
+    if (status === "live") {
+      return "live";
+    }
+    if (!this.online()) {
+      return "offline";
+    }
+    return status === "reconnecting" ? "reconnecting" : undefined;
+  });
+
+  public readonly connectionLabel = computed(() => {
+    switch (this.connection()) {
+      case "live":
+        return this.translation.t("Live");
+      case "offline":
+        return this.translation.t("Offline");
+      default:
+        return this.translation.t("Reconnecting");
+    }
+  });
+
+  /** The notice that explains what happens to changes while the server cannot be reached. */
+  public readonly showOfflineNotice = computed(
+    () => this.connection() === "offline" || (this.connection() === "reconnecting" && this.pendingCount() > 0)
+  );
+
   public readonly canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   /** A recipe shared from a phone's share sheet, waiting for the lists to load before the import dialog opens on it. */

@@ -1,11 +1,12 @@
-import { HttpErrorResponse, provideHttpClient } from "@angular/common/http";
+import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 
 import { NgxsModule, Store } from "@ngxs/store";
-import { Subject, of } from "rxjs";
+import { of } from "rxjs";
+import { AppDialog } from "../../dialog/app-dialog";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
@@ -75,42 +76,48 @@ describe("ShoppingListComponent", () => {
     await fixture.whenStable();
   };
 
-  it("crosses an item off immediately, before the server answers", async () => {
+  // Sending is ShoppingListSyncService's job (its own spec): the component only shows the change and queues it.
+  it("crosses an item off at once and queues the change, without waiting for the server", async () => {
     await setCanUpdate(true);
-    const response = new Subject<ShoppingListItem>();
-    shoppingListService.setShoppingListItemChecked.mockReturnValue(response);
 
     component.toggleItem(milk);
 
     expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([1]);
-    expect(shoppingListService.setShoppingListItemChecked).toHaveBeenCalledWith(1, { isChecked: true });
-
-    response.next({ ...milk, isChecked: true, checkedAt: "2026-10-19T12:00:00Z", checkedByUserId: 1 });
-    expect(store.selectSnapshot(ShoppingListState.checkedItems)[0].checkedByUserId).toBe(1);
-  });
-
-  it("reverts the toggle and explains when the phone is offline", async () => {
-    await setCanUpdate(true);
-    const response = new Subject<ShoppingListItem>();
-    shoppingListService.setShoppingListItemChecked.mockReturnValue(response);
-
-    component.toggleItem(milk);
-    response.error(new HttpErrorResponse({ status: 0 }));
-
-    expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1]);
-    expect(snackbarService.error).toHaveBeenCalled();
-  });
-
-  it("reverts a refused toggle without a second toast (the interceptor already shows one)", async () => {
-    await setCanUpdate(true);
-    const response = new Subject<ShoppingListItem>();
-    shoppingListService.setShoppingListItemChecked.mockReturnValue(response);
-
-    component.toggleItem(milk);
-    response.error(new HttpErrorResponse({ status: 403 }));
-
-    expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1]);
+    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([
+      expect.objectContaining({ kind: "toggle", groupId: 1, listId: 1, itemId: 1, isChecked: true }),
+    ]);
+    expect(store.selectSnapshot(ShoppingListState.pendingItemIds).has(1)).toBe(true);
+    expect(shoppingListService.setShoppingListItemChecked).not.toHaveBeenCalled();
     expect(snackbarService.error).not.toHaveBeenCalled();
+  });
+
+  it("marks the row as not sent yet while its change waits", async () => {
+    await setCanUpdate(true);
+
+    component.toggleItem(milk);
+    component.showCrossedOff.set(true);
+    await fixture.whenStable();
+
+    const row = fixture.nativeElement.querySelector('[data-testid="shopping-list-checked-items"] app-shopping-list-item');
+    expect(row).not.toBeNull();
+    expect(component.pendingItemIds().has(1)).toBe(true);
+  });
+
+  it("puts a crossed-off item back with one waiting change, not two", async () => {
+    await setCanUpdate(true);
+    const other = { ...milk, id: 9, name: "Eggs" };
+
+    // A change at the head of the queue may already be on its way, so the pair for Milk sits behind another one.
+    component.toggleItem(other);
+    component.toggleItem(milk);
+    component.toggleItem({ ...milk, isChecked: true });
+
+    const pending = store.selectSnapshot(ShoppingListState.pending);
+    expect(pending.map((change) => (change.kind === "toggle" ? [change.itemId, change.isChecked] : null))).toEqual([
+      [9, true],
+      [1, false],
+    ]);
+    expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1]);
   });
 
   it("sends a tag correction and applies the corrected item", async () => {
@@ -124,23 +131,60 @@ describe("ShoppingListComponent", () => {
     expect((store.selectSnapshot(ShoppingListState.activeItems)[0] as any).health).toBe("MEDIUM");
   });
 
-  it("adds a trimmed item and clears the bar", async () => {
+  it("shows a trimmed item at once, queues its add and clears the bar", async () => {
     await setCanUpdate(true);
-    const bread: ShoppingListItem = { ...milk, id: 2, name: "Bread" };
-    shoppingListService.addShoppingListItem.mockReturnValue(of(bread));
 
     component.addForm.patchValue({ name: "  Bread ", amount: "1,5", unit: "kg", note: "" });
     component.addItem();
 
-    expect(shoppingListService.addShoppingListItem).toHaveBeenCalledWith(1, {
-      name: "Bread",
-      amount: "1.5",
-      unit: "kg",
-      quantity: "",
-      note: "",
-    });
-    expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.name)).toEqual(["Milk", "Bread"]);
+    const active = store.selectSnapshot(ShoppingListState.activeItems);
+    expect(active.map((i) => i.name)).toEqual(["Milk", "Bread"]);
+    const bread = active[1];
+    // A row of this device only: a negative id, and the client id the server will know the add by.
+    expect(bread.id).toBeLessThan(0);
+    expect(bread.clientId).toBeTruthy();
+    expect(bread).toEqual(expect.objectContaining({ amount: "1.5", unit: "kg", isChecked: false, shoppingListId: 1 }));
+
+    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([
+      expect.objectContaining({
+        kind: "add",
+        groupId: 1,
+        listId: 1,
+        clientId: bread.clientId,
+        command: { name: "Bread", amount: "1.5", unit: "kg", quantity: "", note: "" },
+      }),
+    ]);
+    expect(shoppingListService.addShoppingListItem).not.toHaveBeenCalled();
     expect(component.addForm.value.name).toBe("");
+  });
+
+  it("crosses off an item that has not reached the server by its client id", async () => {
+    await setCanUpdate(true);
+    component.addForm.patchValue({ name: "Bread" });
+    component.addItem();
+    const bread = store.selectSnapshot(ShoppingListState.activeItems)[1];
+
+    component.toggleItem(bread);
+
+    expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.name)).toEqual(["Bread"]);
+    expect(store.selectSnapshot(ShoppingListState.pending)[1]).toEqual(
+      expect.objectContaining({ kind: "toggle", itemId: bread.id, clientId: bread.clientId, isChecked: true })
+    );
+  });
+
+  it("takes back an item that has not reached the server without calling it", async () => {
+    await setCanUpdate(true);
+    component.addForm.patchValue({ name: "Bread" });
+    component.addItem();
+    const bread = store.selectSnapshot(ShoppingListState.activeItems)[1];
+    component.toggleItem(bread);
+
+    const dialog = TestBed.inject(AppDialog);
+    vi.spyOn(dialog, "open").mockReturnValue({ componentInstance: {}, afterClosed: () => of(true) } as never);
+    component.deleteItem({ ...bread, isChecked: true });
+
+    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([]);
+    expect(store.selectSnapshot(ShoppingListState.lists)[0].items.map((i) => i.name)).toEqual(["Milk"]);
   });
 
   it("does not send a blank item", async () => {
