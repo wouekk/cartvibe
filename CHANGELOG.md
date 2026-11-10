@@ -25,8 +25,8 @@ server finish what it is doing.
   `sqlite/backups`: the five newest update copies and seven daily ones are kept, each a whole file that is safe to copy
   while CartVibe runs. A scheduled NAS backup no longer needs the stack stopped, and the
   [FAQ](docs/faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to a copy *(ADM-14)*.
-- **Take photo in Quick Scan.** On a phone, Quick Scan now has a *Take photo* button that opens the camera at once,
-  next to *Choose files* *(SCAN-11)*.
+- **Take a photo in Quick Scan.** On a phone, Quick Scan now has a *Take a photo* button that opens the camera at once,
+  next to *Upload photos* *(SCAN-11)*.
 - **Shortcuts on the app icon.** A long press on the installed app's icon offers *Shopping lists* and *Scan a receipt*
   *(APP-12)*.
 

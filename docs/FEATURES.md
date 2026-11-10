@@ -85,7 +85,7 @@ in by hand and the AI is retried later.
 | SCAN-08 | Backup AI | A second AI takes over when the main one fails. | 0.2.0 | released |
 | SCAN-09 | Scan without an AI | With no AI set up, Quick Scan stays visible and asks whether to add one. | 0.6.0 | released |
 | SCAN-10 | AI language | Under Settings → Language each person picks the language the AI writes product names and new categories in, or keeps "Same as the interface" (English when that is not known). A receipt is read in the language of whoever added it; names as printed on the receipt stay as printed, and receipts read earlier keep their names. | 0.17.0 | released |
-| SCAN-11 | Take a photo straight from Quick Scan | On a phone or tablet Quick Scan has two buttons: *Take photo* opens the back camera at once, and *Choose files* picks photos or PDFs already on the device, several at a time. A computer shows *Choose files* only; dropping files on the dialog works as before. | unreleased | unreleased |
+| SCAN-11 | Take a photo straight from Quick Scan | On a phone or tablet Quick Scan has two buttons: *Take a photo* opens the back camera at once, and *Upload photos* picks photos or PDFs already on the device, several at a time. A computer shows *Upload photos* only; dropping files on the dialog works as before. | unreleased | unreleased |
 
 ## Categories and tags (ORG)
 

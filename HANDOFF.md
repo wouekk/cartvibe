@@ -31,7 +31,7 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   photos (they must still open), the 4K screen at 100% zoom, a scan with a real AI key, day/night and the accent
   palettes on phone and desktop. Report any queue error.
 - Sprint 1 on `:preview`: an `app-upgrade-*.db` file appears in `sqlite/backups` after the deploy; with the NAS
-  stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows *Take photo*; a long press on
+  stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows *Take a photo*; a long press on
   the installed icon shows two shortcuts; add `stop_grace_period: 30s` to the Dockhand stack.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit. Try an import only on a spare empty server.

@@ -2,7 +2,7 @@ import { CurrencyPipe } from "@angular/common";
 import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import type { ScriptableContext } from "chart.js";
@@ -1446,20 +1446,24 @@ export class OverviewPageComponent {
       }
     });
 
-    this.openScanFromShortcut();
+    // Watched, not read once: when the app is already on the Dashboard the router keeps this component and only the
+    // query changes.
+    this.activatedRoute.queryParamMap
+      ?.pipe(
+        filter((query) => query.get("scan") === "1"),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => void this.openScanFromShortcut());
   }
 
   /**
    * The installed app's "Scan a receipt" shortcut (`shortcuts` in manifest.webmanifest) lands here as `?scan=1`,
    * through the group-less `/overview` route.
    */
-  private openScanFromShortcut(): void {
-    if (this.activatedRoute.snapshot?.queryParamMap?.get("scan") !== "1") {
-      return;
-    }
-
-    // Dropped from the URL, so a reload or Back does not open the dialog again.
-    this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {}, replaceUrl: true });
+  private async openScanFromShortcut(): Promise<void> {
+    // The query is dropped first, so a reload or Back does not open the dialog again, and the dialog opens only once
+    // that has settled: a dialog closes when the address changes under it.
+    await this.router.navigate([], { relativeTo: this.activatedRoute, queryParams: {}, replaceUrl: true });
     if (this.canQuickScan()) {
       this.openQuickScan();
     }

@@ -115,9 +115,9 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   counts as filled only when it changes the form. Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the
   patch; comments go through `ReceiptCommentsComponent.addMagicFilledComments()` (queued in add mode, POSTed in edit
   mode, since a receipt update does not persist comments).
-- **Quick Scan pickers:** the dialog has two native `<label>`s around hidden file inputs. **Take photo**
+- **Quick Scan pickers:** the dialog has two native `<label>`s around hidden file inputs. **Take a photo**
   (`capture="environment"`, `quick-scan-take-photo`) opens the back camera and is shown on touch devices only
-  (`finePointerSignal()` is false); **Choose files** (`quick-scan-upload`, several files, images, PDF and HEIC) is
+  (`finePointerSignal()` is false); **Upload photos** (`quick-scan-upload`, several files, images, PDF and HEIC) is
   always there. Both hand their files to `UploadImageComponent.onFileChange`. The app's own hidden input inside
   `app-upload-image` stays: drag-and-drop and the e2e helpers use it.
 - **Quick Scan:** every entry (Dashboard, `⋮` menu, `app-quick-scan-button`) calls `QuickScanLauncher.open()`. With
