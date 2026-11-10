@@ -37,6 +37,7 @@ model/about.ts
 model/activity.ts
 model/aiModel.ts
 model/aiModelsCommand.ts
+model/aiUsageMonth.ts
 model/appData.ts
 model/appLogEntry.ts
 model/associatedEntityType.ts

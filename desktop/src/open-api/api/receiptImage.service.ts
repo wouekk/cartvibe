@@ -411,6 +411,76 @@ export class ReceiptImageService {
     }
 
     /**
+     * A receipt image as a file for an img element
+     * Serves a JPEG copy of the image, sized for looking at (display) or as a small preview (thumb). An image never changes under its id, so the answer is cached by the browser for good and a browser that has it gets 304. An unknown id answers the same 403 as a refusal.
+     * @param receiptImageId Id of the receipt image
+     * @param w Which copy, display (the default) or thumb
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getReceiptImageFile(receiptImageId: number, w?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/jpeg' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public getReceiptImageFile(receiptImageId: number, w?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/jpeg' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public getReceiptImageFile(receiptImageId: number, w?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'image/jpeg' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public getReceiptImageFile(receiptImageId: number, w?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'image/jpeg' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (receiptImageId === null || receiptImageId === undefined) {
+            throw new Error('Required parameter receiptImageId was null or undefined when calling getReceiptImageFile.');
+        }
+
+        let localVarQueryParameters = new HttpParams({encoder: this.encoder});
+        if (w !== undefined && w !== null) {
+          localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
+            <any>w, 'w');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        let localVarCredential: string | undefined;
+        // authentication (bearerAuth) required
+        localVarCredential = this.configuration.lookupCredential('bearerAuth');
+        if (localVarCredential) {
+            localVarHeaders = localVarHeaders.set('Authorization', 'Bearer ' + localVarCredential);
+        }
+
+        let localVarHttpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (localVarHttpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'image/jpeg',
+                'application/json'
+            ];
+            localVarHttpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        let localVarHttpContext: HttpContext | undefined = options && options.context;
+        if (localVarHttpContext === undefined) {
+            localVarHttpContext = new HttpContext();
+        }
+
+        let localVarTransferCache: boolean | undefined = options && options.transferCache;
+        if (localVarTransferCache === undefined) {
+            localVarTransferCache = true;
+        }
+
+
+        let localVarPath = `/receiptImage/${this.configuration.encodeParam({name: "receiptImageId", value: receiptImageId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/file`;
+        return this.httpClient.request('get', `${this.configuration.basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                params: localVarQueryParameters,
+                responseType: "blob",
+                withCredentials: this.configuration.withCredentials,
+                headers: localVarHeaders,
+                observe: observe,
+                transferCache: localVarTransferCache,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Reads a receipt image and returns the parsed results
      * This will parse and read a receipt image, [SYSTEM USER]
      * @param receiptImageId Id of receipt image to perform magic fill on
