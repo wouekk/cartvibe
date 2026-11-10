@@ -47,6 +47,9 @@ jobs:
               - '.dockerignore'
               # A change to how the image is tested is tested: the smoke job runs for it.
               - '.github/workflows/ci.yml'
+              # The smoke job runs the VPS stack's restore drill.
+              - 'deploy/vps/**'
+              - 'docker-compose.vps.yml'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -195,7 +198,7 @@ jobs:
       - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe --network e2e -p 8091:80 -v cartvibe-sqlite:/app/cartvibe-api/sqlite             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
@@ -262,6 +265,14 @@ jobs:
             exit 1
           fi
           echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
+      # docker-compose.vps.yml: Litestream copies the live database to a bucket (here a throwaway S3 server), with
+      # the image and the configuration that file ships. Started while the app runs, checked after it has stopped.
+      - name: Litestream replicates the live database
+        run: bash deploy/vps/restore-drill.sh start
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
+          UPGRADE_FROM: "0.3.13"
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
@@ -272,6 +283,13 @@ jobs:
           code=$(docker inspect --format '{{.State.ExitCode}}' cartvibe)
           echo "stopped in ${took}s with exit code ${code}"
           [ "$code" = "0" ] && [ "$took" -lt 25 ]
+      # The restore drill: what the bucket holds comes back as a database with the same tables and rows as the one
+      # the stopped app left behind.
+      - name: The replica restores to the same database
+        run: bash deploy/vps/restore-drill.sh finish
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
       # The same data under another version, as after an update on the NAS: the API must copy the database to
       # sqlite/backups before it migrates, then record the version it started as.
       - name: A new version snapshots the database first

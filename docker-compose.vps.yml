@@ -7,10 +7,11 @@
 services:
   # Restores the database from the replica before the app starts, but only when there is no database yet (a new
   # server or a lost disk). An existing app.db is never touched.
-  # Litestream stays on 0.3.13 on purpose: 0.5 writes a new format that cannot restore these replicas and renames config
-  # keys, so it is a migration of its own (HANDOFF.md), not a version bump.
+  # Litestream 0.5 writes another format than 0.3 did and takes other configuration keys (deploy/vps/litestream.yml).
+  # Coming from 0.3.13: docs/vps-deploy.md, Updating. CI restores a replica made by this image on every image change
+  # (deploy/vps/restore-drill.sh).
   litestream-restore:
-    image: litestream/litestream:0.3.13
+    image: litestream/litestream:0.5.18
     user: "${PUID:-10001}:${PGID:-10001}"
     command: ["restore", "-config", "/etc/litestream.yml", "-if-db-not-exists", "-if-replica-exists", "/data/sqlite/app.db"]
     environment: &litestream-env
@@ -57,9 +58,9 @@ services:
       - ./data/files:/app/cartvibe-api/data
       - ./data/logs:/app/cartvibe-api/logs
 
-  # Streams every committed WAL page to the bucket (about one second behind) and keeps 7 days of snapshots.
+  # Sends every committed change to the bucket (about one second behind) and keeps 7 days of them.
   litestream:
-    image: litestream/litestream:0.3.13
+    image: litestream/litestream:0.5.18
     restart: unless-stopped
     user: "${PUID:-10001}:${PGID:-10001}"
     depends_on:
