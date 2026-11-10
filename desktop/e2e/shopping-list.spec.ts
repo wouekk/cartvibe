@@ -149,6 +149,49 @@ test.describe('Shopping lists', () => {
       ).toHaveText('1.5 kg');
     });
 
+    test('keeps an add and a cross-off made without a connection, and sends each once', async ({ page, context }) => {
+      const listName = uniqueName('offline');
+      await openShoppingLists(page, groupId);
+      await addList(page, listName);
+
+      const connection = page.getByTestId('shopping-list-connection');
+      const unsent = page.getByTestId('shopping-list-item-pending');
+      await addItem(page, 'Rice');
+      await expect(unsent).toHaveCount(0);
+      await expect(connection).toHaveAttribute('data-state', 'live');
+
+      // In the shop, between the shelves: the list keeps working and says what it is holding back.
+      await context.setOffline(true);
+      try {
+        await addItem(page, 'Beans');
+        await activeItem(page, 'Rice').click();
+
+        await expect(activeItem(page, 'Beans')).toBeVisible();
+        await expect(activeItem(page, 'Rice')).toHaveCount(0);
+        await expect(connection).toHaveAttribute('data-state', 'offline');
+        await expect(page.getByTestId('shopping-list-offline')).toContainText('Waiting to be sent: 2');
+        await expect(page.getByTestId('shopping-list-active-items').getByTestId('shopping-list-item-pending')).toHaveCount(1);
+      } finally {
+        await context.setOffline(false);
+      }
+
+      // Back online: the queue goes out by itself and the marks go.
+      await expect(unsent).toHaveCount(0);
+      await expect(page.getByTestId('shopping-list-offline')).toBeHidden();
+
+      // Proven on the server, not only on this page: one Beans, and Rice crossed off.
+      await expect
+        .poll(async () =>
+          withAdminApi(async (api) => {
+            const res = await api.get(`/api/shopping-list/group/${groupId}`);
+            const lists = (await res.json()) as { name: string; items: { name: string; isChecked: boolean }[] }[];
+            const items = lists.find((list) => list.name === listName)?.items ?? [];
+            return items.map((item) => `${item.name}:${item.isChecked}`).sort();
+          }),
+        )
+        .toEqual(['Beans:false', 'Rice:true']);
+    });
+
     test('imports pasted ingredients: sums onto an item, adds the rest, keeps a unit it cannot store as text', async ({ page }) => {
       const listName = uniqueName('recipe');
       await withAdminApi(async (api) => {

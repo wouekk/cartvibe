@@ -19,7 +19,7 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   lines in its `go.mod` and run them on the copy.
 - Mac Playwright run: `failed-activity-source-file` and `system-task-filter` fail on `main`, 15 skipped behind them.
   Not run: `dashboard-charts`, `app-time-zone`, `report-period-date-field`. `e2e-smoke` sometimes hits nginx's login
-  limit (429); re-run the job. No e2e spec covers the list without a connection yet.
+  limit (429); re-run the job.
 - The Browser pane does not render while the Claude window is out of view: the app's router waits on a page
   transition and the page stays blank. Drive it with DOM events from `javascript_tool` instead of clicks.
 - Never run: Safari/Firefox desktop, Lighthouse, Web Push on a real device.
