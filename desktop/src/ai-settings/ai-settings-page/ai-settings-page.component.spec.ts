@@ -58,7 +58,7 @@ describe("AiSettingsPageComponent", () => {
   };
 
   it("creates Gemini settings and points System Settings at them", async () => {
-    await setUp({ taskConcurrency: 1 });
+    await setUp({ pdfDpi: 200 });
     component.form.patchValue({ model: "gemini-2.5-flash", key: "secret" });
 
     component.save();
@@ -75,7 +75,7 @@ describe("AiSettingsPageComponent", () => {
       })
     );
     expect(systemSettingsService["updateSystemSettings"]).toHaveBeenCalledWith(
-      expect.objectContaining({ taskConcurrency: 1, receiptProcessingSettingsId: 5 })
+      expect.objectContaining({ pdfDpi: 200, receiptProcessingSettingsId: 5 })
     );
     expect(component.saved()?.id).toBe(5);
   });

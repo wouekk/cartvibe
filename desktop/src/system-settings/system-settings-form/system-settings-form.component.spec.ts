@@ -1,7 +1,7 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { config, of, Subject, throwError } from "rxjs";
@@ -10,7 +10,7 @@ import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/index";
 import { FormMode } from "../../enums/form-mode.enum";
-import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, QueueName, ShopLogoService, SystemSettingsService } from "../../open-api";
+import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, ShopLogoService, SystemSettingsService } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SnackbarService } from "../../services";
@@ -18,7 +18,6 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AuthState } from "../../store/auth.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { SetTimeZone } from "../../store/system-settings.state.actions";
-import { TaskQueueFormControlPipe } from "../pipes/task-queue-form-control.pipe";
 
 import { SystemSettingsFormComponent } from "./system-settings-form.component";
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
@@ -32,7 +31,7 @@ describe("SystemSettingsFormComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SystemSettingsFormComponent, CustomCurrencyPipe, TaskQueueFormControlPipe],
+    declarations: [SystemSettingsFormComponent, CustomCurrencyPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [AutocompleteModule,
         CheckboxModule,
@@ -50,11 +49,7 @@ describe("SystemSettingsFormComponent", () => {
                 snapshot: {
                     data: {
                         allReceiptProcessingSettings: [],
-                        systemSettings: {
-                            taskQueueConfigurations: [
-                                { name: "quick_scan", priority: 1 }
-                            ]
-                        },
+                        systemSettings: {},
                         formConfig: {}
                     }
                 }
@@ -125,10 +120,6 @@ describe("SystemSettingsFormComponent", () => {
       // Unset on the wire (an older server): the default.
       dateFormat: "DD/MM/YYYY",
       pdfDpi: null,
-      taskConcurrency: null,
-      taskQueueConfigurations: [
-        { name: "quick_scan", priority: 1 }
-      ],
       mcpEnabled: null,
       mcpPublicUrl: null,
       serverPublicUrl: null,
@@ -181,11 +172,6 @@ describe("SystemSettingsFormComponent", () => {
       timeZone: "America/New_York",
       dateFormat: "YYYY-MM-DD",
       pdfDpi: 300,
-      taskConcurrency: 12,
-      taskQueueConfigurations: [{
-        name: QueueName.QuickScan,
-        priority: 1,
-      }],
       mcpEnabled: true,
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
@@ -211,11 +197,6 @@ describe("SystemSettingsFormComponent", () => {
       timeZone: "America/New_York",
       dateFormat: "YYYY-MM-DD",
       pdfDpi: 300,
-      taskConcurrency: 12,
-      taskQueueConfigurations: [{
-        name: QueueName.QuickScan,
-        priority: 1,
-      }],
       mcpEnabled: true,
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
@@ -423,11 +404,6 @@ describe("SystemSettingsFormComponent", () => {
     const snackbarServiceSpy = vi.spyOn(snackbarService, "success");
     const routerSpy = vi.spyOn(router, "navigate");
 
-    component.originalSystemSettings.taskQueueConfigurations = [{
-      name: QueueName.QuickScan,
-      priority: "1",
-    } as any];
-
     component.form.patchValue({
       enableLocalSignUp: true,
       debugOcr: true,
@@ -441,7 +417,6 @@ describe("SystemSettingsFormComponent", () => {
       timeZone: "Europe/Berlin",
       dateFormat: "MM/DD/YYYY",
       pdfDpi: "300",
-      taskConcurrency: "12",
       mcpEnabled: true,
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
@@ -451,15 +426,6 @@ describe("SystemSettingsFormComponent", () => {
       mcpRefreshTokenValidForValue: "12",
       mcpRefreshTokenValidForUnit: "HOURS",
     });
-
-    // Update the quick_scan queue priority specifically
-    const queueArray = component.form.get("taskQueueConfigurations") as FormArray;
-    const quickScanIndex = queueArray.controls.findIndex(control => 
-      control.get('name')?.value === 'quick_scan'
-    );
-    if (quickScanIndex >= 0) {
-      queueArray.at(quickScanIndex).get('priority')?.setValue("1");
-    }
 
     component.submit();
 
@@ -476,10 +442,6 @@ describe("SystemSettingsFormComponent", () => {
       timeZone: "Europe/Berlin",
       dateFormat: "MM/DD/YYYY",
       pdfDpi: 300,
-      taskConcurrency: 12,
-      taskQueueConfigurations: [
-        { name: 'quick_scan', priority: 1 }
-      ],
       mcpEnabled: true,
       mcpPublicUrl: "https://receipts.example.com",
       serverPublicUrl: "https://receipts.example.com",
@@ -513,7 +475,7 @@ describe("SystemSettingsFormComponent", () => {
 
     it("is disabled in view mode but still read by getRawValue", () => {
       const activatedRoute = TestBed.inject(ActivatedRoute);
-      activatedRoute.snapshot.data["systemSettings"] = { taskQueueConfigurations: [], secureCookies: true };
+      activatedRoute.snapshot.data["systemSettings"] = { secureCookies: true };
       activatedRoute.snapshot.data["formConfig"] = { mode: FormMode.view };
       component.ngOnInit();
 
@@ -551,7 +513,6 @@ describe("SystemSettingsFormComponent", () => {
     function setRouteSettings(settings: object): void {
       const activatedRoute = TestBed.inject(ActivatedRoute);
       activatedRoute.snapshot.data["systemSettings"] = {
-        taskQueueConfigurations: [],
         ...settings,
       };
     }
@@ -679,7 +640,7 @@ describe("SystemSettingsFormComponent", () => {
     it("shows every settings card when it is not placed on a tab", () => {
       place(undefined);
 
-      expect(cards()).toEqual(["regional", "currency", "shop-logos", "signup-session", "worker", "queues"]);
+      expect(cards()).toEqual(["regional", "currency", "shop-logos", "signup-session", "retention"]);
     });
 
     it("Shop Logos holds the Logo.dev key with how to get it and the attribution", () => {
@@ -707,21 +668,21 @@ describe("SystemSettingsFormComponent", () => {
       expect(fixture.nativeElement.querySelector("[data-testid=server-public-url]")).not.toBeNull();
     });
 
-    it("Tasks & Storage lists the queues compactly", () => {
+    it("Tasks & Storage keeps only how long a failed upload is kept: background work has no settings", () => {
       place("tasks");
 
-      expect(cards()).toEqual(["worker", "queues"]);
-      const rows = fixture.nativeElement.querySelectorAll("[data-testid=queue-row]");
-      expect(rows.length).toBe(2);
-      expect(fixture.nativeElement.querySelector("[data-testid=queue-priority-quick_scan]")).not.toBeNull();
-      expect((component.form.get("taskQueueConfigurations") as FormArray).length).toBe(1);
+      expect(cards()).toEqual(["retention"]);
+      expect(fixture.nativeElement.querySelector("[data-testid=settings-section-retention]")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("[data-testid=queue-row]")).toBeNull();
+      expect(component.form.get("taskConcurrency")).toBeNull();
+      expect(component.form.get("taskQueueConfigurations")).toBeNull();
     });
 
     it("keeps every setting in the form whatever the tab, so a save sends them all", () => {
       place("general");
 
       expect(Object.keys(component.form.controls)).toEqual(
-        expect.arrayContaining(["enableLocalSignUp", "mcpEnabled", "taskConcurrency", "mcpPublicUrl", "timeZone"])
+        expect.arrayContaining(["enableLocalSignUp", "mcpEnabled", "tempFileRetentionValue", "mcpPublicUrl", "timeZone"])
       );
     });
   });
