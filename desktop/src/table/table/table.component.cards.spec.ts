@@ -152,6 +152,14 @@ describe("TableComponent as cards on a phone", () => {
     expect(host.sorts.at(-1)).toEqual({ active: "", direction: "" });
   });
 
+  it("offers no sort control while there are no rows to sort", async () => {
+    host.dataSource.data = [];
+    await show();
+
+    expect(byTestId("table-card-sort")).toBeNull();
+    host.dataSource.data = ROWS;
+  });
+
   it("offers no sort control for a table that cannot be sorted", async () => {
     await fixture.whenStable();
     host.columns.set([{ columnHeader: "Shop", matColumnDef: "shop", elementKey: "shop", sortable: false }]);

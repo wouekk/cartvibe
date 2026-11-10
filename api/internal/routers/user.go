@@ -26,6 +26,7 @@ func BuildUserRouter() *chi.Mux {
 	userRouter.With(middleware.UnifiedAuthMiddleware).Delete("/avatar", handlers.DeleteAvatar)
 	userRouter.With(middleware.UnifiedAuthMiddleware).Get("/{id}/avatar", handlers.GetUserAvatar)
 	userRouter.With(middleware.UnifiedAuthMiddleware, middleware.SetGeneralBodyData("deleteAccountCommand", commands.DeleteAccountCommand{})).Post("/deleteAccount", handlers.DeleteAccount)
+	userRouter.With(middleware.UnifiedAuthMiddleware).Post("/signOutEverywhere", handlers.SignOutEverywhere)
 
 	// Unauthenticated routes
 	userRouter.Get("/{username}", handlers.GetUsernameCount)

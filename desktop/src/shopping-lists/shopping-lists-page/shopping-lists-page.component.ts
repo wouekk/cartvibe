@@ -21,6 +21,7 @@ import { SnackbarService } from "../../services";
 import { ToastRef } from "../../toast/toast.service";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
+import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -152,6 +153,9 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   private completedToastRef?: ToastRef;
 
   private readonly wakeLock = inject(ScreenWakeLockService);
+
+  /** A phone leaves the explanation under the title out, so the list starts higher up. */
+  public readonly isHandset = inject(ViewportService).isHandset;
 
   /**
    * Shop mode, for walking the aisles: the open list alone (no page header, switcher, trips or finished lists), bigger

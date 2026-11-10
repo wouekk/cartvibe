@@ -1081,8 +1081,8 @@ paths:
         - Auth
       summary: Logout
       description:
-        This will log a user out of the system and revoke their token [SYSTEM
-        USER]
+        This will log a user out of the system, revoke their refresh token and clear
+        the session cookies [SYSTEM USER]
       operationId: logout
       requestBody:
         description: Refresh token
@@ -2225,6 +2225,27 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/Ok"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
+  /user/signOutEverywhere:
+    post:
+      tags:
+        - Auth
+      summary: Sign out everywhere
+      description:
+        Ends every session of the signed-in user - each browser they are signed in on
+        and each assistant they connected (MCP) - and clears this browser's session
+        cookies. It needs no permission beyond being signed in. Another device keeps
+        working until its access token runs out (20 minutes at most); its next token
+        refresh is refused with 401.
+      operationId: signOutEverywhere
+      responses:
+        200:
+          $ref: "#/components/responses/Ok"
+        403:
+          $ref: "#/components/responses/Forbidden"
         500:
           $ref: "#/components/responses/Internal"
       security:

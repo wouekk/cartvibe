@@ -236,6 +236,7 @@
     "Comments": "Komentarze",
     "Comparing with the list…": "Porównywanie z listą…",
     "Completed ({count})": "Zakończone ({count})",
+    "Completed lists": "Zakończone listy",
     "Computed from other columns": "Wyliczana z innych kolumn",
     "Condiments & Sauces": "Przyprawy i sosy",
     "Configure Columns": "Ustaw kolumny",
@@ -333,7 +334,6 @@
     "Delete list": "Usuń listę",
     "Delete logos": "Usuń logo",
     "Delete the logos": "Usuń logo",
-    "Delete the open list": "Usuń otwartą listę",
     "Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.": "Usunąć użytkownika „{name}”? Zostanie usunięty z grup, a grupy, w których jest jedynym członkiem, oraz paragony, które opłacił, zostaną usunięte. Tej operacji nie można cofnąć.",
     "Delete {name}": "Usuń: {name}",
     "Deli": "Wędliny",
@@ -543,6 +543,7 @@
     "Insert a column": "Wstaw kolumnę",
     "Insert a variable": "Wstaw zmienną",
     "Interface language": "Język interfejsu",
+    "Interface size": "Rozmiar interfejsu",
     "Intro / preamble": "Wstęp",
     "Is Dummy User?": "Użytkownik zastępczy?",
     "Isolate members": "Członkowie nie widzą się nawzajem",
@@ -556,16 +557,19 @@
     "July": "lipiec",
     "Jun": "cze",
     "June": "czerwiec",
-    "Keep screen on": "Nie wygaszaj ekranu",
     "Key figures": "Kluczowe liczby",
     "Kitchenware": "Akcesoria kuchenne",
     "L": "l",
     "LIVE PREVIEW": "PODGLĄD NA ŻYWO",
     "LM Studio's address as the NAS reaches it, ending in /v1": "Adres LM Studio widziany z NAS-a, zakończony na /v1",
     "Language": "Język",
+    "Large": "Duży",
+    "Larger": "Większy",
+    "Largest": "Największy",
     "Last 30 days": "Ostatnie 30 dni",
     "Last 7 days": "Ostatnie 7 dni",
     "Last page": "Ostatnia strona",
+    "Leave Shop mode": "Wyjdź z trybu sklepu",
     "Leave a comment": "Dodaj komentarz",
     "Leave empty for no goal. The Dashboard compares each month with it.": "Zostaw puste, jeśli nie ma celu. Pulpit porównuje z nim każdy miesiąc.",
     "Leave empty to give them everything their role allows.": "Zostaw puste, aby dać im wszystko, na co pozwala ich rola.",
@@ -574,7 +578,6 @@
     "Legacy Owner": "Właściciel (dawna rola)",
     "Less than": "Mniejsze niż",
     "Let the household know you are going shopping": "Daj znać domownikom, że idziesz na zakupy",
-    "Let the screen sleep": "Pozwól wygasić ekran",
     "Licence texts:": "Teksty licencji:",
     "Lighting": "Oświetlenie",
     "Lime": "Limonka",
@@ -602,6 +605,8 @@
     "Magic fill": "Wypełnij automatycznie",
     "Main AI": "Główne AI",
     "Main navigation": "Menu główne",
+    "Main pages": "Główne strony",
+    "Makes everything larger on this device. Browser zoom still works on top of it.": "Powiększa wszystko na tym urządzeniu. Powiększenie w przeglądarce nadal działa dodatkowo.",
     "Malformed report request": "Nieprawidłowe żądanie raportu",
     "Manage user accounts and the roles assigned to them.": "Zarządzaj kontami użytkowników i przypisanymi im rolami.",
     "Manage users & keys": "Zarządzanie użytkownikami i kluczami",
@@ -633,6 +638,7 @@
     "Monthly spending goal": "Miesięczny cel wydatków",
     "Monthly spending goal ({symbol})": "Miesięczny cel wydatków ({symbol})",
     "Monthly spending, {period}": "Wydatki miesięczne, {period}",
+    "More": "Więcej",
     "More actions": "Więcej akcji",
     "More servings": "Więcej porcji",
     "Move down": "Przesuń w dół",
@@ -674,6 +680,7 @@
     "No AI is set up. An admin can choose one on the AI page.": "Nie skonfigurowano AI. Administrator może je wybrać na stronie AI.",
     "No activity to show.": "Brak aktywności do pokazania.",
     "No additives listed.": "Producent nie podał żadnych dodatków.",
+    "No amount": "Brak kwoty",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Nie znaleziono kodu kreskowego na zdjęciu. Spróbuj ponownie: kreski powinny być ostre i wypełniać kadr.",
     "No camera could be started. Type the barcode instead.": "Nie udało się uruchomić aparatu. Wpisz kod ręcznie.",
     "No categories yet. The AI adds them as it reads receipts, or add your own.": "Brak kategorii. AI doda je podczas odczytu paragonów. Możesz też dodać własne.",
@@ -716,6 +723,7 @@
     "Not fresh produce": "Bez sezonowości",
     "Not on the list": "Spoza listy",
     "Not sent yet": "Jeszcze nie wysłano",
+    "Not sorted": "Bez sortowania",
     "Note": "Notatka",
     "Nothing added yet": "Nic jeszcze nie dodano",
     "Nothing here.": "Nic tu nie ma.",
@@ -976,6 +984,7 @@
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Zapisane szablony raportów — otwórz w kreatorze, wygeneruj, zduplikuj lub usuń.",
     "Saved with your account, so CartVibe speaks it on every device.": "Zapisany na Twoim koncie, więc CartVibe używa go na każdym urządzeniu.",
     "Saving…": "Zapisywanie…",
+    "Scan": "Skanuj",
     "Scan a barcode": "Zeskanuj kod kreskowy",
     "Scan receipt": "Skanuj paragon",
     "Scanning needs an AI API key. Ask an admin to add one.": "Skanowanie wymaga klucza API AI. Poproś administratora, żeby go dodał.",
@@ -1013,6 +1022,7 @@
     "Shop Logos": "Logo sklepów",
     "Shop logos": "Logo sklepów",
     "Shop logos:": "Logo sklepów:",
+    "Shop mode": "Tryb sklepu",
     "Shopping": "Zakupy",
     "Shopping Lists": "Listy zakupów",
     "Shopping list": "Lista zakupów",
@@ -1043,6 +1053,7 @@
     "Some photos were deleted while the file was made; those receipts come without them.": "Część zdjęć usunięto w trakcie tworzenia pliku; te paragony zostaną zaimportowane bez nich.",
     "Some rows in the file cannot be imported:": "Niektórych wierszy pliku nie da się zaimportować:",
     "Some settings need attention before you can save.": "Niektóre ustawienia wymagają poprawy przed zapisem.",
+    "Sort by": "Sortuj według",
     "Sorted ascending": "Posortowano rosnąco",
     "Sorted descending": "Posortowano malejąco",
     "Sorting cleared": "Usunięto sortowanie",
@@ -1059,6 +1070,7 @@
     "Spent": "Wydano",
     "Spices": "Przyprawy",
     "Sports": "Sport",
+    "Standard": "Standardowy",
     "Star": "Gwiazda",
     "Start": "Początek",
     "Start Queue": "Uruchom kolejkę",
@@ -1090,8 +1102,6 @@
     "Sweets & Snacks": "Słodycze i przekąski",
     "Swiss franc (CHF 12.99)": "Frank szwajcarski (CHF 12.99)",
     "Switch household": "Zmień gospodarstwo",
-    "Switch to day mode": "Przełącz na tryb dzienny",
-    "Switch to night mode": "Przełącz na tryb nocny",
     "Symbol Display": "Wyświetlanie symbolu",
     "Symbol Position": "Położenie symbolu",
     "System": "System",
@@ -1653,6 +1663,10 @@
       "value": "Usuń klucz API",
       "closest": "API key"
     },
+    "Delete the open list": {
+      "value": "Usuń otwartą listę",
+      "closest": "Adding to the list"
+    },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Każda przeglądarka pobiera logo prosto z Logo.dev i przechowuje je przez jeden dzień. Logo.dev widzi, o logo których marek proszono, nigdy Twoje paragony. Na tym serwerze nic nie jest zapisywane."
     },
@@ -1712,12 +1726,19 @@
       "value": "W panelu Logo.dev otwórz API keys i skopiuj klucz publiczny (publishable key).",
       "closest": "In the Logo.dev dashboard, open API keys and copy the secret key."
     },
+    "Keep screen on": {
+      "value": "Nie wygaszaj ekranu",
+      "closest": "Could not keep the screen on."
+    },
     "Last Used At": {
       "value": "Ostatnio użyto"
     },
     "Last month": {
       "value": "Zeszły miesiąc",
       "closest": "Last page"
+    },
+    "Let the screen sleep": {
+      "value": "Pozwól wygasić ekran"
     },
     "Logo.dev publishable key": {
       "value": "Klucz publiczny Logo.dev",
@@ -1816,6 +1837,12 @@
     },
     "Stone": {
       "value": "Kamień"
+    },
+    "Switch to day mode": {
+      "value": "Przełącz na tryb dzienny"
+    },
+    "Switch to night mode": {
+      "value": "Przełącz na tryb nocny"
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Darmowy plan w zupełności wystarczy: pierwsze pobieranie pyta Logo.dev o każdą markę raz, potem codzienne sprawdzenie pyta o dane logo raz w miesiącu."

@@ -1,7 +1,7 @@
 @if (cards()) {
   <!-- A phone: one card per row instead of a table that scrolls sideways (the columns' `phone` roles place the cells). -->
-  @if (sortableColumns().length > 0) {
-    <!-- The headers are gone with the table, so sorting moves into one control above the rows. -->
+  @if (sortableColumns().length > 0 && dataSource().data.length > 0) {
+    <!-- The headers are gone with the table, so sorting moves into one control above the rows (none to sort: no control). -->
     <div class="flex items-center gap-2 border-b border-border/60 px-4 py-2" data-testid="table-card-sort">
       <label class="flex min-w-0 flex-1 items-center gap-2 text-xs font-medium text-muted-foreground">
         <span class="shrink-0">{{ 'Sort by' | t }}</span>

@@ -8,6 +8,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { HlmBadge } from "@spartan-ng/helm/badge";
 import { UploadProgressComponent } from "../shared-ui/upload-progress/upload-progress.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
+import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmAttachmentImports } from "@spartan-ng/helm/attachment";
@@ -72,6 +73,7 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     DragDropModule,
     InputModule,
     HlmBadge,
+    RowActionsComponent,
     ShopMonogramComponent,
     ...HlmCheckboxImports,
     HlmSpinner,

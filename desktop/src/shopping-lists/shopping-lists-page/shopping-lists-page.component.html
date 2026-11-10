@@ -3,7 +3,7 @@
   @if (!shopMode()) {
     <app-table-header
       [headerText]="'Shopping Lists' | t"
-      [subtitle]="groupName() ? ('Shared with everyone in {name}. Changes appear live on every device.' | t: { name: groupName() }) : ''"
+      [subtitle]="groupName() && !isHandset() ? ('Shared with everyone in {name}. Changes appear live on every device.' | t: { name: groupName() }) : ''"
     >
       <!-- Going shopping and Mark as complete sit with the list, receipts with their panel. -->
       <div class="flex items-center gap-2 [&_button]:h-control">
@@ -39,7 +39,7 @@
     @if (showActiveCards() && !shopMode()) {
       <!-- The lists being shopped, newest first, above the open one: a strip that scrolls sideways on a phone. -->
       <div
-        class="cv-scroll-x -mx-4 mt-4 flex snap-x gap-2 px-4 py-1 sm:mx-0 sm:flex-wrap sm:px-0"
+        class="cv-scroll-x -mx-4 mt-4 flex snap-x scroll-px-4 gap-2 px-4 py-1 sm:mx-0 sm:flex-wrap sm:px-0"
         role="group"
         data-testid="shopping-list-cards"
         [attr.aria-label]="'Lists' | t"

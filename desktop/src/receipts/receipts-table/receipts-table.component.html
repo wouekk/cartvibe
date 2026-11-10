@@ -254,6 +254,16 @@
 
 
 <ng-template #actionsCell let-element="element" let-index="index">
+  @if (isHandset()) {
+    <!-- A phone's card has room for one button: the same actions, in a menu. -->
+    <app-row-actions
+      menuTestId="receipt-row-menu"
+      [menuLabel]="'Receipt actions' | t"
+      [actions]="rowActions"
+      [row]="element"
+      (run)="runRowAction($event, element)"
+    ></app-row-actions>
+  } @else {
   <div class="flex w-full">
     <app-edit-button
       color="accent"
@@ -298,4 +308,5 @@
       (clicked)="deleteReceipt(element)"
     ></app-button>
   </div>
+  }
 </ng-template>
