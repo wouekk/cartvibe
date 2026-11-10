@@ -12,9 +12,9 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   which sets `GOTOOLCHAIN=local` itself, so check the image digest before raising the directive.
 - CI's `test-api` also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
   are in `ci.yml`) and `govulncheck`, each a failure. Neither tool runs through `go-without-cgo.sh` on Windows; vet does.
-- Accepted advisories: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported) and the excelize GHSA set, cleared by
-  pinning `github.com/xuri/excelize/v2` to the pseudo-version `v2.11.1-0.20261003002531-6258dcebc4e2`; move to the first
-  tagged release after 2026-10-03. Production only writes XLSX.
+- Accepted advisory: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported). The excelize GHSA set is fixed in
+  the tagged `github.com/xuri/excelize/v2` v2.11.1 (in `go.mod` since 2026-11-10; a pseudo-version held the fixes
+  until then). Production only writes XLSX.
 - The cgo bindings (ImageMagick 7, Tesseract) are not available on the Windows PC. `scripts/go-without-cgo.sh vet ./...`
   (or `test <pkg>`) stubs them; image/OCR tests and a few temp-path tests fail there only. Never build the server with it.
   One stubbed test panics and ends the `repositories` package early, hiding every test after it: run that package
