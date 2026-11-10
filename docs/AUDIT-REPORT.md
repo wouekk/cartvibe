@@ -111,7 +111,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     publishes `:vX.Y.Z` and `:X.Y`; the one version number is the tag (`package.json` and `swagger.yml` are
     `0.0.0`); a release's database (`testdata/schema-v0.18.0.sql`) is migrated by today's code in a test (B3). An
     image is scanned before it is pushed, with one rebuild without the cache for a fixable critical finding (S19).
-    CI: tests under the race detector, `check:traps` (the guide's traps as checks, with two counts that only go
+    CI: the race detector on the concurrent packages (the whole suite under it ran past 25 minutes), `check:traps` (the guide's traps as checks, with two counts that only go
     down), a test that the router and `swagger.yml` name the same routes, a coverage floor for the app, a phone
     spec in Chromium and WebKit, and runs for a pull request from a fork (B8).
   - Not done, on purpose. Base images are not pinned by digest (B7): the weekly rebuild without the cache takes

@@ -16,7 +16,7 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
   **IMPORTANT:** merging or pushing code to `main` waits for the user's go. A docs-only change (Markdown files only; no
   code, config or workflow) may follow `preview` to `main` without asking.
 - CI (`ci.yml`) runs on `main`, `feature/**`, Dependabot's branches and a pull request from a fork: Go build, vet,
-  static analysis, a vulnerability scan and tests under the race detector; desktop `npm audit`, `check:traps`, Vitest
+  static analysis, a vulnerability scan, tests, and the race detector on the code where goroutines meet; desktop `npm audit`, `check:traps`, Vitest
   (with a coverage floor) and `ng build` (the spec build compiles components JIT, so template errors only show in the
   build). A feature branch runs the jobs its change touches; `main` runs all of them. CI is the judge;
   never claim tests passed that did not run. The `e2e-smoke` job runs a few Playwright specs (`npm run e2e:smoke`,
