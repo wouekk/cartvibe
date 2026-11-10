@@ -43,6 +43,10 @@ export interface UpsertReceiptProcessingSettingsCommand {
      * Enforce JSON response format on the LLM provider. Disable if the provider does not support this flag.
      */
     enforceJsonResponseFormat?: boolean;
+    /**
+     * Ollama only. The context size (num_ctx) in tokens; 0 leaves the model server its own default, which is a few thousand and cuts a long receipt short.
+     */
+    contextSize?: number;
     ocrEngine: OcrEngine;
 }
 export namespace UpsertReceiptProcessingSettingsCommand {

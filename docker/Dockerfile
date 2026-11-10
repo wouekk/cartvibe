@@ -61,7 +61,7 @@ FROM debian:trixie-slim
 ENV ENV="prod"
 ENV BASE_PATH="/app/cartvibe-api"
 
-# What the API runs at run time: nginx, Tesseract and its English data, ImageMagick with HEIC and PDF support, Chromium
+# What the API runs at run time: nginx, Tesseract and its data for the five languages the app ships in, ImageMagick with HEIC and PDF support, Chromium
 # (report PDFs), certificates for HTTPS calls and time zone data for the app time zone.
 # Recommended packages are off: Tesseract (the library the API links and the binary), ghostscript (PDF to image) and
 # the fonts (Helvetica for ImageMagick, Liberation for Arial in reports) are named below because they only used to
@@ -71,7 +71,7 @@ ENV BASE_PATH="/app/cartvibe-api"
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y --no-install-recommends ca-certificates tzdata nginx \
-    && apt-get install -y --no-install-recommends imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr tesseract-ocr-eng ghostscript fonts-urw-base35 fonts-liberation chromium \
+    && apt-get install -y --no-install-recommends imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr tesseract-ocr-eng tesseract-ocr-pol tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa ghostscript fonts-urw-base35 fonts-liberation chromium \
     && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
 
 # The API runs as this user (entrypoint.sh drops to it); nginx keeps its own www-data workers.

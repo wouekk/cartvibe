@@ -18,7 +18,7 @@ apt-get update -y -qq
 apt-get install -y -qq build-essential pkg-config
 
 # Tesseract with its English data, and the HEIC libraries ImageMagick links.
-apt-get install -y -qq libtesseract-dev libleptonica-dev tesseract-ocr-eng libde265-dev libheif-dev
+apt-get install -y -qq libtesseract-dev libleptonica-dev tesseract-ocr-eng tesseract-ocr-pol tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa libde265-dev libheif-dev
 
 # ImageMagick 7 with HEIC support.
 apt-get install -y -qq imagemagick-7.q16 libmagickwand-7.q16-dev

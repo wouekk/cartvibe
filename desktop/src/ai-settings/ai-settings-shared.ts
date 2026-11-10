@@ -14,7 +14,11 @@ export const AI_PROVIDER_OPTIONS: { value: AiType; displayValue: string }[] = [
   { value: AiType.Gemini, displayValue: "Gemini" },
   { value: AiType.OpenAi, displayValue: "ChatGPT" },
   { value: AiType.OpenAiCustom, displayValue: marker("Local LM") },
+  { value: AiType.Ollama, displayValue: "Ollama" },
 ];
+
+/** The most a context size may be (the API's own bound). */
+export const MAX_AI_CONTEXT_SIZE = 1048576;
 
 /** The offered providers, plus whatever an older setting uses, so opening the page does not lose it. */
 export function providerOptions(savedType: AiType | undefined): { value: string; displayValue: string }[] {
@@ -59,6 +63,8 @@ export interface AiProviderControls {
   url: FormControl<string | null>;
   key: FormControl<string | null>;
   isVisionModel: FormControl<boolean | null>;
+  /** Ollama only: how many tokens of the prompt the model keeps (num_ctx). Empty keeps Ollama's own default. */
+  contextSize: FormControl<number | null>;
 }
 
 export type AiProviderValue = {
@@ -67,6 +73,7 @@ export type AiProviderValue = {
   url?: string | null;
   key?: string | null;
   isVisionModel?: boolean | null;
+  contextSize?: number | null;
 };
 
 export function buildAiProviderControls(formBuilder: FormBuilder, aiType: AiType = AiType.Gemini): AiProviderControls {
@@ -77,6 +84,7 @@ export function buildAiProviderControls(formBuilder: FormBuilder, aiType: AiType
     url: formBuilder.control<string | null>(""),
     key: formBuilder.control<string | null>(""),
     isVisionModel: formBuilder.control<boolean | null>(true),
+    contextSize: formBuilder.control<number | null>(null, [Validators.min(0), Validators.max(MAX_AI_CONTEXT_SIZE)]),
   };
 }
 
@@ -88,6 +96,7 @@ export function providerValueFrom(settings: ReceiptProcessingSettings): Required
     url: settings.url ?? "",
     key: "",
     isVisionModel: settings.isVisionModel ?? true,
+    contextSize: settings.contextSize || null,
   };
 }
 
@@ -146,8 +155,11 @@ export function buildProviderCommand(
     url: cloud ? "" : (value.url ?? "").trim(),
     key: (value.key ?? "").trim(),
     isVisionModel: cloud ? true : !!value.isVisionModel,
-    // Gemini and ChatGPT can be held to JSON answers; Claude has no such switch, and LM Studio refuses the flag.
-    enforceJsonResponseFormat: aiType === AiType.Gemini || aiType === AiType.OpenAi,
+    // Gemini, ChatGPT and Ollama can be held to JSON answers; LM Studio refuses that flag. Claude and every other
+    // provider get the schema of the answer where the API has one for the call, whatever this says.
+    enforceJsonResponseFormat: aiType === AiType.Gemini || aiType === AiType.OpenAi || aiType === AiType.Ollama,
+    // Only Ollama reads it; 0 leaves its own default.
+    contextSize: aiType === AiType.Ollama ? Math.trunc(Number(value.contextSize)) || 0 : 0,
     ocrEngine: saved?.ocrEngine ?? OcrEngine.Tesseract,
   };
 }

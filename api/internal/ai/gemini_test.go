@@ -33,6 +33,9 @@ type geminiRequest struct {
 // and points the client at it for the length of the test.
 func newFakeGemini(t *testing.T, statuses ...int) *[]geminiRequest {
 	t.Helper()
+	// A refusal remembered by an earlier test would strip this one's settings.
+	forgetPlainAnswers()
+	t.Cleanup(forgetPlainAnswers)
 	requests := []geminiRequest{}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

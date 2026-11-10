@@ -110,6 +110,12 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - Any image returned to a browser goes through `FileRepository.BuildDisplayImageString` (rasterizes PDF, transcodes
   HEIC). `BuildEncodedImageString` alone labels PDF bytes `image/jpeg`. Avatars are converted once, at upload, and
   served as stored (JPEG, PNG, WebP or GIF only).
+- **A receipt image reaches the browser as a file:** `GET /receiptImage/{id}/file?w=display|thumb`
+  (`repositories/image_copies.go`) serves a JPEG copy kept in `data/derived/<fileId>-<variant>.jpg`, with an ETag and
+  `Cache-Control: private, immutable` (an image never changes under its id). The copy is made once (the display one
+  at upload, else on first request), removed with the image, and swept daily for images deleted along other paths.
+  The copies are a cache: never export them, never read them as the original. An image id that does not exist
+  answers the 403 of a refusal in every image handler (`writeUnknownImage`).
 
 ### Handler gate
 
@@ -261,13 +267,24 @@ which day an instant falls on and what "today" means.
 - Every provider call is bounded (the HTTP client, and a context where the SDK takes one): `constants.AiHttpTimeout` (3 min) for hosted providers,
   `AiLocalHttpTimeout` (10 min) for Ollama and OpenAI-compatible servers. Every sweep run gets a context that ends after
   30 minutes or when the server stops (`runPeriodicTask`), and the handlers honour it. A product read is stored in one transaction against the receipt as it is then.
-- **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, ```json fences stripped, a refusal is an
-  error so the backup takes over), ChatGPT (`OPEN_AI`, JSON mode), OpenAI-compatible servers and Ollama. SDK retries are
-  off everywhere: the sweeps count every try. A stored key is used only for the provider it was saved under.
-- **The configured URL is used verbatim.** `open_ai.go` appends only `/chat/completions`; Ollama posts to the URL as
-  entered. Azure uses its `…/openai/v1` endpoint with the deployment as model (URL sniffing was removed on purpose).
-- Vision images are normalized (`FileRepository.NormalizeImageForVision`); the stored original is untouched. Tesseract is
-  the only OCR engine.
+- **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, low effort, ```json fences stripped, a
+  refusal is an error so the backup takes over), ChatGPT (`OPEN_AI`), OpenAI-compatible servers and Ollama. SDK retries
+  are off everywhere: the sweeps count every try. A stored key is used only for the provider it was saved under.
+- **Answers by schema:** a receipt read and a product read pass `ResponseSchema` (`services/ai_answer_schemas.go`), and
+  each client sends it through its provider's own setting. A provider drops every key the schema does not name, so
+  **a key added to a prompt is added to its schema in the same change** (`ai_answer_schemas_test.go` compares them).
+  A model that answers 400 to the structured settings is asked once more without them and remembered until the
+  process restarts (`ai/plain_answers.go`); only 400 falls back, and only a success is remembered.
+- **Token counts:** every call's input and output tokens go into `ai_usages` (one row per day, provider and model;
+  `AiService.CreateChatCompletion` is the one place that records). `GET /receiptProcessingSettings/usage` totals
+  this month and the one before. A count that cannot be stored is logged and never fails the read.
+- **The configured URL is used verbatim,** with one exception: an Ollama URL that names only the server gets
+  `/api/chat` (`ai.OllamaChatUrl`). `open_ai.go` appends only `/chat/completions`. Azure uses its `…/openai/v1`
+  endpoint with the deployment as model (URL sniffing was removed on purpose). Ollama's `contextSize` goes out as
+  `num_ctx`; 0 sends none.
+- Vision images are normalized (`FileRepository.NormalizeImageForVision`); the stored original is untouched. Tesseract
+  is the only OCR engine, and reads in the five languages the app ships in (`ocrLanguages`; the image installs the
+  data and `runtime-check.sh` proves each).
 - **Prompts are code** (`services/receipt_prompt.go`). A receipt answer keeps the prompted fields only
   (`onlyPromptedReceiptFields`): the AI never sets tags, payer, status, household or comments, and never a switched-off
   category. A new field the AI may fill is added to the prompt and to that function together. Read `../docs/ai-prompts.md` before changing a prompt. `foodGroupResolver` maps AI category names onto

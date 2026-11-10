@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// MaxAiContextSize bounds ContextSize: more than any model takes, and small enough to be a typing mistake's guard.
+const MaxAiContextSize = 1 << 20
+
 type UpsertReceiptProcessingSettingsCommand struct {
 	Name                      string              `json:"name"`
 	Description               string              `json:"description"`
@@ -19,6 +22,8 @@ type UpsertReceiptProcessingSettingsCommand struct {
 	IsVisionModel             bool                `json:"isVisionModel"`
 	EnforceJsonResponseFormat bool                `json:"enforceJsonResponseFormat"`
 	OcrEngine                 models.OcrEngine    `json:"ocrEngine"`
+	// ContextSize is Ollama's num_ctx in tokens; 0 leaves the model server's default.
+	ContextSize int `json:"contextSize"`
 }
 
 func (command *UpsertReceiptProcessingSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -70,6 +75,10 @@ func (command *UpsertReceiptProcessingSettingsCommand) Validate(updateKey bool) 
 		}
 	}
 
+	if command.ContextSize < 0 || command.ContextSize > MaxAiContextSize {
+		errors["contextSize"] = "contextSize must be between 0 and 1048576"
+	}
+
 	if command.AiType == models.OPEN_AI_CUSTOM_NEW || command.AiType == models.OLLAMA {
 		if len(command.Url) == 0 {
 			errors["url"] = "url is required"
@@ -88,5 +97,6 @@ func (command *UpsertReceiptProcessingSettingsCommand) IsEmpty() bool {
 		command.Model == "" &&
 		!command.IsVisionModel &&
 		!command.EnforceJsonResponseFormat &&
+		command.ContextSize == 0 &&
 		command.OcrEngine == ""
 }

@@ -1,14 +1,14 @@
 package ai
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
 	"strings"
 
 	"google.golang.org/genai"
@@ -82,14 +82,27 @@ func (gemini GeminiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	}
 	if gemini.ReceiptProcessingSettings.EnforceJsonResponseFormat {
 		config.ResponseMIMEType = "application/json"
+		// With a schema the answer is JSON of that shape, not just JSON.
+		if schema := gemini.Options.ResponseSchema; schema != nil {
+			config.ResponseJsonSchema = schema.Schema
+		}
+	}
+	if wantsPlainAnswer(gemini.ReceiptProcessingSettings) {
+		config.ThinkingConfig = nil
+		config.ResponseJsonSchema = nil
 	}
 
 	resp, err := client.Models.GenerateContent(ctx, gemini.ReceiptProcessingSettings.Model, contents, config)
-	// A model that refuses the thinking setting answers 400: ask once more without it rather than fail the read.
+	// A model that refuses the thinking setting or the schema answers 400: ask once more without them rather than
+	// fail the read.
 	var apiErr genai.APIError
-	if err != nil && config.ThinkingConfig != nil && errors.As(err, &apiErr) && apiErr.Code == http.StatusBadRequest {
+	if err != nil && (config.ThinkingConfig != nil || config.ResponseJsonSchema != nil) && errors.As(err, &apiErr) && apiErr.Code == http.StatusBadRequest {
 		config.ThinkingConfig = nil
+		config.ResponseJsonSchema = nil
 		resp, err = client.Models.GenerateContent(ctx, gemini.ReceiptProcessingSettings.Model, contents, config)
+		if err == nil {
+			rememberPlainAnswer(gemini.ReceiptProcessingSettings)
+		}
 	}
 	if err != nil {
 		responseBytes, _ := json.Marshal(resp)
@@ -103,6 +116,11 @@ func (gemini GeminiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	}
 	result.RawResponse = string(responseBytes)
 	result.Response = resp.Text()
+	if usage := resp.UsageMetadata; usage != nil {
+		result.InputTokens = int64(usage.PromptTokenCount)
+		// Gemini bills its thinking as output, and counts it apart from the answer.
+		result.OutputTokens = int64(usage.CandidatesTokenCount) + int64(usage.ThoughtsTokenCount)
+	}
 
 	return result, nil
 }

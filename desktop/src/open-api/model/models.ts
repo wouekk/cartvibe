@@ -2,6 +2,7 @@ export * from './about';
 export * from './activity';
 export * from './aiModel';
 export * from './aiModelsCommand';
+export * from './aiUsageMonth';
 export * from './appData';
 export * from './appLogEntry';
 export * from './associatedEntityType';

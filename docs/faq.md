@@ -55,7 +55,12 @@ provider's website, then paste it into CartVibe. Each link goes straight to the 
 | **Gemini** (Google) | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | **AI** page, provider **Gemini** |
 | **ChatGPT** (OpenAI) | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | **AI** page, provider **ChatGPT** |
 
-A model you run yourself (**Local LM**, such as LM Studio or Ollama) needs no key from these sites: choose it on the same **AI** page and enter its address.
+A model you run yourself needs no key from these sites: choose **Local LM** (LM Studio and other OpenAI-compatible servers, address ending in `/v1`) or **Ollama** (the
+server's address alone, such as `http://192.168.1.20:11434`) on the same **AI** page. With Ollama, also fill in **Context size**: left empty, Ollama keeps only a few
+thousand tokens and reads a long receipt in part; `8192` fits most receipts.
+
+The **AI** page shows what each model used, this month and last: the number of reads and the tokens sent and written, as the provider counted them. Multiply by the
+prices below to see what your receipts cost.
 
 ### Step by step
 

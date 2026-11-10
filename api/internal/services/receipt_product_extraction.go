@@ -5,18 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
 
-	"gorm.io/gorm"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"gorm.io/gorm"
 
 	"github.com/shopspring/decimal"
 )
@@ -565,8 +565,9 @@ func (service ReceiptProductExtractionService) askAi(
 
 	aiService := AiService{ReceiptProcessingSettings: settings}
 	response, _, err := aiService.CreateChatCompletion(structs.AiChatCompletionOptions{
-		Messages:   []structs.AiClientMessage{message},
-		DecryptKey: true,
+		Messages:       []structs.AiClientMessage{message},
+		DecryptKey:     true,
+		ResponseSchema: productAnswerSchema(),
 	})
 
 	return response, err

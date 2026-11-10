@@ -7,7 +7,15 @@
   [inputFormControl]="controls().aiType"
 ></app-select>
 
-@if (isLocal()) {
+@if (isOllama()) {
+  <app-input
+    [label]="'Server URL' | t"
+    [attr.data-testid]="testId('url')"
+    placeholder="http://192.168.1.20:11434"
+    hint="Ollama's address as the NAS reaches it. The server alone is enough."
+    [inputFormControl]="controls().url"
+  ></app-input>
+} @else if (isLocal()) {
   <app-input
     [label]="'Server URL' | t"
     [attr.data-testid]="testId('url')"
@@ -38,8 +46,19 @@
   <app-input
     [label]="'Model' | t"
     [attr.data-testid]="testId('model')"
-    hint="The model name as LM Studio lists it"
+    [hint]="isOllama() ? 'The model name as Ollama lists it' : 'The model name as LM Studio lists it'"
     [inputFormControl]="controls().model"
+  ></app-input>
+}
+
+@if (isOllama()) {
+  <app-input
+    type="number"
+    [label]="'Context size (optional)' | t"
+    [attr.data-testid]="testId('context-size')"
+    placeholder="8192"
+    hint="How many tokens of a receipt the model keeps. Left empty, Ollama keeps a few thousand and reads a long receipt only in part; 8192 fits most receipts."
+    [inputFormControl]="controls().contextSize"
   ></app-input>
 }
 

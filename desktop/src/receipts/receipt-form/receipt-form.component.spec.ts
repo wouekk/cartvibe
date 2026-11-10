@@ -370,6 +370,21 @@ describe("ReceiptFormComponent", () => {
     expect(component.editLink).toEqual("/receipts/2/edit");
   });
 
+  // The browser fetches each photo as a file and keeps it; nothing is read as base64 through the client.
+  it("shows a receipt's photos from their image files, without asking the client for them", () => {
+    const read = vi.spyOn(TestBed.inject(ReceiptImageService), "getReceiptImageById");
+
+    routeDataSubject.next({
+      receipt: { id: 9, name: "Market", amount: "10.00", imageFiles: [{ id: 31, name: "front.jpg", receiptId: 9 }, { id: 32, receiptId: 9 }] } as any,
+    });
+
+    expect(read).not.toHaveBeenCalled();
+    expect(component.images().map((image) => [image.id, image.name, image.encodedImage])).toEqual([
+      [31, "front.jpg", "/api/receiptImage/31/file"],
+      [32, "", "/api/receiptImage/32/file"],
+    ]);
+  });
+
   it("sets only the total when the products card asks, and shows the new total", () => {
     routeDataSubject.next({ receipt: { id: 4, name: "Market", amount: "75.00" } as any });
     const service = TestBed.inject(ReceiptService);

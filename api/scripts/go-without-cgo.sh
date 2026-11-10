@@ -89,6 +89,7 @@ type Client struct{}
 func NewClient() *Client                                                    { return &Client{} }
 func (client *Client) Close() error                                         { return nil }
 func (client *Client) SetVariable(key SettableVariable, value string) error { return nil }
+func (client *Client) SetLanguage(langs ...string) error                    { return nil }
 func (client *Client) SetImageFromBytes(data []byte) error                  { return nil }
 func (client *Client) Text() (string, error)                                { return "", nil }
 EOF

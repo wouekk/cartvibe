@@ -89,7 +89,7 @@ describe("AiProviderFieldsComponent", () => {
     expect(service.getAiModels).not.toHaveBeenCalledWith(expect.objectContaining({ receiptProcessingSettingsId: 12 }));
   });
 
-  it("keeps an older provider in the list so opening the page does not lose it", async () => {
+  it("lists Ollama once when it is the saved provider", async () => {
     await setUp(AiType.Ollama, { id: 3, aiType: AiType.Ollama } as ReceiptProcessingSettings);
 
     expect(fixture.componentInstance.providers().map((option) => option.displayValue)).toEqual([
@@ -97,7 +97,7 @@ describe("AiProviderFieldsComponent", () => {
       "Gemini",
       "ChatGPT",
       "Local LM",
-      "OLLAMA (set up before)",
+      "Ollama",
     ]);
   });
 

@@ -78,14 +78,12 @@ the app time zone (Quick Scan, whose date is not known before the read).
 
 Receipt read (keys left out when not read with confidence):
 ```json
-{"name":"...","shopName":"...","currency":"PLN","amount":12.5,"date":"2026-10-21T00:00:00Z","categories":[{"id":3}],"customFields":[{"customFieldId":2,"stringValue":"..."}],"products":[...]}
+{"name":"...","shopName":"...","currency":"PLN","amount":12.5,"date":"2026-10-21T00:00:00Z","categories":[{"id":3}],"products":[...]}
 ```
 - `date` must be RFC 3339 at midnight UTC (a receipt date is a calendar day).
 - `amount` negative for a refund/return/credit.
 - `categories`: up to 2 ids from the offered list (`[{id, name, description?}]`); id-only answers are resolved to names,
   and Quick Scan drops one switched off for the AI (a person's own pick is kept).
-- `customFields`: one value per field by type (`stringValue`, `dateValue` yyyy-MM-dd, `selectValue` option id,
-  `currencyValue`, `booleanValue`); read leniently, a bad value is dropped, never fails the receipt.
 - `products` only with the inline part (Quick Scan).
 
 Product line (inline or sweep; sweep answers also carry `shop` and `currency`):
@@ -96,20 +94,35 @@ Product line (inline or sweep; sweep answers also carry `shop` and `currency`):
 - `amount` after the line's own discount; text like "1,09 €" is accepted.
 - `quantity`, `seasonality` may be left out. A line without a usable `health` is left for the classification sweep.
 
+**The two receipt shapes are also JSON Schemas** (`api/internal/services/ai_answer_schemas.go`), sent to the provider
+with the call so the answer comes back in that shape. A provider leaves out every key the schema does not name:
+when a prompt gains a key, add it to the schema in the same change (a test compares the prompts' examples with the
+schemas). Only `name` (receipt) and `products` (product read) are required, so a model still leaves out what it
+could not read.
+
 Classification: `{"products":[{"id":"1","health":"...","foodGroup":"...","seasonality":"..."}]}`, one entry per id given.
 Trip comparison: `{"products":[{"id":"1","listItemId":"2"},{"id":"2","listItemId":null}]}`; an answer that skips a
 product is an error (guessing "unplanned" would overstate unplanned spend).
 
 ## Models and sampling (`api/internal/ai/`)
 
-- Providers: Gemini (`google.golang.org/genai`), OpenAI-compatible (OpenAI, LM Studio), Ollama. Vision models get the
-  images, others the OCR text (Tesseract).
+- Providers: Claude (`anthropic-sdk-go`), Gemini (`google.golang.org/genai`), OpenAI-compatible (OpenAI, LM Studio),
+  Ollama. Vision models get the images, others the OCR text (Tesseract, in English, Polish, German, French and
+  Spanish).
+- Claude is asked at low effort (`output_config.effort`): a receipt is extraction, and the default effort spends most
+  of the wait and of the output tokens on thinking.
+- Structured answers: the schema goes out as Claude's `output_config.format`, Gemini's `responseJsonSchema`, OpenAI's
+  `json_schema` response format (not strict: strict wants every key in every answer) and Ollama's `format`. A 400
+  retries once without the structured settings and the model is remembered until a restart.
+- Ollama's context size (`contextSize` on the AI page, sent as `num_ctx`): left empty, Ollama keeps a few thousand
+  tokens and drops the start of a longer prompt without a word, so a long receipt reads as half a receipt.
 - Temperature 0 everywhere (OpenAI; Ollama in `options.temperature`, its native API ignores the top-level key), except
   **Gemini 3**, which keeps its default 1.0 on Google's guidance (`geminiTemperature`).
 - Gemini thinking is turned down (`geminiThinkingConfig`: 2.5 Flash off, 2.5 Pro 128 tokens, Gemini 3 LOW); a 400 retries
   once without it.
-- `EnforceJsonResponseFormat` (processing setting, on by default) sends the JSON response mode; off for servers that
-  reject it (LM Studio).
+- `EnforceJsonResponseFormat` (processing setting, on by default) sends the plain JSON response mode; off for servers
+  that reject it (LM Studio, which takes a schema instead).
+- Every call's token counts are kept per day, provider and model, and the AI page totals the last two months.
 - The primary processing setting is tried first, then the fallback ("backup AI").
 
 ## Failure handling

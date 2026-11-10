@@ -31,4 +31,6 @@ const (
 	// DatabaseMaintenance lets SQLite refresh its planner statistics and trims the WAL file (see
 	// repositories.OptimizeDatabase).
 	DatabaseMaintenance = "system_clean_up:database_maintenance"
+	// ImageCopyCleanUp deletes the stored display copies and thumbnails whose image is gone (repositories/image_copies.go).
+	ImageCopyCleanUp = "system_clean_up:image_copies"
 )

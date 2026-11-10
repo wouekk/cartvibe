@@ -1,5 +1,6 @@
 import {
   AiModel,
+  AiUsageMonth,
   BackupSummary,
   CurrencyRateTable,
   ReceiptProcessingSettings,
@@ -86,6 +87,10 @@ export function registerAdmin(router: DemoRouter): void {
     resultDescription: "The demo does not contact any AI provider; this check is scripted.",
   }));
   router.post("/receiptProcessingSettings/aiModels", (): AiModel[] => [{ name: "demo", displayName: "Demo (scripted)" }]);
+  // What the scripted reads of the sample receipts would have cost, so the usage card has something to show.
+  router.get("/receiptProcessingSettings/usage", (ctx): AiUsageMonth[] => [
+    { month: ctx.db.today.slice(0, 7), aiType: "GEMINI", model: "demo", calls: 4, inputTokens: 6120, outputTokens: 1480 },
+  ]);
   router.post("/receiptProcessingSettings", (ctx) => {
     const command = body<UpsertReceiptProcessingSettingsCommand>(ctx);
     const settings: ReceiptProcessingSettings = { ...command, id: nextId(ctx.db, "processing"), createdAt: instantOn(ctx.db.today), key: undefined };
