@@ -8,6 +8,10 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 
 - `/overview/group/:groupId` is the landing page (`GroupState.overviewLink`); `overviewReadGuard`
   (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
+- **Receipt photos are files, not JSON.** The receipt page shows each image from `GET /receiptImage/{id}/file`
+  (`utils/receipt-image-url.ts`): the browser fetches it with the session cookie and keeps it for good. The demo has
+  no server to fetch from, so there `ReceiptFormComponent.getImageFiles` still reads base64 through the client
+  (`DEMO_MODE`). `w=thumb` gives a 320 px preview for a list that wants one.
 - `app-period-picker` is the one period control (also on the receipts table, where it sets the Receipt Date filter).
   Requests send `from` / `to` as `yyyy-MM-dd` in the app zone (`overview-period.ts`). **It emits its period as soon
   as it mounts.** The Dashboard therefore compares its `request` by value (the same days in a new object must not

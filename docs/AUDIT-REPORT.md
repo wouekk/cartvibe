@@ -120,7 +120,18 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     itself, as the publish does, and the layer cache already makes the second build cheap. No cache mounts in the
     Dockerfile (B7): the gha layer cache covers the dependency layers. arm64 waits for B9.
   - `:latest` stays on green `main` (the decisions table).
-- [ ] 7. AI and files: B5.2, B5.3, B5.7, B6, S18
+- [ ] 7. AI and files (`feature/ai-and-files`, cut from sprint 6's branch): B5.2, B5.3, B5.5, B5.6, B5.7, B6, S18
+  - Done on the branch on 2026-11-10. A receipt read and a product read carry a JSON Schema of the answer, sent
+    through each provider's own setting, with one retry without it for a model that answers 400 and a memory of
+    that until the restart (B5.2). Claude is asked at low effort (B5.3). Ollama is a provider on the AI page with
+    a context size sent as `num_ctx`, and a URL that names only the server gets `/api/chat` (B5.5). Tesseract
+    reads in the five languages the app ships in (B5.6). Token counts are kept per day, provider and model, and
+    the AI page totals two months (B5.7). A receipt image is served as a cached JPEG file from a stored copy
+    (display and thumbnail), the receipt page uses it, and an unknown image id answers the 403 of a refusal in
+    every image handler; an upload is capped by the API itself (B6, S18).
+  - Not verified against a live provider: no key is available here, so the structured settings are proved against
+    fake servers only. The retry without them is what keeps a provider that refuses one from failing reads.
+  - Left for sprint 11 (its own item there): storing files by id only.
 - [ ] 8. Fixed roles: C14
 - [ ] 9. Identity-provider screens: D15
 - [ ] 10. App cleanup: C10, C11, C13, D6 to D11, F6, F8

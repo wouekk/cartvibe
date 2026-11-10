@@ -20,6 +20,7 @@ import { SnackbarService } from "../../services";
 import { TranslationService } from "../../i18n/translation.service";
 import { SetFeatureConfig } from "../../store";
 import { AiProviderFieldsComponent } from "../ai-provider-fields/ai-provider-fields.component";
+import { AiUsageCardComponent } from "../ai-usage-card/ai-usage-card.component";
 import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
 import {
   AI_SETTINGS_NAME,
@@ -52,6 +53,7 @@ export type { ConnectionResult } from "../ai-settings-shared";
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AiFallbackCardComponent,
+    AiUsageCardComponent,
     AiProviderFieldsComponent,
     SharedUiModule,
     CommonModule,

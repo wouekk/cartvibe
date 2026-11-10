@@ -31,6 +31,10 @@ and you can add `stop_grace_period: 30s` to your stack as the README shows, so a
 it is doing.
 
 ### Added
+- **Ollama on the AI page, with a context size.** Ollama is its own provider now: enter the server's address alone,
+  and a *Context size*, so a long receipt is read whole instead of in part *(ADM-05)*.
+- **What the AI used.** The AI page lists, for this month and the last, how many reads each model did and how many
+  tokens it was sent and wrote, as the provider counted them *(ADM-18)*.
 - **Releases have their own image tags.** From 0.19 on, a release is published as `:v0.19.0`, which never changes,
   and `:0.19`, which follows the fixes of that release line. `:latest` still follows the newest tested version
   *(ADM-16)*.
@@ -63,6 +67,14 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **Receipt photos open faster and are kept by the browser.** A photo used to travel as text inside the page's
+  data, a third larger than the file, on every visit, and a HEIC or PDF was converted each time. The server now
+  keeps a ready copy and the browser keeps it too, so opening a receipt again shows its photo at once *(RCPT-02)*.
+- **The AI is asked for its answer in a fixed shape,** which removes a class of unreadable answers, and Claude is
+  asked to think less about a receipt than it would by default, which shortens the wait *(SCAN-02)*.
+- **Receipts are read in five languages without a vision model.** For models that get the receipt as text, the
+  text is now read in English, Polish, German, French and Spanish; with English alone, accented letters were lost
+  *(SCAN-02)*.
 - **The server never runs as root by accident.** When the folders refused the container's own user, the server
   used to carry on as root with one line in the log. It now stops and says what to set; running as root is a
   switch (`ALLOW_ROOT=1`), and the About page reminds an admin while it is on. The container also keeps only
@@ -131,6 +143,8 @@ it is doing.
   Go 1.26 still works.
 
 ### Fixed
+- **An image address no longer says whether an image exists.** Asking for a receipt image that is not there used
+  to answer differently from asking for one you may not see.
 - **A busy moment no longer looks like a failure.** The server turns requests away when too many arrive at once
   from one connection, and the app used to show that as an empty panel or a failed save. It now waits a second and
   asks again, and says *Too many requests at once* only if that did not help *(APP-18)*.

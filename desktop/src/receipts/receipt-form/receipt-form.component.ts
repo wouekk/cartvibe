@@ -38,6 +38,8 @@ import { SystemSettingsState } from "../../store/system-settings.state";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
 import { familyReceiptStatus } from "../../utils/receipt-status";
 import { downloadFile } from "../../utils/file";
+import { receiptImageFileUrl } from "../../utils/receipt-image-url";
+import { DEMO_MODE } from "../../demo/demo-runtime";
 import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { ReceiptCommentsComponent } from "../receipt-comments/receipt-comments.component";
 
@@ -522,7 +524,26 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
       .subscribe();
   }
 
+  /**
+   * The receipt's photos. Each is shown straight from the server's image file (`/receiptImage/{id}/file`), which the
+   * browser fetches, shows as it arrives and keeps, so opening the receipt again costs nothing. They used to be read
+   * as base64 inside JSON, a third larger, on every visit. The demo has no server to fetch a file from, so it still
+   * reads its pictures through the client.
+   */
   private getImageFiles(): void {
+    const files = this.originalReceipt?.imageFiles ?? [];
+    if (files.length > 0 && !DEMO_MODE) {
+      this.images.set(
+        files.map((file) => ({
+          id: file.id,
+          name: file.name ?? "",
+          createdAt: file.createdAt ?? "",
+          encodedImage: receiptImageFileUrl(this.receiptImageService.configuration.basePath, file.id),
+        }))
+      );
+      return;
+    }
+
     if (
       this.originalReceipt?.imageFiles &&
       this.originalReceipt?.imageFiles?.length > 0

@@ -51,6 +51,9 @@ export class AiProviderFieldsComponent {
 
   public readonly isLocal = computed(() => isLocalProvider(this.aiType()));
 
+  /** Ollama has its own address (no /v1) and a context size. */
+  public readonly isOllama = computed(() => this.aiType() === AiType.Ollama);
+
   public readonly currentAiType = computed(() => this.aiType() ?? AiType.Gemini);
 
   public readonly providers = computed(() => providerOptions(this.saved()?.aiType));

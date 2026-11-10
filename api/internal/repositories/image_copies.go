@@ -90,10 +90,11 @@ func (repository FileRepository) ImageCopyPath(fileData models.FileData, variant
 	return path, nil
 }
 
-// MakeImageCopies makes both copies of a new upload, so the first view does not wait for them. A failure is
-// logged, never returned: the copy is made again when it is asked for.
+// MakeImageCopies makes the display copy of a new upload, so the first view does not wait for it (the thumbnail
+// is made when something first asks for one). A failure is logged, never returned: the copy is made again when
+// it is asked for.
 func (repository FileRepository) MakeImageCopies(fileData models.FileData) {
-	for _, variant := range []string{ImageCopyDisplay, ImageCopyThumb} {
+	for _, variant := range []string{ImageCopyDisplay} {
 		if _, err := repository.ImageCopyPath(fileData, variant); err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "image copies: could not make the "+variant+" copy of image "+utils.UintToString(fileData.ID)+": "+err.Error())
 		}

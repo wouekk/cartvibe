@@ -27,6 +27,7 @@ describe("AiSettingsPageComponent", () => {
     processingService = {
       getReceiptProcessingSettingsById: vi.fn(() => of(stored)),
       getAiModels: vi.fn(() => of([])),
+      getAiUsage: vi.fn(() => of([])),
       createReceiptProcessingSettings: vi.fn((command) => of({ id: 5, ...command })),
       updateReceiptProcessingSettingsById: vi.fn((id, _updateKey, command) => of({ id, ...command })),
       checkReceiptProcessingSettingsConnectivity: vi.fn(() =>
@@ -80,7 +81,7 @@ describe("AiSettingsPageComponent", () => {
     expect(component.saved()?.id).toBe(5);
   });
 
-  it("offers Claude, Gemini, ChatGPT and Local LM, in that order", async () => {
+  it("offers Claude, Gemini, ChatGPT, Local LM and Ollama, in that order", async () => {
     await setUp({});
     const fields = fixture.debugElement.query((element) => element.name === "app-ai-provider-fields");
 
@@ -89,7 +90,35 @@ describe("AiSettingsPageComponent", () => {
       "Gemini",
       "ChatGPT",
       "Local LM",
+      "Ollama",
     ]);
+  });
+
+  // Ollama names only its server, keeps JSON answers on, and may be told how much of a receipt to keep.
+  it("creates Ollama settings with the server's address and a context size", async () => {
+    await setUp({});
+    component.form.controls.aiType.setValue(AiType.Ollama);
+    component.form.controls.aiType.markAsDirty();
+    component.form.patchValue({ model: "llama3.2-vision", url: " http://nas:11434 ", contextSize: 8192 });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="ai-context-size"]')).not.toBeNull();
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"].mock.calls[0][0]).toEqual(
+      expect.objectContaining({ aiType: AiType.Ollama, url: "http://nas:11434", contextSize: 8192, enforceJsonResponseFormat: true })
+    );
+  });
+
+  it("sends no context size for any other provider, and shows no field for it", async () => {
+    await setUp({});
+    component.form.patchValue({ model: "gemini-2.5-flash", key: "secret", contextSize: 8192 });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="ai-context-size"]')).toBeNull();
+    component.save();
+
+    expect(processingService["createReceiptProcessingSettings"].mock.calls[0][0]).toEqual(expect.objectContaining({ contextSize: 0 }));
   });
 
   it("creates Claude settings: a key, no URL, images read, no JSON switch", async () => {
@@ -228,6 +257,7 @@ describe("AiSettingsPageComponent", () => {
         ),
         updateReceiptProcessingSettingsById: vi.fn((id, _updateKey, command) => of({ id, ...command })),
         checkReceiptProcessingSettingsConnectivity: vi.fn(),
+        getAiUsage: vi.fn(() => of([])),
       };
       systemSettingsService = {
         getSystemSettings: vi.fn(() => throwError(() => new Error("403"))),
