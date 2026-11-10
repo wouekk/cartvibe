@@ -105,6 +105,12 @@ it is doing.
   server; Astro 7.4.7 for the project page.
 
 ### Fixed
+- **A busy moment no longer looks like a failure.** The server turns requests away when too many arrive at once
+  from one connection, and the app used to show that as an empty panel or a failed save. It now waits a second and
+  asks again, and says *Too many requests at once* only if that did not help *(APP-18)*.
+- **The Dashboard and the receipts list ask for their data once.** Opening the Dashboard sent each of its requests
+  twice, and the receipts list loaded its first page twice; both now load once, which also keeps a busy household
+  well under the server's limit *(DASH-01)*.
 - **Signing out clears the session from the browser at once.** The browser used to keep its short-lived access for
   up to 20 minutes after *Logout*; the server now removes it with the sign-out *(APP-13)*.
 - **A session that ran out is noticed while the app stays open.** The check for an expired session remembered its

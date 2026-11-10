@@ -129,6 +129,10 @@ feature.
   no connection, 5xx, 429 and 408 as "try again" (`isWorthRetrying`): any other answer is the server's and is final.
 - **Never read the clock in an NGXS `@Selector`:** its answer is remembered until the slice changes. Time-dependent
   checks are plain functions over a selector's value (`AuthState.isAccessTokenExpired(store)`).
+- **A 429 without an `errorMsg` is nginx's request limit,** which refused the request before the API saw it:
+  `rateLimitRetryInterceptor` sends it again after 1 s and 2 s (a write too, it never arrived), and only then does
+  `httpInterceptor` toast. A 429 the API writes itself carries `errorMsg` and is final. `QUIET_ERRORS` requests are
+  skipped (they have their own retry).
 - **One toast per error, and the server's `errorMsg` wins.** The generic `HttpErrorResponse.message` is a fallback
   only for a 5xx with no `errorMsg`. A form with two writes toasts success only after both land.
 - **App time zone** (`SystemSettingsState.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the
