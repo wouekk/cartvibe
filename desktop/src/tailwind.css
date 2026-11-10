@@ -68,6 +68,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
+  /* The one control height (DESIGN.md, Scale): `h-control`, `size-control`, `min-h-control`. */
+  --spacing-control: var(--control-h);
 }
 
 
@@ -123,6 +125,18 @@
     }
   }
 
+  /* Buttons, inputs, selects and tab strips share one height: 36px under a mouse, 44px under a finger (the platform
+     touch guidelines). The helm variants and the app's own toolbars read it as `h-control` / `size-control`. */
+  :root {
+    --control-h: 2.25rem;
+  }
+
+  @media (pointer: coarse) {
+    :root {
+      --control-h: 2.75rem;
+    }
+  }
+
   body {
     min-height: 100vh;
     min-height: 100dvh;
@@ -130,15 +144,9 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* Wide screens scale the whole interface with the window, like browser zoom: from 1920px the root size grows in step
-     with the width (16px at 1920, about 21px at 2560, 32px at 3840), and every size in rem grows with it, the page
-     width (--page-max) and the sidebar included. Below 1920px nothing changes: phones, tablets and laptops keep 16px.
-     Media queries in rem read the browser's 16px, never this value, so the scale does not feed back. */
-  @media (min-width: 120rem) {
-    html {
-      font-size: calc(100vw / 120);
-    }
-  }
+  /* The interface size is the person's choice (Settings, Theme: ThemeService writes a percentage on <html>), never a
+     function of the window's width: a root size tied to the viewport made browser zoom do nothing on wide screens and
+     ignored the browser's own font size. Every size is in rem, so the page width and the sidebar follow the choice. */
 
   /* Native fields without a size class: 16px (iOS Safari zooms into smaller inputs), the surrounding text from 768px
      up. A size utility on the field (the helm's `text-base md:text-sm`) wins over both; skin.css keeps phones at 16px. */
@@ -334,7 +342,7 @@
 
   /* A boxed field with its label inside (From / To): the same height and hairline as the strip beside it. */
   .cv-field-box {
-    @apply relative inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/40 pr-1 pl-3 text-xs text-muted-foreground shadow-xs transition-[color,box-shadow,border-color] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
+    @apply relative inline-flex h-control items-center gap-2 rounded-lg border border-border bg-muted/40 pr-1 pl-3 text-xs text-muted-foreground shadow-xs transition-[color,box-shadow,border-color] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/40;
   }
   .cv-field-box__label {
     @apply shrink-0 font-medium;
@@ -449,8 +457,8 @@
 @layer base {
   /* The one content width of every page. Below it the page simply fills the screen, inside the shell's gutter
      (16px on a phone, 24px from 640px up), so there is no separate tablet or phone width to keep in step. In rem, so
-     it scales with the wide-screen rule above; from 1920px it widens to fill about 85% of the window beside the
-     sidebar. */
+     it scales with the interface size; from 1920px it widens, so a large size on a wide screen still fills the window
+     beside the sidebar. */
   :root {
     --page-max: 77.5rem;
   }

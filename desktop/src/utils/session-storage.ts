@@ -3,7 +3,7 @@
  * holding it, not to the account that signed out. Everything else (the persisted store slices, recent products) is the
  * account's data and goes.
  */
-export const KEPT_AFTER_SIGN_OUT = ["cartvibe.themeMode", "cartvibe.themePalette", "cartvibe.language"];
+export const KEPT_AFTER_SIGN_OUT = ["cartvibe.themeMode", "cartvibe.themePalette", "cartvibe.interfaceSize", "cartvibe.language"];
 
 /** Removes the signed-out account's data from this browser and keeps the device's own choices. */
 export function clearSessionStorage(): void {

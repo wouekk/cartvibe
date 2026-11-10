@@ -39,7 +39,7 @@ export interface RowAction<T = any> {
         <button
           hlmBtn variant="ghost" size="icon"
           type="button"
-          class="-my-1 size-8 shrink-0"
+          class="-my-1 shrink-0"
           [attr.data-testid]="menuTestId()"
           [attr.aria-label]="menuLabel()"
           [hlmDropdownMenuTrigger]="actionMenu" align="end"

@@ -99,6 +99,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - A route answering with a redirect checks permissions in the body (a 403 JSON body would land in the browser).
 - Unauthenticated by design: username availability and `GET /featureConfig`. Self-service endpoints use
   `app.account.*`, `app.user-preferences.*`, `app.notifications.*`, `app.receipts.search`.
+  `POST /user/signOutEverywhere` needs sign-in only: it ends the caller's own sessions, browsers and MCP connectors
+  alike (`docs/sessions-cookies.md`).
 
 ### Visibility layers (rationale: `docs/authorization.md`)
 

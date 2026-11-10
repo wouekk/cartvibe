@@ -4,7 +4,17 @@
     class="sticky top-0 z-[1000] flex items-center gap-2 border-b border-border bg-background px-3 py-2.5 sm:px-6 sm:py-4"
   >
     <div class="flex min-w-0 items-center max-md:flex-none md:flex-1">
-      <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
+      <!-- A phone opens the sheet from the tab bar's More, so the corner names the household instead. -->
+      @if (isHandset()) {
+        @if (household(); as group) {
+          <span class="flex min-w-0 items-center gap-2" data-testid="header-household">
+            <app-avatar size="sm" [group]="group"></app-avatar>
+            <span class="truncate text-sm font-semibold">{{ group.name }}</span>
+          </span>
+        }
+      } @else {
+        <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
+      }
       @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
         <a class="max-md:hidden" [href]="shortcutHref(shortcut.url)">
           <button
@@ -49,31 +59,6 @@
         </ng-template>
       </span>
 
-      <button
-        hlmBtn variant="ghost" size="icon"
-        type="button"
-        class="shrink-0"
-        data-testid="palette-menu"
-        align="end"
-        [attr.aria-label]="'Colour palette' | t"
-        [hlmTooltip]="'Colour palette' | t"
-        [hlmDropdownMenuTrigger]="paletteMenu"
-      >
-        <app-icon name="palette"></app-icon>
-      </button>
-
-      <button
-        hlmBtn variant="ghost" size="icon"
-        type="button"
-        class="shrink-0"
-        data-testid="theme-toggle"
-        [attr.aria-label]="themeToggleLabel() | t"
-        [hlmTooltip]="themeToggleLabel() | t"
-        (click)="toggleTheme()"
-      >
-        <app-icon [name]="isDarkTheme() ? 'light_mode' : 'dark_mode'"></app-icon>
-      </button>
-
       <app-cartvibe-logo class="mx-2 shrink-0 max-sm:hidden sm:mx-4" [scale]="logoScale()"></app-cartvibe-logo>
     </div>
   </div>
@@ -81,25 +66,6 @@
 @if (showProgressBar()) {
   <div class="app-progress-indeterminate" role="progressbar" [attr.aria-label]="'Working' | t"></div>
 }
-
-<ng-template #paletteMenu>
-  <div hlmDropdownMenu class="w-48" data-testid="palette-menu-panel">
-    <div hlmDropdownMenuLabel>{{ 'Colour palette' | t }}</div>
-    @for (palette of palettes; track palette.key) {
-      <button
-        hlmDropdownMenuItem
-        type="button"
-        [attr.aria-current]="activePalette() === palette.key ? 'true' : null"
-        [attr.data-testid]="'palette-' + palette.key"
-        (click)="pickPalette(palette.key)"
-      >
-        <app-palette-swatch [palette]="palette.key"></app-palette-swatch>
-        <span class="flex-1 text-left">{{ palette.label | t }}</span>
-        <app-icon name="check" [class.invisible]="activePalette() !== palette.key"></app-icon>
-      </button>
-    }
-  </div>
-</ng-template>
 
 <ng-template #notifications>
   <app-notifications-list (notificationCountChanged)="notificationCount.set($event)"></app-notifications-list>

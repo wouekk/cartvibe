@@ -218,7 +218,7 @@ func TestUpsertSystemSettingsCommand_Validate_InvalidInputs(t *testing.T) {
 			expectedError: "refreshTokenValidForHours",
 		},
 		"refresh token lifetime above the maximum": {
-			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.RefreshTokenValidForHours = intPtr(721) },
+			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.RefreshTokenValidForHours = intPtr(8761) },
 			expectedError: "refreshTokenValidForHours",
 		},
 		"negative mcp refresh token lifetime": {
@@ -302,27 +302,31 @@ func TestUpsertSystemSettingsCommand_Validate_PdfDpi(t *testing.T) {
 }
 
 func TestUpsertSystemSettingsCommand_Validate_RefreshTokenLifetimes(t *testing.T) {
-	// 0 means "unset / use default" and must be allowed; 1-720 pass; anything
-	// else is rejected. Both fields share one helper, so both are exercised to
-	// prove the two error keys are wired to the right field.
+	// 0 means "unset / use default" and must be allowed; 1 up to the field's own maximum pass (a year for a
+	// person's session, 30 days for a connected assistant); anything else is rejected. Both fields share one
+	// helper, so both are exercised to prove the two error keys are wired to the right field.
 	fields := map[string]struct {
-		set      func(cmd *UpsertSystemSettingsCommand, hours int)
-		errorKey string
+		set           func(cmd *UpsertSystemSettingsCommand, hours int)
+		errorKey      string
+		validValues   []int
+		invalidValues []int
 	}{
 		"refreshTokenValidForHours": {
-			set:      func(cmd *UpsertSystemSettingsCommand, hours int) { cmd.RefreshTokenValidForHours = &hours },
-			errorKey: "refreshTokenValidForHours",
+			set:           func(cmd *UpsertSystemSettingsCommand, hours int) { cmd.RefreshTokenValidForHours = &hours },
+			errorKey:      "refreshTokenValidForHours",
+			validValues:   []int{0, 1, 24, 168, 720, 721, 8760},
+			invalidValues: []int{-100, -1, 8761, 100000},
 		},
 		"mcpRefreshTokenValidForHours": {
-			set:      func(cmd *UpsertSystemSettingsCommand, hours int) { cmd.McpRefreshTokenValidForHours = &hours },
-			errorKey: "mcpRefreshTokenValidForHours",
+			set:           func(cmd *UpsertSystemSettingsCommand, hours int) { cmd.McpRefreshTokenValidForHours = &hours },
+			errorKey:      "mcpRefreshTokenValidForHours",
+			validValues:   []int{0, 1, 24, 168, 720},
+			invalidValues: []int{-100, -1, 721, 8760, 100000},
 		},
 	}
 
-	validValues := []int{0, 1, 24, 168, 720}
-	invalidValues := []int{-100, -1, 721, 100000}
-
 	for fieldName, field := range fields {
+		validValues, invalidValues := field.validValues, field.invalidValues
 		for _, hours := range validValues {
 			t.Run(fieldName+" accepts "+utils.UintToString(uint(hours)), func(t *testing.T) {
 				cmd := validSystemSettingsCommand()

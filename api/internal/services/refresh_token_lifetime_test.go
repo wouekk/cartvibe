@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
@@ -44,19 +45,30 @@ func TestClampRefreshTokenLifetime(t *testing.T) {
 	}{
 		{"unset falls back to the default", 0, 30 * 24 * time.Hour},
 		{"negative falls back to the default", -5, 30 * 24 * time.Hour},
-		{"above the maximum falls back to the default", 721, 30 * 24 * time.Hour},
+		{"above the maximum falls back to the default", 8761, 30 * 24 * time.Hour},
 		{"absurd value falls back to the default", 1000000, 30 * 24 * time.Hour},
 		{"the minimum is honored", 1, time.Hour},
 		{"an in-range value is honored", 168, 168 * time.Hour},
-		{"the maximum is honored", 720, 720 * time.Hour},
+		{"more than the old 30-day cap is honored", 2160, 2160 * time.Hour},
+		{"the maximum, one year, is honored", 8760, 8760 * time.Hour},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := clampRefreshTokenLifetime(test.hours, defaultRefreshTokenLifetime); got != test.expected {
+			if got := clampRefreshTokenLifetime(test.hours, commands.MaxRefreshTokenValidForHours, defaultRefreshTokenLifetime); got != test.expected {
 				t.Errorf("clampRefreshTokenLifetime(%d) = %v, expected %v", test.hours, got, test.expected)
 			}
 		})
+	}
+}
+
+// A connected assistant's token keeps the 30-day cap: a year chosen for people must not reach it.
+func TestClampRefreshTokenLifetime_ConnectorsStayAtThirtyDays(t *testing.T) {
+	if got := clampRefreshTokenLifetime(720, commands.MaxMcpRefreshTokenValidForHours, defaultMcpRefreshTokenLifetime); got != 720*time.Hour {
+		t.Errorf("expected 720 hours to be honored for a connector, got %v", got)
+	}
+	if got := clampRefreshTokenLifetime(721, commands.MaxMcpRefreshTokenValidForHours, defaultMcpRefreshTokenLifetime); got != defaultMcpRefreshTokenLifetime {
+		t.Errorf("expected 721 hours to fall back to the connector default, got %v", got)
 	}
 }
 

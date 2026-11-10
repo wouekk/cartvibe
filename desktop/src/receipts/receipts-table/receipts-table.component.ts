@@ -37,6 +37,8 @@ import {
 import { SnackbarService } from "../../services";
 import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
+import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
@@ -372,10 +374,13 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private setColumns(): void {
     const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
 
+    // On a phone each receipt is a card: the shop and its date on the left, the amount and status on the right, and
+    // whatever else the person switched on as labelled details below (`phone`, see app-table).
     const allColumns = [
       {
         columnHeader: "Receipt Date",
         matColumnDef: "date",
+        phone: "subtitle",
         template: this.dateCell(),
         sortable: true,
       },
@@ -384,6 +389,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // the receipt's name when none was read. It sorts the same way (shop_name on the API).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
         matColumnDef: "shop_name",
+        phone: "title",
         template: this.shopCell(),
         sortable: true,
       },
@@ -397,6 +403,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Amount",
         matColumnDef: "amount",
+        phone: "aside",
         template: this.amountCell(),
         sortable: true,
       },
@@ -415,6 +422,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         columnHeader: "Status",
         matColumnDef: "status",
+        phone: "aside",
         template: this.statusCell(),
         sortable: true,
       },
@@ -728,6 +736,68 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private readonly receiptProductService = inject(ReceiptProductService);
+
+  /** A phone shows each receipt as a card (app-table) with its actions in one menu. */
+  public readonly isHandset = inject(ViewportService).isHandset;
+
+  /** The row's actions as the phone's menu lists them: the same ones, behind the same permissions, as the buttons. */
+  public readonly rowActions: readonly RowAction<Receipt>[] = [
+    { key: "edit", label: marker("Edit"), icon: "edit", testId: "receipt-edit" },
+    {
+      key: "done",
+      label: marker("Mark as settled"),
+      icon: "check",
+      testId: "receipt-mark-done",
+      visible: (row) => !this.isDone(row) && this.mayOnRow(row, Permission.GroupReceiptsUpdate),
+    },
+    {
+      key: "read",
+      label: marker("Read with AI"),
+      icon: "auto_awesome",
+      testId: "receipt-read-with-ai",
+      visible: (row) => this.mayOnRow(row, Permission.GroupReceiptsUpdate),
+    },
+    {
+      key: "duplicate",
+      label: marker("Duplicate"),
+      icon: "file_copy",
+      testId: "receipt-duplicate",
+      visible: (row) => this.mayOnRow(row, Permission.GroupReceiptsDuplicate),
+    },
+    {
+      key: "delete",
+      label: marker("Delete"),
+      icon: "delete",
+      testId: "receipt-delete",
+      destructive: true,
+      visible: (row) => this.mayOnRow(row, Permission.GroupReceiptsDelete),
+    },
+  ];
+
+  /** Gated on the receipt's own household, never the page's (the "All" view lists several). */
+  private mayOnRow(row: Receipt, permission: Permission): boolean {
+    return this.store.selectSnapshot(AuthState.hasGroupPermission(row.groupId, permission));
+  }
+
+  public runRowAction(key: string, row: Receipt): void {
+    switch (key) {
+      case "edit":
+        void this.router.navigate(["/receipts", row.id, "edit"]);
+        break;
+      case "done":
+        this.markDone(row);
+        break;
+      case "read":
+        this.readWithAi(row);
+        break;
+      case "duplicate":
+        this.duplicateReceipt(row);
+        break;
+      case "delete":
+        this.deleteReceipt(row);
+        break;
+    }
+  }
 
   /** A receipt that reads as "Done" needs no check mark (Phase 3 2e). */
   public isDone(row: Receipt): boolean {

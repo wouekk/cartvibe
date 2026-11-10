@@ -15,6 +15,7 @@ import { FoodTagsComponent } from "../../standalone/components/food-tags/food-ta
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
 import { ReceiptReadStreamService } from "../../services/receipt-read-stream.service";
+import { ViewportService } from "../../services/viewport.service";
 import { hasAll } from "../../utils/permission.utils";
 import { parseAmountInput } from "./product-amount";
 import { marker } from "../../i18n/marker";
@@ -390,6 +391,9 @@ export class ReceiptProductsComponent {
   private streamLive = false;
 
   private readonly receiptReadStream = inject(ReceiptReadStreamService);
+
+  /** A phone gets one card per line; a wider screen keeps the table. */
+  protected readonly isHandset = inject(ViewportService).isHandset;
 
   private readonly destroyRef = inject(DestroyRef);
 

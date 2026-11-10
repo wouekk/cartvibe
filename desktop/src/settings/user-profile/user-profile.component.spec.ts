@@ -10,7 +10,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
 import { DirectivesModule } from "../../directives";
-import { ApiModule, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
+import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AuthState, FeatureConfigState, Logout, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -229,6 +229,59 @@ describe("UserProfileComponent", () => {
     expect(deleteAccountSpy).toHaveBeenCalledWith({ password: "userpassword" });
     expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Logout));
     expect(navigateSpy).toHaveBeenCalledWith(["/"]);
+  });
+
+  describe("sign out everywhere", () => {
+    const confirmWith = (answer: boolean | undefined) => {
+      const instance: Record<string, string> = {};
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => of(answer), componentInstance: instance } as any);
+      return instance;
+    };
+
+    it("offers the button on the profile page", async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(fixture.nativeElement.querySelector("[data-testid=sign-out-everywhere]")).not.toBeNull();
+    });
+
+    it("asks first, then ends every session on the server and signs this browser out", () => {
+      const dialog = confirmWith(true);
+      const signOut = vi.spyOn(TestBed.inject(AuthService), "signOutEverywhere").mockReturnValue(of(undefined) as any);
+      const dispatch = vi.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+      component.signOutEverywhere();
+
+      expect(dialog["headerText"]).toBe("Sign out everywhere");
+      expect(dialog["confirmText"]).toBe("Sign out");
+      expect(signOut).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(expect.any(Logout));
+      expect(navigate).toHaveBeenCalledWith(["/"]);
+      expect(component.signingOutEverywhere()).toBe(false);
+    });
+
+    it("does nothing when the confirmation is dismissed", () => {
+      confirmWith(undefined);
+      const signOut = vi.spyOn(TestBed.inject(AuthService), "signOutEverywhere");
+
+      component.signOutEverywhere();
+
+      expect(signOut).not.toHaveBeenCalled();
+    });
+
+    it("stays signed in here when the server could not be told", () => {
+      confirmWith(true);
+      vi.spyOn(TestBed.inject(AuthService), "signOutEverywhere").mockReturnValue(throwError(() => ({ status: 0 })) as any);
+      const dispatch = vi.spyOn(TestBed.inject(Store), "dispatch");
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate");
+
+      component.signOutEverywhere();
+
+      expect(dispatch).not.toHaveBeenCalledWith(expect.any(Logout));
+      expect(navigate).not.toHaveBeenCalled();
+      expect(component.signingOutEverywhere()).toBe(false);
+    });
   });
 
   it("should re-open dialog when deleteAccount returns 401", () => {

@@ -32,6 +32,9 @@ export class ShoppingListItemComponent {
   /** A change to this row is kept on the device and has not reached the server yet. */
   public readonly pending = input<boolean>(false);
 
+  /** Shop mode: a taller row and a larger name. */
+  public readonly large = input<boolean>(false);
+
   /** A row added on this device that the server has not seen: it has no id to edit by yet. */
   public readonly isLocal = computed(() => isLocalItem(this.item()));
 

@@ -5,6 +5,7 @@ import (
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -15,9 +16,14 @@ import (
 // Bounds on the configurable refresh-token lifetimes. They live here rather than
 // alongside the resolver in services/ because internal/commands cannot import
 // internal/services, and the validation and the read-side clamp must agree.
+//
+// A person's session may last up to a year of not opening the app (a family phone that is used a few times a
+// season should not ask for a password every time); a connected assistant's token stays at 30 days at most, so a
+// long window chosen for people never extends a third-party client's.
 const (
-	MinRefreshTokenValidForHours = 1
-	MaxRefreshTokenValidForHours = 720 // 30 days
+	MinRefreshTokenValidForHours    = 1
+	MaxRefreshTokenValidForHours    = 8760 // one year
+	MaxMcpRefreshTokenValidForHours = 720  // 30 days
 )
 
 // Bounds and default for the temp-file retention window, here for the same
@@ -168,11 +174,11 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 		}
 	}
 
-	if msg := validateRefreshTokenValidForHours(command.RefreshTokenValidForHours); len(msg) > 0 {
+	if msg := validateRefreshTokenValidForHours(command.RefreshTokenValidForHours, MaxRefreshTokenValidForHours); len(msg) > 0 {
 		errorMap["refreshTokenValidForHours"] = msg
 	}
 
-	if msg := validateRefreshTokenValidForHours(command.McpRefreshTokenValidForHours); len(msg) > 0 {
+	if msg := validateRefreshTokenValidForHours(command.McpRefreshTokenValidForHours, MaxMcpRefreshTokenValidForHours); len(msg) > 0 {
 		errorMap["mcpRefreshTokenValidForHours"] = msg
 	}
 
@@ -269,14 +275,14 @@ func validateTempFileRetentionHours(hours *int) string {
 // A nil pointer means the key was omitted, which leaves the stored value alone
 // (see ApplyOmittedValues) and is always valid. An explicit 0 means "unset":
 // the read side falls back to the built-in default. Shared by the app and MCP
-// settings so the two cannot drift.
-func validateRefreshTokenValidForHours(hours *int) string {
+// settings, each with its own maximum, so the rule itself cannot drift.
+func validateRefreshTokenValidForHours(hours *int, maxHours int) string {
 	if hours == nil || *hours == 0 {
 		return ""
 	}
 
-	if *hours < MinRefreshTokenValidForHours || *hours > MaxRefreshTokenValidForHours {
-		return "Refresh token lifetime must be between 1 and 720 hours (30 days)"
+	if *hours < MinRefreshTokenValidForHours || *hours > maxHours {
+		return fmt.Sprintf("Refresh token lifetime must be between 1 and %d hours (%d days)", maxHours, maxHours/24)
 	}
 
 	return ""

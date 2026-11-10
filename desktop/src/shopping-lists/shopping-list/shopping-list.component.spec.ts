@@ -1,6 +1,6 @@
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
+import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 
@@ -10,6 +10,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
+import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
@@ -37,8 +38,10 @@ describe("ShoppingListComponent", () => {
   let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification" | "clearCheckedShoppingListItems", Mock>;
   let snackbarService: { error: Mock };
   let drained: Mock;
+  const isHandset = signal(false);
 
   beforeEach(async () => {
+    isHandset.set(false);
     shoppingListService = {
       getShoppingListsForGroup: vi.fn().mockReturnValue(of([supermarket])),
       setShoppingListItemChecked: vi.fn(),
@@ -64,6 +67,7 @@ describe("ShoppingListComponent", () => {
         { provide: SnackbarService, useValue: snackbarService },
         // Sending the queue has its own spec; here it only answers whether the queue went out.
         { provide: ShoppingListSyncService, useValue: { drained } },
+        { provide: ViewportService, useValue: { isHandset } },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -252,6 +256,70 @@ describe("ShoppingListComponent", () => {
     expect(fixture.nativeElement.querySelector(".add-name").classList).toContain("cv-shake");
     expect(fixture.nativeElement.querySelector(".add-name").classList).toContain("cv-field-error");
     expect(shoppingListService.addShoppingListItem).not.toHaveBeenCalled();
+  });
+
+  describe("the add bar on a phone", () => {
+    const bar = (): HTMLElement => fixture.nativeElement.querySelector("[data-testid=shopping-list-add-bar]");
+    const amountShown = (): boolean => !!fixture.nativeElement.querySelector("app-shopping-list-amount-fields");
+    const focusLeaves = (to: EventTarget | null) =>
+      bar().dispatchEvent(new FocusEvent("focusout", { bubbles: true, relatedTarget: to }));
+
+    it("is one row until it is used, and always shows the amount on a wider screen", async () => {
+      await setCanUpdate(true);
+      expect(amountShown()).toBe(true);
+
+      isHandset.set(true);
+      await fixture.whenStable();
+      expect(amountShown()).toBe(false);
+      expect(bar().getAttribute("data-expanded")).toBe("false");
+
+      bar().dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+      await fixture.whenStable();
+      expect(amountShown()).toBe(true);
+      expect(bar().getAttribute("data-expanded")).toBe("true");
+    });
+
+    it("folds back when the focus leaves it empty, and not while something typed would be hidden", async () => {
+      isHandset.set(true);
+      await setCanUpdate(true);
+      component.addInUse.set(true);
+      component.addForm.patchValue({ name: "Milk" });
+
+      focusLeaves(null);
+      await fixture.whenStable();
+      expect(amountShown()).toBe(true);
+
+      component.addForm.patchValue({ name: "", amount: "2" });
+      focusLeaves(null);
+      await fixture.whenStable();
+      expect(amountShown()).toBe(true);
+
+      component.addForm.patchValue({ name: " ", amount: "" });
+      focusLeaves(null);
+      await fixture.whenStable();
+      expect(amountShown()).toBe(false);
+    });
+
+    it("stays open while the focus moves to another of its fields or to the unit's menu", async () => {
+      isHandset.set(true);
+      await setCanUpdate(true);
+      component.addInUse.set(true);
+      const overlay = document.createElement("div");
+      overlay.className = "cdk-overlay-container";
+      const option = document.createElement("button");
+      overlay.append(option);
+      document.body.append(overlay);
+
+      try {
+        focusLeaves(bar().querySelector("button"));
+        focusLeaves(option);
+        await fixture.whenStable();
+
+        expect(amountShown()).toBe(true);
+      } finally {
+        overlay.remove();
+      }
+    });
   });
 
   it("hides the add bar from a member who cannot update", async () => {

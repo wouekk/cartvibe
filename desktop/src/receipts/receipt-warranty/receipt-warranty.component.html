@@ -4,11 +4,11 @@
   @if (editing()) {
     <div class="flex flex-wrap items-end gap-2">
       <app-datepicker class="w-full sm:w-56" data-testid="receipt-warranty-date" [inputFormControl]="control"></app-datepicker>
-      <button hlmBtn type="button" class="h-9" data-testid="receipt-warranty-save" [class.cv-unsaved]="control.dirty && !saving()" [disabled]="saving()" (click)="save()">{{ 'Save' | t }}</button>
-      <button hlmBtn variant="outline" type="button" class="h-9" (click)="cancel()">{{ 'Cancel' | t }}</button>
+      <button hlmBtn type="button" class="h-control" data-testid="receipt-warranty-save" [class.cv-unsaved]="control.dirty && !saving()" [disabled]="saving()" (click)="save()">{{ 'Save' | t }}</button>
+      <button hlmBtn variant="outline" type="button" class="h-control" (click)="cancel()">{{ 'Cancel' | t }}</button>
     </div>
   } @else if (warrantyUntil(); as until) {
-    <div class="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1">
+    <div class="flex min-h-control flex-wrap items-center gap-x-3 gap-y-1">
       <span class="text-sm" data-testid="receipt-warranty-until">{{ 'Until {date}' | t: { date: (until | appDate : "MMM d, y" : "calendar") } }}</span>
       @if (daysLeft(); as days) {
         @if (days > 0) {
@@ -21,14 +21,14 @@
       }
       @if (canEdit()) {
         <span class="ml-auto flex gap-2">
-          <button hlmBtn variant="ghost" type="button" class="h-9" data-testid="receipt-warranty-change" (click)="change()">{{ 'Change' | t }}</button>
-          <button hlmBtn variant="destructive" type="button" class="h-9" data-testid="receipt-warranty-remove" [disabled]="saving()" (click)="remove()">{{ 'Remove' | t }}</button>
+          <button hlmBtn variant="ghost" type="button" class="h-control" data-testid="receipt-warranty-change" (click)="change()">{{ 'Change' | t }}</button>
+          <button hlmBtn variant="destructive" type="button" class="h-control" data-testid="receipt-warranty-remove" [disabled]="saving()" (click)="remove()">{{ 'Remove' | t }}</button>
         </span>
       }
     </div>
   } @else if (canEdit()) {
-    <div class="flex min-h-9 items-center">
-      <button hlmBtn variant="outline" type="button" class="h-9" data-testid="receipt-warranty-add" (click)="add()">{{ 'Add warranty date' | t }}</button>
+    <div class="flex min-h-control items-center">
+      <button hlmBtn variant="outline" type="button" class="h-control" data-testid="receipt-warranty-add" (click)="add()">{{ 'Add warranty date' | t }}</button>
     </div>
   } @else {
     <span class="text-sm text-muted-foreground">{{ 'No warranty date' | t }}</span>

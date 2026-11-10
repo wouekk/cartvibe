@@ -31,7 +31,7 @@ describe("AddButtonComponent", () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector("button")?.classList).toContain("size-9");
+    expect(el.querySelector("button")?.classList).toContain("size-control");
     expect(el.querySelector("button span.font-medium")).toBeFalsy();
   });
 
@@ -41,7 +41,7 @@ describe("AddButtonComponent", () => {
 
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector("button span.font-medium")).toBeTruthy();
-    expect(el.querySelector("button")?.classList).not.toContain("size-9");
+    expect(el.querySelector("button")?.classList).not.toContain("size-control");
     expect(el.textContent).toContain("Add Thing");
   });
 });

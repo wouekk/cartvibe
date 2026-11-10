@@ -55,12 +55,49 @@ test('sends nothing outside its own origin, and registers no service worker or m
 
 test('keeps its own storage keys under the demo prefix', async ({ page }) => {
   await openDemo(page);
-  await page.getByTestId('theme-toggle').click();
+  // The look is chosen under Settings, Theme (the header has no theme control).
+  await goTo(page, '/theme');
+  await page.getByTestId('theme-mode-dark').click();
+  await page.getByTestId('theme-size-125').click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
 
   const keys = await page.evaluate(() => Object.keys(window.localStorage));
   expect(keys.length).toBeGreaterThan(0);
   expect(keys.every((key) => key.startsWith('cartvibe-demo:'))).toBe(true);
   expect(keys).toContain('cartvibe-demo:cartvibe.themeMode');
+  expect(keys).toContain('cartvibe-demo:cartvibe.interfaceSize');
+});
+
+test('a phone gets the tab bar, a list as its own page and rows as cards; a wider screen gets neither', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await openDemo(page);
+
+  await expect(page.getByTestId('tab-bar')).toBeVisible();
+  await expect(page.getByTestId('sidebar-toggle')).toHaveCount(0);
+  await expect(page.getByTestId('header-household')).toBeVisible();
+
+  await page.getByTestId('tab-nav-shopping-lists').click();
+  await expect(page.getByTestId('shopping-list-workspace')).toBeVisible();
+  await expect(page.getByTestId('tab-nav-shopping-lists')).toHaveAttribute('aria-current', 'page');
+
+  // Shop mode shows the list alone, and leaving it brings the page back.
+  await page.getByTestId('shopping-list-menu').click();
+  await page.getByTestId('shopping-list-shop-mode').click();
+  await expect(page.getByRole('heading', { name: 'Shopping Lists' })).toHaveCount(0);
+  await page.getByTestId('shopping-list-shop-mode-leave').click();
+  await expect(page.getByRole('heading', { name: 'Shopping Lists' })).toBeVisible();
+
+  // More opens the sheet with the pages that are not tabs.
+  await page.getByTestId('tab-more').click();
+  await page.getByTestId('sidebar-manage-toggle').click();
+  await page.getByTestId('nav-management').click();
+  await expect(page.getByTestId('table-card').first()).toBeVisible();
+  await expect(page.locator('app-table table')).toHaveCount(0);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.getByTestId('tab-bar')).toHaveCount(0);
+  await expect(page.getByTestId('sidebar-toggle')).toBeVisible();
+  await expect(page.locator('app-table table')).toBeVisible();
 });
 
 test('an unhealthy tile opens the lines behind it', async ({ page }) => {

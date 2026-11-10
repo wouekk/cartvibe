@@ -45,6 +45,11 @@ feature.
   in the dialog component.
 - **Menus:** spartan dropdown items are a content query, so an item rendered inside a child component is invisible to
   keyboard navigation: keep menu entries as plain buttons in the menu's own template.
+- **Control height:** a button, input, select or tab strip is `h-control` / `size-control` (36px under a mouse,
+  44px under a finger), never `h-9` / `size-9`; the helm variants are patched to it by `tools/spartan-add.cjs`.
+- **Phones (below 768px, `ViewportService.isHandset`):** navigation is the tab bar, lists are cards (`app-table`
+  does it; give a new table's columns a `phone` role when the default reads badly), and a row has one `more_vert`
+  menu (`app-row-actions`), never a row of icon buttons (`docs/features.md` → Navigation and settings screens).
 - **Icons:** `<app-icon name="receipt_long">` takes the Material name and draws the Lucide icon mapped in
   `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
 - **Tests (Vitest, zoneless):** `angular.json` target `test` (builds with the JIT `build:test` configuration, runs

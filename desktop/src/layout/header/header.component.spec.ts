@@ -10,10 +10,10 @@ import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
 import { DirectivesModule } from "../../directives/directives.module";
-import { ApiModule, NotificationsService } from "../../open-api";
+import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
+import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
 import { StoreModule } from "../../store/store.module";
-import { ThemeService } from "../../theme/theme.service";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
 describe("HeaderComponent", () => {
@@ -91,55 +91,29 @@ describe("HeaderComponent", () => {
     expect(fixture.nativeElement.querySelector("app-product-check-input")).toBeNull();
   });
 
-  it("offers a quick toggle that switches between day and night", async () => {
-    const theme = TestBed.inject(ThemeService);
-    const setMode = vi.spyOn(theme, "setMode").mockImplementation(() => undefined);
-
+  it("has no palette menu and no day/night switch: the look is chosen in Settings, Theme", async () => {
     logIn();
     await fixture.whenStable();
 
-    const toggle = fixture.nativeElement.querySelector("[data-testid=theme-toggle]") as HTMLButtonElement;
-    expect(toggle).not.toBeNull();
-
-    const wasDark = component.isDarkTheme();
-    toggle.click();
-
-    expect(setMode).toHaveBeenCalledWith(wasDark ? "light" : "dark");
+    expect(fixture.nativeElement.querySelector("[data-testid=palette-menu]")).toBeNull();
+    expect(fixture.nativeElement.querySelector("[data-testid=theme-toggle]")).toBeNull();
   });
 
-  it("flips the toggle's label and icon with the mode, and keeps the palette when it is used", async () => {
-    const theme = TestBed.inject(ThemeService);
-    theme.setPalette("violet");
-    theme.setMode("light");
-
+  it("names the household on a phone, where the tab bar opens the sheet, and keeps the sidebar button elsewhere", async () => {
+    store.dispatch(new SetGroups([{ id: 3, name: "Home", isAllGroup: false } as Group, { id: 9, name: "All", isAllGroup: true } as Group]));
+    store.dispatch(new SetSelectedGroupId("9"));
     logIn();
+    isHandset.set(true);
     await fixture.whenStable();
 
-    expect(component.themeToggleLabel()).toBe("Switch to night mode");
-    fixture.nativeElement.querySelector("[data-testid=theme-toggle]").click();
+    expect(fixture.nativeElement.querySelector("[data-testid=sidebar-toggle]")).toBeNull();
+    expect(fixture.nativeElement.querySelector("[data-testid=header-household]").textContent).toContain("Home");
+
+    isHandset.set(false);
     await fixture.whenStable();
 
-    expect(theme.mode()).toBe("dark");
-    expect(theme.palette()).toBe("violet");
-    expect(component.themeToggleLabel()).toBe("Switch to day mode");
-  });
-
-  it("puts a colour palette button next to the day/night toggle, and picking a palette applies it", async () => {
-    const theme = TestBed.inject(ThemeService);
-    const setPalette = vi.spyOn(theme, "setPalette").mockImplementation(() => undefined);
-
-    logIn();
-    await fixture.whenStable();
-
-    const palette = fixture.nativeElement.querySelector("[data-testid=palette-menu]") as HTMLButtonElement;
-    const toggle = fixture.nativeElement.querySelector("[data-testid=theme-toggle]") as HTMLButtonElement;
-    expect(palette).not.toBeNull();
-    expect(palette.nextElementSibling).toBe(toggle);
-    expect(component.palettes.map((entry) => entry.key)).toEqual(["zinc", "blue", "indigo", "emerald", "violet"]);
-
-    component.pickPalette("emerald");
-
-    expect(setPalette).toHaveBeenCalledWith("emerald");
+    expect(fixture.nativeElement.querySelector("[data-testid=sidebar-toggle]")).not.toBeNull();
+    expect(fixture.nativeElement.querySelector("[data-testid=header-household]")).toBeNull();
   });
 
   it("scales the logo to 30% on a handset and leaves it whole elsewhere", () => {

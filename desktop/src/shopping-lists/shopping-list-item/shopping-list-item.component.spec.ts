@@ -67,6 +67,16 @@ describe("ShoppingListItemComponent", () => {
     expect(el("shopping-list-item-amount")).toBeNull();
   });
 
+  it("is a larger row in Shop mode", async () => {
+    await render(milk, true);
+    expect(fixture.nativeElement.querySelector("[data-size=large]")).toBeNull();
+
+    fixture.componentRef.setInput("large", true);
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector("[data-size=large]")).not.toBeNull();
+  });
+
   it("is a checkbox whose state follows the item, and a tap emits the item", async () => {
     await render(milk, true);
     const toggled: ShoppingListItem[] = [];

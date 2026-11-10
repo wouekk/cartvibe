@@ -30,7 +30,7 @@
 
   @if (!multiple && singleOptionSelected()) {
     <div
-      class="flex h-9 w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs dark:bg-input/30"
+      class="flex h-control w-full items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 text-sm shadow-xs dark:bg-input/30"
       [class.opacity-60]="readonly"
     >
       <span class="truncate">{{ selectedDisplay() | t }}</span>

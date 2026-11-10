@@ -103,6 +103,46 @@ describe("ReceiptsTableComponent", () => {
     expect(component.canQuickScan).toEqual(false);
   });
 
+  describe("the phone's row menu", () => {
+    const shown = (row: Partial<Receipt>): string[] =>
+      component.rowActions.filter((action) => !action.visible || action.visible(row as Receipt)).map((action) => action.key);
+
+    it("lists the same actions as the row's buttons, each behind the receipt's own household's permission", () => {
+      store.dispatch(
+        new SetPermissions([], {
+          5: [Permission.GroupReceiptsUpdate, Permission.GroupReceiptsDuplicate, Permission.GroupReceiptsDelete],
+          6: [Permission.GroupReceiptsDuplicate],
+        })
+      );
+
+      expect(shown({ id: 1, groupId: 5, status: ReceiptStatus.Open })).toEqual(["edit", "done", "read", "duplicate", "delete"]);
+      // A settled receipt needs no check mark.
+      expect(shown({ id: 2, groupId: 5, status: ReceiptStatus.Resolved })).toEqual(["edit", "read", "duplicate", "delete"]);
+      // Another household in the "All" view: only what the person may do there.
+      expect(shown({ id: 3, groupId: 6, status: ReceiptStatus.Open })).toEqual(["edit", "duplicate"]);
+      expect(component.rowActions.find((action) => action.key === "delete")?.destructive).toBe(true);
+    });
+
+    it("runs the action that was picked", () => {
+      const row = { id: 9, groupId: 5, status: ReceiptStatus.Open } as Receipt;
+      const markDone = vi.spyOn(component, "markDone").mockImplementation(() => undefined);
+      const readWithAi = vi.spyOn(component, "readWithAi").mockImplementation(() => undefined);
+      const duplicate = vi.spyOn(component, "duplicateReceipt").mockImplementation(() => undefined);
+      const remove = vi.spyOn(component, "deleteReceipt").mockImplementation(() => undefined);
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+
+      for (const key of ["edit", "done", "read", "duplicate", "delete"]) {
+        component.runRowAction(key, row);
+      }
+
+      expect(navigate).toHaveBeenCalledWith(["/receipts", 9, "edit"]);
+      expect(markDone).toHaveBeenCalledWith(row);
+      expect(readWithAi).toHaveBeenCalledWith(row);
+      expect(duplicate).toHaveBeenCalledWith(row);
+      expect(remove).toHaveBeenCalledWith(row);
+    });
+  });
+
   describe("columns", () => {
 
     // setColumns reads the cell templates through viewChild.required, which never

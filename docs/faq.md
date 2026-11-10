@@ -4,6 +4,7 @@ Short answers for running a [CartVibe](https://cartvibe.app/) household. Setup, 
 
 - [How do I rename a household?](#how-do-i-rename-a-household)
 - [How do I change a password?](#how-do-i-change-a-password)
+- [I lost my phone. How do I sign it out?](#i-lost-my-phone-how-do-i-sign-it-out)
 - [How do I add AI API keys?](#how-do-i-add-ai-api-keys)
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
@@ -32,6 +33,16 @@ Passwords are set by an admin; there is no "forgot password" email and no change
 
 On a fresh install the admin signs in with `admin` / `admin`: change that password straight away. If nobody who can set
 passwords remembers theirs, the stored passwords are one-way hashes and cannot be read back; ask another admin, or restore a backup.
+
+## I lost my phone. How do I sign it out?
+
+1. Sign in on any other device.
+2. Open **Settings → User Settings** and press **Sign out everywhere**, then confirm.
+
+That ends your session on every phone and computer, the one you are holding included, and disconnects any AI
+assistant you connected. If CartVibe happened to be open on the lost phone, it keeps working for at most 20 minutes
+and then asks for the password. Sign in again where you still want to use it, and have an admin set you a new
+password (above) if someone could know the old one. Nobody else in the household is signed out.
 
 ## How do I add AI API keys?
 
@@ -134,6 +145,11 @@ dropped over plain HTTP, so nobody reaching CartVibe that way can sign in until 
 
 ### Good to know
 
+* **Getting around on a phone.** The bar at the bottom has Dashboard, Lists, Scan, Receipts and More; everything else,
+  the settings included, is behind More. In the shop, open a list's ⋮ menu and choose **Shop mode**: the list alone,
+  bigger rows, and a screen that stays on.
+* **Everything too small or too large?** **Settings → Theme → Interface size** makes the whole app larger on that
+  device (125%, 150% or 200%); the browser's own zoom works on top of it.
 * **Updates:** after you deploy a new image, the app notices the next time you open it and loads the new version on the
   following page change. Close and reopen it if a screen still looks old.
 * **Remove it:** press and hold the icon, then choose to uninstall (Android) or **Remove App** (iPhone).

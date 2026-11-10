@@ -18,7 +18,8 @@
     <!--
       The stored look, applied before the first paint so the page does not flash. ThemeService (src/theme) writes the
       same keys and keeps them in step afterwards: cartvibe.themeMode is "system", "light" (day) or "dark" (night), and
-      cartvibe.themePalette the palette's key, so this needs no copy of the palette list (an unknown key just shows zinc).
+      cartvibe.themePalette the palette's key, so this needs no copy of the palette list (an unknown key just shows zinc),
+      and cartvibe.interfaceSize the root font size as a percentage (125, 150 or 200; anything else leaves the browser's).
       Changing this script changes its hash: update the script-src hash in docker/default.conf.
     -->
     <script>
@@ -32,6 +33,10 @@
           var stored = window.localStorage.getItem("cartvibe.themePalette");
           if (stored && /^[a-z]+$/.test(stored)) {
             palette = stored;
+          }
+          var size = window.localStorage.getItem("cartvibe.interfaceSize");
+          if (size && /^(125|150|200)$/.test(size)) {
+            root.style.fontSize = size + "%";
           }
         } catch (e) {}
         if (dark) {

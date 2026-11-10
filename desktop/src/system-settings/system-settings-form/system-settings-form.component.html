@@ -222,7 +222,7 @@
         <div class="cv-section__head">
           <h3 class="cv-section__title">{{ 'Session' | t }}</h3>
           <p class="cv-section__desc">
-            {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).' | t }}
+            {{ 'How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 365 days.' | t }}
           </p>
         </div>
         <div data-testid="duration-row" class="flex gap-4 [&>*]:min-w-0 [&>*]:flex-[1_1_0]">
@@ -346,7 +346,7 @@
               </div>
               <input
                 type="number"
-                class="h-9 w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
+                class="h-control w-20 flex-none rounded-md border border-border bg-transparent px-2 text-right [font:inherit]"
                 [attr.aria-label]="data.displayValue + ' priority'"
                 [attr.data-testid]="'queue-priority-' + data.value"
                 [formControl]="$any(form | taskQueueFormControl:data.value:'priority')"

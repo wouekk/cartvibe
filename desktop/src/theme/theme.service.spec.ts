@@ -1,6 +1,14 @@
 import { TestBed } from "@angular/core/testing";
-import { storedMode, storedPalette, THEME_MODE_STORAGE_KEY, THEME_PALETTE_STORAGE_KEY, ThemeService } from "./theme.service";
-import { DEFAULT_PALETTE, findPalette, MODE_OPTIONS, PALETTES } from "./themes";
+import {
+  INTERFACE_SIZE_STORAGE_KEY,
+  storedInterfaceSize,
+  storedMode,
+  storedPalette,
+  THEME_MODE_STORAGE_KEY,
+  THEME_PALETTE_STORAGE_KEY,
+  ThemeService,
+} from "./theme.service";
+import { DEFAULT_PALETTE, findPalette, INTERFACE_SIZES, interfaceSizeForScreen, MODE_OPTIONS, PALETTES } from "./themes";
 
 describe("ThemeService", () => {
   const root = document.documentElement;
@@ -158,6 +166,79 @@ describe("ThemeService", () => {
 
     expect(service.isDark()).toBe(true);
     expect(root.classList.contains("dark")).toBe(true);
+  });
+
+  describe("interface size", () => {
+    const originalScreen = Object.getOwnPropertyDescriptor(window, "screen");
+
+    const screenWidth = (width: number) =>
+      Object.defineProperty(window, "screen", { configurable: true, value: { width } });
+
+    beforeEach(() => {
+      root.style.fontSize = "";
+      screenWidth(1440);
+    });
+
+    afterEach(() => {
+      root.style.fontSize = "";
+      if (originalScreen) {
+        Object.defineProperty(window, "screen", originalScreen);
+      }
+    });
+
+    it("starts at Standard and leaves the browser's own font size alone", () => {
+      const service = create();
+
+      expect(service.interfaceSize()).toBe("100");
+      expect(root.style.fontSize).toBe("");
+      expect(window.localStorage.getItem(INTERFACE_SIZE_STORAGE_KEY)).toBeNull();
+    });
+
+    it("applies a size as a percentage on the root and remembers it", () => {
+      const service = create();
+
+      service.setInterfaceSize("150");
+      expect(root.style.fontSize).toBe("150%");
+      expect(window.localStorage.getItem(INTERFACE_SIZE_STORAGE_KEY)).toBe("150");
+
+      service.setInterfaceSize("100");
+      expect(root.style.fontSize).toBe("");
+      expect(storedInterfaceSize()).toBe("100");
+    });
+
+    it("reads the stored size on creation, and treats an unknown one as Standard", () => {
+      window.localStorage.setItem(INTERFACE_SIZE_STORAGE_KEY, "125");
+      expect(create().interfaceSize()).toBe("125");
+      expect(root.style.fontSize).toBe("125%");
+
+      window.localStorage.setItem(INTERFACE_SIZE_STORAGE_KEY, "9000");
+      expect(create().interfaceSize()).toBe("100");
+      expect(root.style.fontSize).toBe("");
+
+      create().setInterfaceSize("huge");
+      expect(storedInterfaceSize()).toBe("100");
+    });
+
+    it("gives a wide screen that never chose the size it had under the old width rule, once", () => {
+      screenWidth(3840);
+
+      expect(create().interfaceSize()).toBe("200");
+      expect(window.localStorage.getItem(INTERFACE_SIZE_STORAGE_KEY)).toBe("200");
+
+      // A choice made since then is kept, whatever the screen.
+      create().setInterfaceSize("100");
+      expect(create().interfaceSize()).toBe("100");
+    });
+
+    it("maps screen widths to the largest size that does not exceed the old scale", () => {
+      expect(interfaceSizeForScreen(390)).toBe("100");
+      expect(interfaceSizeForScreen(1920)).toBe("100");
+      expect(interfaceSizeForScreen(2560)).toBe("125");
+      expect(interfaceSizeForScreen(3440)).toBe("150");
+      expect(interfaceSizeForScreen(3840)).toBe("200");
+      expect(interfaceSizeForScreen(7680)).toBe("200");
+      expect(INTERFACE_SIZES.map((size) => size.key)).toEqual(["100", "125", "150", "200"]);
+    });
   });
 
   it("still works when storage is blocked", () => {

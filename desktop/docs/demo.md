@@ -72,6 +72,14 @@ cookies, no analytics, no third-party scripts sentence; `demo-footer.component.t
 `tools/serve-demo.cjs`, config `playwright.demo.config.ts`, specs in `e2e-demo/`; set `E2E_CHROMIUM_PATH` to use an
 installed browser, as in `sandbox.md`). The e2e run needs no API and no accounts.
 
+- The Project page workflow runs `e2e:demo` on every push, and it is the only Playwright run that sets a phone
+  width. Its specs are in `e2e-demo/`, not `e2e/`: when a test id goes or a control moves, search both folders.
+- **Looking at a change without the Browser pane:** the built demo is the quickest real page to photograph. Serve it
+  (`node tools/serve-demo.cjs`, port 4300), then drive `chromium` from `@playwright/test` in a small script: a context
+  with `isMobile` and `hasTouch` is a phone with a coarse pointer, and the look is set by writing
+  `cartvibe-demo:cartvibe.themeMode` / `.themePalette` in an init script. That covers phone and desktop widths in
+  day and night and any palette, which the done checklist in `../../DESIGN.md` asks for.
+
 ## Known gaps (found in review, left on purpose)
 
 The demo is a stand-in, not the API. Differences that do not change the seeded figures: the receipt filter ignores

@@ -28,6 +28,10 @@
           if (stored && /^[a-z]+$/.test(stored)) {
             palette = stored;
           }
+          var size = window.localStorage.getItem(prefix + "cartvibe.interfaceSize");
+          if (size && /^(125|150|200)$/.test(size)) {
+            root.style.fontSize = size + "%";
+          }
         } catch (e) {}
         if (dark) {
           root.classList.add("dark");

@@ -58,7 +58,24 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
     flashing rows someone else changed (F1.5; the avatar covers "who"); queued edits, deletes and whole-list actions
     (each needs its own "safe to send twice" rule on the server first); an idempotency key for a queued Quick Scan
     (a lost answer can make a second receipt); the Dashboard's list preview, which still needs a connection.
-- [ ] 4. Phone shell and Shop mode: F2, F4, F5, F9, C7, C8, C9
+- [ ] 4. Phone shell and Shop mode (`feature/phone-shell`, cut from sprint 3's branch): F2, F4, F5, F9, C7, C8, C9
+  - Done on the branch on 2026-11-10: a tab bar below 768px (Dashboard, Lists, Scan, Receipts, More) with the
+    household in the header in place of the sidebar button; the palette menu and day/night switch gone from the
+    header (C8); one control height, 36px under a mouse and 44px on a coarse pointer, as a token the helm variants
+    and the app's toolbars read (C7, F9); *Interface size* under Settings → Theme instead of a root size tied to the
+    window (C9), with a wide screen that never chose starting at the step it had; the list switcher as chips above
+    the open list, *Delete list* in the list's menu and a one-row add bar on a phone (F2); Shop mode (the list
+    alone, larger rows, the screen kept on; it took over "Keep screen on" and starts after Going shopping); every
+    `app-table` as cards on a phone, with sorting in one control, and the receipts list's row buttons as one menu
+    (F5); a receipt's product lines as cards with one menu (F4); *Sign out everywhere* under User Settings and a
+    session length an admin may set up to a year (F2 sessions).
+  - Found on the way and fixed: `POST /logout` left the access cookie in the browser until it ran out.
+  - Left for later, each with a reason: grouping a list by aisle (items have no section yet; it comes with "aisle
+    order per shop" in sprint 11); on the receipt page, the photo pinned above the lines, the lines to check sorted
+    first and one "Looks right" button (F4; that is a redesign of the page around the review, better done with D6's
+    two statuses in sprint 10; a line without an amount is marked instead); dialogs as bottom sheets on a phone
+    (F9); the Dashboard's own Quick Scan and New list buttons, which stay beside the tab bar's; Playwright on a phone
+    (sprint 6 adds the project, so the phone layout has unit specs only).
 - [ ] 5. Jobs in SQLite, Valkey removed: B1, B2.2 to B2.4, S10
 - [ ] 6. Releases, CI and hardening: B3, B7, B8, S4, S8, S12, S13, S16, S19, S20
 - [ ] 7. AI and files: B5.2, B5.3, B5.7, B6, S18

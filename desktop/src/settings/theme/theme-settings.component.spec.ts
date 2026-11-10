@@ -74,4 +74,22 @@ describe("ThemeSettingsComponent", () => {
     expect(el("theme-palette-zinc").getAttribute("aria-checked")).toBe("false");
     expect(el("theme-palette-indigo").querySelector("app-icon[name=check]")).not.toBeNull();
   });
+
+  it("lists the four interface sizes with their percentage, and picking one scales the page", async () => {
+    for (const [key, label] of [["100", "Standard"], ["125", "Large"], ["150", "Larger"], ["200", "Largest"]]) {
+      expect(el(`theme-size-${key}`).textContent).toContain(label);
+      expect(el(`theme-size-${key}`).textContent).toContain(`${key}%`);
+    }
+    expect(el("theme-size-100").getAttribute("aria-checked")).toBe("true");
+
+    el("theme-size-125").click();
+    await fixture.whenStable();
+
+    expect(theme.interfaceSize()).toBe("125");
+    expect(document.documentElement.style.fontSize).toBe("125%");
+    expect(el("theme-size-125").getAttribute("aria-checked")).toBe("true");
+    expect(el("theme-size-100").getAttribute("aria-checked")).toBe("false");
+
+    theme.setInterfaceSize("100");
+  });
 });

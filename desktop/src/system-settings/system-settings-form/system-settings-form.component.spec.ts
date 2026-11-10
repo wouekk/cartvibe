@@ -283,26 +283,26 @@ describe("SystemSettingsFormComponent", () => {
     expect(mcpPublicUrl.valid).toBe(true);
   });
 
-  it("caps the session lifetime at 720 hours or 30 days depending on the unit", () => {
+  it("caps the session lifetime at one year: 8760 hours or 365 days depending on the unit", () => {
     component.ngOnInit();
 
     const value = component.form.get("refreshTokenValidForValue")!;
     const unit = component.form.get("refreshTokenValidForUnit")!;
 
     unit.setValue("HOURS");
-    value.setValue(720);
+    value.setValue(8760);
     expect(value.valid).toBe(true);
 
-    value.setValue(721);
+    value.setValue(8761);
     expect(value.valid).toBe(false);
 
-    // Flipping the unit has to retarget the max, or 30 days would be rejected
-    // as if it were 30 hours over the limit.
+    // Flipping the unit has to retarget the max, or 365 days would be rejected
+    // as if it were 365 hours.
     unit.setValue("DAYS");
-    value.setValue(30);
+    value.setValue(365);
     expect(value.valid).toBe(true);
 
-    value.setValue(31);
+    value.setValue(366);
     expect(value.valid).toBe(false);
   });
 
@@ -348,17 +348,21 @@ describe("SystemSettingsFormComponent", () => {
     expect(value.valid).toBe(true);
   });
 
-  it("bounds the retention and the session lifetime independently", () => {
+  it("bounds the retention, the session and the connector lifetime independently", () => {
     component.ngOnInit();
 
     component.form.get("tempFileRetentionUnit")!.setValue("HOURS");
     component.form.get("tempFileRetentionValue")!.setValue(5000);
     expect(component.form.get("tempFileRetentionValue")!.valid).toBe(true);
 
-    // The session lifetime keeps its own, much lower cap.
+    // A person's session may be as long (up to a year); a connected assistant's keeps its own, much lower cap.
     component.form.get("refreshTokenValidForUnit")!.setValue("HOURS");
     component.form.get("refreshTokenValidForValue")!.setValue(5000);
-    expect(component.form.get("refreshTokenValidForValue")!.valid).toBe(false);
+    expect(component.form.get("refreshTokenValidForValue")!.valid).toBe(true);
+
+    component.form.get("mcpRefreshTokenValidForUnit")!.setValue("HOURS");
+    component.form.get("mcpRefreshTokenValidForValue")!.setValue(5000);
+    expect(component.form.get("mcpRefreshTokenValidForValue")!.valid).toBe(false);
   });
 
   it("requires a positive whole-number session lifetime", () => {
@@ -387,11 +391,11 @@ describe("SystemSettingsFormComponent", () => {
     const value = component.form.get("refreshTokenValidForValue")!;
     component.form.get("refreshTokenValidForUnit")!.setValue("DAYS");
 
-    value.setValue(31);
+    value.setValue(366);
 
     // The message rides on the error value so BaseInputComponent renders it —
     // Validators.max has no message mapping and would show a blank error.
-    expect(value.errors?.["duration"]).toEqual({ message: "Must be at most {max}.", max: 30 });
+    expect(value.errors?.["duration"]).toEqual({ message: "Must be at most {max}.", max: 365 });
   });
 
   it("caps the mcp connector lifetime independently of the session lifetime", () => {

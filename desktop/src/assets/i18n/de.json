@@ -236,6 +236,7 @@
     "Comments": "Kommentare",
     "Comparing with the list…": "Mit der Liste vergleichen…",
     "Completed ({count})": "Abgeschlossen ({count})",
+    "Completed lists": "Abgeschlossene Listen",
     "Computed from other columns": "Aus anderen Spalten berechnet",
     "Condiments & Sauces": "Gewürze und Saucen",
     "Configure Columns": "Spalten einrichten",
@@ -333,7 +334,6 @@
     "Delete list": "Liste löschen",
     "Delete logos": "Logos löschen",
     "Delete the logos": "Logos löschen",
-    "Delete the open list": "Die geöffnete Liste löschen",
     "Delete the user '{name}'? They are removed from their groups, and the groups where they are the only member and the receipts they paid for are deleted. This can't be undone.": "Den Benutzer „{name}“ löschen? Er wird aus seinen Gruppen entfernt; Gruppen, in denen er das einzige Mitglied ist, und Belege, die er bezahlt hat, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
     "Delete {name}": "{name} löschen",
     "Deli": "Feinkost",
@@ -520,7 +520,7 @@
     "How CartVibe looks on this device.": "Wie CartVibe auf diesem Gerät aussieht.",
     "How amounts look with these settings.": "So sehen Beträge mit diesen Einstellungen aus.",
     "How dates are shown everywhere in the app, for everyone in the household.": "Wie Datumsangaben überall in der App angezeigt werden, für alle im Haushalt.",
-    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 720 Stunden (30 Tage).",
+    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 365 days.": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 365 Tage.",
     "Icon": "Symbol",
     "Image actions": "Bildaktionen",
     "Image successfully removed": "Bild wurde entfernt",
@@ -543,6 +543,7 @@
     "Insert a column": "Spalte einfügen",
     "Insert a variable": "Variable einfügen",
     "Interface language": "Sprache der Oberfläche",
+    "Interface size": "Größe der Oberfläche",
     "Intro / preamble": "Einleitung",
     "Is Dummy User?": "Platzhalter-Benutzer?",
     "Isolate members": "Mitglieder voneinander trennen",
@@ -556,16 +557,19 @@
     "July": "Juli",
     "Jun": "Juni",
     "June": "Juni",
-    "Keep screen on": "Bildschirm anlassen",
     "Key figures": "Kennzahlen",
     "Kitchenware": "Küchenbedarf",
     "L": "l",
     "LIVE PREVIEW": "LIVE-VORSCHAU",
     "LM Studio's address as the NAS reaches it, ending in /v1": "Adresse von LM Studio, wie das NAS sie erreicht, endet auf /v1",
     "Language": "Sprache",
+    "Large": "Groß",
+    "Larger": "Größer",
+    "Largest": "Am größten",
     "Last 30 days": "Letzte 30 Tage",
     "Last 7 days": "Letzte 7 Tage",
     "Last page": "Letzte Seite",
+    "Leave Shop mode": "Ladenmodus verlassen",
     "Leave a comment": "Kommentar schreiben",
     "Leave empty for no goal. The Dashboard compares each month with it.": "Leer lassen für kein Ziel. Das Dashboard vergleicht jeden Monat damit.",
     "Leave empty to give them everything their role allows.": "Leer lassen, um alles zu erlauben, was die Rolle erlaubt.",
@@ -574,7 +578,6 @@
     "Legacy Owner": "Eigentümer (alte Rolle)",
     "Less than": "Kleiner als",
     "Let the household know you are going shopping": "Sag dem Haushalt, dass du einkaufen gehst",
-    "Let the screen sleep": "Bildschirm ausschalten lassen",
     "Licence texts:": "Lizenztexte:",
     "Lighting": "Beleuchtung",
     "Lime": "Limette",
@@ -602,6 +605,8 @@
     "Magic fill": "Automatisch ausfüllen",
     "Main AI": "Haupt-KI",
     "Main navigation": "Hauptnavigation",
+    "Main pages": "Hauptseiten",
+    "Makes everything larger on this device. Browser zoom still works on top of it.": "Vergrößert alles auf diesem Gerät. Der Browser-Zoom wirkt zusätzlich weiter.",
     "Malformed report request": "Fehlerhafte Berichtsanfrage",
     "Manage user accounts and the roles assigned to them.": "Verwalte Benutzerkonten und die ihnen zugewiesenen Rollen.",
     "Manage users & keys": "Benutzer und Schlüssel verwalten",
@@ -633,6 +638,7 @@
     "Monthly spending goal": "Monatliches Ausgabenziel",
     "Monthly spending goal ({symbol})": "Monatliches Ausgabenziel ({symbol})",
     "Monthly spending, {period}": "Monatliche Ausgaben, {period}",
+    "More": "Mehr",
     "More actions": "Weitere Aktionen",
     "More servings": "Mehr Portionen",
     "Move down": "Nach unten",
@@ -674,6 +680,7 @@
     "No AI is set up. An admin can choose one on the AI page.": "Es ist keine KI eingerichtet. Ein Admin kann eine auf der Seite KI auswählen.",
     "No activity to show.": "Keine Aktivität vorhanden.",
     "No additives listed.": "Keine Zusatzstoffe angegeben.",
+    "No amount": "Kein Betrag",
     "No barcode was found in that photo. Try again with the bars sharp and filling the frame.": "Auf dem Foto wurde kein Barcode gefunden. Versuche es erneut, mit scharfen Strichen, die das Bild ausfüllen.",
     "No camera could be started. Type the barcode instead.": "Keine Kamera konnte gestartet werden. Gib den Barcode stattdessen ein.",
     "No categories yet. The AI adds them as it reads receipts, or add your own.": "Noch keine Kategorien. Die KI fügt sie beim Lesen von Belegen hinzu, oder füge eigene hinzu.",
@@ -716,6 +723,7 @@
     "Not fresh produce": "Kein frisches Obst oder Gemüse",
     "Not on the list": "Nicht auf der Liste",
     "Not sent yet": "Noch nicht gesendet",
+    "Not sorted": "Nicht sortiert",
     "Note": "Notiz",
     "Nothing added yet": "Noch nichts hinzugefügt",
     "Nothing here.": "Hier ist nichts.",
@@ -976,6 +984,7 @@
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Gespeicherte Berichtsvorlagen — im Editor öffnen, erstellen, duplizieren oder löschen.",
     "Saved with your account, so CartVibe speaks it on every device.": "Mit deinem Konto gespeichert, daher spricht CartVibe sie auf jedem Gerät.",
     "Saving…": "Wird gespeichert…",
+    "Scan": "Scannen",
     "Scan a barcode": "Barcode scannen",
     "Scan receipt": "Beleg scannen",
     "Scanning needs an AI API key. Ask an admin to add one.": "Zum Scannen wird ein KI-API-Schlüssel benötigt. Bitte einen Admin, einen hinzuzufügen.",
@@ -998,6 +1007,7 @@
     "Server URL": "Server-URL",
     "Server address": "Serveradresse",
     "Session": "Sitzung",
+    "Sessions": "Sitzungen",
     "Set Password for {name}": "Passwort für {name} festlegen",
     "Set password": "Passwort festlegen",
     "Set total to {amount}": "Betrag auf {amount} setzen",
@@ -1013,6 +1023,7 @@
     "Shop Logos": "Shop-Logos",
     "Shop logos": "Shop-Logos",
     "Shop logos:": "Shop-Logos:",
+    "Shop mode": "Ladenmodus",
     "Shopping": "Einkaufen",
     "Shopping Lists": "Einkaufslisten",
     "Shopping list": "Einkaufsliste",
@@ -1031,6 +1042,9 @@
     "Shown instead of your initials, to everyone in the household.": "Wird allen im Haushalt statt deiner Initialen angezeigt.",
     "Sign Up": "Registrieren",
     "Sign in to your household": "Bei deinem Haushalt anmelden",
+    "Sign out": "Abmelden",
+    "Sign out everywhere": "Überall abmelden",
+    "Sign out on every phone and computer, this one included, and disconnect every assistant you connected. A device that is open right now is signed out within 20 minutes.": "Meldet dich auf jedem Telefon und Computer ab, auch auf diesem, und trennt jeden verbundenen Assistenten. Ein gerade geöffnetes Gerät wird innerhalb von 20 Minuten abgemeldet.",
     "Sign up is switched off in the demo.": "Die Registrierung ist in der Demo abgeschaltet.",
     "Sign-up": "Registrierung",
     "Sign-up & session policy": "Registrierung und Sitzungen",
@@ -1043,6 +1057,7 @@
     "Some photos were deleted while the file was made; those receipts come without them.": "Einige Fotos wurden beim Erstellen der Datei gelöscht; diese Belege kommen ohne sie.",
     "Some rows in the file cannot be imported:": "Einige Zeilen der Datei können nicht importiert werden:",
     "Some settings need attention before you can save.": "Einige Einstellungen müssen vor dem Speichern korrigiert werden.",
+    "Sort by": "Sortieren nach",
     "Sorted ascending": "Aufsteigend sortiert",
     "Sorted descending": "Absteigend sortiert",
     "Sorting cleared": "Sortierung aufgehoben",
@@ -1059,6 +1074,7 @@
     "Spent": "Ausgegeben",
     "Spices": "Gewürze",
     "Sports": "Sport",
+    "Standard": "Standard",
     "Star": "Stern",
     "Start": "Beginn",
     "Start Queue": "Warteschlange starten",
@@ -1090,8 +1106,6 @@
     "Sweets & Snacks": "Süßigkeiten und Snacks",
     "Swiss franc (CHF 12.99)": "Schweizer Franken (CHF 12.99)",
     "Switch household": "Haushalt wechseln",
-    "Switch to day mode": "Zum Tagmodus wechseln",
-    "Switch to night mode": "Zum Nachtmodus wechseln",
     "Symbol Display": "Symbolanzeige",
     "Symbol Position": "Position des Symbols",
     "System": "System",
@@ -1361,6 +1375,7 @@
     "You have to add an AI API key to use Quick Scan. Would you like to go to the AI settings?": "Für den Schnellscan musst du einen KI-API-Schlüssel hinzufügen. Möchtest du zu den KI-Einstellungen gehen?",
     "You have unsaved changes.": "Du hast ungespeicherte Änderungen.",
     "You signed in with a different account than the one connected here.": "Du hast dich mit einem anderen Konto angemeldet als dem, das hier verbunden ist.",
+    "You will be signed out on every device, this one included, and connected assistants will have to connect again. Continue?": "Du wirst auf jedem Gerät abgemeldet, auch auf diesem, und verbundene Assistenten müssen sich neu verbinden. Fortfahren?",
     "Your account can't be deleted this way.": "Dein Konto kann so nicht gelöscht werden.",
     "Your account has been successfully deleted": "Dein Konto wurde gelöscht",
     "Your account has no password of its own. To confirm the deletion, sign in again with one of your connected accounts.": "Dein Konto hat kein eigenes Passwort. Um das Löschen zu bestätigen, melde dich erneut mit einem deiner verbundenen Konten an.",
@@ -1621,6 +1636,10 @@
       "value": "API-Schlüssel löschen",
       "closest": "API key"
     },
+    "Delete the open list": {
+      "value": "Die geöffnete Liste löschen",
+      "closest": "Adding to the list"
+    },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Jeder Browser lädt die Logos direkt von Logo.dev und behält sie einen Tag. Logo.dev sieht, welche Marken-Logos angefragt werden, nie deine Belege. Auf diesem Server wird nichts gespeichert."
     },
@@ -1673,6 +1692,10 @@
     "Groups to View": {
       "value": "Anzuzeigende Gruppen"
     },
+    "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 720 hours (30 days).": {
+      "value": "Wie lange ein angemeldeter Benutzer abwesend sein kann, bevor er sich erneut anmelden muss. Sitzungen verlängern sich bei der Nutzung der App, es ist also ein Inaktivitätsfenster und keine feste Grenze. Höchstens 720 Stunden (30 Tage).",
+      "closest": "How long a signed-in user can be away before they have to log in again. Sessions renew themselves while the app is in use, so this is an inactivity window rather than a hard limit. Maximum 365 days."
+    },
     "Important:": {
       "value": "Wichtig:"
     },
@@ -1680,12 +1703,19 @@
       "value": "Im Logo.dev-Dashboard API keys öffnen und den öffentlichen Schlüssel (publishable key) kopieren.",
       "closest": "In the Logo.dev dashboard, open API keys and copy the secret key."
     },
+    "Keep screen on": {
+      "value": "Bildschirm anlassen",
+      "closest": "Could not keep the screen on."
+    },
     "Last Used At": {
       "value": "Zuletzt verwendet"
     },
     "Last month": {
       "value": "Letzter Monat",
       "closest": "Last page"
+    },
+    "Let the screen sleep": {
+      "value": "Bildschirm ausschalten lassen"
     },
     "Logo.dev publishable key": {
       "value": "Öffentlicher Logo.dev-Schlüssel",
@@ -1784,6 +1814,12 @@
     },
     "Stone": {
       "value": "Stein"
+    },
+    "Switch to day mode": {
+      "value": "Zum Tagmodus wechseln"
+    },
+    "Switch to night mode": {
+      "value": "Zum Nachtmodus wechseln"
     },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Der kostenlose Tarif reicht völlig: Der erste Download fragt Logo.dev einmal je Marke, danach fragt eine tägliche Prüfung einmal im Monat erneut nach einem Logo."

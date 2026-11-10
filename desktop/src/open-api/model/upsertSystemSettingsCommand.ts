@@ -59,7 +59,7 @@ export interface UpsertSystemSettingsCommand {
      */
     serverPublicUrl?: string;
     /**
-     * How long a refresh token stays valid, in hours. Accepted values are 1-720 (30 days), or 0 meaning unset, which falls back to the default of 24. Omit the key entirely to leave the currently configured value unchanged.
+     * How long a refresh token stays valid, in hours. Accepted values are 1-8760 (one year), or 0 meaning unset, which falls back to the default of 720 (30 days). Omit the key entirely to leave the currently configured value unchanged.
      */
     refreshTokenValidForHours?: number;
     /**

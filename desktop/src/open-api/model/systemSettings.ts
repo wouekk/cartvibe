@@ -70,7 +70,7 @@ export interface SystemSettings {
      */
     serverPublicUrl?: string;
     /**
-     * How long a refresh token stays valid, in hours. Refresh tokens rotate on every use, so this is how long a user can be away and still return signed in, not an absolute session cap. 1-720 (30 days); 0 means unset and falls back to the default.
+     * How long a refresh token stays valid, in hours. Refresh tokens rotate on every use, so this is how long a user can be away and still return signed in, not an absolute session cap. 1-8760 (one year); 0 means unset and falls back to the default.
      */
     refreshTokenValidForHours?: number;
     /**

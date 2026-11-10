@@ -284,7 +284,7 @@ test.describe('Shopping lists', () => {
     await expect(page.getByLabel('Add an item')).toHaveCount(0);
     await expect(page.getByTestId('shopping-list-add')).toHaveCount(0);
     await expect(page.getByTestId('shopping-list-import-recipe')).toHaveCount(0);
-    // The list menu stays (Share, Keep screen on are read-only actions) but offers no rename or copy.
+    // The list menu stays (Share and Shop mode change nothing on the server) but offers no rename or copy.
     await page.getByTestId('shopping-list-menu').click();
     await expect(page.getByTestId('shopping-list-share')).toBeVisible();
     await expect(page.getByTestId('shopping-list-rename')).toHaveCount(0);

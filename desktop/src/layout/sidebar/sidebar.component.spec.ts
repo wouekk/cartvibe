@@ -375,4 +375,60 @@ describe("SidebarComponent", () => {
       expect(sidebar).not.toBeNull();
     });
   });
+
+  describe("the phone's tab bar", () => {
+    const tabBar = () => fixture.nativeElement.querySelector("app-tab-bar");
+
+    it("is shown to a signed-in person on a phone only", async () => {
+      await fixture.whenStable();
+      expect(tabBar()).toBeNull();
+
+      login();
+      await fixture.whenStable();
+      expect(tabBar()).toBeNull();
+
+      isHandset.set(true);
+      await fixture.whenStable();
+      expect(tabBar()).not.toBeNull();
+    });
+
+    it("offers Dashboard, Lists and Receipts, each only when the sidebar offers it", async () => {
+      login();
+      store.dispatch(new SetGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]));
+      selectGroupFive([Permission.GroupReceiptsRead, Permission.GroupShoppingListsRead]);
+      await fixture.whenStable();
+
+      expect(component.tabItems().map((item) => [item.testId, item.label])).toEqual([
+        ["nav-overview", "Dashboard"],
+        ["nav-shopping-lists", "Lists"],
+        ["nav-receipts", "Receipts"],
+      ]);
+      expect(component.tabItems().map((item) => item.icon)).toEqual(["lucideLayoutDashboard", "lucideShoppingCart", "lucideReceiptText"]);
+
+      selectGroupFive([]);
+      await fixture.whenStable();
+
+      expect(component.tabItems().map((item) => item.testId)).toEqual(["nav-receipts"]);
+    });
+
+    it("offers Scan with the quick-scan permission on the household being browsed", async () => {
+      login();
+      store.dispatch(new SetGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]));
+      selectGroupFive([Permission.GroupReceiptsRead]);
+      await fixture.whenStable();
+      expect(component.canQuickScan()).toBe(false);
+
+      selectGroupFive([Permission.GroupReceiptsQuickScan]);
+      await fixture.whenStable();
+      expect(component.canQuickScan()).toBe(true);
+    });
+
+    it("opens the sheet from More", () => {
+      const setOpenMobile = vi.spyOn(TestBed.inject(HlmSidebarService), "setOpenMobile");
+
+      component.openMobileSidebar();
+
+      expect(setOpenMobile).toHaveBeenCalledWith(true);
+    });
+  });
 });

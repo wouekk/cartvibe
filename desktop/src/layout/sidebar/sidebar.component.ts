@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy, afterNextRender, viewChild, DestroyRef } from "@angular/core";
+import { Component, computed, effect, ElementRef, inject, Injector, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy, afterNextRender, viewChild, DestroyRef } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
@@ -13,6 +13,8 @@ import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
+import { shownHousehold } from "../../utils/shown-household";
+import { TabBarItem } from "../tab-bar/tab-bar.component";
 import { allowedManagementTabs } from "../../shared-ui/management-tabs/management-tabs.component";
 import { provideIcons } from "@ng-icons/core";
 import {
@@ -60,6 +62,9 @@ const LUCIDE_ICONS: Record<string, string> = {
   translate: "lucideLanguages",
   palette: "lucidePalette",
 };
+
+/** The everyday pages the phone's tab bar offers, in its order; the rest stay in the sheet behind More. */
+const TAB_BAR_PAGES = ["nav-overview", "nav-shopping-lists", "nav-receipts"];
 
 /** An entry under Settings. `activeUnder` lists every page address the entry stands for (Management's four tabs). */
 interface ManageNavItem {
@@ -134,6 +139,8 @@ export class SidebarComponent {
 
   private readonly sidebar = inject(HlmSidebarService);
 
+  private readonly injector = inject(Injector);
+
   private readonly topBar = viewChild<ElementRef<HTMLElement>>("topBar");
 
   private readonly destroyRef = inject(DestroyRef);
@@ -199,13 +206,7 @@ export class SidebarComponent {
   public readonly hasSeveralGroups = computed(() => this.groups().filter((g: Group) => !g.isAllGroup).length > 1);
 
   /** What the header names: the chosen group, or the only real one while the "All" group is chosen. */
-  public readonly shownGroup = computed(() => {
-    const selected = this.allGroups().find((group) => group.id === this.selectedGroupIdNumber());
-    if (this.hasSeveralGroups() || (selected && !selected.isAllGroup)) {
-      return selected;
-    }
-    return this.groups().find((g: Group) => !g.isAllGroup) ?? selected;
-  });
+  public readonly shownGroup = computed(() => shownHousehold(this.allGroups(), this.selectedGroupIdNumber()));
 
   public readonly selectedGroup = computed(() =>
     this.allGroups().find((group) => group.id === this.selectedGroupIdNumber())
@@ -272,6 +273,27 @@ export class SidebarComponent {
     }
 
     return items;
+  });
+
+  /** The phone's tab bar: Dashboard, Lists and Receipts, each only when the sidebar offers it too. */
+  public readonly tabItems = computed<TabBarItem[]>(() =>
+    TAB_BAR_PAGES.flatMap((testId) => {
+      const item = this.mainNavItems().find((candidate) => candidate.testId === testId);
+      if (!item) {
+        return [];
+      }
+      // "Shopping Lists" is too long for a fifth of a phone's width.
+      const label = testId === "nav-shopping-lists" ? marker("Lists") : item.label;
+      return [{ label, icon: this.lucide(item.icon), link: item.link, testId }];
+    })
+  );
+
+  private readonly addTargetGroupId = this.store.selectSignal(GroupState.addTargetGroupId);
+
+  /** Scan goes to the household being browsed (the only one while "All" is chosen), so it follows that one's permission. */
+  public readonly canQuickScan = computed(() => {
+    const groupId = this.addTargetGroupId();
+    return groupId !== undefined && hasAll(this.groupPermissions()?.[groupId] ?? [], Permission.GroupReceiptsQuickScan);
   });
 
   protected readonly isAdmin = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersRead));
@@ -360,6 +382,21 @@ export class SidebarComponent {
 
   public closeMobileSidebar(): void {
     this.sidebar.setOpenMobile(false);
+  }
+
+  /** The tab bar's More: everything that is not a tab lives in the sheet. */
+  public openMobileSidebar(): void {
+    this.sidebar.setOpenMobile(true);
+  }
+
+  /**
+   * The tab bar's Scan. The launcher (and the scan dialog behind it) loads on the first tap, so the shell's own bundle
+   * does not carry the receipts code.
+   */
+  public openQuickScan(): void {
+    void import("../../receipts/quick-scan-dialog/quick-scan-launcher.service").then(({ QuickScanLauncher }) =>
+      this.injector.get(QuickScanLauncher).open().pipe(take(1)).subscribe()
+    );
   }
 
   public logout(): void {
