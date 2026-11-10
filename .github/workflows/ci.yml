@@ -45,6 +45,8 @@ jobs:
             image:
               - 'docker/**'
               - '.dockerignore'
+              # A change to how the image is tested is tested: the smoke job runs for it.
+              - '.github/workflows/ci.yml'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -235,6 +237,13 @@ jobs:
       - name: Run the smoke specs
         run: npm run e2e:smoke
         working-directory: ./desktop
+      # nginx answers 429 past its request limit (10 a second per address), and every spec shares this runner's
+      # address. Counted, with the paths, so a run can tell a spec that is wrong from one that was starved.
+      - name: Requests the rate limit refused during the specs
+        if: ${{ !cancelled() }}
+        run: |
+          docker exec cartvibe sh -c 'awk "\$9 == 429" /var/log/nginx/access.log | wc -l'
+          docker exec cartvibe sh -c 'awk "\$9 == 429 {print \$6, \$7}" /var/log/nginx/access.log | sed -E "s/[0-9]+/N/g" | sort | uniq -c | sort -rn | head -20'
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
