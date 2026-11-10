@@ -5,25 +5,34 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Current state
 
-- **Last release v0.18.0 (2026-11-05)**: admins edit any household (`app.groups.update`, granted at the next start),
-  plain black/white month bars, the 19-colour menu for households and avatars. Before it v0.17.0 (2026-11-04): export
-  and import, date format, the audit sprint, the household sprint, the AI language per person. Neither is seen on the
-  NAS yet (below). Avatars and the household look are not in the export. Skipped on purpose: `app-button`'s
-  `color="warn"` API.
+- **The audit of 2026-11-09 is being carried out** (`docs/AUDIT-REPORT.md`: decisions, eleven sprints, progress). The
+  owner approved all of it except S1; no hosted plan, ever (a VPS stays a self-hoster's option).
+  - Sprint 1, `feature/audit-quick-wins`: CI green on 2026-11-10, published as `:preview`, merged into `preview`.
+    **`main` waits for the owner's go**; then tick sprint 1 in the audit report and move `preview` to the same commit.
+    The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
+  - Next: sprint 2, `feature/remove-cell-runtime`, cut from sprint 1's branch while that is not on `main`.
+- **Last release v0.18.0 (2026-11-05)**; before it v0.17.0. Neither is seen on the NAS yet (below). Avatars and the
+  household look are not in the export. Skipped on purpose: `app-button`'s `color="warn"` API.
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
+- Local Go run on Windows: 18 tests fail there only (PDF, Chromium, image encoding, Unix temp paths); CI judges them.
+  `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
+  lines in its `go.mod` and run them on the copy.
 - Mac Playwright run: `failed-activity-source-file` and `system-task-filter` fail on `main`, 15 skipped behind them.
   Also to do: the `dashboard-charts` spec; `app-time-zone` and `report-period-date-field` specs were not run.
-  `e2e-smoke` sometimes hits nginx's login limit (HTTP 503); re-run the job.
+  `e2e-smoke` sometimes hits nginx's login limit (HTTP 429, 503 before sprint 1); re-run the job.
 - Never run: Safari/Firefox desktop, Lighthouse, Web Push on a real device.
 - `cartvibe.app` is live (GitHub Pages, `docs/site.md`); DNS and mail records are in `cartvibe-cloud/iac/launch/`.
 
 ## Waiting on the owner (NAS or phone)
 
-- Before deploying `:latest`: back up `sqlite/`; the Dockhand stack must set `DB_ENGINE=sqlite`, `SECRET_KEY` and
-  `ENCRYPTION_KEY` (the server refuses to start otherwise; Docker then shows `cartvibe` healthy).
+- Before deploying `:latest` as it is today: back up `sqlite/`; the Dockhand stack must set `DB_ENGINE=sqlite`,
+  `SECRET_KEY` and `ENCRYPTION_KEY`. From sprint 1 on the server copies the database itself before it migrates.
 - After it: a photo scan, a HEIC and a PDF upload (also as an avatar), a report PDF, a household rename with receipt
   photos (they must still open), the 4K screen at 100% zoom, a scan with a real AI key, day/night and the accent
   palettes on phone and desktop. Report any queue error.
+- Sprint 1 on `:preview`: an `app-upgrade-*.db` file appears in `sqlite/backups` after the deploy; with the NAS
+  stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows *Take photo*; a long press on
+  the installed icon shows two shortcuts; add `stop_grace_period: 30s` to the Dockhand stack.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
@@ -35,6 +44,5 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Parked (only when the owner asks)
 
-- Signal Forms; native-speaker review of de/fr/es; the Chromium sandbox stays opt-in; e2e files join `e2e:smoke` after
-  three green runs; "Receipt {date}", ISO report months and the full-bleed report builder stay; `feature/households`
-  and the cell runtime (`api/docs/cell-runtime.md`).
+- Signal Forms; native-speaker review of de/fr/es; the Chromium sandbox stays opt-in; "Receipt {date}", ISO report
+  months and the full-bleed report builder stay; `feature/households`.
