@@ -803,6 +803,26 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /cspReport:
+    post:
+      tags:
+        - FeatureConfig
+      summary: Receive a Content-Security-Policy report
+      description:
+        Sent by the browser on its own when a page breaks the Content-Security-Policy (the policy's report-uri).
+        Each new violation is written to the log once an hour; nothing is stored. No sign-in is needed, and the
+        answer is always 204. The web app never calls it.
+      operationId: receiveCspReport
+      requestBody:
+        required: false
+        content:
+          application/csp-report:
+            schema:
+              type: object
+      responses:
+        204:
+          description: The report was read (or ignored)
+      security: []
   /featureConfig:
     get:
       tags:

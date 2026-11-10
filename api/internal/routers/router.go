@@ -3,6 +3,7 @@ package routers
 import (
 	"cartvibe/api/internal/corspolicy"
 	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/handlers"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/mcp"
 	"cartvibe/api/internal/oauth"
@@ -73,6 +74,9 @@ func BuildRootRouter() *chi.Mux {
 	rootRouter.Mount("/api/group", groupRouter)
 
 	// Feature Config Router
+	// Content-Security-Policy reports from the browser (no sign-in; nginx limits them).
+	rootRouter.Post("/api/cspReport", handlers.CspReport)
+
 	featureConfigRouter := BuildFeatureConfigRouter()
 	rootRouter.Mount("/api/featureConfig", featureConfigRouter)
 
