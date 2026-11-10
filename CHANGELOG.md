@@ -120,6 +120,10 @@ it is doing.
   which matters on a weak connection in the shop *(LIST-02)*.
 - **The list's notice about a lost connection tells the truth.** It used to say changes "may not be saved"; it now
   says they are kept and sent later, and how many are waiting *(LIST-13)*.
+- **Litestream 0.5 on a VPS.** `docker-compose.vps.yml` moves from Litestream 0.3.13 to 0.5.18, which writes its
+  copies in another format and takes other settings. Take the compose file and `deploy/vps/litestream.yml` together;
+  nothing has to be cleaned first (`docs/vps-deploy.md`, *Updating*). The NAS stack is not affected. CI now restores
+  a replica made by that image and compares every row, on every change to the image or the stack.
 - **Dependency updates.** Angular 22.2.5, Chart.js 4.6.1, Tailwind 4.3.5 and Vitest 5.1 in the app; chromedp 0.23
   (report PDFs), the tagged excelize 2.11.1 (Excel reports), `x/oauth2` 0.38 and the Gemini client 1.77 in the
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term

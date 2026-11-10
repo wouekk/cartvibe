@@ -12,6 +12,9 @@ on:
       - 'docker/**'
       - '.dockerignore'
       - '.github/workflows/**'
+      # The VPS stack: the smoke job runs its restore drill.
+      - 'deploy/vps/**'
+      - 'docker-compose.vps.yml'
   # A pull request from a fork: CONTRIBUTING.md asks for green CI, and a fork's push runs nothing here. It runs with
   # a read-only token and no secrets. A pull request from a branch of this repository is skipped (detect-changes):
   # its push already ran.
@@ -58,6 +61,9 @@ jobs:
               - '.dockerignore'
               # A change to how the image is tested is tested: the smoke job runs for it.
               - '.github/workflows/ci.yml'
+              # The smoke job runs the VPS stack's restore drill.
+              - 'deploy/vps/**'
+              - 'docker-compose.vps.yml'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -215,7 +221,8 @@ jobs:
       - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name cartvibe --network e2e -p 8091:80 $APP_SECURITY $APP_ENV cartvibe:ci
+          # The database folder is a named volume, so the restore drill below can mount it beside the app.
+          docker run -d --name cartvibe --network e2e -p 8091:80 -v cartvibe-sqlite:/app/cartvibe-api/sqlite $APP_SECURITY $APP_ENV cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
@@ -306,6 +313,14 @@ jobs:
             exit 1
           fi
           echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
+      # docker-compose.vps.yml: Litestream copies the live database to a bucket (here a throwaway S3 server), with
+      # the image and the configuration that file ships. Started while the app runs (a snapshot, then a change made
+      # after it), checked after the app has stopped.
+      - name: Litestream replicates the live database
+        run: bash deploy/vps/restore-drill.sh start
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
@@ -316,6 +331,13 @@ jobs:
           code=$(docker inspect --format '{{.State.ExitCode}}' cartvibe)
           echo "stopped in ${took}s with exit code ${code}"
           [ "$code" = "0" ] && [ "$took" -lt 25 ]
+      # The restore drill: what the bucket holds comes back as a database with the same tables and rows as the one
+      # the stopped app left behind.
+      - name: The replica restores to the same database
+        run: bash deploy/vps/restore-drill.sh finish
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
       # The same data under another version, as after an update on the NAS: the API must copy the database to
       # sqlite/backups before it migrates, then record the version it started as.
       - name: A new version snapshots the database first
