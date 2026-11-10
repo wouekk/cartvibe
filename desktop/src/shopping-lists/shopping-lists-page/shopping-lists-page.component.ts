@@ -84,7 +84,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   public readonly canDelete = computed(() => hasAll(this.permissions(), Permission.GroupShoppingListsDelete));
 
-  /** The switcher under the open list: one card per list still being shopped, newest first, with what is left to buy. */
+  /** The switcher above the open list: one chip per list still being shopped, newest first, with what is left to buy. */
   public readonly activeCards = computed(() =>
     activeLists(this.lists()).map((list) => {
       const toBuy = list.items.filter((item) => !item.isChecked);
@@ -125,7 +125,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     })
   );
 
-  /** The active cards are left out when their only card would be the list already open above them. */
+  /** The switcher is left out when its only chip would be the list already open below it. */
   public readonly showActiveCards = computed(() => {
     const cards = this.activeCards();
     return cards.length > 1 || (cards.length === 1 && cards[0].id !== this.selectedList()?.id);
@@ -153,10 +153,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
 
   private readonly wakeLock = inject(ScreenWakeLockService);
 
-  /** The "Keep screen on" switch is offered only where the browser can do it. */
-  public readonly canKeepScreenOn = this.wakeLock.supported;
-
-  public readonly keepScreenOn = this.wakeLock.enabled;
+  /**
+   * Shop mode, for walking the aisles: the open list alone (no page header, switcher, trips or finished lists), bigger
+   * rows, and the screen kept on where the browser can. A per-visit switch: it starts off, turns on by itself after
+   * "Going shopping", and ends with the page.
+   */
+  public readonly shopMode = signal(false);
 
   public readonly online = inject(OnlineStatusService).online;
 
@@ -496,23 +498,32 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         next: () => {
           this.snackbarService.success("The household has been told you are going shopping.");
           this.announcing.set(false);
+          this.setShopMode(true);
         },
         error: () => this.announcing.set(false),
       });
   }
 
-  /** In the shop the screen going dark mid-aisle is the annoyance, so it is a per-visit switch, off by default. */
-  public toggleKeepScreenOn(): void {
-    if (this.wakeLock.enabled()) {
+  /**
+   * Enters or leaves Shop mode. In the shop the screen going dark mid-aisle is the annoyance, so the mode holds a
+   * wake lock where the browser has one; a refusal (power saver) is said once and the mode stays on without it.
+   */
+  public setShopMode(on: boolean): void {
+    if (on === this.shopMode()) {
+      return;
+    }
+    this.shopMode.set(on);
+    if (!on) {
       void this.wakeLock.disable();
       return;
     }
-
-    void this.wakeLock.enable().then((enabled) => {
-      if (!enabled) {
-        this.snackbarService.hint("Could not keep the screen on.");
-      }
-    });
+    if (this.wakeLock.supported) {
+      void this.wakeLock.enable().then((enabled) => {
+        if (!enabled && this.shopMode()) {
+          this.snackbarService.hint("Could not keep the screen on.");
+        }
+      });
+    }
   }
 
   /** The share sheet where there is one (phones), otherwise the text goes to the clipboard. */

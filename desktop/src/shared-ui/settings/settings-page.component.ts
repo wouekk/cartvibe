@@ -20,7 +20,7 @@ import { Component, computed, input, ChangeDetectionStrategy } from "@angular/co
             }
             <ng-content select="[settingsDescription]"></ng-content>
           </div>
-          <div class="flex flex-wrap items-center gap-2 [&_button]:min-h-9">
+          <div class="flex flex-wrap items-center gap-2 [&_button]:min-h-control">
             <ng-content select="[settingsActions]"></ng-content>
           </div>
         </div>

@@ -192,6 +192,15 @@
     </div>
     <!-- The demo build ends its pages with the project site's two-line footer (an empty element in the real app). -->
     <app-demo-footer></app-demo-footer>
+    <!-- A phone's navigation: the last child of the page column, stuck to the bottom of the screen (tab-bar.component). -->
+    @if (isLoggedIn() && isHandset()) {
+      <app-tab-bar
+        [items]="tabItems()"
+        [canScan]="canQuickScan()"
+        (scan)="openQuickScan()"
+        (more)="openMobileSidebar()"
+      ></app-tab-bar>
+    }
   </main>
 </div>
 

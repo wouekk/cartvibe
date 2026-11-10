@@ -99,6 +99,11 @@ const patches = [
   ["sidebar/lib/hlm-sidebar-menu-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
   ["sidebar/lib/hlm-sidebar-menu-sub-button.ts", "'[attr.data-active]': 'isActive()',", "'[attr.data-active]': 'isActive() ? \"\" : null',"],
   ["button/lib/hlm-button.ts", "whitespace-nowrap transition-all outline-none", "whitespace-nowrap transition-all duration-150 active:scale-[0.98] outline-none"],
+  // One control height for buttons, inputs, selects and tab strips: 36px under a mouse, 44px under a finger
+  // (`--control-h` in tailwind.css), instead of the helm's fixed h-9 / size-9.
+  ...["button/lib/hlm-button.ts", "input/lib/hlm-input.ts", "input-group/lib/hlm-input-group.ts", "select/lib/hlm-select-trigger.ts", "tabs/lib/hlm-tabs-list.ts"].map(
+    (file) => [file, /(?<![A-Za-z0-9-])(h|size)-9(?![\w./-])/g, (_match, kind) => `${kind}-control`],
+  ),
   ["collapsible/lib/hlm-collapsible-content.ts", "classes(() => 'data-[state=closed]:hidden');", 'classes(() => "data-[state=closed]:hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1 data-[state=open]:duration-200");'],
   // brn-switch marks its state as data-state="checked|unchecked", never a data-checked attribute, so the helm's
   // `data-checked:` classes never applied and a switch that was on looked off.

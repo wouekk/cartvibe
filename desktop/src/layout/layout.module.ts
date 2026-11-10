@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { PaletteSwatchComponent } from "../shared-ui/palette-swatch/palette-swatch.component";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterModule } from "@angular/router";
 import { OverlayModule } from "@angular/cdk/overlay";
@@ -25,6 +24,7 @@ import { DashboardIconComponent } from "./dashboard-icon/dashboard-icon.componen
 import { HeaderComponent } from "./header/header.component";
 import { ReceiptListIconComponent } from "./receipt-list-icon/receipt-list-icon.component";
 import { SidebarComponent } from "./sidebar/sidebar.component";
+import { TabBarComponent } from "./tab-bar/tab-bar.component";
 
 @NgModule({
   declarations: [
@@ -46,7 +46,6 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     HlmButton,
     AppIconComponent,
     NgIcon,
-    PaletteSwatchComponent,
     ...HlmCollapsibleImports,
     ...HlmDropdownMenuImports,
     ...HlmSidebarImports,
@@ -58,6 +57,7 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
     ReactiveFormsModule,
     RouterModule,
     SharedUiModule,
+    TabBarComponent,
   ],
   exports: [HeaderComponent, AddReceiptIconComponent],
 })

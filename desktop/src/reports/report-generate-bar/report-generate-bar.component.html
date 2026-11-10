@@ -2,7 +2,7 @@
   <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
     <span class="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">{{ 'FORMAT' | t }}</span>
     <!-- Formats are toggles (several may be picked), drawn as one segmented control. -->
-    <div class="inline-flex h-9 items-stretch rounded-lg border border-border bg-muted/40 p-0.5" role="group" [attr.aria-label]="'Format' | t">
+    <div class="inline-flex h-control items-stretch rounded-lg border border-border bg-muted/40 p-0.5" role="group" [attr.aria-label]="'Format' | t">
       @for (format of formats; track format.key) {
         <button
           type="button"

@@ -9,6 +9,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
+import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
@@ -49,12 +50,20 @@ describe("ShoppingListsPageComponent", () => {
   let shoppingListService: { [method: string]: Mock };
   let snackbarService: { [method: string]: Mock };
   let confirmed: boolean | undefined;
+  let wakeLock: { supported: boolean; enabled: ReturnType<typeof signal<boolean>>; enable: Mock; disable: Mock };
 
   beforeEach(async () => {
     confirmed = true;
+    wakeLock = {
+      supported: true,
+      enabled: signal(false),
+      enable: vi.fn().mockResolvedValue(true),
+      disable: vi.fn().mockResolvedValue(undefined),
+    };
     shoppingListService = {
       getShoppingListsForGroup: vi.fn().mockReturnValue(of(lists())),
       deleteShoppingList: vi.fn().mockReturnValue(of(undefined)),
+      announceGoingShopping: vi.fn().mockReturnValue(of(undefined)),
       setShoppingListChecked: vi.fn().mockImplementation(setChecked),
     };
     snackbarService = {
@@ -77,6 +86,7 @@ describe("ShoppingListsPageComponent", () => {
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
         { provide: ShoppingListSyncService, useValue: { stalled: signal(false), drained: vi.fn().mockResolvedValue(true) } },
         { provide: SnackbarService, useValue: snackbarService },
+        { provide: ScreenWakeLockService, useValue: wakeLock },
         {
           provide: AppDialog,
           useValue: { open: vi.fn().mockImplementation(() => ({ componentInstance: {}, afterClosed: () => of(confirmed) })) },
@@ -104,12 +114,20 @@ describe("ShoppingListsPageComponent", () => {
 
   const testId = (id: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
 
-  it("opens the newest list and puts the open list above the list cards", () => {
+  it("opens the newest list and puts the list switcher above the open list", () => {
     expect(component.selectedList()?.id).toBe(2);
 
     const workspace = testId("shopping-list-workspace")!;
     const cards = testId("shopping-list-cards")!;
-    expect(workspace.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(cards.compareDocumentPosition(workspace) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("shows each list being shopped as a chip with what is left to buy, the open one pressed", () => {
+    expect(testId("shopping-list-card-2")?.textContent).toContain("Aldi");
+    expect(testId("shopping-list-card-2")?.textContent).toContain("1");
+    expect(testId("shopping-list-card-2")?.getAttribute("aria-pressed")).toBe("true");
+    expect(testId("shopping-list-card-1")?.getAttribute("aria-pressed")).toBe("false");
+    expect(testId("shopping-list-card-1")?.getAttribute("title")).toBe("item-10");
   });
 
   it("lists the lists being shopped newest first, and the finished ones apart", () => {
@@ -145,8 +163,8 @@ describe("ShoppingListsPageComponent", () => {
     expect(component.selectedList()?.id).toBe(1);
   });
 
-  it("deletes the open list from the header after confirming", async () => {
-    (testId("shopping-list-delete") as HTMLButtonElement).click();
+  it("deletes the open list after confirming", async () => {
+    component.deleteList(component.selectedList()!);
     await fixture.whenStable();
 
     expect(shoppingListService["deleteShoppingList"]).toHaveBeenCalledWith(2);
@@ -158,17 +176,87 @@ describe("ShoppingListsPageComponent", () => {
   it("deletes nothing when the confirmation is dismissed", async () => {
     confirmed = undefined;
 
-    (testId("shopping-list-delete") as HTMLButtonElement).click();
+    component.deleteList(component.selectedList()!);
     await fixture.whenStable();
 
     expect(shoppingListService["deleteShoppingList"]).not.toHaveBeenCalled();
   });
 
-  it("hides Delete list from someone who may not delete lists", async () => {
+  it("keeps Delete list out of the page header: it lives in the list's menu, for those who may delete", async () => {
+    // The menu's entries render only once it opens; the header must not carry the red button any more.
+    expect(testId("shopping-list-delete")).toBeNull();
+    expect(component.canDelete()).toBe(true);
+
     store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, groupPermissions: { 1: [] } } });
     await fixture.whenStable();
 
-    expect(testId("shopping-list-delete")).toBeNull();
+    expect(component.canDelete()).toBe(false);
+  });
+
+  describe("Shop mode", () => {
+    it("shows the open list alone and keeps the screen on", async () => {
+      expect(testId("shopping-list-shop-mode-leave")).toBeNull();
+      expect(fixture.nativeElement.querySelector("app-table-header")).not.toBeNull();
+      expect(fixture.nativeElement.querySelector("app-shopping-trips")).not.toBeNull();
+
+      component.setShopMode(true);
+      await fixture.whenStable();
+
+      expect(wakeLock.enable).toHaveBeenCalledTimes(1);
+      expect(fixture.nativeElement.querySelector("app-table-header")).toBeNull();
+      expect(fixture.nativeElement.querySelector("app-shopping-trips")).toBeNull();
+      expect(testId("shopping-list-cards")).toBeNull();
+      expect(testId("shopping-list-completed-toggle")).toBeNull();
+      expect(testId("shopping-list-going-shopping")).toBeNull();
+      expect(testId("shopping-list-import-recipe")).toBeNull();
+      expect(testId("shopping-list-workspace")).not.toBeNull();
+      expect(testId("shopping-list-complete")).not.toBeNull();
+    });
+
+    it("is left from the button in the list's header, which lets the screen sleep again", async () => {
+      component.setShopMode(true);
+      await fixture.whenStable();
+
+      (testId("shopping-list-shop-mode-leave") as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      expect(component.shopMode()).toBe(false);
+      expect(wakeLock.disable).toHaveBeenCalled();
+      expect(fixture.nativeElement.querySelector("app-table-header")).not.toBeNull();
+      expect(testId("shopping-list-cards")).not.toBeNull();
+    });
+
+    it("starts by itself once the household has been told about the shopping trip", async () => {
+      (testId("shopping-list-going-shopping") as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      expect(shoppingListService["announceGoingShopping"]).toHaveBeenCalledWith(1);
+      expect(component.shopMode()).toBe(true);
+    });
+
+    it("stays on, with a word about the screen, when the browser refuses to keep it awake", async () => {
+      wakeLock.enable.mockResolvedValue(false);
+
+      component.setShopMode(true);
+      await fixture.whenStable();
+      await Promise.resolve();
+
+      expect(component.shopMode()).toBe(true);
+      expect(snackbarService["hint"]).toHaveBeenCalledWith("Could not keep the screen on.");
+    });
+
+    it("works without the wake lock where the browser has none, and ends with the page", async () => {
+      wakeLock.supported = false;
+
+      component.setShopMode(true);
+      await fixture.whenStable();
+
+      expect(component.shopMode()).toBe(true);
+      expect(wakeLock.enable).not.toHaveBeenCalled();
+
+      fixture.destroy();
+      expect(wakeLock.disable).toHaveBeenCalled();
+    });
   });
 
   it("marks the open list complete, opens the next list and offers Undo", async () => {

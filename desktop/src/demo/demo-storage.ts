@@ -7,7 +7,7 @@
 export const DEMO_STORAGE_PREFIX = "cartvibe-demo:";
 
 /** Keys a Reset keeps: the look is the visitor's own taste, not demo data. */
-const KEPT_ON_RESET = ["cartvibe.themeMode", "cartvibe.themePalette"];
+const KEPT_ON_RESET = ["cartvibe.themeMode", "cartvibe.themePalette", "cartvibe.interfaceSize"];
 
 const original =
   typeof Storage === "undefined"

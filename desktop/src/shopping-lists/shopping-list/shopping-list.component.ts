@@ -6,6 +6,7 @@ import { Store } from "@ngxs/store";
 import { EMPTY, filter, from, map, of, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -47,6 +48,20 @@ export class ShoppingListComponent {
 
   public readonly canUpdate = input<boolean>(false);
 
+  /** Shop mode: bigger rows, for a thumb and a glance in the aisle. */
+  public readonly large = input<boolean>(false);
+
+  /** True from the first focus in the add bar until it is left empty. */
+  public readonly addInUse = signal(false);
+
+  private readonly viewport = inject(ViewportService);
+
+  /**
+   * Whether the amount and unit are shown beside the name. Always on a wider screen; on a phone the bar is one row
+   * ("Add an item" and the button) until it is in use, so the list starts higher up.
+   */
+  public readonly showAmount = computed(() => !this.viewport.isHandset() || this.addInUse());
+
   public readonly activeItems = this.store.selectSignal(ShoppingListState.activeItems);
 
   public readonly checkedItems = this.store.selectSignal(ShoppingListState.checkedItems);
@@ -79,6 +94,21 @@ export class ShoppingListComponent {
     private snackbarService: SnackbarService
   ) {
     this.addForm = buildShoppingListItemForm(this.formBuilder);
+  }
+
+  /**
+   * The focus left a field of the add bar. The bar folds back to one row only when the focus really left it (not
+   * for another of its fields, nor for the unit's menu, which opens in an overlay) and nothing typed would be hidden.
+   */
+  public addBarLeft(event: FocusEvent): void {
+    const next = event.relatedTarget;
+    if (next instanceof Node && (this.host.nativeElement.contains(next) || !!(next as Element).closest?.(".cdk-overlay-container"))) {
+      return;
+    }
+    const { name, amount } = this.addForm.getRawValue();
+    if (`${name ?? ""}${amount ?? ""}`.trim().length === 0) {
+      this.addInUse.set(false);
+    }
   }
 
   /** A suggestion was picked: its last amount and unit come along, unless the user already typed an amount. */

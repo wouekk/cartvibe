@@ -1,18 +1,31 @@
 @if (canUpdate()) {
-  <form class="add-bar sticky top-[var(--app-top-bar,0px)] z-10 bg-card pb-3 pt-1" [formGroup]="addForm" (ngSubmit)="addItem()">
+  <!-- One row on a phone ("Add an item" and the button); the amount and unit join it once the bar is in use. -->
+  <form
+    class="add-bar sticky top-[var(--app-top-bar,0px)] z-10 bg-card pb-3 pt-1"
+    data-testid="shopping-list-add-bar"
+    [attr.data-expanded]="showAmount()"
+    [formGroup]="addForm"
+    (ngSubmit)="addItem()"
+    (focusin)="addInUse.set(true)"
+    (focusout)="addBarLeft($event)"
+  >
     <div class="flex flex-wrap items-start gap-2 sm:flex-nowrap">
       <app-shopping-item-name-field
-        class="add-name w-full min-w-0 sm:w-auto sm:flex-1"
+        class="add-name min-w-0 sm:w-auto sm:flex-1"
+        [class.w-full]="showAmount()"
+        [class.flex-1]="!showAmount()"
         [label]="'Add an item' | t"
         testId="shopping-list-add-name"
         [control]="nameControl"
         [suggestions]="suggestions()"
         (picked)="suggestionPicked($event)"
       ></app-shopping-item-name-field>
-      <app-shopping-list-amount-fields
-        class="add-amount min-w-0 flex-1 sm:w-48 sm:flex-none [&_.amount]:w-20 [&_.amount]:flex-none [&_input]:tabular-nums"
-        [form]="addForm"
-      ></app-shopping-list-amount-fields>
+      @if (showAmount()) {
+        <app-shopping-list-amount-fields
+          class="add-amount min-w-0 flex-1 sm:w-48 sm:flex-none [&_.amount]:w-20 [&_.amount]:flex-none [&_input]:tabular-nums"
+          [form]="addForm"
+        ></app-shopping-list-amount-fields>
+      }
       <!-- The same label row as the fields beside it (text-sm, leading-none, gap-1.5), left blank, so the button
            sits on the inputs' line whatever the label height is. -->
       <div class="flex flex-none flex-col gap-1.5">
@@ -21,7 +34,7 @@
           hlmBtn
           type="submit"
           size="icon"
-          class="size-9"
+          class="size-control"
           [attr.aria-label]="'Add item' | t"
           data-testid="shopping-list-add-submit"
         >
@@ -37,6 +50,7 @@
     <app-shopping-list-item
       [item]="item"
       [canUpdate]="canUpdate()"
+      [large]="large()"
       [pending]="pendingItemIds().has(item.id)"
       (toggled)="toggleItem($event)"
       (editClicked)="editItem($event)"
@@ -83,6 +97,7 @@
           <app-shopping-list-item
             [item]="item"
             [canUpdate]="canUpdate()"
+            [large]="large()"
             [pending]="pendingItemIds().has(item.id)"
             (toggled)="toggleItem($event)"
             (editClicked)="editItem($event)"
