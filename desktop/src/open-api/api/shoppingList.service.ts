@@ -1397,7 +1397,7 @@ export class ShoppingListService {
 
     /**
      * Stream shopping list updates
-     * Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read]. Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON. A comment heartbeat is sent every 25 seconds, and the server ends the stream after 15 minutes (or when the caller loses access) so that reconnecting re-authenticates. Events missed while disconnected are not replayed; refetch the lists after (re)connecting.
+     * Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read]. Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON. A heartbeat event named PING (data \&quot;{}\&quot;) is sent every 25 seconds, so a client can tell a stream that went silent from a quiet one, and the server ends the stream after 15 minutes (or when the caller loses access) so that reconnecting re-authenticates. Events missed while disconnected are not replayed; refetch the lists after (re)connecting.
      * @param groupId Id of the group to receive shopping list updates for
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
