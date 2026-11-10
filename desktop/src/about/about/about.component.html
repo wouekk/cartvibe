@@ -58,6 +58,13 @@
         } @else {
           <span>{{ 'Build Date: unknown' | t }}</span>
         }
+        <!-- docker/entrypoint.sh: ALLOW_ROOT=1 runs the API as root when its folders refuse the unprivileged user.
+             Whoever can change the server's settings is told, since that is a choice to undo, not a state to keep. -->
+        @if (about().runsAsRoot && canChangeSystemSettings()) {
+          <p class="m-0 mt-2 text-sm text-warning-text" data-testid="about-runs-as-root">
+            {{ 'The server runs as root, because ALLOW_ROOT=1 is set. Set PUID and PGID to the owner of its folders, then remove ALLOW_ROOT.' | t }}
+          </p>
+        }
       </div>
     </app-form-section>
   </div>

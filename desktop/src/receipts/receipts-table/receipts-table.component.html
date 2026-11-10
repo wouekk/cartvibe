@@ -187,7 +187,7 @@
           type="button"
           class="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
           [attr.data-testid]="'receipt-filter-chip-clear-' + chip.key"
-          [attr.aria-label]="'Remove ' + chip.label + ' filter'"
+          [attr.aria-label]="'Remove filter: {name}' | t: { name: chip.label }"
           (click)="filterChipCleared(chip.key)"
         >
           <app-icon name="cancel"></app-icon>

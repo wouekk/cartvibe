@@ -19,6 +19,8 @@ The owner approved carrying out everything in this report except S1. Where the r
 | C14 roles | Fixed roles only | Admin and Member; everyone in a household sees everything in it. Role editing, grants, paid-by visibility and member isolation are removed |
 | B10 report PDFs | Keep Chromium | B10 is dropped; B9 still removes cgo and nginx |
 | C8 theme controls | Move to Settings, keep five palettes | The palette menu and day/night switch leave the header |
+| C4 `:latest` (decided 2026-11-10, with sprint 6) | Keep it on green `main` | The NAS deploys from `:latest`, so it stays the newest tested commit. Releases get `:vX.Y.Z` and `:X.Y` beside it; the README points other self-hosters at `:X.Y`. B3's "an alias for the newest release" is not done |
+| Node (decided 2026-11-10) | Move to Node 26 | CI, the image and the lockfile are on Node 26.13 (the long-term release); the PC has it, the Mac needs it before work there |
 
 ## Progress
 
@@ -99,7 +101,25 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     code still takes the writer).
   - Left as they are: the `task_queue_configurations` table and the `task_concurrency` column in existing
     databases (migrations are additive), and the column name `asynq_task_id` behind `SystemTask.JobId`.
-- [ ] 6. Releases, CI and hardening: B3, B7, B8, S4, S8, S12, S13, S16, S19, S20
+- [ ] 6. Releases, CI and hardening (`feature/sprint-6-releases-ci`; the first four items were made on
+  `feature/releases-and-ci` in another session and merged in): B3, B7, B8, S4, S8, S12, S13, S16, S19, S20
+  - Done on the branch on 2026-11-10. Sign-in backs off per account and a refused one answers 401 (S8); a new
+    install refuses an `ENCRYPTION_KEY` under 32 characters (S12); CSP reports reach the log (S13); the refresh
+    cookie is scoped to `/api/token` (S20). The API runs as root only with `ALLOW_ROOT=1`, a folder that refuses
+    its user stops the start, the About page tells an admin, and both compose files set `no-new-privileges` and
+    keep seven capabilities (S4). The log file is JSON lines capped at 10 MB with one older file (S16). A `v*` tag
+    publishes `:vX.Y.Z` and `:X.Y`; the one version number is the tag (`package.json` and `swagger.yml` are
+    `0.0.0`); a release's database (`testdata/schema-v0.18.0.sql`) is migrated by today's code in a test (B3). An
+    image is scanned before it is pushed, with one rebuild without the cache for a fixable critical finding (S19).
+    CI: the race detector on the concurrent packages (the whole suite under it ran past 25 minutes), `check:traps` (the guide's traps as checks, with two counts that only go
+    down), a test that the router and `swagger.yml` name the same routes, a coverage floor for the app, a phone
+    spec in Chromium and WebKit, and runs for a pull request from a fork (B8).
+  - Not done, on purpose. Base images are not pinned by digest (B7): the weekly rebuild without the cache takes
+    patched bases by itself, and a pin would trade that for a weekly pull request someone has to merge. The app
+    is still built once per job (B8, "build once and pass artifacts"): the image must build from source by
+    itself, as the publish does, and the layer cache already makes the second build cheap. No cache mounts in the
+    Dockerfile (B7): the gha layer cache covers the dependency layers. arm64 waits for B9.
+  - `:latest` stays on green `main` (the decisions table).
 - [ ] 7. AI and files: B5.2, B5.3, B5.7, B6, S18
 - [ ] 8. Fixed roles: C14
 - [ ] 9. Identity-provider screens: D15

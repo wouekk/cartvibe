@@ -19,7 +19,15 @@ runs in a row, 7 seconds), and since 2026-11-10 `shopping-list.spec`, `quick-sca
 touches a list, the scan dialog and a receipt. `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
 added a template under a pending click. More files join smoke only after three green runs; one that turns flaky in CI leaves the list again.
 
-Around the specs, the `e2e-smoke` job checks the container itself: the main script arrives gzip-compressed with an
+**Phones.** `phone-shell.phone.spec.ts` is the app as it is used in the shop: from the landing page by taps only,
+the tab bar, a new list with an item added and crossed off, the receipts as cards, and no sideways scroll on the
+way. It does not tap Scan: that tab is there only while one household is browsed, and the specs beside it give the
+admin a second household while they run (the first CI run met exactly that). It runs twice in the smoke job, in Chromium as a Pixel 7 and in WebKit as an iPhone (the closest
+thing to Safari that runs in CI; `npm run e2e:install` fetches both browsers). Its taps and test ids were proved
+against the built demo first; the real app and WebKit are CI's to judge.
+
+Around the specs, the `e2e-smoke` job checks the container itself: the API runs as uid 10001 with the compose files'
+security options, a folder that refuses that user stops the start with exit code 78, `ALLOW_ROOT=1` runs it as root; the main script arrives gzip-compressed with an
 `immutable` cache header, a burst of 120 requests gets both 200s and 429s (the request limit), `docker stop` ends
 with exit code 0 inside the grace period, and a second container started on the same volumes under another `VERSION`
 leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.

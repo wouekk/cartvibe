@@ -7,7 +7,9 @@ info:
   license:
     name: AGPL-3.0
     url: https://www.gnu.org/licenses/agpl-3.0.en.html
-  version: 5.0.0
+  # Not a version of its own: the contract ships with the app, whose one version is the release tag (GET /about
+  # answers it). Kept at 0.0.0 so it cannot drift from the tag (desktop/tools/check-traps.cjs).
+  version: 0.0.0
 servers:
   - url: /api
 security:
@@ -803,6 +805,26 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /cspReport:
+    post:
+      tags:
+        - FeatureConfig
+      summary: Receive a Content-Security-Policy report
+      description:
+        Sent by the browser on its own when a page breaks the Content-Security-Policy (the policy's report-uri).
+        Each new violation is written to the log once an hour; nothing is stored. No sign-in is needed, and the
+        answer is always 204. The web app never calls it.
+      operationId: receiveCspReport
+      requestBody:
+        required: false
+        content:
+          application/csp-report:
+            schema:
+              type: object
+      responses:
+        204:
+          description: The report was read (or ignored)
+      security: []
   /featureConfig:
     get:
       tags:
@@ -1075,7 +1097,7 @@ paths:
         500:
           $ref: "#/components/responses/Internal"
       security: []
-  /logout/:
+  /token/logout/:
     post:
       tags:
         - Auth
@@ -8325,6 +8347,9 @@ components:
         version:
           type: string
           description: Version
+        runsAsRoot:
+          type: boolean
+          description: True when the server process is root (the container was started with ALLOW_ROOT=1)
     InternalErrorResponse:
       type: object
       required:

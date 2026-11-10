@@ -8,9 +8,10 @@ cd /app/cartvibe-api
 # not already owned are touched, so this is quick after the first start.
 #
 # A NAS folder can still refuse that user: on a Synology shared folder the DSM ACL decides, and chown does not
-# change it. So the folders are checked as that user, and when anything is not writable the API runs as root
-# (as before) and says why, instead of failing to start. PUID/PGID set to the DSM user that owns the folders
-# (for example 1026 and 100) avoids that.
+# change it. So the folders are checked as that user. When anything is not writable the container does not start
+# and says what to set: PUID/PGID to the DSM user that owns the folders (for example 1026 and 100), which is the
+# fix, or ALLOW_ROOT=1 to run the API as root as images before 2026-11-10 did without asking. Running the API, and
+# through it ImageMagick, Ghostscript and Chromium, as root is a choice someone makes, never a fallback.
 RUN_AS=()
 if [ "$(id -u)" = "0" ] && id cartvibe >/dev/null 2>&1; then
   APP_UID="${PUID:-$(id -u cartvibe)}"
@@ -22,9 +23,16 @@ if [ "$(id -u)" = "0" ] && id cartvibe >/dev/null 2>&1; then
   DROP=(setpriv --reuid="$APP_UID" --regid="$APP_GID" --clear-groups)
   if "${DROP[@]}" sh -c 'out=$(find data temp logs sqlite \! -writable -print -quit 2>&1) && [ -z "$out" ]'; then
     RUN_AS=("${DROP[@]}" env HOME=/home/cartvibe)
-  else
+  elif [ "${ALLOW_ROOT:-}" = "1" ]; then
     echo "cartvibe: the data, temp, logs or sqlite folder is not writable by uid $APP_UID (a NAS folder permission?)," \
-      "so the API runs as root. Set PUID and PGID to the user that owns those folders to run it unprivileged." >&2
+      "so the API runs as root, because ALLOW_ROOT=1 is set. Set PUID and PGID to the user that owns those folders" \
+      "to run it unprivileged, then remove ALLOW_ROOT." >&2
+  else
+    echo "cartvibe: not starting. The data, temp, logs or sqlite folder is not writable by uid $APP_UID (a NAS folder" \
+      "permission?). Set PUID and PGID to the user that owns those folders (README, Synology: step 2). To run the" \
+      "API as root instead, as older versions did by themselves, set ALLOW_ROOT=1." >&2
+    # 78 is EX_CONFIG: a restart will not help until the stack's variables change.
+    exit 78
   fi
 fi
 

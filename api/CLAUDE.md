@@ -11,7 +11,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.27-trixie`
   (since 2026-11-10; the directive stays at 1.26.10, so a machine with Go 1.26 still builds),
   which sets `GOTOOLCHAIN=local` itself, so check the image digest before raising the directive.
-- CI's `test-api` also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
+- CI's `test-api` runs the race detector on the packages where goroutines meet (the *Race detector* step of `ci.yml` lists them; the whole suite under `-race` ran past 25 minutes, and it needs cgo, so not on the Windows PC), and also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
   are in `ci.yml`) and `govulncheck`, each a failure. Neither tool runs through `go-without-cgo.sh` on Windows; vet does.
 - Accepted advisory: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported). The excelize GHSA set is fixed in
   the tagged `github.com/xuri/excelize/v2` v2.11.1 (in `go.mod` since 2026-11-10; a pseudo-version held the fixes
@@ -45,6 +45,17 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - Open strings on the contract: `AiType`, `timeZone`, `dateFormat`, report `dateField`, OIDC error codes, extraction and trip
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
+- **Two tests guard what a guide cannot.** `routers/contract_test.go` walks the router and fails for a route that
+  `swagger.yml` does not name, or the reverse (a route kept on purpose goes in `routesOutsideTheContract` with its
+  reason). `repositories/release_upgrade_test.go` builds the database of each release in `testdata/schema-v*.sql`,
+  migrates it with today's code and asks for every table, column and index a fresh install has; add a fixture
+  after a release (the test's header says how) and never edit one.
+- **The log** (`internal/logging`): `LogStd` writes one JSON object per message to `logs/app.log` (`log/slog`:
+  `time`, `level`, `msg`, `source`) and a text line to the container's output. The file is capped at 10 MB: the
+  write that would pass it moves the file to `app.log.1` (one kept). `services.ReadAppLog` reads the fields, the
+  text lines of a file from before 2026-11, and `app.log.1` when the new file is short.
+- `GET /about` answers `runsAsRoot` (the process's effective uid): the About page warns an admin, because root is
+  only ever a choice (`ALLOW_ROOT=1`, `docker/entrypoint.sh`).
 - Migrations are AutoMigrate plus additive columns; a new column's GORM default must reproduce the old behaviour. A
   one-time data change goes in `dataMigrations` (`repositories/data_migrations.go`); `RunDataMigrations` claims the
   ledger row and runs it in one transaction, retrying next boot on failure. The starter categories

@@ -12,6 +12,14 @@ on:
       - 'docker/**'
       - '.dockerignore'
       - '.github/workflows/**'
+      # The VPS stack: the smoke job runs its restore drill.
+      - 'deploy/vps/**'
+      - 'docker-compose.vps.yml'
+  # A pull request from a fork: CONTRIBUTING.md asks for green CI, and a fork's push runs nothing here. It runs with
+  # a read-only token and no secrets. A pull request from a branch of this repository is skipped (detect-changes):
+  # its push already ran.
+  pull_request:
+    branches: [main]
   # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
   workflow_dispatch:
 
@@ -29,7 +37,13 @@ jobs:
   # push with the one before it, a skipped job counts as passed, and publish-image.yml publishes :latest after a
   # passing run, so a filtered run on main could publish a commit whose failing tests were never run again.
   detect-changes:
+    # Every other job needs this one, so skipping it skips the run.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The filter reads a pull request's changed files through the API.
+      pull-requests: read
     outputs:
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
@@ -47,6 +61,9 @@ jobs:
               - '.dockerignore'
               # A change to how the image is tested is tested: the smoke job runs for it.
               - '.github/workflows/ci.yml'
+              # The smoke job runs the VPS stack's restore drill.
+              - 'deploy/vps/**'
+              - 'docker-compose.vps.yml'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -101,6 +118,19 @@ jobs:
             exit 1
           fi
         working-directory: ./api
+      # The race detector, on the code where goroutines meet: the job workers, the two SQLite pools, the list
+      # streams, the sign-in back-off, the provider cache, the log file. Not on everything: the whole suite under
+      # it was still running after 25 minutes (password hashing alone is many times slower). It needs cgo, which
+      # this container has and the Windows stub build does not.
+      - name: Race detector
+        if: ${{ !cancelled() }}
+        run: |
+          go test -race ./internal/jobs/ ./internal/logging/ ./internal/ai/
+          # Only the provider cache: the whole oidc package under the detector passes Go's ten-minute limit.
+          go test -race -run 'GetProvider|InvalidateProvider' ./internal/oidc/
+          go test -race -run 'SplitPool|Claim|Job' ./internal/repositories/
+          go test -race -run 'Hub|Stream|Throttle' ./internal/services/ ./internal/handlers/
+        working-directory: ./api
 
   test-desktop:
     needs: detect-changes
@@ -122,6 +152,10 @@ jobs:
       # The English catalogue is generated from the code and every language file must match it (see desktop/CLAUDE.md).
       - name: Check translations
         run: npm run i18n:check
+        working-directory: ./desktop
+      # The traps the guides warn about (desktop/tools/check-traps.cjs says which and why).
+      - name: Check the known traps
+        run: npm run check:traps
         working-directory: ./desktop
       - name: Run tests
         run: npm run test:ci
@@ -177,6 +211,9 @@ jobs:
       E2E_USER_PASSWORD: e2e-user-password
       E2E_ADMIN_USERNAME: e2e-admin
       E2E_ADMIN_PASSWORD: e2e-admin-password
+      APP_ENV: -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars -e DB_ENGINE=sqlite -e DB_FILENAME=app.db
+      # What the compose files give the container: no new privileges, and only the capabilities its start needs.
+      APP_SECURITY: --security-opt no-new-privileges --cap-drop ALL --cap-add CHOWN --cap-add DAC_OVERRIDE --cap-add FOWNER --cap-add SETGID --cap-add SETUID --cap-add NET_BIND_SERVICE --cap-add KILL
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -195,13 +232,37 @@ jobs:
       - name: Start the app
         run: |
           docker network create e2e
-          docker run -d --name cartvibe --network e2e -p 8091:80             -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          # The database folder is a named volume, so the restore drill below can mount it beside the app.
+          docker run -d --name cartvibe --network e2e -p 8091:80 -v cartvibe-sqlite:/app/cartvibe-api/sqlite $APP_SECURITY $APP_ENV cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
           done
           docker logs cartvibe --tail 100
           exit 1
+      # docker/entrypoint.sh: the API runs as the image's own user, and never as root by accident. A folder that
+      # refuses that user (a Synology ACL; here a root-owned folder in a container that may not chown) stops the
+      # start with exit code 78 and a message, unless ALLOW_ROOT=1 asks for root.
+      - name: The API is unprivileged, and root only when asked
+        run: |
+          api_uid() {
+            docker exec "$1" sh -c 'for p in /proc/[0-9]*; do [ "$(cat "$p/comm" 2> /dev/null)" = api ] && awk "/^Uid:/ {print \$2}" "$p/status"; done'
+          }
+          [ "$(api_uid cartvibe)" = "10001" ]
+          refusing="--cap-drop CHOWN --tmpfs /app/cartvibe-api/logs:mode=0755"
+          code=0
+          docker run --name cartvibe-refused $refusing $APP_ENV cartvibe:ci || code=$?
+          docker logs cartvibe-refused 2>&1 | tail -3
+          [ "$code" = "78" ]
+          docker logs cartvibe-refused 2>&1 | grep -q 'not starting'
+          docker run -d --name cartvibe-root -p 8092:80 $refusing -e ALLOW_ROOT=1 $APP_ENV cartvibe:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8092/api/featureConfig > /dev/null; then break; fi
+            sleep 2
+          done
+          [ "$(api_uid cartvibe-root)" = "0" ]
+          docker logs cartvibe-root 2>&1 | grep -q 'ALLOW_ROOT=1 is set'
+          docker rm -f cartvibe-refused cartvibe-root > /dev/null
       # The image's HEALTHCHECK must turn healthy: docker-compose.vps.yml starts Caddy only then.
       - name: The container reports healthy
         run: |
@@ -235,8 +296,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: ./desktop
-      - name: Install the browser
-        run: npx playwright install --with-deps chromium
+      # Chromium for the desktop and the Pixel specs, WebKit for the iPhone ones (playwright.config.ts).
+      - name: Install the browsers
+        run: npx playwright install --with-deps chromium webkit
         working-directory: ./desktop
       # Every spec shares this runner's address and the app does not retry a 429, so under the production limit a
       # run lost a handful of requests and a spec or two needed a second try (desktop/docs/e2e.md). The access log's
@@ -262,6 +324,14 @@ jobs:
             exit 1
           fi
           echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
+      # docker-compose.vps.yml: Litestream copies the live database to a bucket (here a throwaway S3 server), with
+      # the image and the configuration that file ships. Started while the app runs (a snapshot, then a change made
+      # after it), checked after the app has stopped.
+      - name: Litestream replicates the live database
+        run: bash deploy/vps/restore-drill.sh start
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
       # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
@@ -272,11 +342,18 @@ jobs:
           code=$(docker inspect --format '{{.State.ExitCode}}' cartvibe)
           echo "stopped in ${took}s with exit code ${code}"
           [ "$code" = "0" ] && [ "$took" -lt 25 ]
+      # The restore drill: what the bucket holds comes back as a database with the same tables and rows as the one
+      # the stopped app left behind.
+      - name: The replica restores to the same database
+        run: bash deploy/vps/restore-drill.sh finish
+        env:
+          DRILL_NETWORK: e2e
+          DRILL_VOLUME: cartvibe-sqlite
       # The same data under another version, as after an update on the NAS: the API must copy the database to
       # sqlite/backups before it migrates, then record the version it started as.
       - name: A new version snapshots the database first
         run: |
-          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe             -e VERSION=ci-next -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe $APP_SECURITY -e VERSION=ci-next $APP_ENV cartvibe:ci
           for i in $(seq 1 30); do
             if docker exec cartvibe-next grep -qx ci-next /app/cartvibe-api/sqlite/backups/last-version 2> /dev/null; then
               docker exec cartvibe-next sh -c 'ls -l /app/cartvibe-api/sqlite/backups/app-upgrade-*.db'

@@ -12,6 +12,21 @@ services:
     restart: unless-stopped
     # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
     stop_grace_period: 30s
+    # Nothing in the container can gain more rights than it starts with, and it keeps only the capabilities its start
+    # needs: handing the folders to the API's user and dropping to it, nginx on port 80 with its own workers, and
+    # stopping both. CI starts the image with exactly these (ci.yml, "Start the app").
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+      - NET_BIND_SERVICE
+      - KILL
     ports:
       - "8091:80" # Change 8091 if that port is already used on your Synology
     environment:
@@ -29,9 +44,12 @@ services:
       # service. A stack from before had a "valkey" service and a "valkey-data" volume; both can be deleted.
       # The API runs as this user and group, which must be able to write the three folders below. Set both in
       # Dockhand's environment variables, to the DSM user that owns the folders (`id <user>` over SSH, for example
-      # 1026 and 100). Left unset, the image's own user is tried, and the API falls back to root if the folders refuse it.
+      # 1026 and 100). Left unset, the image's own user (10001) is used. If the folders refuse the user, the container
+      # does not start and its log says so: set these two. ALLOW_ROOT=1 runs the API as root instead, as versions
+      # before 0.19 did by themselves; the About page then says so.
       - PUID=${PUID:-}
       - PGID=${PGID:-}
+      - ALLOW_ROOT=${ALLOW_ROOT:-}
       # Optional: warranty reminders as device notifications (Web Push). Generate the pair once
       # (npx web-push generate-vapid-keys) and keep it; left empty, reminders stay in the app's notifications.
       # Device notifications also need the app served over HTTPS.

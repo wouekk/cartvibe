@@ -1,14 +1,18 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
 	"regexp"
 	"strings"
+	"time"
+
+	"cartvibe/api/internal/logging"
 )
 
-// AppLogEntry is one line group of the application log (Phase 3 M2). Level is a plain string on the
+// AppLogEntry is one message of the application log (Phase 3 M2). Level is a plain string on the
 // API so a new level never breaks a released client.
 type AppLogEntry struct {
 	Timestamp string `json:"timestamp"`
@@ -17,20 +21,33 @@ type AppLogEntry struct {
 }
 
 const (
-	AppLogPath         = "logs/app.log"
+	AppLogPath         = logging.AppLogPath
 	appLogTailBytes    = 1 << 20
 	AppLogDefaultLimit = 200
 	AppLogMaxLimit     = 1000
+
+	// How the viewer shows a moment: the shape the old text log printed, in the server's time zone.
+	appLogTimeLayout = "2006/01/02 15:04:05"
 )
 
-// A line looks like "App2026/10/20 10:00:00 log.go:52: [x.go:10] ERROR:  message" (see
-// logging.InitLog). Lines that do not start that way continue the previous message.
+// A line of the file is a JSON object written by log/slog (logging.InitLog): time, level, msg and source.
+type appLogLine struct {
+	Time   time.Time `json:"time"`
+	Level  string    `json:"level"`
+	Msg    string    `json:"msg"`
+	Source string    `json:"source"`
+}
+
+// Until 2026-11 a line was text: "App2026/10/20 10:00:00 log.go:52: [x.go:10] ERROR:  message", and a line that
+// did not start that way continued the message before it. A log file that outlived the update still holds such
+// lines, so they are read as before.
 var appLogLineRegex = regexp.MustCompile(`^App(\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \S+: (.*)$`)
 var appLogLevelRegex = regexp.MustCompile(`^\[[^\]]*\] (INFO|ERROR|FATAL): (.*)$`)
 
 // ReadAppLog returns the newest entries of the log at path, newest first, at most limit of them, and
-// only those of the given level when one is named. Only the last megabyte is read, so a long-running
-// install does not load a huge file. A missing file is an empty log, not an error.
+// only those of the given level when one is named. Only the last megabyte of a file is read, so a long-running
+// install does not load a huge file. When the file does not hold enough (it starts anew at its size cap), the
+// one before it ("<path>.1") gives the rest. A missing file is an empty log, not an error.
 func ReadAppLog(path string, level string, limit int) ([]AppLogEntry, error) {
 	entries := []AppLogEntry{}
 
@@ -40,19 +57,41 @@ func ReadAppLog(path string, level string, limit int) ([]AppLogEntry, error) {
 	if limit > AppLogMaxLimit {
 		limit = AppLogMaxLimit
 	}
+	level = strings.ToUpper(strings.TrimSpace(level))
 
+	for _, file := range []string{path, path + ".1"} {
+		parsed, err := readAppLogTail(file)
+		if err != nil {
+			return entries, err
+		}
+		for i := len(parsed) - 1; i >= 0 && len(entries) < limit; i-- {
+			if level != "" && parsed[i].Level != level {
+				continue
+			}
+			entries = append(entries, parsed[i])
+		}
+		if len(entries) >= limit {
+			break
+		}
+	}
+
+	return entries, nil
+}
+
+// readAppLogTail parses the last megabyte of one log file, oldest first. A missing file has no entries.
+func readAppLogTail(path string) ([]AppLogEntry, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return entries, nil
+			return nil, nil
 		}
-		return entries, err
+		return nil, err
 	}
 	defer file.Close()
 
 	info, err := file.Stat()
 	if err != nil {
-		return entries, err
+		return nil, err
 	}
 
 	offset := int64(0)
@@ -60,12 +99,12 @@ func ReadAppLog(path string, level string, limit int) ([]AppLogEntry, error) {
 		offset = info.Size() - appLogTailBytes
 	}
 	if _, err := file.Seek(offset, io.SeekStart); err != nil {
-		return entries, err
+		return nil, err
 	}
 
 	content, err := io.ReadAll(file)
 	if err != nil {
-		return entries, err
+		return nil, err
 	}
 
 	lines := strings.Split(strings.ReplaceAll(string(content), "\r\n", "\n"), "\n")
@@ -77,6 +116,11 @@ func ReadAppLog(path string, level string, limit int) ([]AppLogEntry, error) {
 	parsed := []AppLogEntry{}
 	for _, line := range lines {
 		if line == "" {
+			continue
+		}
+
+		if entry, ok := parseAppLogJson(line); ok {
+			parsed = append(parsed, entry)
 			continue
 		}
 
@@ -96,13 +140,22 @@ func ReadAppLog(path string, level string, limit int) ([]AppLogEntry, error) {
 		parsed = append(parsed, entry)
 	}
 
-	level = strings.ToUpper(strings.TrimSpace(level))
-	for i := len(parsed) - 1; i >= 0 && len(entries) < limit; i-- {
-		if level != "" && parsed[i].Level != level {
-			continue
-		}
-		entries = append(entries, parsed[i])
+	return parsed, nil
+}
+
+func parseAppLogJson(line string) (AppLogEntry, bool) {
+	if !strings.HasPrefix(line, "{") {
+		return AppLogEntry{}, false
 	}
 
-	return entries, nil
+	var fields appLogLine
+	if err := json.Unmarshal([]byte(line), &fields); err != nil || fields.Level == "" {
+		return AppLogEntry{}, false
+	}
+
+	return AppLogEntry{
+		Timestamp: fields.Time.Local().Format(appLogTimeLayout),
+		Level:     fields.Level,
+		Message:   strings.TrimSpace(fields.Msg),
+	}, true
 }

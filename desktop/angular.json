@@ -190,10 +190,10 @@
                 "src/testing/**"
               ],
               "coverageThresholds": {
-                "statements": 1,
-                "branches": 1,
-                "functions": 1,
-                "lines": 1
+                "statements": 82,
+                "branches": 72,
+                "functions": 76,
+                "lines": 82
               }
             }
           }

@@ -49,15 +49,21 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
   Dockerfiles. The runtime stage gets the API binary only, and `.dockerignore` keeps local data out of the context.
   Dependencies install from their manifests before the source is copied, so code-only builds reuse the cached layers;
   keep `VERSION`, `BUILD_DATE` and source copies below them.
-- **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; our ImageMagick policy
+- **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`, and as root only when `ALLOW_ROOT=1`
+  asks for it (a folder that refuses the user stops the start with exit code 78; the About page tells an admin when
+  it is root); both compose files set `no-new-privileges` and drop every capability but the seven the start needs,
+  and CI starts the image with exactly that set; our ImageMagick policy
   (`docker/imagemagick/policy.xml`) allows only the receipt formats, Ghostscript and receipt-sized limits, and the
   upload check accepts the same formats (the build proves HEIC, PDF and TIFF still convert); nginx sends `server_tokens off` and the security
-  headers; the image is rebuilt weekly without the cache, with a grype report.
+  headers; the image is rebuilt weekly without the cache, and every image is scanned before it is pushed: a critical
+  finding that has a fix stops the publish (after one rebuild without the cache), and the full grype report is kept.
 - **The runtime stage installs no Recommends.** What the API needs (Tesseract, ghostscript, the fonts, the HEIC and
   Chromium pieces) is named in the Dockerfile and proved by `docker/checks/runtime-check.sh` at build time. A new
   tool or font the API relies on gets a package name there and a check in the script, never `Recommends` switched back on.
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
-  green `main` (amd64), or `:preview` from a manual run on another branch.
+  green `main` (amd64), `:vX.Y.Z` and `:X.Y` from a `v*` tag pushed on `main`, or `:preview` from a manual run on
+  another branch. `:latest` follows `main`, not the newest release (the owner's decision of 2026-11-10: the NAS
+  deploys from it). The release tag is the only version number; `package.json` and `swagger.yml` stay at `0.0.0`.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image and nothing else (since
   2026-11-10 the job queue is a table in the database and the sweeps are timers in the API, so there is no Valkey or
   Redis; never add a second service for background work), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /

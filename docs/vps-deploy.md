@@ -10,7 +10,7 @@ backups. The family NAS keeps using the root `docker-compose.yml`; this guide us
 | `caddy` | The only public service (ports 80 and 443). Gets a Let's Encrypt certificate for your domain and forwards to the app. |
 | `cartvibe` | The app image from GHCR (nginx + Go API), unchanged from the NAS. |
 | `litestream-restore` | Runs once before the app: restores the database from the bucket if there is none on disk yet. |
-| `litestream` | Copies every database change to the bucket about a second after it commits, plus a daily snapshot, kept 7 days. |
+| `litestream` | Copies every database change to the bucket about a second after it commits, plus a daily snapshot, kept 7 days (Litestream 0.5). |
 | `restic` | Every 6 hours backs up receipt images, trip photos, logos and logs; keeps 14 daily, 8 weekly, 6 monthly. |
 
 Litestream only covers the SQLite database. The files go through restic, so you need both for a full restore.
@@ -61,7 +61,16 @@ each visitor's real address behind Caddy.
 backed up by hand first: a new version copies the database to `data/sqlite/backups` before it changes anything (the
 [FAQ](faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to a copy), and Litestream has
 every change up to a second ago in the bucket. To list what the bucket holds:
-`docker compose -f docker-compose.vps.yml exec litestream litestream snapshots -config /etc/litestream.yml /data/sqlite/app.db`
+`docker compose -f docker-compose.vps.yml exec litestream litestream ltx -config /etc/litestream.yml -level all /data/sqlite/app.db`
+
+**Coming from Litestream 0.3.13** (a stack set up before 2026-11-10): take the current `docker-compose.vps.yml` and
+`deploy/vps/litestream.yml` together, then `pull` and `up -d` as above. Nothing has to be cleaned first: 0.5 starts
+beside what 0.3 left, takes a fresh snapshot of the live database at once, and from then on restores from its own
+files. What 0.3 wrote is never touched again, so after a week you can delete the `litestream/app.db/generations/`
+folder in the bucket and `data/sqlite/.app.db-litestream/generations` (with its `generation` file) on the server.
+If you edited `litestream.yml` yourself: 0.5 takes one `replica:` per database instead of a `replicas:` list, keeps
+`retention` in a `snapshot:` block at the top (under the replica it is ignored without a word, leaving one day), and
+`litestream snapshots` became `litestream ltx`.
 
 **Coming from a stack with a `valkey` service:** take the current `docker-compose.vps.yml`, remove `VALKEY_PASSWORD`
 from `.env`, then `docker compose -f docker-compose.vps.yml up -d --remove-orphans` and delete the leftover volume
@@ -72,6 +81,11 @@ that build (each published image carries both; the About page shows the one you 
 across a schema change also needs the database from before it.
 
 ## Restore drill (do it once after setup, then every few months)
+
+CI runs this drill against a throwaway bucket whenever the image or this stack changes
+(`deploy/vps/restore-drill.sh`): it replicates a live database, makes a change, stops the app, restores the replica
+and compares every table and row. That proves the Litestream version and configuration; it cannot prove your
+bucket, your keys or your `.env`, so do the drill on the server too.
 
 Restore to a scratch folder, never over the live data:
 
@@ -106,5 +120,6 @@ there is no `app.db` yet.
 - Disk: alert at 80% (OVH monitoring or a cron `df` check). The database, the WAL and the receipt images grow on the
   same disk.
 - `docker compose -f docker-compose.vps.yml logs --since 24h restic | grep FAILED` should print nothing.
-- `litestream` logs a line per snapshot. No lines means replication has stopped; restart the service.
+- `litestream` logs `snapshot complete` once a day and `compaction complete` every half minute while there are
+  changes. An error line, or silence after a change, means replication has stopped; restart the service.
 - Background work needs no tuning: scans are read one at a time, and SQLite writes one thing at a time anyway.

@@ -2,7 +2,8 @@ import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
-import { About } from "../../open-api/index";
+import { About, Permission } from "../../open-api/index";
+import { AuthState } from "../../store/auth.state";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AboutState } from "../../store/about.state";
@@ -29,6 +30,9 @@ interface Link {
 export class AboutComponent {
   private store = inject(Store);
   public about = this.store.selectSignal(AboutState.about);
+
+  /** The root warning is for the person who can act on it. */
+  public readonly canChangeSystemSettings = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
 
   public links: Link[] = [
     {

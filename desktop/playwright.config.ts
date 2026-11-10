@@ -4,6 +4,8 @@ const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:4200';
 // E2E_NO_WEBSERVER: the app is already running at baseURL (CI runs the built image on localhost:8091).
 const isLocal = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?\/?/i.test(baseURL) && !process.env.E2E_NO_WEBSERVER;
 
+const PHONE_SPECS = '**/*.phone.spec.ts';
+
 const GLOBAL_SETTINGS_SPECS = ['**/app-time-zone.spec.ts', '**/session-lifetime.spec.ts', '**/temp-file-retention.spec.ts'];
 
 export default defineConfig({
@@ -40,11 +42,25 @@ export default defineConfig({
     {
       name: 'chromium',
       dependencies: ['setup'],
-      testIgnore: GLOBAL_SETTINGS_SPECS,
+      testIgnore: [...GLOBAL_SETTINGS_SPECS, PHONE_SPECS],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'e2e/.auth/user.json',
       },
+    },
+    // The app is used mostly on a phone in the shop, so the specs written for one (*.phone.spec.ts) run on two:
+    // Chromium as a Pixel 7, and WebKit as an iPhone, the closest thing to Safari that runs in CI. Both tap.
+    {
+      name: 'phone',
+      dependencies: ['setup'],
+      testMatch: PHONE_SPECS,
+      use: { ...devices['Pixel 7'], storageState: 'e2e/.auth/user.json' },
+    },
+    {
+      name: 'phone-webkit',
+      dependencies: ['setup'],
+      testMatch: PHONE_SPECS,
+      use: { ...devices['iPhone 15'], storageState: 'e2e/.auth/user.json' },
     },
   ],
   webServer: isLocal

@@ -1,15 +1,20 @@
-# Litestream replicates the CartVibe database (WAL mode, set by the API) to S3-compatible storage. Credentials come
-# from LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY; the rest from the variables below
-# (docker-compose.vps.yml passes them in).
+# Litestream 0.5 replicates the CartVibe database (WAL mode, set by the API) to S3-compatible storage. Credentials
+# come from LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY; the rest from the variables below
+# (docker-compose.vps.yml passes them in). A key Litestream does not know is ignored without a word, so after an edit
+# run `litestream databases -config /etc/litestream.yml` in the container and read what it loaded.
 dbs:
   - path: /data/sqlite/app.db
-    replicas:
-      - type: s3
-        bucket: ${S3_BUCKET}
-        path: litestream/app.db
-        endpoint: ${S3_ENDPOINT}
-        region: ${S3_REGION}
-        # A full snapshot a day keeps restores quick; WAL segments in between are kept for 7 days.
-        snapshot-interval: 24h
-        retention: 168h
-        sync-interval: 1s
+    # One replica per database (0.3 took a list under `replicas`).
+    replica:
+      type: s3
+      bucket: ${S3_BUCKET}
+      path: litestream/app.db
+      endpoint: ${S3_ENDPOINT}
+      region: ${S3_REGION}
+      sync-interval: 1s
+
+# A full snapshot a day keeps restores quick; the changes in between are kept for 7 days. In 0.5 this is one block
+# for the whole file: `retention` under the replica, where 0.3 had it, would be ignored and leave one day.
+snapshot:
+  interval: 24h
+  retention: 168h

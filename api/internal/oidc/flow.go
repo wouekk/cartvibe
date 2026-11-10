@@ -594,9 +594,7 @@ func issueSession(w http.ResponseWriter, r *http.Request, userId uint) {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Failed to stamp last login date after OIDC login: "+err.Error())
 	}
 
-	accessTokenCookie, refreshTokenCookie := services.BuildTokenCookies(jwt, refreshToken)
-	http.SetCookie(w, &accessTokenCookie)
-	http.SetCookie(w, &refreshTokenCookie)
+	services.SetSessionCookies(w, jwt, refreshToken)
 
 	http.Redirect(w, r, desktopCallbackPath, http.StatusFound)
 }

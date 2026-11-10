@@ -17,6 +17,11 @@ feature.
 - `npm run build:demo` / `start:demo` / `check:demo` / `e2e:demo`: the demo on an in-memory API (`docs/demo.md`). `check:demo`
   proves it is not in the production bundle; a new endpoint the UI calls also needs an answer in `src/demo/backend`.
 - `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
+- `npm run check:traps` (CI, before the specs; `tools/check-traps.cjs` lists the traps and why): no import of
+  `environment.development`, no `[attr.aria-label]` glued with `+`, the counts of `standalone: false` and of
+  Material-era names only go down (`tools/trap-baseline.json`; after lowering one run it with `--update`), and
+  `package.json` / `swagger.yml` stay at version `0.0.0`. `test:ci` fails under the coverage floor in
+  `angular.json` (set two points under the figures of 2026-11-10).
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
 - Local stack on the Windows PC: `../docs/dev-setup.md`. Login on a fresh database is `admin` / `admin`; it lands on
   `/overview/group/<id>`.
@@ -189,6 +194,8 @@ feature.
   image, started alone); a spec that passes locally joins that list in `package.json`. The whole suite is green in Docker
   (`docs/e2e.md`). A describe whose `beforeAll` provisions one account is `serial`; a spec that changes a global setting is a
   `global-settings-*` project in `playwright.config.ts`.
+- A spec for a phone is named `*.phone.spec.ts`: it runs in the `phone` (Chromium as a Pixel 7) and `phone-webkit`
+  (WebKit as an iPhone) projects and in no desktop one, taps instead of clicks, and moves by the tab bar.
 - Select with `getByTestId` (`<resource>-<action>`) or by role/label; never structural CSS chains or styling classes.
 - Web-first assertions only; never `waitForTimeout`. `fullyParallel` is on: mint unique data (`uniqueName`), never
   mutate shared rows; a spec that changes a global setting is serial and restores only the field it captured.

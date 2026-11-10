@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/constants"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
 func customClaims() validator.CustomClaims {
@@ -116,7 +118,23 @@ func initTokenValidator(audience string) (*validator.Validator, error) {
 // may only sign in through its identity provider.
 var ErrPasswordLoginUnavailable = errors.New("this account signs in through an identity provider")
 
+// LoginUser checks a password sign-in. Every refusal wraps ErrInvalidCredentials (an account that signs in through
+// its provider also wraps ErrPasswordLoginUnavailable); a user name with too many failures in a row gets
+// ErrLoginThrottled before any lookup or bcrypt (login_throttle.go).
 func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
+	if wait := defaultLoginThrottle.wait(loginAttempt.Username); wait > 0 {
+		return models.User{}, false, fmt.Errorf("%w (%s left)", ErrLoginThrottled, wait.Round(time.Second))
+	}
+	user, firstAdmin, err := checkLogin(loginAttempt)
+	if errors.Is(err, ErrInvalidCredentials) {
+		defaultLoginThrottle.recordFailure(loginAttempt.Username)
+	} else if err == nil {
+		defaultLoginThrottle.recordSuccess(loginAttempt.Username)
+	}
+	return user, firstAdmin, err
+}
+
+func checkLogin(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 	db := repositories.GetDB()
 	firstAdminToLogin := false
 	var dbUser models.User
@@ -128,10 +146,13 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 	// login handler AND the OAuth/MCP authorize form — rather than relying on
 	// each caller to re-check. (REST additionally rejects this at the middleware.)
 	if len(loginAttempt.Password) == 0 {
-		return models.User{}, false, errors.New("password is required")
+		return models.User{}, false, fmt.Errorf("%w: password is required", ErrInvalidCredentials)
 	}
 
 	err := db.Model(models.User{}).Where("username = ?", loginAttempt.Username).First(&dbUser).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return models.User{}, false, fmt.Errorf("%w: unknown user", ErrInvalidCredentials)
+	}
 	if err != nil {
 		return models.User{}, false, err
 	}
@@ -139,12 +160,12 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 	// Dummy (passwordless placeholder) users can never authenticate, regardless
 	// of the submitted password.
 	if dbUser.IsDummyUser {
-		return models.User{}, false, errors.New("dummy users cannot log in")
+		return models.User{}, false, fmt.Errorf("%w: dummy users cannot log in", ErrInvalidCredentials)
 	}
 
 	err = utils.VerifyPassword(dbUser.Password, loginAttempt.Password)
 	if err != nil {
-		return models.User{}, false, err
+		return models.User{}, false, fmt.Errorf("%w: %w", ErrInvalidCredentials, err)
 	}
 
 	// An account with no password of its own signs in through its identity
@@ -158,7 +179,7 @@ func LoginUser(loginAttempt commands.LoginCommand) (models.User, bool, error) {
 		return models.User{}, false, err
 	}
 	if passwordless {
-		return models.User{}, false, ErrPasswordLoginUnavailable
+		return models.User{}, false, fmt.Errorf("%w: %w", ErrInvalidCredentials, ErrPasswordLoginUnavailable)
 	}
 
 	userRepository := repositories.NewUserRepository(nil)
@@ -223,9 +244,33 @@ func BuildTokenCookies(jwt string, refreshToken string) (http.Cookie, http.Cooki
 	// Resolved here rather than threaded in from the caller: both call sites
 	// (login and token refresh) are REST-only, never MCP, so the app setting is
 	// always the right one. Costs one extra System Settings read per login.
-	refreshTokenCookie := http.Cookie{Name: constants.RefreshTokenKey, Value: refreshToken, HttpOnly: true, Path: "/", Expires: utils.GetRefreshTokenExpiryDate(GetRefreshTokenLifetime()).Time, SameSite: sameSite, Secure: secure}
+	refreshTokenCookie := http.Cookie{Name: constants.RefreshTokenKey, Value: refreshToken, HttpOnly: true, Path: constants.RefreshTokenCookiePath, Expires: utils.GetRefreshTokenExpiryDate(GetRefreshTokenLifetime()).Time, SameSite: sameSite, Secure: secure}
 
 	return accessTokenCookie, refreshTokenCookie
+}
+
+// SetSessionCookies sets the two session cookies and expires a refresh cookie left at the path "/" by an older
+// version, so the browser keeps one copy only.
+func SetSessionCookies(w http.ResponseWriter, jwt string, refreshToken string) {
+	accessTokenCookie, refreshTokenCookie := BuildTokenCookies(jwt, refreshToken)
+	legacyRefreshTokenCookie := getEmptyLegacyRefreshTokenCookie()
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &legacyRefreshTokenCookie)
+}
+
+// ClearSessionCookies expires both session cookies, the refresh cookie at its old path "/" included.
+func ClearSessionCookies(w http.ResponseWriter) {
+	accessTokenCookie := GetEmptyAccessTokenCookie()
+	refreshTokenCookie := GetEmptyRefreshTokenCookie()
+	legacyRefreshTokenCookie := getEmptyLegacyRefreshTokenCookie()
+	http.SetCookie(w, &accessTokenCookie)
+	http.SetCookie(w, &refreshTokenCookie)
+	http.SetCookie(w, &legacyRefreshTokenCookie)
+}
+
+func getEmptyLegacyRefreshTokenCookie() http.Cookie {
+	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: "/", MaxAge: -1, Secure: UseSecureCookies()}
 }
 
 func PrepareAccessTokenClaims(accessTokenClaims structs.Claims) {
@@ -238,7 +283,7 @@ func GetEmptyAccessTokenCookie() http.Cookie {
 }
 
 func GetEmptyRefreshTokenCookie() http.Cookie {
-	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: "/", MaxAge: -1, Secure: UseSecureCookies()}
+	return http.Cookie{Name: constants.RefreshTokenKey, Value: "", HttpOnly: true, Path: constants.RefreshTokenCookiePath, MaxAge: -1, Secure: UseSecureCookies()}
 }
 
 func GenerateJWT(userId uint) (string, string, structs.Claims, error) {

@@ -21,7 +21,7 @@
           inputmode="decimal"
           class="h-control w-full rounded-md border border-border bg-background px-2.5 text-sm tabular-nums shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50"
           [placeholder]="'rate' | t"
-          [attr.aria-label]="'Rate for ' + row.code"
+          [attr.aria-label]="'Rate: {name}' | t: { name: row.code }"
           [attr.data-testid]="'exchange-rate-input-' + row.code"
           [disabled]="!canUpdate()"
           [value]="row.rate"
@@ -34,7 +34,7 @@
           <span class="text-xs font-medium text-warning-text">{{ 'no rate yet' | t }}</span>
         }
         @if (canUpdate()) {
-          <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Remove ' + row.code" (click)="removeCurrency(index)">
+          <button hlmBtn variant="ghost" size="icon" type="button" [attr.aria-label]="'Remove {name}' | t: { name: row.code }" (click)="removeCurrency(index)">
             <app-icon name="close"></app-icon>
           </button>
         }

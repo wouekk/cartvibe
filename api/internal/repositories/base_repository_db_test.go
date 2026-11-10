@@ -58,4 +58,8 @@ func TestAboutRepositoryReadsTheEnvironment(t *testing.T) {
 	if about.Version != "9.9.9" || about.BuildDate != "unknown" {
 		t.Errorf("unexpected about data: %+v", about)
 	}
+	// The About page warns an admin when the API is root (ALLOW_ROOT=1); the answer is the process's own.
+	if about.RunsAsRoot != (os.Geteuid() == 0) {
+		t.Errorf("RunsAsRoot = %v, but the effective uid is %d", about.RunsAsRoot, os.Geteuid())
+	}
 }

@@ -36,7 +36,9 @@
 
 All you need is [Docker](https://docs.docker.com/get-docker/) with Docker Compose, or a NAS stack manager such as
 Dockhand or Synology's Container Manager. There is nothing to build: GitHub publishes a ready-made image at
-`ghcr.io/wouekk/cartvibe` (`:latest` is the current release, `:preview` is the version being tested).
+`ghcr.io/wouekk/cartvibe`. `:latest` is the newest version that passed its tests, and `:preview` the one being tried.
+From 0.19 on each release has tags of its own too: `:v0.19.0` never changes, and `:0.19` follows the fixes of that
+release line, which is the one to use if you would rather choose when a new version arrives.
 
 ### 1. Make a folder and save this as `docker-compose.yml`
 
@@ -47,6 +49,9 @@ services:
     pull_policy: always              # every `docker compose up` checks for a newer image
     restart: unless-stopped
     stop_grace_period: 30s           # time to finish what it is doing when you stop or update it
+    security_opt: [no-new-privileges:true]   # nothing inside can gain rights it did not start with
+    cap_drop: [ALL]                  # and the container keeps only the few its start needs:
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID, NET_BIND_SERVICE, KILL]
     ports:
       - "8091:80"                    # open CartVibe at http://<your-server>:8091
     environment:
@@ -176,8 +181,9 @@ To try a restore without touching the live install, see the [FAQ](docs/faq.md#ho
 
 **Troubleshooting**
 
-* **The log says a folder "is not writable … so the API runs as root".** DSM's permissions refused the container's default user. Set `PUID` and `PGID` to the user who owns the
-  folders (step 2) and redeploy.
+* **The container stops at once and its log says "not starting … not writable".** DSM's permissions refused the container's default user. Set `PUID` and `PGID` to the user who owns the
+  folders (step 2) and redeploy. Versions before 0.19 ran the server as root in that case without asking; if you want that back, add `- ALLOW_ROOT=1` under `environment`
+  (the About page then reminds an admin that the server runs as root).
 * **The page does not load.** Check that the `cartvibe` container is running and that the port in `ports` is free.
 * **You start with an empty database after an update.** `DB_FILENAME` must still be `app.db`, and `./sqlite` must still point at the same folder.
 

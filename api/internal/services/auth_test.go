@@ -277,8 +277,9 @@ func TestBuildTokenCookies_NonDevEnvironment(t *testing.T) {
 	if !refresh.HttpOnly {
 		utils.PrintTestError(t, refresh.HttpOnly, true)
 	}
-	if refresh.Path != "/" {
-		utils.PrintTestError(t, refresh.Path, "/")
+	// Scoped to the routes that read it (S20), so it is not sent with every other request.
+	if refresh.Path != constants.RefreshTokenCookiePath {
+		utils.PrintTestError(t, refresh.Path, constants.RefreshTokenCookiePath)
 	}
 	if refresh.SameSite != http.SameSiteStrictMode {
 		utils.PrintTestError(t, refresh.SameSite, http.SameSiteStrictMode)
@@ -389,8 +390,8 @@ func TestGetEmptyRefreshTokenCookie(t *testing.T) {
 	if cookie.Value != "" {
 		utils.PrintTestError(t, cookie.Value, "")
 	}
-	if cookie.Path != "/" {
-		utils.PrintTestError(t, cookie.Path, "/")
+	if cookie.Path != constants.RefreshTokenCookiePath {
+		utils.PrintTestError(t, cookie.Path, constants.RefreshTokenCookiePath)
 	}
 	if cookie.MaxAge != -1 {
 		utils.PrintTestError(t, cookie.MaxAge, -1)
@@ -400,6 +401,23 @@ func TestGetEmptyRefreshTokenCookie(t *testing.T) {
 	}
 	if cookie.Secure {
 		utils.PrintTestError(t, cookie.Secure, false)
+	}
+}
+
+// A browser that signed in before the cookie was scoped still holds one at "/": signing out expires that one too.
+func TestClearSessionCookiesAlsoExpiresTheRefreshCookieAtItsOldPath(t *testing.T) {
+	recorder := httptest.NewRecorder()
+
+	ClearSessionCookies(recorder)
+
+	paths := map[string]bool{}
+	for _, cookie := range recorder.Result().Cookies() {
+		if cookie.Name == constants.RefreshTokenKey && cookie.MaxAge < 0 {
+			paths[cookie.Path] = true
+		}
+	}
+	if !paths["/"] || !paths[constants.RefreshTokenCookiePath] {
+		t.Errorf("the refresh cookie must be expired at / and at %s, got %v", constants.RefreshTokenCookiePath, paths)
 	}
 }
 

@@ -312,7 +312,7 @@ export class AuthService {
             }
         }
 
-        let localVarPath = `/logout/`;
+        let localVarPath = `/token/logout/`;
         return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
