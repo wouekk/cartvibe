@@ -3601,7 +3601,8 @@ paths:
       description: >-
         Server-Sent Events stream of every shopping list mutation in the group [group.shopping-lists.read].
         Each event is named after its ShoppingListEvent type and its data is a ShoppingListEvent as JSON.
-        A comment heartbeat is sent every 25 seconds, and the server ends the stream after 15 minutes
+        A heartbeat event named PING (data "{}") is sent every 25 seconds, so a client can tell a stream that
+        went silent from a quiet one, and the server ends the stream after 15 minutes
         (or when the caller loses access) so that reconnecting re-authenticates. Events missed while
         disconnected are not replayed; refetch the lists after (re)connecting.
       operationId: streamShoppingListEvents

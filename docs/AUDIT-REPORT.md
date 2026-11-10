@@ -44,7 +44,20 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
   - Left as they are, each with a reason: the `LogoutCommand` schema (the contract still documents a body for sign-out;
     only the unused Go type went); the EasyOCR engine value (stored settings may still name it, and it reads as
     Tesseract); `repositories/testing.go` and `utils/testing.go` in the binary (other packages' tests import them).
-- [ ] 3. Offline shopping list: F1
+- [ ] 3. Offline shopping list (`feature/offline-list`, cut from sprint 2's branch): F1, and scan progress from F7
+  - Done on the branch on 2026-11-10: the lists open from a copy on the device; adds and cross-offs are queued and
+    sent in order, an add by a `clientId` the server deduplicates; the list says Live, Reconnecting or Offline with
+    the count waiting, marks unsent rows and shows who crossed an item off; the lists read carries an ETag; a Quick
+    Scan with no connection keeps its photos and uploads them later; the receipt page hears `RECEIPT_READ` on the
+    household's stream instead of polling. F1.0 (the session) was sprint 1; here its expiry check was found to be a
+    memoized selector that never noticed the token running out, and fixed.
+  - Beyond the plan, found while trying it with the server stopped: a stream that looks open after the signal is
+    gone (the heartbeat is now a `PING` event and the page reopens a stream silent for 70 s; a failed send stops the
+    page saying Live at once), and the add box keeping a quickly typed name.
+  - Left for later, each with a reason: finished lists loaded on demand (F1.6; the ETag already saves the transfer);
+    flashing rows someone else changed (F1.5; the avatar covers "who"); queued edits, deletes and whole-list actions
+    (each needs its own "safe to send twice" rule on the server first); an idempotency key for a queued Quick Scan
+    (a lost answer can make a second receipt); the Dashboard's list preview, which still needs a connection.
 - [ ] 4. Phone shell and Shop mode: F2, F4, F5, F9, C7, C8, C9
 - [ ] 5. Jobs in SQLite, Valkey removed: B1, B2.2 to B2.4, S10
 - [ ] 6. Releases, CI and hardening: B3, B7, B8, S4, S8, S12, S13, S16, S19, S20

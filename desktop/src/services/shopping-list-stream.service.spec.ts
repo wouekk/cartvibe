@@ -186,6 +186,42 @@ describe("ShoppingListStreamService", () => {
     expect(sources.length).toBe(before + 1);
   });
 
+  it("takes an open stream that went silent for lost, and opens it again", () => {
+    service.connect(1);
+    latest().open();
+    const silent = latest();
+    dispatch.mockClear();
+
+    // The server's heartbeat keeps a quiet stream alive...
+    vi.advanceTimersByTime(60_000);
+    silent.emit("PING", { data: "{}" });
+    vi.advanceTimersByTime(60_000);
+    expect(service.status()).toBe("live");
+    expect(sources.length).toBe(1);
+
+    // ...and without it (a phone out of signal, which leaves the stream "open") the page stops saying Live.
+    vi.advanceTimersByTime(10_000);
+    expect(service.status()).toBe("reconnecting");
+    expect(silent.closed).toBe(true);
+    expect(sources.length).toBe(2);
+
+    latest().open();
+    expect(service.status()).toBe("live");
+    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+  });
+
+  it("does not wait for a heartbeat from a stream that never opened, or after disconnecting", () => {
+    service.connect(1);
+    vi.advanceTimersByTime(300_000);
+    expect(sources.length).toBe(1);
+
+    latest().open();
+    service.disconnect();
+    vi.advanceTimersByTime(300_000);
+    expect(sources.length).toBe(1);
+    expect(service.status()).toBe("idle");
+  });
+
   it("keeps a single stream when switching groups", () => {
     service.connect(3);
     const first = latest();

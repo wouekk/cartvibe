@@ -1,6 +1,6 @@
 import { HttpContext } from "@angular/common/http";
 import { DOCUMENT } from "@angular/common";
-import { effect, inject, Injectable, OnDestroy, untracked } from "@angular/core";
+import { effect, inject, Injectable, OnDestroy, signal, untracked } from "@angular/core";
 import { Actions, ofActionSuccessful, Store } from "@ngxs/store";
 import { debounceTime, firstValueFrom, Subscription } from "rxjs";
 import { TranslationService } from "../i18n/translation.service";
@@ -52,6 +52,12 @@ export class ShoppingListSyncService implements OnDestroy {
   /** Resolves once the queue the device kept has been put back; nothing is written over it before that. */
   public readonly ready: Promise<void>;
 
+  /**
+   * True while changes wait because the last attempt to send one did not reach the server. First-hand knowledge
+   * that the server is out of reach, sooner than the stream finds out, so the page does not say "Live" over it.
+   */
+  public readonly stalled = signal(false);
+
   constructor() {
     this.ready = this.restore();
 
@@ -65,6 +71,7 @@ export class ShoppingListSyncService implements OnDestroy {
     this.subscriptions.add(
       this.actions.pipe(ofActionSuccessful(Logout)).subscribe(() => {
         this.retry.cancel();
+        this.stalled.set(false);
         void this.storage.clear();
       })
     );
@@ -112,13 +119,18 @@ export class ShoppingListSyncService implements OnDestroy {
     for (;;) {
       const change = this.store.selectSnapshot(ShoppingListState.pending)[0];
       if (!change) {
+        this.stalled.set(false);
         return true;
       }
 
       if (!(await this.tokenRefreshService.ensureFreshToken()) || !(await this.send(change))) {
         // Signed out meanwhile: the queue went with the session and there is nothing to wait for.
-        return !this.store.selectSnapshot(AuthState.isLoggedIn);
+        const signedOut = !this.store.selectSnapshot(AuthState.isLoggedIn);
+        this.stalled.set(!signedOut);
+        return signedOut;
       }
+
+      this.stalled.set(false);
     }
   }
 

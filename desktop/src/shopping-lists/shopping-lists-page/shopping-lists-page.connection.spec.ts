@@ -12,6 +12,7 @@ import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "../../services/shopping-list-stream.service";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -28,6 +29,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
   let getShoppingListsForGroup: Mock;
   let status: WritableSignal<ShoppingListStreamStatus>;
   let online: WritableSignal<boolean>;
+  let stalled: WritableSignal<boolean>;
 
   const testId = (id: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
   const text = (id: string): string => (testId(id)?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -50,6 +52,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     getShoppingListsForGroup = vi.fn().mockReturnValue(of(lists()));
     status = signal<ShoppingListStreamStatus>("connecting");
     online = signal(true);
+    stalled = signal(false);
 
     await TestBed.configureTestingModule({
       declarations: [ShoppingListsPageComponent],
@@ -62,6 +65,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: { getShoppingListsForGroup } },
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status } },
+        { provide: ShoppingListSyncService, useValue: { stalled } },
         { provide: OnlineStatusService, useValue: { online } },
         { provide: SnackbarService, useValue: { error: vi.fn(), success: vi.fn(), hint: vi.fn() } },
         { provide: AppDialog, useValue: { open: vi.fn() } },
@@ -94,7 +98,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     status.set("live");
     await crossOffMilk();
 
-    expect([text("shopping-list-connection-label"), text("shopping-list-pending-count")]).toEqual(["Live", "Sending: 1"]);
+    expect([text("shopping-list-connection-label"), testId("shopping-list-pending-count")?.getAttribute("title")]).toEqual(["Live", "Sending: 1"]);
   });
 
   it("says Reconnecting when the stream was lost but the browser still reports a network", async () => {
@@ -108,7 +112,20 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
 
     await crossOffMilk();
 
-    expect([text("shopping-list-connection-label"), text("shopping-list-pending-count")]).toEqual(["Reconnecting", "Waiting to be sent: 1"]);
+    expect([text("shopping-list-connection-label"), testId("shopping-list-pending-count")?.getAttribute("title")]).toEqual(["Reconnecting", "Waiting to be sent: 1"]);
+    expect(text("shopping-list-offline")).toContain("kept on this device");
+  });
+
+  // A phone that walks out of signal leaves the stream "open" for a while. A change that just failed to get
+  // through is first-hand knowledge, so the page stops saying Live at once.
+  it("does not say Live over a change that could not be sent, although the stream still looks open", async () => {
+    await create();
+    status.set("live");
+    await crossOffMilk();
+    stalled.set(true);
+    await fixture.whenStable();
+
+    expect([text("shopping-list-connection-label"), testId("shopping-list-pending-count")?.getAttribute("title")]).toEqual(["Reconnecting", "Waiting to be sent: 1"]);
     expect(text("shopping-list-offline")).toContain("kept on this device");
   });
 
@@ -118,7 +135,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     online.set(false);
     await crossOffMilk();
 
-    expect([text("shopping-list-connection-label"), text("shopping-list-pending-count")]).toEqual(["Offline", "Waiting to be sent: 1"]);
+    expect([text("shopping-list-connection-label"), testId("shopping-list-pending-count")?.getAttribute("title")]).toEqual(["Offline", "Waiting to be sent: 1"]);
     expect(testId("shopping-list-connection")?.getAttribute("data-state")).toBe("offline");
     expect(text("shopping-list-offline")).toContain("sent when the connection is back");
   });

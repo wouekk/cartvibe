@@ -56,6 +56,11 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   with `buttonVariants` (primary for the camera, outline for a file); *Remove photo* is `variant="destructive"`.
 - Countdown columns (Days left on the warranties panel and page): right-aligned, bold, tabular, "Today" for 0, and
   `text-warning-text` within a week.
+- Connection line (a shopping list's header, under its name, `text-xs`): a 6 px dot in the text's colour and one word,
+  *Live* in `text-success-text`, *Reconnecting* muted, *Offline* in `text-warning-text`, then `cloud_upload` and the
+  number of changes still waiting (the words are its tip and its screen-reader text). The same `cloud_upload`, muted,
+  marks a row that has not been sent. Never a banner for it; the one notice above the list explains what happens to
+  changes. A crossed-off row ends in the `xs` avatar of whoever crossed it off, after the amount.
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
 - Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.

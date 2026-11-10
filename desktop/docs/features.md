@@ -129,6 +129,16 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   (otherwise it would wipe the `quickScanDefault*` prefills), but recomputes requiredness always. Resolve config per
   index on each call (removing an image shifts indexes). The comment uses `codePointMaxLengthValidator(500)` and
   `trimmedRequiredValidator()` (module-level singletons, because `removeValidators` matches by reference).
+- **Quick Scan without a connection** (`QueuedScanService`, created at app start): an upload that never reached the
+  server (`status === 0`, nothing else) is kept as one `quick-scan:<time>` entry in `OfflineStorageService`, files and
+  per-photo fields exactly as they were being sent, and the dialog closes with a note. It goes up when the server can
+  be reached (`RetryWhenReachable`), oldest first, after `ensureFreshToken()`; a refusal (too large, no permission)
+  removes the entry with the server's message. There is no idempotency key: an upload whose answer was lost is sent
+  again and makes a second receipt, which is accepted over losing one.
+- **While the AI reads** (`receipt-products`, status `PENDING` / `RUNNING`): `ReceiptReadStreamService.watch(groupId,
+  receiptId)` listens on the household's stream for `RECEIPT_READ` and the section reloads on it, and once on every
+  open of that stream. The half-minute timer (`REFRESH_INTERVAL_MS`, 20 tries) runs only until the stream has opened,
+  for someone without `group.shopping-lists.read` (the stream's permission), and after the stream gives up.
 - **Group receipt settings → Quick Scan:** comment toggles are disabled, not cleared, while `hideComments` is on
   (`applyQuickScanDerivedState` with `emitEvent: false`, edit mode only); submit reads `getRawValue()`.
 - **Form Cancel:** an `app-cancel-button` (neutral outline) (`receipt-form-cancel`) sits left of Save in add and edit modes (not in the
@@ -139,11 +149,34 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 
 - One reducer for every write: `ApplyShoppingListEvent` (idempotent upsert/remove by id) applies SSE events and this
   tab's own responses, so an echo changes nothing. `ShoppingListStreamService` owns the single `EventSource` and
-  refetches on reconnect and when the tab becomes visible. `ShoppingListState` is not persisted; `targetGroupId` is
+  refetches on reconnect, when the tab becomes visible and when the browser reports a connection. `targetGroupId` is
   never the "All" group.
-- Only crossing off is optimistic. Items carry `amount` (decimal string) and `unit` (`SHOPPING_LIST_UNITS`, in step
-  with the API; labels translated through `formatShoppingListItemAmount`). A fully crossed-off list is "past"; "Going
-  shopping" notifies the household.
+- **Without a connection** (the server wins on conflict; the rules are at the top of `shopping-list-pending.ts`):
+  - *The device's copy.* `LoadShoppingLists` shows the copy of the group kept in `OfflineStorageService` (IndexedDB,
+    memory where the browser has none) at once, then the server's answer replaces it; a failed read leaves the copy,
+    and only a group with neither says so (`loadFailedGroupId`, `shopping-list-unavailable`). The slice is not in
+    `ngxsStorageKeys`: `ShoppingListSyncService` writes the copy (debounced) and the queue.
+  - *The queue.* Adding an item and crossing one off never call the API from the component: they dispatch
+    `QueueShoppingListChange`, which shows the change and appends it to `ShoppingListState.pending`. A new row has a
+    negative id (`isLocalItem`) and a `clientId`; `overlayPending` lays the queue over every server answer and live
+    event, so a refetch never hides what is still to be sent. `ShoppingListSyncService` (created at app start) sends
+    the head of the queue, one change at a time, after `TokenRefreshService.ensureFreshToken()`: saved means
+    `SettleShoppingListChange` (the server's item replaces the row; cross-offs waiting for it get its id), no
+    connection / 5xx / 429 means wait (`RetryWhenReachable`: on `online`, on a visible tab, when the stream goes
+    live, else 2 to 30 s), any other answer drops the change and rereads the lists (an add says which item). Requests
+    carry `QUIET_ERRORS` so the interceptor does not toast each retry.
+  - Everything else (edit, delete, clear, complete, lists) still waits for the server and toasts when it cannot be
+    reached. A local row can be crossed off and deleted (`DiscardLocalShoppingListItem`), not edited. The Dashboard's
+    list preview keeps its own online-only cross-off. `Logout` empties the slice and `OfflineStorageService`.
+  - *What the page says.* `ShoppingListStreamService.status` (`idle`, `connecting`, `live`, `reconnecting`) plus
+    `ShoppingListSyncService.stalled` (a send just failed) and `navigator.onLine` give `connection()`: Live,
+    Reconnecting or Offline under the list's name (`shopping-list-connection`), with the waiting count; never Live
+    over a failed send. The stream reopens itself after 70 s without a `PING` or any other event. A waiting row
+    carries `shopping-list-item-pending`; a crossed-off row shows who crossed it off (`checkedByUserId`, `app-avatar`).
+  - The add box (`app-shopping-item-name-field`) is cleared in the same turn as the Enter that adds, so it empties
+    spartan's search and the input itself (`emptyBox`); the `[search]` binding alone leaves a quickly typed name behind.
+- Items carry `amount` (decimal string) and `unit` (`SHOPPING_LIST_UNITS`, in step with the API; labels translated
+  through `formatShoppingListItemAmount`). A fully crossed-off list is "past"; "Going shopping" notifies the household.
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
@@ -160,11 +193,12 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   crosses the whole list off through `PUT /shopping-list/{listId}/checked`, applies the returned list as
   `ListUpdated`, opens the newest list still being shopped and toasts with Undo (`lastCompleted`, 8 s), which sends
   `isChecked: false` with exactly the item ids it crossed. Restore sends `isChecked: false` for every item. The header
-  labels fold to icons by the card's width (`@container`, `@max-lg:sr-only`).
+  labels fold to icons by the card's width (`@container`, `@max-2xl:sr-only`), so the list's name and its connection
+  line (`min-w-32`) keep their room.
 - **In the shop:** `ScreenWakeLockService` (a per-visit switch in the list menu, re-acquired when the tab is visible
   again, released when the page is left), `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
-  the clipboard, `navigator.vibrate?.(10)` on crossing off, and `OnlineStatusService` driving the
-  `shopping-list-offline` notice. Menu entries are hidden where the browser lacks the API.
+  the clipboard, `navigator.vibrate?.(10)` on crossing off, and the `shopping-list-offline` notice (shown while
+  Offline, or Reconnecting with changes waiting). Menu entries are hidden where the browser lacks the API.
 
 - **Import recipe** (`recipe-import-dialog/`, button `shopping-list-import-recipe` beside Going shopping, needs
   `group.shopping-lists.update` and an open list). Two steps in one `AppDialog`: input (`app-settings-tabs` *Recipe URL* /
@@ -261,7 +295,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   query, and the Dashboard opens Quick Scan once for `scan=1` and removes it from the address
   (`openScanFromShortcut`). Shortcut names are not translated: the manifest is one static file.
 - **The session outlives a lost connection.** `AuthState.isLoggedIn` means "a session exists" (an expiry time is
-  stored); `isTokenExpired` says whether the 20-minute token ran out. `TokenRefreshService` signs out (and clears
+  stored); `AuthState.isAccessTokenExpired(store)` says whether the 20-minute token ran out (a plain function: a
+  selector that reads the clock is remembered until the auth state changes and never notices). Background work calls
+  `TokenRefreshService.ensureFreshToken()` before it sends. `TokenRefreshService` signs out (and clears
   storage with `clearSessionStorage()`, which keeps theme, palette and language) only when the refresh call answers
   401 or 403 (`isSessionRefused`). No connection, a restarting server, a 429 or a 5xx leave the person signed in:
   `authGuard` lets the page open, and `AppComponent` tries again when the browser comes back online, when the tab

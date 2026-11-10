@@ -10,6 +10,7 @@ import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from 
 import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
@@ -74,6 +75,7 @@ describe("ShoppingListsPageComponent", () => {
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ShoppingListService, useValue: shoppingListService },
         { provide: ShoppingListStreamService, useValue: { connect: vi.fn(), disconnect: vi.fn(), status: signal("live") } },
+        { provide: ShoppingListSyncService, useValue: { stalled: signal(false) } },
         { provide: SnackbarService, useValue: snackbarService },
         {
           provide: AppDialog,

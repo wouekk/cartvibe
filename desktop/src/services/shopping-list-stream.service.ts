@@ -8,6 +8,12 @@ import { ShoppingListEventType } from "../store/shopping-list.state";
 const INITIAL_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 30000;
 
+/** The API's heartbeat event (every 25 seconds, no data). */
+const HEARTBEAT_EVENT = "PING";
+
+/** Two heartbeats and some slack: an open stream that says nothing for this long is taken for lost. */
+const SILENCE_LIMIT_MS = 70000;
+
 // EventSource.OPEN and CLOSED, spelled out: jsdom (the unit-test DOM) has no EventSource global to read them from.
 const EVENT_SOURCE_OPEN = 1;
 const EVENT_SOURCE_CLOSED = 2;
@@ -47,6 +53,8 @@ export class ShoppingListStreamService implements OnDestroy {
   private hasOpened = false;
 
   private reconnectTimer?: ReturnType<typeof setTimeout>;
+
+  private silenceTimer?: ReturnType<typeof setTimeout>;
 
   private reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
 
@@ -116,6 +124,7 @@ export class ShoppingListStreamService implements OnDestroy {
 
     eventSource.addEventListener("open", () => {
       this.status.set("live");
+      this.heard();
       this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
       // The first open follows the page's own load; every later one means events may have been
       // missed while disconnected.
@@ -132,12 +141,28 @@ export class ShoppingListStreamService implements OnDestroy {
       }
     });
 
+    eventSource.addEventListener(HEARTBEAT_EVENT, () => this.heard());
+
     for (const type of Object.values(ShoppingListEventType)) {
       eventSource.addEventListener(type, (message) => this.applyMessage(message as MessageEvent));
     }
   }
 
+  /**
+   * Something arrived, so the stream is alive: the silence clock starts over. A phone that walks out of signal
+   * leaves the stream "open" until the system notices, which can take minutes; the server's heartbeat is how the
+   * page knows sooner. After `SILENCE_LIMIT_MS` without a word the stream counts as lost and is opened again.
+   */
+  private heard(): void {
+    this.clearSilenceTimer();
+    this.silenceTimer = setTimeout(() => {
+      this.status.set("reconnecting");
+      this.open();
+    }, SILENCE_LIMIT_MS);
+  }
+
   private applyMessage(message: MessageEvent): void {
+    this.heard();
     try {
       const event = JSON.parse(message.data) as ShoppingListEvent;
       this.store.dispatch(new ApplyShoppingListEvent(event));
@@ -162,8 +187,16 @@ export class ShoppingListStreamService implements OnDestroy {
   }
 
   private closeEventSource(): void {
+    this.clearSilenceTimer();
     this.eventSource?.close();
     this.eventSource = undefined;
+  }
+
+  private clearSilenceTimer(): void {
+    if (this.silenceTimer !== undefined) {
+      clearTimeout(this.silenceTimer);
+      this.silenceTimer = undefined;
+    }
   }
 
   private clearReconnectTimer(): void {

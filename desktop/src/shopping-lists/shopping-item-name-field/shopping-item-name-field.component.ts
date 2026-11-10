@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from "@angular/core";
 import { FormControl } from "@angular/forms";
+import { BrnAutocomplete } from "@spartan-ng/brain/autocomplete";
 import { HlmAutocompleteImports } from "@spartan-ng/helm/autocomplete";
 import { startWith } from "rxjs";
 import { PipesModule } from "../../pipes/pipes.module";
@@ -36,18 +37,44 @@ export class ShoppingItemNameFieldComponent {
 
   protected readonly itemToString = (value: ItemSuggestion | null): string => value?.name ?? "";
 
+  private readonly autocomplete = viewChild(BrnAutocomplete);
+
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+
   constructor() {
     effect((onCleanup) => {
       const control = this.control();
-      const subscription = control.valueChanges
-        .pipe(startWith(control.value))
-        .subscribe((value) => this.typed.set(value ?? ""));
+      const subscription = control.valueChanges.pipe(startWith(control.value)).subscribe((value) => {
+        this.typed.set(value ?? "");
+        if (!value) {
+          this.emptyBox();
+        }
+      });
       onCleanup(() => subscription.unsubscribe());
     });
   }
 
+  /**
+   * Empties the box itself when the list clears the control after an add. The `[search]` binding alone is not
+   * enough: the add clears the control in the same turn as the Enter that made it, and a name typed (or pasted, or
+   * filled by a test) since the last paint was never bound, so the binding sees "" before and "" after and spartan
+   * keeps the typed text, in the box and as its own search. Both are cleared here, the box at once (spartan would
+   * only empty it on the next paint, and a next name typed before that would be appended to the old one).
+   */
+  private emptyBox(): void {
+    this.autocomplete()?.search.set("");
+    const box = this.host.nativeElement.querySelector("input");
+    if (box?.value) {
+      box.value = "";
+    }
+  }
+
   protected onSearch(text: string): void {
     const control = this.control();
+    // The echo of `emptyBox` (and of any other change that came from the control) is not something typed.
+    if (text === (control.value ?? "")) {
+      return;
+    }
     control.setValue(text);
     control.markAsDirty();
   }

@@ -22,6 +22,7 @@ import { ToastRef } from "../../toast/toast.service";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
+import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
@@ -40,6 +41,9 @@ import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
+
+const SENDING = marker("Sending: {count}");
+const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
 
 @Component({
   selector: "app-shopping-lists-page",
@@ -166,20 +170,25 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   /** Nothing to show: the lists could be read neither from the server nor from the device. */
   public readonly loadFailed = computed(() => this.loadFailedGroupId() === this.groupId());
 
+  /** A change of this device just failed to reach the server (`ShoppingListSyncService.stalled`). */
+  private readonly sendStalled = inject(ShoppingListSyncService).stalled;
+
   /**
    * What the page says about the connection, from what is known rather than guessed: "live" while the stream is
-   * open, "offline" when the browser itself reports no network, "reconnecting" when the stream was lost and is
-   * being tried again. Nothing while the first connection is still being made.
+   * open and nothing of this device's failed to get through, "offline" when the browser itself reports no network,
+   * "reconnecting" when the stream was lost or a change could not be sent, and both are being tried again. Nothing
+   * while the first connection is still being made.
    */
   public readonly connection = computed<"live" | "reconnecting" | "offline" | undefined>(() => {
     const status = this.streamStatus();
-    if (status === "live") {
+    const stalled = this.sendStalled();
+    if (status === "live" && !stalled) {
       return "live";
     }
     if (!this.online()) {
       return "offline";
     }
-    return status === "reconnecting" ? "reconnecting" : undefined;
+    return status === "reconnecting" || stalled ? "reconnecting" : undefined;
   });
 
   public readonly connectionLabel = computed(() => {
@@ -192,6 +201,11 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         return this.translation.t("Reconnecting");
     }
   });
+
+  /** "Sending: 2" while they travel, "Waiting to be sent: 2" while they cannot. */
+  public readonly pendingLabel = computed(() =>
+    this.translation.t(this.connection() === "live" ? SENDING : WAITING_TO_BE_SENT, { count: this.pendingCount() })
+  );
 
   /** The notice that explains what happens to changes while the server cannot be reached. */
   public readonly showOfflineNotice = computed(

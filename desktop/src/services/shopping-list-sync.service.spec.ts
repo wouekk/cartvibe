@@ -157,6 +157,8 @@ describe("ShoppingListSyncService", () => {
     // Still shown as crossed off, with no toast: nothing failed, it only waits.
     expect(store.selectSnapshot(ShoppingListState.checkedItems).map((row) => row.id)).toEqual([2]);
     expect(snackbar.error).not.toHaveBeenCalled();
+    // And the page is told the server is out of reach, whatever the stream still believes.
+    expect(TestBed.inject(ShoppingListSyncService).stalled()).toBe(true);
 
     api.setShoppingListItemChecked.mockImplementation((id: number) => of(item(id, { isChecked: true })));
     streamStatus.set("live");
@@ -164,6 +166,7 @@ describe("ShoppingListSyncService", () => {
     await settled();
 
     expect(pending()).toEqual([]);
+    expect(TestBed.inject(ShoppingListSyncService).stalled()).toBe(false);
   });
 
   it.each([500, 502, 503, 429, 408])("treats a %s as a reason to wait, not as a refusal", async (status) => {

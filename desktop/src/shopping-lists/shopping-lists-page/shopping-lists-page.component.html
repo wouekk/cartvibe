@@ -37,7 +37,12 @@
       data-testid="shopping-list-offline"
     >
       <app-icon name="wifi_off" class="shrink-0"></app-icon>
-      <span>{{ 'No connection. What you add or cross off is kept on this device and sent when the connection is back.' | t }}</span>
+      <span>
+        {{ 'No connection. What you add or cross off is kept on this device and sent when the connection is back.' | t }}
+        @if (pendingCount() > 0) {
+          <span class="font-medium text-foreground tabular-nums" data-testid="shopping-list-offline-count">{{ pendingLabel() }}</span>
+        }
+      </span>
     </div>
   }
 
@@ -47,14 +52,15 @@
         <!-- A container, so the header's button labels fold to icons by the card's width, not the window's. -->
         <section class="@container min-w-0 rounded-xl border border-border/70 bg-card text-card-foreground" data-testid="shopping-list-workspace" [attr.aria-label]="list.name">
           <header class="flex min-h-14 items-center gap-2 border-b border-border/60 py-2 pr-2 pl-4">
-            <div class="min-w-0 flex-1">
+            <!-- Room for the name and the connection line; the buttons give way first (their labels fold below 2xl). -->
+            <div class="min-w-32 flex-1">
               <h2 class="m-0 truncate text-base font-semibold tracking-tight">{{ list.name }}</h2>
               <p class="m-0 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground tabular-nums">
                 <span>{{ '{count} to buy' | t: { count: toBuyCount() } }}</span>
                 @if (connection(); as state) {
                   <!-- Whether changes travel right now, and how many of this device's are still waiting. -->
                   <span
-                    class="inline-flex items-center gap-1"
+                    class="inline-flex items-center gap-1 whitespace-nowrap"
                     [class.text-success-text]="state === 'live' && pendingCount() === 0"
                     [class.text-warning-text]="state === 'offline'"
                     role="status"
@@ -64,8 +70,12 @@
                     <span class="size-1.5 rounded-full bg-current" aria-hidden="true"></span>
                     <span data-testid="shopping-list-connection-label">{{ connectionLabel() }}</span>
                     @if (pendingCount() > 0) {
-                      <span aria-hidden="true">·</span>
-                      <span data-testid="shopping-list-pending-count">{{ (state === 'live' ? 'Sending: {count}' : 'Waiting to be sent: {count}') | t: { count: pendingCount() } }}</span>
+                      <!-- Short here (the header is narrow on a phone): the number, with the words as a tip and for a screen reader. -->
+                      <span class="inline-flex items-center gap-0.5" data-testid="shopping-list-pending-count" [attr.title]="pendingLabel()">
+                        <app-icon class="text-sm" name="cloud_upload"></app-icon>
+                        <span aria-hidden="true">{{ pendingCount() }}</span>
+                        <span class="sr-only">{{ pendingLabel() }}</span>
+                      </span>
                     }
                   </span>
                 }
@@ -83,7 +93,7 @@
                 (click)="announceGoingShopping()"
               >
                 <app-icon name="notifications_active"></app-icon>
-                <span class="@max-lg:sr-only">{{ 'Going shopping' | t }}</span>
+                <span class="@max-2xl:sr-only">{{ 'Going shopping' | t }}</span>
               </button>
               <!-- The ingredients of a recipe (a page or pasted text), previewed before anything is added. -->
               <button
@@ -96,7 +106,7 @@
                 (click)="importRecipe()"
               >
                 <app-icon name="restaurant"></app-icon>
-                <span class="@max-lg:sr-only">{{ 'Import recipe' | t }}</span>
+                <span class="@max-2xl:sr-only">{{ 'Import recipe' | t }}</span>
               </button>
               @if (toBuyCount() > 0) {
                 <!-- Everything bought as planned: crosses the whole list off without ticking item by item. -->
@@ -111,7 +121,7 @@
                   (click)="completeList(list)"
                 >
                   <app-icon name="done_all"></app-icon>
-                  <span class="@max-lg:sr-only">{{ 'Mark as complete' | t }}</span>
+                  <span class="@max-2xl:sr-only">{{ 'Mark as complete' | t }}</span>
                 </button>
               }
             }

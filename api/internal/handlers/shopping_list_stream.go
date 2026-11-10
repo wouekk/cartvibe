@@ -32,6 +32,10 @@ var (
 // shoppingListStreamRetryMs tells EventSource how long to wait before reconnecting.
 const shoppingListStreamRetryMs = 3000
 
+// shoppingListStreamPingEvent is the heartbeat's event name. It carries no data; a client that does not know it
+// ignores it, like any other event type it has no listener for.
+const shoppingListStreamPingEvent = "PING"
+
 func StreamShoppingListEvents(w http.ResponseWriter, r *http.Request) {
 	groupId := chi.URLParam(r, "groupId")
 
@@ -130,7 +134,10 @@ func streamShoppingListEvents(w http.ResponseWriter, r *http.Request, groupId ui
 				return
 			}
 
-			_, err = fmt.Fprint(w, ": ping\n\n")
+			// A named event rather than a comment: a comment keeps the connection warm but the page never sees
+			// it, and a phone that lost its signal leaves the stream "open" until the system notices, which can
+			// take minutes. The page counts on hearing something this often and reconnects when it does not.
+			_, err = fmt.Fprintf(w, "event: %s\ndata: {}\n\n", shoppingListStreamPingEvent)
 			if err == nil {
 				err = controller.Flush()
 			}

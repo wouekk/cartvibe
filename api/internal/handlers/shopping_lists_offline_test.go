@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bufio"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 )
 
 // An add sent twice with the same client id (a phone that lost its signal before the answer arrived) adds one
@@ -130,6 +132,35 @@ func TestShoppingListClientIdIsValidated(t *testing.T) {
 		w, r := shoppingListRequest("POST", fmt.Sprintf(`{"name":"Milk","clientId":%q}`, clientId), 1, map[string]string{"listId": fmt.Sprint(list.ID)})
 		AddShoppingListItem(w, r)
 		assertStatus(t, w, http.StatusBadRequest)
+	}
+}
+
+// The heartbeat is an event the page can hear (a comment would keep the connection warm unseen), so a page whose
+// stream went silent can tell and reconnect.
+func TestShoppingListStreamHeartbeatIsAnEvent(t *testing.T) {
+	defer tearDownShoppingListTest()
+	repositories.CreateTestGroupWithUsers()
+	grantAllGroupPerms(t, 1, 1)
+
+	previous := shoppingListStreamHeartbeat
+	shoppingListStreamHeartbeat = 30 * time.Millisecond
+	defer func() { shoppingListStreamHeartbeat = previous }()
+
+	server := startShoppingListStreamServer(1)
+	defer server.Close()
+
+	response, err := http.Get(server.URL + "/group/1/stream")
+	if err != nil {
+		t.Fatalf("open stream: %v", err)
+	}
+	defer response.Body.Close()
+
+	name, event := readShoppingListStreamEvent(t, bufio.NewReader(response.Body))
+	if name != "PING" {
+		t.Errorf("expected the heartbeat event PING, got %q", name)
+	}
+	if event.Type != "" || event.GroupId != 0 || event.Item != nil || event.List != nil {
+		t.Errorf("the heartbeat must carry nothing, got %+v", event)
 	}
 }
 
