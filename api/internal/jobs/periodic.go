@@ -55,6 +55,8 @@ func periodicTasks() []periodicTask {
 		{name: DatabaseSnapshot, every: time.Hour, firstAfter: firstCleanUpAfter, run: HandleDatabaseSnapshotTask},
 		// Once a day: lets SQLite refresh the statistics its query planner works from, and trims the WAL file.
 		{name: DatabaseMaintenance, every: 24 * time.Hour, firstAfter: time.Hour, run: HandleDatabaseMaintenanceTask},
+		// Once a day: the display copies and thumbnails of images that were deleted since.
+		{name: ImageCopyCleanUp, every: 24 * time.Hour, firstAfter: firstCleanUpAfter, run: HandleImageCopyCleanUpTask},
 	}
 }
 
@@ -115,6 +117,19 @@ func HandleDatabaseMaintenanceTask(ctx context.Context) error {
 	}
 
 	return repositories.OptimizeDatabase()
+}
+
+// HandleImageCopyCleanUpTask deletes the stored copies of images that no longer exist.
+func HandleImageCopyCleanUpTask(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return nil
+	}
+
+	removed, err := repositories.NewFileRepository(nil).SweepOrphanedImageCopies()
+	if removed > 0 {
+		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("image copies: removed %d files of deleted images", removed))
+	}
+	return err
 }
 
 // HandleWarrantyReminderSweepTask sends the due warranty reminders. Only a database error fails the run; push

@@ -203,3 +203,35 @@ func IsSafePathComponent(name string) bool {
 
 	return filepath.IsLocal(name)
 }
+
+// ImageCopyVariants are the copies of a receipt image the server keeps for a browser: "display" to look at, "thumb"
+// for a small preview.
+var ImageCopyVariants = map[string]bool{"display": true, "thumb": true}
+
+// BuildImageCopyDirString is where those copies live: data/derived. Outside the household folders on purpose, so a
+// household rename (which moves its folder) has nothing to carry along.
+func BuildImageCopyDirString() (string, error) {
+	dataDir, err := GetDataDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dataDir, "derived"), nil
+}
+
+// BuildImageCopyPathString is one copy: data/derived/<fileId>-<variant>.jpg. The name is the numeric id and a
+// variant from ImageCopyVariants only, so nothing a person typed reaches the path.
+func BuildImageCopyPathString(fileId uint, variant string) (string, error) {
+	if !ImageCopyVariants[variant] {
+		return "", errors.New("unknown image variant")
+	}
+	dir, err := BuildImageCopyDirString()
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(dir, UintToString(fileId)+"-"+variant+".jpg")
+	if err := AssertWithinDataDir(path); err != nil {
+		return "", err
+	}
+	return path, nil
+}

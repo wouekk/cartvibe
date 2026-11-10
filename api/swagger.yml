@@ -1819,6 +1819,44 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
+  /receiptImage/{receiptImageId}/file:
+    get:
+      tags:
+        - ReceiptImage
+      summary: A receipt image as a file for an img element
+      description: Serves a JPEG copy of the image, sized for looking at (display) or as a small preview (thumb). An image never changes under its id, so the answer is cached by the browser for good and a browser that has it gets 304. An unknown id answers the same 403 as a refusal.
+      operationId: getReceiptImageFile
+      parameters:
+        - in: path
+          name: receiptImageId
+          schema:
+            type: integer
+          required: true
+          description: Id of the receipt image
+        - in: query
+          name: w
+          schema:
+            type: string
+          required: false
+          description: Which copy, display (the default) or thumb
+      responses:
+        200:
+          description: The image
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        304:
+          description: The browser already has this image
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+      security:
+        - bearerAuth: [ ]
   /signUp:
     post:
       tags:

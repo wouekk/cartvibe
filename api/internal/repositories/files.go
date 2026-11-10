@@ -3,15 +3,15 @@ package repositories
 import (
 	"archive/zip"
 	"bytes"
+	"cartvibe/api/internal/constants"
+	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/utils"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"cartvibe/api/internal/constants"
-	config "cartvibe/api/internal/env"
-	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/utils"
 	"regexp"
 	"strings"
 
@@ -27,7 +27,7 @@ type FileRepository struct {
 func NewFileRepository(tx *gorm.DB) FileRepository {
 	repository := FileRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -249,6 +249,12 @@ const (
 // HEIC/HEIF, PNG with transparency, WebP, TIFF, CMYK JPEG and multi-frame files all come out the same. The first frame
 // is used. The stored original is never touched; this runs on the copy that is sent to the model.
 func (repository FileRepository) NormalizeImageForVision(bytes []byte) ([]byte, error) {
+	return repository.toOpaqueJpeg(bytes, visionImageMaxSide, visionImageQuality)
+}
+
+// toOpaqueJpeg is the conversion behind NormalizeImageForVision and the stored display copies: the first frame,
+// upright, on white, sRGB, its long edge at most maxSide (never enlarged), as a JPEG of the given quality.
+func (repository FileRepository) toOpaqueJpeg(bytes []byte, maxSide uint, quality uint) ([]byte, error) {
 	mw := imagick.NewMagickWand()
 	defer mw.Destroy()
 
@@ -277,8 +283,8 @@ func (repository FileRepository) NormalizeImageForVision(bytes []byte) ([]byte, 
 	}
 
 	width, height := mw.GetImageWidth(), mw.GetImageHeight()
-	if longest := max(width, height); longest > visionImageMaxSide {
-		scale := float64(visionImageMaxSide) / float64(longest)
+	if longest := max(width, height); longest > maxSide {
+		scale := float64(maxSide) / float64(longest)
 		newWidth := max(1, uint(float64(width)*scale+0.5))
 		newHeight := max(1, uint(float64(height)*scale+0.5))
 		if err := mw.ResizeImage(newWidth, newHeight, imagick.FILTER_LANCZOS); err != nil {
@@ -292,7 +298,7 @@ func (repository FileRepository) NormalizeImageForVision(bytes []byte) ([]byte, 
 	if err := mw.SetImageFormat("jpeg"); err != nil {
 		return nil, err
 	}
-	if err := mw.SetCompressionQuality(visionImageQuality); err != nil {
+	if err := mw.SetCompressionQuality(quality); err != nil {
 		return nil, err
 	}
 
@@ -569,4 +575,3 @@ func (repository FileRepository) GetTempDirectoryPath() string {
 func (repository FileRepository) AssertWithinTempDirectory(path string) error {
 	return utils.AssertWithinDir(repository.GetTempDirectoryPath(), path)
 }
-

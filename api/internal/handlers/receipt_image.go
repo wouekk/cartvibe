@@ -16,11 +16,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"gorm.io/gorm"
 )
 
 func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	errMessage := "Error uploading image."
 	fileRepository := repositories.NewFileRepository(nil)
+
+	// The size limit used to be nginx alone (client_max_body_size); the API now refuses a larger body itself.
+	r.Body = http.MaxBytesReader(w, r.Body, constants.MultipartFormMaxSize+multipartOverhead)
 
 	// Each of these ends the request: going on after the error answer wrote a second one behind it and, with no
 	// file in the form, closed a nil file.
@@ -46,7 +50,6 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// TODO: Validate size
 	handler := structs.Handler{
 		ErrorMessage:     errMessage,
 		Writer:           w,
@@ -84,6 +87,9 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
+			// The display copy and the thumbnail, so the first view does not wait for them.
+			fileRepository.MakeImageCopies(createdFile)
+
 			encodedImage, err := fileRepository.BuildEncodedImageString(fileBytes)
 			if err != nil {
 				return http.StatusInternalServerError, err
@@ -114,7 +120,7 @@ func GetReceiptImage(w http.ResponseWriter, r *http.Request) {
 
 	err := db.Model(models.FileData{}).Where("id = ?", id).First(&fileData).Error
 	if err != nil {
-		utils.WriteCustomErrorResponse(w, errorMessage, http.StatusInternalServerError)
+		writeUnknownImage(w, err, errorMessage)
 		return
 	}
 	stringReceiptId := utils.UintToString(fileData.ReceiptId)
@@ -173,7 +179,7 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 
 	err := db.Model(models.FileData{}).Where("id = ?", id).First(&fileData).Error
 	if err != nil {
-		utils.WriteCustomErrorResponse(w, errorMessage, http.StatusInternalServerError)
+		writeUnknownImage(w, err, errorMessage)
 		return
 	}
 	stringReceiptId := utils.UintToString(fileData.ReceiptId)
@@ -204,6 +210,77 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
+// multipartOverhead is what a form adds around the file itself (boundaries, the other fields).
+const multipartOverhead = 1 << 20
+
+// writeUnknownImage answers a request for an image id that is not there. It is the same 403 and body as a refusal,
+// so an id cannot be probed for existence (S18); only a database that failed is a 500.
+func writeUnknownImage(w http.ResponseWriter, err error, errorMessage string) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		utils.WriteCustomErrorResponse(w, unauthorizedEntityMessage, http.StatusForbidden)
+		return
+	}
+	logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
+	utils.WriteCustomErrorResponse(w, errorMessage, http.StatusInternalServerError)
+}
+
+// GetReceiptImageFile serves a receipt image as a file a browser can show in an <img>: a JPEG copy the server
+// keeps, sized for looking at ("display", the default) or as a small preview ("thumb"). An image never changes
+// under its id (a replaced photo is a new image), so the answer may be cached for good; a browser that already has
+// it gets a 304.
+func GetReceiptImageFile(w http.ResponseWriter, r *http.Request) {
+	db := repositories.GetDB()
+	errorMessage := "Error retrieving image."
+	var fileData models.FileData
+	id := chi.URLParam(r, "id")
+
+	err := db.Model(models.FileData{}).Where("id = ?", id).First(&fileData).Error
+	if err != nil {
+		writeUnknownImage(w, err, errorMessage)
+		return
+	}
+
+	variant := r.URL.Query().Get("w")
+	if variant == "" {
+		variant = repositories.ImageCopyDisplay
+	}
+
+	handler := structs.Handler{
+		ErrorMessage:     errorMessage,
+		ReceiptId:        utils.UintToString(fileData.ReceiptId),
+		GroupPermissions: []string{permissions.GroupReceiptsRead},
+		Writer:           w,
+		Request:          r,
+		ResponseType:     "",
+		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
+			if !utils.ImageCopyVariants[variant] {
+				utils.WriteCustomErrorResponse(w, "w must be display or thumb", http.StatusBadRequest)
+				return 0, nil
+			}
+
+			etag := "\"" + utils.UintToString(fileData.ID) + "-" + variant + "\""
+			w.Header().Set("ETag", etag)
+			w.Header().Set("Cache-Control", "private, max-age=31536000, immutable")
+			if r.Header.Get("If-None-Match") == etag {
+				w.WriteHeader(http.StatusNotModified)
+				return 0, nil
+			}
+
+			path, err := repositories.NewFileRepository(nil).ImageCopyPath(fileData, variant)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+
+			w.Header().Set("Content-Type", "image/jpeg")
+			http.ServeFile(w, r, path)
+
+			return 0, nil
+		},
+	}
+
+	HandleRequest(handler)
+}
+
 func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 	db := repositories.GetDB()
 	errorMessage := "Error deleting image."
@@ -213,7 +290,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 
 	err := db.Model(models.FileData{}).Where("id = ?", id).First(&fileData).Error
 	if err != nil {
-		utils.WriteCustomErrorResponse(w, errorMessage, http.StatusInternalServerError)
+		writeUnknownImage(w, err, errorMessage)
 		return
 	}
 	stringReceiptId := utils.UintToString(fileData.ReceiptId)
@@ -249,6 +326,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
+			fileRepository.RemoveImageCopies(fileData.ID)
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil
