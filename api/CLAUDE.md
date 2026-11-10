@@ -3,8 +3,7 @@
 The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated here. Deep notes in `docs/`:
 `authorization.md` (visibility rationale, households, role-required fields), `oidc.md`, `sessions-cookies.md`,
 `domain.md` (shopping lists, products, trips, Dashboard, currencies, search, receipts, sweeps), `shop-logos.md`,
-`activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite), `cell-runtime.md` (the parked cell
-handle).
+`activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite).
 
 ## 1. Build and test
 
@@ -18,6 +17,8 @@ handle).
   tagged release after 2026-10-03. Production only writes XLSX.
 - The cgo bindings (ImageMagick 7, Tesseract) are not available on the Windows PC. `scripts/go-without-cgo.sh vet ./...`
   (or `test <pkg>`) stubs them; image/OCR tests and a few temp-path tests fail there only. Never build the server with it.
+  One stubbed test panics and ends the `repositories` package early, hiding every test after it: run that package
+  with `-skip TestBuildDisplayImageString_PdfRasterizes`.
 - PDF tests: `scripts/install-test-chromium.sh` once, then `scripts/test-pdf.sh`. Elsewhere set `CHROMIUM_BINARY_PATH`
   (default `/usr/bin/chromium`); without a browser the HTML-to-PDF tests fail and `internal/services` reports FAIL.
 - **CI is the judge.** Run the packages you touched locally where the toolchain allows, and say which tests did not run.
@@ -30,8 +31,10 @@ handle).
 
 - Request flow: `handlers/` (`structs.Handler` + `HandleRequest`) → `services/` → `repositories/` (GORM); `commands/`
   carry `Validate()`; `permissions/` and `reporting/` are pure.
-- Repositories take a `cell.Handle` (`NewXRepository(h, tx)`; a caller without one passes `repositories.ImplicitCell()`).
-  It is groundwork for a hosted plan that is parked (`docs/cell-runtime.md`): follow the existing pattern, nothing more.
+- Repositories are built with `NewXRepository(tx)`: `nil` reads the one process database (`repositories.GetDB()`), a
+  transaction makes every query of that repository run inside it. A repository that builds a sibling passes its own
+  `tx` on. One process serves one household database; the in-memory caches (role permissions, grants, list streams,
+  the OIDC provider cache) are keyed by plain ids for that reason.
 - **Map-form `Updates`** whenever a bool, empty string or zero must be written: GORM's struct form skips zero values, so
   a toggled-off flag or cleared description would stick. Repositories that assign fields one at a time
   (`UpdateUserPreferences`, `UpdateGroupReceiptSettings`) need each new field added by hand; their round-trip tests exist
@@ -123,8 +126,9 @@ handle).
 - **Roster changes** (`AuthorizeGroupMemberChanges`): CRUD gate per added/changed/removed member plus a privilege
   ceiling (only roles whose permissions are a subset of the caller's). Per-member grants have their own permission
   `group.members.grants.update` and endpoint.
-- MCP tools and REST share enforcement in the service (`ReceiptService.GetReceiptForUser`, `SearchReceiptsForUser`);
-  those two REST handlers intentionally skip the declarative gate.
+- MCP tools and REST share enforcement in the service: `ReceiptService.GetReceiptForUser` (its REST handler
+  intentionally skips the declarative gate) and `SearchReceiptsForUser`, which only the MCP search tool calls since
+  the REST search route was removed; it enforces `app.receipts.search` itself.
 
 ### Credentials
 
@@ -295,3 +299,7 @@ The database is fresh-only since the clean-schema rework; these are gone from co
 - The old one-time data migrations and `GroupMember.GroupRole`.
 - The MySQL/MariaDB and PostgreSQL engines, their drivers and `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME`:
   `DB_ENGINE` must be `sqlite`, and any other value (or none) stops the boot with an error naming the fix.
+- The cell runtime (2026-11-10): `internal/cell`, the handle on repositories, `CARTVIBE_MODE`, the cell-keyed caches,
+  `tools/celllint` and the twin-cell tests. There is no hosted plan; one process serves one household database.
+- `GET /api/search` (the header search box it served is gone; receipts are searched through the list's filter, and the
+  MCP tool calls the service), and the `numWorkers` setting, which nothing read.

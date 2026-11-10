@@ -7,15 +7,15 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 - **The audit of 2026-11-09 is being carried out** (`docs/AUDIT-REPORT.md`: decisions, eleven sprints, progress). The
   owner approved all of it except S1; no hosted plan, ever (a VPS stays a self-hoster's option).
-  - Sprint 1, `feature/audit-quick-wins`: CI green on 2026-11-10, published as `:preview`, merged into `preview`.
-    **`main` waits for the owner's go**; then tick sprint 1 in the audit report and move `preview` to the same commit.
-    The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
-  - Next: sprint 2, `feature/remove-cell-runtime`, cut from sprint 1's branch while that is not on `main`.
+  - Sprint 1, `feature/audit-quick-wins`, and sprint 2, `feature/remove-cell-runtime` (cut from sprint 1, so it
+    holds both): done on 2026-11-10, in `preview` and on `:preview`. **`main` waits for the owner's go** for each;
+    then tick the sprint in the audit report and move `preview` to the same commit.
+  - Next: sprint 3, `feature/offline-list`, cut from sprint 2's branch while that is not on `main`.
+  - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Last release v0.18.0 (2026-11-05)**; before it v0.17.0. Neither is seen on the NAS yet (below). Avatars and the
   household look are not in the export. Skipped on purpose: `app-button`'s `color="warn"` API.
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
-- Local Go run on Windows: 18 tests fail there only (PDF, Chromium, image encoding, Unix temp paths); CI judges them.
-  `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
+- `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
   lines in its `go.mod` and run them on the copy.
 - Mac Playwright run: `failed-activity-source-file` and `system-task-filter` fail on `main`, 15 skipped behind them.
   Also to do: the `dashboard-charts` spec; `app-time-zone` and `report-period-date-field` specs were not run.

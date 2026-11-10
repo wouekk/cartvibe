@@ -59,6 +59,15 @@ server finish what it is doing.
 - **The notifications panel fits a phone screen.** It used to run off the left edge; it now stays inside the screen
   *(NOTE-01)*.
 
+### Removed
+- **The groundwork for a hosted plan.** There is no hosted CartVibe and there will not be one, so the code that
+  prepared one server for many households is gone (about 3,000 lines, most of them tests). Nothing changes in the
+  app. The `CARTVIBE_MODE` setting no longer exists; a stack that sets it can drop the line.
+- **`GET /api/search`.** Nothing in the app has called it since the search box left the header: receipts are
+  searched on the Receipts page *(RCPT-11)*, and the AI connector searches through its own tool. A script of your own
+  that called this address has to list receipts with a search filter instead.
+- **The "number of workers" setting** in the API's system settings, which nothing read.
+
 ### Security
 - **The sort order of the Categories and Tags lists is checked.** A crafted request from a signed-in admin could put
   its own SQL into the query; unknown sort columns are now refused.

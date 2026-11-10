@@ -9,13 +9,13 @@ authorization server) but two `utils` primitives. There is only the browser flow
 ## Identity anchor
 
 `models.OidcIdentity` is unique on `(oidc_provider_id, subject)` and `(oidc_provider_id, user_id)`. Every login after the
-first resolves by `sub` alone, so an IdP rename or a recycled username cannot re-point an account. `Subject` is capped at
-255 to keep the composite index under MySQL's limit.
+first resolves by `sub` alone, so an IdP rename or a recycled username cannot re-point an account. `Subject` is sized
+255, the OpenID Connect limit for a `sub`.
 
 First login only (`resolveUser`):
 1. Attach to a local account whose username equals `preferred_username`, only if the provider's `LinkByUsername` is on
    (default off: public IdPs recycle usernames, so it is a takeover path against a local `admin`). The match is
-   re-checked byte for byte in Go (`usernameMatchesClaim`) because MySQL's default collation is case-insensitive; an
+   re-checked byte for byte in Go (`usernameMatchesClaim`), so it stays exact whatever collation the column has; an
    inexact match falls through to provisioning, which refuses the collision.
 2. Provision, if `AllowProvisioning`.
 3. Otherwise `no_account`.

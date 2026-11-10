@@ -36,7 +36,14 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
     the `GetReceiptImage` 500 (S18, sprint 7).
   - Sprint 6 note: before `pull_request` is added to `ci.yml`, `publish-image.yml` must also require
     `workflow_run.event == 'push'`, or a fork's branch named `main` could publish `:latest`.
-- [ ] 2. Remove the cell runtime: D1, D2, D16, rest of D17
+- [ ] 2. Remove the cell runtime (`feature/remove-cell-runtime`, cut from sprint 1's branch): D1, D2, D16, rest of D17
+  - Done on the branch on 2026-11-10: repositories are `NewXRepository(tx)` again; `internal/cell`, `tools/celllint`,
+    `CARTVIBE_MODE`, the cell-keyed caches, the twin-cell tests and `api/docs/cell-runtime.md` are gone;
+    `GET /api/search` with its nginx limit, `numWorkers`, `ChartGrouping`, `GetReceiptsForGroupIds` and the unused
+    router parameters are removed; the multi-database comments describe SQLite.
+  - Left as they are, each with a reason: the `LogoutCommand` schema (the contract still documents a body for sign-out;
+    only the unused Go type went); the EasyOCR engine value (stored settings may still name it, and it reads as
+    Tesseract); `repositories/testing.go` and `utils/testing.go` in the binary (other packages' tests import them).
 - [ ] 3. Offline shopping list: F1
 - [ ] 4. Phone shell and Shop mode: F2, F4, F5, F9, C7, C8, C9
 - [ ] 5. Jobs in SQLite, Valkey removed: B1, B2.2 to B2.4, S10
