@@ -7,12 +7,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 - **The audit of 2026-11-09 is being carried out** (`docs/AUDIT-REPORT.md`: decisions, eleven sprints, progress). The
   owner approved all of it except S1; no hosted plan, ever (a VPS stays a self-hoster's option).
-  - Sprints 1 to 4 are done (2026-11-10), each cut from the one before: `feature/phone-shell` holds all four, is
-    in `preview` and on `:preview`. **`main` waits for the owner's go**; then tick the sprints in the audit report
-    and move `preview` to the same commit. Schema: sprint 3 adds a column and an index to `shopping_list_items`.
-  - Next: sprint 5, `feature/sqlite-jobs`, cut from sprint 4's branch while that is not on `main`.
+  - Sprints 1 to 4 are on `main` since 2026-11-10 (the owner's go), with `preview` on the same commit; `:latest`
+    publishes from it once CI is green. Not released: the changelog's Unreleased section holds all four, and the
+    next tag is the owner's call. Schema: sprint 3 adds a column and an index to `shopping_list_items`.
+  - Next: sprint 5, `feature/sqlite-jobs`, cut from `main`.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
-- **Last release v0.18.0 (2026-11-05)**, not seen on the NAS yet (below). Avatars and the household look are not in
+- **Last release v0.18.0 (2026-11-05)**, not seen on the NAS yet (below); `:latest` is now well past it. Avatars and the household look are not in
   the export. Skipped on purpose: `app-button`'s `color="warn"` API.
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
 - `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
@@ -30,8 +30,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 ## Waiting on the owner (NAS or phone)
 
 - Before deploying: the Dockhand stack must set `DB_ENGINE=sqlite`, `SECRET_KEY` and `ENCRYPTION_KEY`; add
-  `stop_grace_period: 30s`. `:latest` as it is today still needs `sqlite/` backed up by hand first; `:preview`
-  copies the database itself before it migrates (an `app-upgrade-*.db` file in `sqlite/backups` proves it).
+  `stop_grace_period: 30s`. The server copies the database itself before it migrates (an `app-upgrade-*.db` file
+  in `sqlite/backups` proves it); that copy has never been seen on the NAS, so back up `sqlite/` by hand this once.
 - After it: a photo scan, a HEIC and a PDF upload (also as an avatar), a report PDF, a household rename with receipt
   photos, a scan with a real AI key, day and night in an accent palette on phone and desktop. Report any queue error.
 - Sprint 1: with the NAS stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows

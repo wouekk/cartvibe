@@ -22,11 +22,10 @@ The owner approved carrying out everything in this report except S1. Where the r
 
 ## Progress
 
-One branch per sprint. A sprint is ticked when it has reached `main`.
+One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 to 4 reached it together on 2026-11-10.
 
-- [ ] 1. Quick wins (`feature/audit-quick-wins`): S21, S3, S9, S14, compression, B4, S6, B2.1, S22, B5.1, B5.4, B5.5,
+- [x] 1. Quick wins (`feature/audit-quick-wins`): S21, S3, S9, S14, compression, B4, S6, B2.1, S22, B5.1, B5.4, B5.5,
   B5.6, B5.8, sessions, F3, F4, B7, D3 to D5, D12 to D14, part of D17
-  - On the branch and in `preview` since 2026-11-10; `main` waits for the owner.
   - Also done there: S17 (loopback), the 30-day session default with its migration, Dependabot, `go vet`,
     `staticcheck` and `govulncheck` in CI (37 findings fixed on the way), `npm audit` back to 0.
   - Moved to a later sprint: a `context.Context` on the AI clients (B5.4, sprint 7); the one-year session cap and
@@ -36,7 +35,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
     the `GetReceiptImage` 500 (S18, sprint 7).
   - Sprint 6 note: before `pull_request` is added to `ci.yml`, `publish-image.yml` must also require
     `workflow_run.event == 'push'`, or a fork's branch named `main` could publish `:latest`.
-- [ ] 2. Remove the cell runtime (`feature/remove-cell-runtime`, cut from sprint 1's branch): D1, D2, D16, rest of D17
+- [x] 2. Remove the cell runtime (`feature/remove-cell-runtime`, cut from sprint 1's branch): D1, D2, D16, rest of D17
   - Done on the branch on 2026-11-10: repositories are `NewXRepository(tx)` again; `internal/cell`, `tools/celllint`,
     `CARTVIBE_MODE`, the cell-keyed caches, the twin-cell tests and `api/docs/cell-runtime.md` are gone;
     `GET /api/search` with its nginx limit, `numWorkers`, `ChartGrouping`, `GetReceiptsForGroupIds` and the unused
@@ -44,7 +43,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
   - Left as they are, each with a reason: the `LogoutCommand` schema (the contract still documents a body for sign-out;
     only the unused Go type went); the EasyOCR engine value (stored settings may still name it, and it reads as
     Tesseract); `repositories/testing.go` and `utils/testing.go` in the binary (other packages' tests import them).
-- [ ] 3. Offline shopping list (`feature/offline-list`, cut from sprint 2's branch): F1, and scan progress from F7
+- [x] 3. Offline shopping list (`feature/offline-list`, cut from sprint 2's branch): F1, and scan progress from F7
   - Done on the branch on 2026-11-10: the lists open from a copy on the device; adds and cross-offs are queued and
     sent in order, an add by a `clientId` the server deduplicates; the list says Live, Reconnecting or Offline with
     the count waiting, marks unsent rows and shows who crossed an item off; the lists read carries an ETag; a Quick
@@ -58,7 +57,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`.
     flashing rows someone else changed (F1.5; the avatar covers "who"); queued edits, deletes and whole-list actions
     (each needs its own "safe to send twice" rule on the server first); an idempotency key for a queued Quick Scan
     (a lost answer can make a second receipt); the Dashboard's list preview, which still needs a connection.
-- [ ] 4. Phone shell and Shop mode (`feature/phone-shell`, cut from sprint 3's branch): F2, F4, F5, F9, C7, C8, C9
+- [x] 4. Phone shell and Shop mode (`feature/phone-shell`, cut from sprint 3's branch): F2, F4, F5, F9, C7, C8, C9
   - Done on the branch on 2026-11-10: a tab bar below 768px (Dashboard, Lists, Scan, Receipts, More) with the
     household in the header in place of the sidebar button; the palette menu and day/night switch gone from the
     header (C8); one control height, 36px under a mouse and 44px on a coarse pointer, as a token the helm variants
