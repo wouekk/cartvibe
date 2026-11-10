@@ -110,15 +110,24 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          # -race: a data race between goroutines (the job workers, the list streams, the two SQLite pools) fails
-          # the run. It needs cgo, which this container has and the Windows stub build does not.
-          if ! go test -race -coverprofile=coverage.out -covermode=atomic -v ./... 2>&1 | tee test.log; then
+          if ! go test -coverprofile=coverage.out -covermode=atomic -v ./... 2>&1 | tee test.log; then
             # Only failures: a passing test's t.Log lines look like assertion output too.
-            grep -E -B3 -- "^\s*--- FAIL|^panic:|^WARNING: DATA RACE" test.log | grep -vE "^\s*(=== RUN|--- PASS)" | head -60 | while IFS= read -r line; do
+            grep -E -B3 -- "^\s*--- FAIL|^panic:" test.log | grep -vE "^\s*(=== RUN|--- PASS)" | head -60 | while IFS= read -r line; do
               echo "::error::${line}"
             done
             exit 1
           fi
+        working-directory: ./api
+      # The race detector, on the code where goroutines meet: the job workers, the two SQLite pools, the list
+      # streams, the sign-in back-off, the provider cache, the log file. Not on everything: the whole suite under
+      # it was still running after 25 minutes (password hashing alone is many times slower). It needs cgo, which
+      # this container has and the Windows stub build does not.
+      - name: Race detector
+        if: ${{ !cancelled() }}
+        run: |
+          go test -race ./internal/jobs/ ./internal/oidc/ ./internal/logging/ ./internal/ai/
+          go test -race -run 'SplitPool|Claim|Job' ./internal/repositories/
+          go test -race -run 'Hub|Stream|Throttle' ./internal/services/ ./internal/handlers/
         working-directory: ./api
 
   test-desktop:
