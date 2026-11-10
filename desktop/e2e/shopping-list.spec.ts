@@ -157,8 +157,12 @@ test.describe('Shopping lists', () => {
       const connection = page.getByTestId('shopping-list-connection');
       const unsent = page.getByTestId('shopping-list-item-pending');
       await addItem(page, 'Rice');
+      // The row first: before it is painted there is no mark to count, and "no marks" would pass with the add still
+      // on its way, which the cut connection would then leave waiting as a third change.
+      await expect(activeItem(page, 'Rice')).toBeVisible();
       await expect(unsent).toHaveCount(0);
       await expect(connection).toHaveAttribute('data-state', 'live');
+      await expect(page.getByTestId('shopping-list-pending-count')).toHaveCount(0);
 
       // In the shop, between the shelves: the list keeps working and says what it is holding back.
       await context.setOffline(true);
