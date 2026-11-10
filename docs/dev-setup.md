@@ -14,12 +14,12 @@ something outside CI. GitHub Actions is the real build and test machine either w
   work in `desktop/`. A lockfile regenerated here must still pass CI's `npm ci`.
 - **Python** is not installed. `api/internal/reporting/mutation-check.sh` needs `python3`; a shim in a PATH folder works:
   `exec uv run --no-project --quiet python "$@"`.
-- Not available: Docker, real Redis, ImageMagick, Tesseract, Java.
+- Not available: Docker, ImageMagick, Tesseract, Java.
 - `gh` needs `--repo wouekk/cartvibe`. Git's LF/CRLF warnings are harmless.
 
 ### Local stack (`tools\devstack\`)
 
-1. Redis stand-in: `redis\miniredis.exe` on :6379 (start it first).
+1. Nothing to start first: the API needs no queue server (the `redis\` folder and its `miniredis.exe` are leftovers).
 2. API: `api.exe`, built with `bash api/scripts/go-without-cgo.sh build -o <path> .`; `api.cmd` runs it from `run\` on
    :8081 (SQLite `dev.db`, `TZ=Europe/Paris`). Rebuild after API changes; delete `run\dev.db` for a fresh database.
 3. Web: `npm start` in `desktop/` (`web.cmd`) serves :4200 and proxies `/api` to :8081. Log in as `admin` / `admin`.
@@ -33,7 +33,7 @@ Functional checks (clicking through, screenshots) are done in English; switch th
 May have more toolchains than the PC; check before assuming. The commands above work unchanged once Go and Node are on
 the PATH. The full Go suite with cgo runs there after `brew install imagemagick tesseract ghostscript pkg-config`, with
 `CGO_CPPFLAGS=-I/opt/homebrew/include CGO_LDFLAGS=-L/opt/homebrew/lib`; the whole Playwright suite runs against a native
-API and Valkey.
+API.
 
 ## Cloud sandbox
 

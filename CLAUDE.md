@@ -19,7 +19,7 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
   scan and tests; desktop `npm audit`, Vitest and `ng build` (the spec build compiles components JIT, so template errors
   only show in the build). A feature branch runs the jobs its change touches; `main` runs all of them. CI is the judge;
   never claim tests passed that did not run. The `e2e-smoke` job runs a few Playwright specs (`npm run e2e:smoke`)
-  against the built image and checks the container itself; the rest of the suite is not run in CI.
+  against the built image, started alone as on the NAS, and checks the container itself; the rest of the suite is not run in CI.
 - A `swagger.yml` change pushed on `feature/**` regenerates `desktop/src/open-api/` and commits it; pull, then build the
   desktop against the generated names.
 - Preview on the NAS: once a feature branch's CI is green, publish it to `:preview` without asking
@@ -33,7 +33,7 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 - **IMPORTANT:** ship a `swagger.yml` change with the regenerated client in the same branch; never hand-edit
   `desktop/src/open-api/`.
 - New statuses, types and units are plain strings on the contract, not new values in a closed enum (this also rules out
-  new `QueueName` or `SystemTaskType` values).
+  new `SystemTaskType` values).
 - Lists serialize as `[]`, never `null`.
 - Money is `shopspring/decimal`, a string on the wire; totals are folded in Go, never with SQL `SUM`. Everything works on
   SQLite, and migrations are additive.

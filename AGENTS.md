@@ -58,14 +58,16 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
   tool or font the API relies on gets a package name there and a check in the script, never `Recommends` switched back on.
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
   green `main` (amd64), or `:preview` from a manual run on another branch.
-- **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image, `valkey/valkey:9.1-alpine` (background
-  jobs need it; BSD-licensed, found by the app as host `valkey`, port 6379, so no setting is needed), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
+- **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image and nothing else (since
+  2026-11-10 the job queue is a table in the database and the sweeps are timers in the API, so there is no Valkey or
+  Redis; never add a second service for background work), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
   `ENCRYPTION_KEY` from Dockhand's variables, with no `$` in them (compose reads it as a variable). Deploy = pull, then
   redeploy (a redeploy alone reuses the cached image). The API copies its database to `sqlite/backups` before a new
   version migrates and once a day (`api/CLAUDE.md`, Snapshots), so a schema release needs no manual backup; a copy of
-  the live files (`app.db`, `-wal`, `-shm`; WAL mode) still needs the container stopped.
-- **Self-hosters on a VPS** can run `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the files,
-  Valkey with a password); setup and the restore drill are in `docs/vps-deploy.md`. We run no VPS and no hosted service:
+  the live file still needs the container stopped (a clean stop folds the `-wal` file into `app.db`, so that file
+  alone is then a whole copy).
+- **Self-hosters on a VPS** can run `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the
+  files); setup and the restore drill are in `docs/vps-deploy.md`. We run no VPS and no hosted service:
   since 2026-11-02 there is no hosted plan (`wouekk/cartvibe-cloud` is frozen), and `cartvibe.app` is the static project page.
 - Repo `wouekk/cartvibe`, project page `https://cartvibe.app/` (from `site/`, on GitHub Pages; `docs/site.md`), image
   `ghcr.io/wouekk/cartvibe`. `main` and `preview` are the long-lived branches; a feature branch is deleted once merged.

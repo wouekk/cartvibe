@@ -25,7 +25,7 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
 
 ## Steps
 
-1. **A Redis-compatible server** (Redis is installed, not running; Valkey works the same): `redis-server --daemonize yes --save "" --appendonly no`, then `redis-cli ping`.
+1. No queue server is needed: background work runs in the API and its database.
 2. **Tesseract and build tools:**
    `apt-get install -y build-essential pkg-config libtesseract-dev libleptonica-dev tesseract-ocr-eng`
 3. **IM7 delegate libs:**
@@ -53,11 +53,10 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
    provisions a group and looks like a test bug.
 7. **Run from `api/`** (`logs/`, `data/`, `sqlite/` are relative to the working directory):
    ```bash
-   DB_ENGINE=sqlite DB_FILENAME=cartvibe.db ENCRYPTION_KEY=dev SECRET_KEY=dev \
-   VALKEY_HOST=127.0.0.1 go run main.go
+   DB_ENGINE=sqlite DB_FILENAME=cartvibe.db ENCRYPTION_KEY=dev SECRET_KEY=dev go run main.go
    ```
-   The two keys only need to be non-empty (`env.CheckRequiredEnvironmentVariables`). `dev/switch-to-sqlite.sh` exports
-   `VALKEY_HOST=valkey` (the compose service name); override it for a local server. Ready on `Listening on port 8081`;
+   The two keys only need to be non-empty (`env.CheckRequiredEnvironmentVariables`); `dev/switch-to-sqlite.sh` exports
+   the same set. Ready on `Listening on port 8081`;
    smoke test `curl localhost:8081/api/featureConfig`.
 
 ## Logging in

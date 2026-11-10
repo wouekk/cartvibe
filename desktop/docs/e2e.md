@@ -101,7 +101,7 @@ Needs Docker Desktop only. From `desktop/` in Git Bash (the script sets `MSYS_NO
 
 1. Build the image from the repo root once per code change: `docker build -f docker/Dockerfile -t cartvibe:ci .` (about 10 minutes
    cold; `CARTVIBE_IMAGE` picks another tag).
-2. `e2e/run-docker.sh up` starts Valkey, the app and a Playwright 1.64.1 runner (Node 24) that shares the app's network, runs
+2. `e2e/run-docker.sh up` starts the app and a Playwright 1.64.1 runner (Node 24) that shares the app's network, runs
    `npm ci`, and seeds the accounts (`seed-accounts.mjs`). Every `up` is a fresh database, which the specs assume.
 3. `e2e/run-docker.sh run [playwright args]`, e.g. `run "--reporter=list"` or `run "report-config --reporter=list"`
    (`E2E_WORKERS` defaults to 2: more workers trip nginx's rate limit). The specs are bind-mounted, so edits apply at once.

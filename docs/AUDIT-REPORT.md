@@ -75,7 +75,25 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     two statuses in sprint 10; a line without an amount is marked instead); dialogs as bottom sheets on a phone
     (F9); the Dashboard's own Quick Scan and New list buttons, which stay beside the tab bar's; Playwright on a phone
     (sprint 6 adds the project, so the phone layout has unit specs only).
-- [ ] 5. Jobs in SQLite, Valkey removed: B1, B2.2 to B2.4, S10
+- [ ] 5. Jobs in SQLite, Valkey removed (`feature/sqlite-jobs`): B1, B2.2 to B2.4, S10
+  - Done on the branch on 2026-11-10: a `jobs` table with one worker (claimed by a conditional UPDATE, retried after
+    20 s, 1 min and 3 min, kept as FAILED for the activity list, deleted on success, put back after a restart) runs
+    quick scans and household imports; the sweeps and clean-ups are timers that cannot overlap themselves and end
+    after 30 minutes; rerun, the source-file preview and the temp sweep read the job's row; `hibiken/asynq`, the
+    Valkey connection and `VALKEY_*`, the queue priorities, the task concurrency and the restart-task-server endpoint
+    with its permission are gone from the API, the contract and the app; Valkey left both compose files, the README,
+    CI and the e2e runner (B1, S10). The database gets a truncating checkpoint and is closed on shutdown (B2.2);
+    connections cap the WAL at 64 MB, keep temporary data in memory and get an 8 MB cache, and `PRAGMA optimize`
+    runs daily (B2.3).
+  - Beyond the plan: the daily tasks counted a whole day from each start, so a server restarted nightly never made
+    its daily snapshot or ran its clean-ups; the snapshot now goes by the newest copy's own time and the clean-ups
+    run ten minutes after a start.
+  - **Not done: B2.4 (a writer pool and a reader pool).** A one-connection writer pool turns any write made on a
+    second connection inside a transaction from an error after 5 s into a hang, and the pool comment in `db.go`
+    says such paths exist. Each has to be found and moved onto its `tx` first, with a test that would hang
+    otherwise; that is a branch of its own, and one household gains little from it until then.
+  - Left as they are: the `task_queue_configurations` table and the `task_concurrency` column in existing
+    databases (migrations are additive), and the column name `asynq_task_id` behind `SystemTask.JobId`.
 - [ ] 6. Releases, CI and hardening: B3, B7, B8, S4, S8, S12, S13, S16, S19, S20
 - [ ] 7. AI and files: B5.2, B5.3, B5.7, B6, S18
 - [ ] 8. Fixed roles: C14

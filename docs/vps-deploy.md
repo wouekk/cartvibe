@@ -9,7 +9,6 @@ backups. The family NAS keeps using the root `docker-compose.yml`; this guide us
 |---|---|
 | `caddy` | The only public service (ports 80 and 443). Gets a Let's Encrypt certificate for your domain and forwards to the app. |
 | `cartvibe` | The app image from GHCR (nginx + Go API), unchanged from the NAS. |
-| `valkey` | Background jobs (a Redis-compatible store), now with a password and no published port. Its password is `VALKEY_PASSWORD`. |
 | `litestream-restore` | Runs once before the app: restores the database from the bucket if there is none on disk yet. |
 | `litestream` | Copies every database change to the bucket about a second after it commits, plus a daily snapshot, kept 7 days. |
 | `restic` | Every 6 hours backs up receipt images, trip photos, logos and logs; keeps 14 daily, 8 weekly, 6 monthly. |
@@ -30,7 +29,6 @@ Litestream only covers the SQLite database. The files go through restic, so you 
    TZ=Europe/Warsaw
    SECRET_KEY=<64 random letters and digits>
    ENCRYPTION_KEY=<64 random letters and digits>
-   VALKEY_PASSWORD=<32 random letters and digits>
    S3_ENDPOINT=https://s3.gra.io.cloud.ovh.net
    S3_REGION=gra
    S3_BUCKET=cartvibe-backups
@@ -64,6 +62,10 @@ backed up by hand first: a new version copies the database to `data/sqlite/backu
 [FAQ](faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to a copy), and Litestream has
 every change up to a second ago in the bucket. To list what the bucket holds:
 `docker compose -f docker-compose.vps.yml exec litestream litestream snapshots -config /etc/litestream.yml /data/sqlite/app.db`
+
+**Coming from a stack with a `valkey` service:** take the current `docker-compose.vps.yml`, remove `VALKEY_PASSWORD`
+from `.env`, then `docker compose -f docker-compose.vps.yml up -d --remove-orphans` and delete the leftover volume
+(`docker volume ls | grep valkey-data`, then `docker volume rm <name>`). Background jobs are kept in the database now.
 
 To roll back, or to stay on a known version, replace `:latest` in the compose file with the `:sha-<commit>` tag of
 that build (each published image carries both; the About page shows the one you run), then `up -d` again. A rollback
@@ -105,5 +107,4 @@ there is no `app.db` yet.
   same disk.
 - `docker compose -f docker-compose.vps.yml logs --since 24h restic | grep FAILED` should print nothing.
 - `litestream` logs a line per snapshot. No lines means replication has stopped; restart the service.
-- Lower **Task concurrency** in System Settings to 4 on an install older than this change (new installs start at 4).
-  SQLite writes one thing at a time, so more workers only wait for the lock.
+- Background work needs no tuning: scans are read one at a time, and SQLite writes one thing at a time anyway.
