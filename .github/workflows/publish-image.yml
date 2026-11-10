@@ -3,9 +3,18 @@
 # pre-built image (docker-compose.yml: image: ghcr.io/<owner>/cartvibe:latest) instead of
 # building from source on the NAS.
 #
-# :latest only ever holds a commit whose CI passed on main: after a green CI run (workflow_run), and for the weekly
-# rebuild or a manual run on main, the commit of the newest CI run on main, only when that run succeeded. A manual run
-# from another branch publishes :preview. A manual run can skip the layer cache (no-cache), like the weekly rebuild.
+# Three kinds of image:
+#   :latest and :sha-<commit>   a commit whose CI passed on main: after a green CI run (workflow_run), and for the
+#                               weekly rebuild or a manual run on main, the commit of the newest CI run on main, only
+#                               when that run succeeded.
+#   :vX.Y.Z and :X.Y            a release: a pushed v* tag (or a manual run on one). The tag must sit on main, on or
+#                               after the commit of main's newest CI run, which must have passed, and CHANGELOG.md
+#                               must have its section. The About page of that image shows vX.Y.Z.
+#   :preview                    a manual run from any other branch.
+# A manual run can skip the layer cache (no-cache), like the weekly rebuild.
+#
+# The image is scanned before it is pushed: a critical vulnerability that already has a fix stops the publish. A
+# build that used the layer cache is first rebuilt without it, since the fix is usually a newer Debian package.
 name: Publish image
 
 on:
@@ -13,6 +22,8 @@ on:
     workflows: ['CI - Build and Test']
     types: [completed]
     branches: [main]
+  push:
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       no-cache:
@@ -24,24 +35,27 @@ on:
   schedule:
     - cron: "17 3 * * 1"
 
+# A release has its own queue, so it neither cancels the rolling :latest build nor is cancelled by it.
 concurrency:
-  group: publish-image
+  group: publish-image-${{ github.ref_type == 'tag' && github.ref_name || 'rolling' }}
   cancel-in-progress: true
 
 permissions: {}
 
 jobs:
-  # Decides which commit and tag to publish, or that nothing is published.
+  # Decides which commit and tags to publish, or that nothing is published.
   gate:
     if: |
-      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success')
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     permissions:
       actions: read
+      contents: read
     outputs:
       publish: ${{ steps.pick.outputs.publish }}
       ref: ${{ steps.pick.outputs.ref }}
-      tag: ${{ steps.pick.outputs.tag }}
+      tags: ${{ steps.pick.outputs.tags }}
+      version: ${{ steps.pick.outputs.version }}
     steps:
       - name: Pick the commit
         id: pick
@@ -50,34 +64,69 @@ jobs:
           REPO: ${{ github.repository }}
           EVENT: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
           SHA: ${{ github.sha }}
         run: |
+          # The newest CI run on main: "<commit> <status> <conclusion>".
+          newest_ci() {
+            gh run list --repo "$REPO" --workflow ci.yml --branch main --limit 1 \
+              --json headSha,status,conclusion --jq '.[0] | "\(.headSha) \(.status) \(.conclusion)"'
+          }
+          # How the second commit stands to the first: identical, ahead, behind or diverged.
+          compared() {
+            gh api "repos/$REPO/compare/$1...$2" --jq .status
+          }
+          skip() {
+            echo "::notice::$1"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          }
+
           if [ "$EVENT" = "workflow_run" ]; then
             # The commit CI just passed on main, not whatever main points at by now.
             echo "publish=true" >> "$GITHUB_OUTPUT"
             echo "ref=$RUN_SHA" >> "$GITHUB_OUTPUT"
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+            echo "tags=latest sha" >> "$GITHUB_OUTPUT"
+          elif [ "$REF_TYPE" = "tag" ]; then
+            # A release. vX.Y.Z only; the tag on main; and the code main last tested must be in it and have passed (a
+            # docs-only commit on top, the usual release commit, has no CI run and changes nothing in the image).
+            if ! echo "$REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              skip "$REF_NAME is not a release tag (vX.Y.Z): nothing published."
+              exit 0
+            fi
+            read -r head status conclusion <<< "$(newest_ci)"
+            on_main=$(compared main "$SHA")
+            after_ci=$(compared "${head:-$SHA}" "$SHA")
+            if [ "$on_main" != "identical" ] && [ "$on_main" != "behind" ]; then
+              skip "$REF_NAME is not on main ($on_main): nothing published."
+            elif [ "$status" != "completed" ] || [ "$conclusion" != "success" ]; then
+              skip "$REF_NAME not published: the newest CI run on main (${head:-none}) is ${status:-missing} ${conclusion}."
+            elif [ "$after_ci" != "identical" ] && [ "$after_ci" != "ahead" ]; then
+              skip "$REF_NAME not published: it is older than the commit main last tested ($head)."
+            else
+              version=${REF_NAME#v}
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              echo "ref=$SHA" >> "$GITHUB_OUTPUT"
+              echo "version=$REF_NAME" >> "$GITHUB_OUTPUT"
+              echo "tags=$REF_NAME ${version%.*}" >> "$GITHUB_OUTPUT"
+            fi
           elif [ "$EVENT" = "workflow_dispatch" ] && [ "$REF_NAME" != "main" ]; then
             # A manual run from a branch publishes :preview, never :latest, so trying a branch on the NAS cannot replace
             # what main published.
             echo "publish=true" >> "$GITHUB_OUTPUT"
             echo "ref=$SHA" >> "$GITHUB_OUTPUT"
-            echo "tag=preview" >> "$GITHUB_OUTPUT"
+            echo "tags=preview sha" >> "$GITHUB_OUTPUT"
           else
             # The weekly rebuild, or a manual run on main: rebuild the commit of the newest CI run on main, and only when
             # that run passed. A docs-only commit on top has no CI run and changes nothing in the image; a newer commit
             # whose CI failed or is still running blocks :latest until CI passes (workflow_run then publishes it).
-            run=$(gh run list --repo "$REPO" --workflow ci.yml --branch main --limit 1 \
-              --json headSha,status,conclusion --jq '.[0] | "\(.headSha) \(.status) \(.conclusion)"')
-            read -r head status conclusion <<< "$run"
+            read -r head status conclusion <<< "$(newest_ci)"
             if [ -n "$head" ] && [ "$status" = "completed" ] && [ "$conclusion" = "success" ]; then
               echo "publish=true" >> "$GITHUB_OUTPUT"
               echo "ref=$head" >> "$GITHUB_OUTPUT"
-              echo "tag=latest" >> "$GITHUB_OUTPUT"
+              echo "tags=latest sha" >> "$GITHUB_OUTPUT"
             else
-              echo "::notice:::latest not republished: the newest CI run on main (${head:-none}) is ${status:-missing} ${conclusion}."
-              echo "publish=false" >> "$GITHUB_OUTPUT"
+              skip ":latest not republished: the newest CI run on main (${head:-none}) is ${status:-missing} ${conclusion}."
             fi
           fi
 
@@ -88,6 +137,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      CANDIDATE: cartvibe:candidate
     steps:
       - uses: actions/checkout@v7
         with:
@@ -97,30 +148,43 @@ jobs:
         id: meta
         env:
           OWNER: ${{ github.repository_owner }}
-          TAG: ${{ needs.gate.outputs.tag }}
+          TAGS: ${{ needs.gate.outputs.tags }}
+          RELEASE: ${{ needs.gate.outputs.version }}
         run: |
-          echo "image=ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/cartvibe" >> "$GITHUB_OUTPUT"
-          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          image="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/cartvibe"
+          sha=$(git rev-parse --short HEAD)
+          names=""
+          for tag in $TAGS; do
+            [ "$tag" = "sha" ] && tag="sha-$sha"
+            names="$names $image:$tag"
+          done
+          echo "names=${names# }" >> "$GITHUB_OUTPUT"
+          echo "label=$(echo "$TAGS" | tr ' ' '-')-$sha" >> "$GITHUB_OUTPUT"
+          # What the About page shows: the release, or the commit for a rolling build.
+          echo "version=${RELEASE:-sha-$sha}" >> "$GITHUB_OUTPUT"
           echo "date=$(date +'%Y-%m-%d %H:%M:%S')" >> "$GITHUB_OUTPUT"
+      # A release has its notes: the section the tag names must be in the changelog.
+      - name: The release is in the changelog
+        if: needs.gate.outputs.version != ''
+        env:
+          RELEASE: ${{ needs.gate.outputs.version }}
+        run: |
+          if ! grep -q "^## \[${RELEASE#v}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section [${RELEASE#v}]: write the release notes, move the tag, push it again."
+            exit 1
+          fi
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push (amd64)
+      - name: Build (amd64)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./docker/Dockerfile
           platforms: linux/amd64
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
-            ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
+          # Into the runner's own Docker, not the registry: nothing is published before the scan below.
+          load: true
+          tags: ${{ env.CANDIDATE }}
           build-args: |
-            VERSION=sha-${{ steps.meta.outputs.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
             BUILD_DATE=${{ steps.meta.outputs.date }}
           # Reuse the dependency layers between builds (see the note at the top of the Dockerfile).
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
@@ -129,30 +193,72 @@ jobs:
           # Always fetch the newest base images; the weekly run also rebuilds every layer.
           pull: true
           no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
-      # The full vulnerability report for what was just published (the run's Artifacts). It never fails the run: most
-      # findings are Debian packages without a fix yet, and the report is read, not gated on.
-      - name: Scan the image
+      # A critical finding that already has a fix. On a build that reused cached layers this does not fail yet: the
+      # fix is usually a newer Debian package, which the rebuild below installs.
+      - name: Scan for a fixable critical vulnerability
+        id: scan
+        continue-on-error: true
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
-          fail-build: false
-          output-format: table
-          output-file: grype-report.txt
-      # Turns the run red when a critical finding already has a fix, so the next rebuild (or a package bump) is due.
-      # The image is pushed above, so this flags rather than blocks a release.
-      - name: Fail on a fixable critical vulnerability
-        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
-        with:
-          image: ${{ steps.meta.outputs.image }}:sha-${{ steps.meta.outputs.sha }}
+          image: ${{ env.CANDIDATE }}
           fail-build: true
           severity-cutoff: critical
           only-fixed: true
           output-format: table
           output-file: grype-critical-fixable.txt
+      - name: Rebuild without the cache
+        if: steps.scan.outcome == 'failure' && github.event_name != 'schedule' && inputs.no-cache != true
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.CANDIDATE }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ steps.meta.outputs.date }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-to: type=gha,mode=max
+          pull: true
+          no-cache: true
+      # Still there after a rebuild from nothing: the publish stops here, and what the registry holds stays.
+      - name: Scan the rebuilt image
+        if: steps.scan.outcome == 'failure'
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ env.CANDIDATE }}
+          fail-build: true
+          severity-cutoff: critical
+          only-fixed: true
+          output-format: table
+          output-file: grype-critical-fixable.txt
+      # The full vulnerability report for what is about to be published (the run's Artifacts). It never fails the
+      # run: most findings are Debian packages without a fix yet, and the report is read, not gated on.
+      - name: The full report
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ env.CANDIDATE }}
+          fail-build: false
+          output-format: table
+          output-file: grype-report.txt
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push
+        env:
+          NAMES: ${{ steps.meta.outputs.names }}
+        run: |
+          for name in $NAMES; do
+            docker tag "$CANDIDATE" "$name"
+            docker push "$name"
+          done
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: grype-report-${{ steps.meta.outputs.tag }}-${{ steps.meta.outputs.sha }}
+          name: grype-report-${{ steps.meta.outputs.label }}
           path: |
             grype-report.txt
             grype-critical-fixable.txt
