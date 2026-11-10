@@ -253,6 +253,7 @@
     "Copy description": "Copier la description",
     "Copying the photos…": "Copie des photos…",
     "Correct tags": "Corriger les indications",
+    "Correct the tags of {name}": "Corriger les indications : {name}",
     "Could not confirm the account deletion. Please try again.": "Impossible de confirmer la suppression du compte. Veuillez réessayer.",
     "Could not copy the list.": "Impossible de copier la liste.",
     "Could not find any values to fill! Try reuploading a clearer image.": "Aucune valeur à remplir trouvée ! Essayez d’envoyer une image plus nette.",
@@ -860,7 +861,6 @@
     "Receipt Id": "Identifiant du ticket",
     "Receipt Id is required": "L’identifiant du ticket est requis",
     "Receipt Processing": "Traitement des tickets",
-    "Receipt Processing Settings": "Réglages du traitement des tickets",
     "Receipt Processing Settings Connectivity Check": "Test de connexion du traitement des tickets",
     "Receipt Settings": "Réglages des tickets",
     "Receipt Uploaded": "Ticket envoyé",
@@ -1765,6 +1765,10 @@
     "Read/Write": {
       "value": "Lecture/écriture",
       "closest": "Read Only"
+    },
+    "Receipt Processing Settings": {
+      "value": "Réglages du traitement des tickets",
+      "closest": "Group Receipt Settings"
     },
     "Scope": {
       "value": "Portée"

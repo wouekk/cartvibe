@@ -109,7 +109,7 @@
                       hlmBtn variant="ghost" size="icon"
                       type="button"
                       data-testid="receipt-product-tags-menu"
-                      [attr.aria-label]="'Correct the tags of ' + (product.displayName || product.name)"
+                      [attr.aria-label]="'Correct the tags of {name}' | t: { name: product.displayName || product.name }"
                       [hlmDropdownMenuTrigger]="healthMenu"
                       [hlmDropdownMenuTriggerData]="{ product: product }"
                     >
@@ -119,7 +119,7 @@
                       hlmBtn variant="ghost" size="icon"
                       type="button"
                       data-testid="receipt-product-edit"
-                      [attr.aria-label]="'Edit ' + (product.displayName || product.name)"
+                      [attr.aria-label]="'Edit {name}' | t: { name: product.displayName || product.name }"
                       (click)="startEdit(product)"
                     >
                       <app-icon name="edit"></app-icon>
@@ -128,7 +128,7 @@
                       hlmBtn variant="destructive" size="icon"
                       type="button"
                       data-testid="receipt-product-delete"
-                      [attr.aria-label]="'Remove ' + (product.displayName || product.name)"
+                      [attr.aria-label]="'Remove {name}' | t: { name: product.displayName || product.name }"
                       (click)="remove(product)"
                     >
                       <app-icon name="delete"></app-icon>

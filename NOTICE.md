@@ -3,8 +3,8 @@
 **CartVibe is a fork of [Receipt Wrangler](https://github.com/Receipt-Wrangler/receipt-wrangler).**
 
 Receipt Wrangler was created by **Noah Hall ([@Noah231515](https://github.com/Noah231515))** and its
-contributors. Almost all of the code in this repository (the Go API, the Angular app, the mobile client, the Docker
-setup and the git history) is their work, and it is kept here with its history and authorship intact.
+contributors. Almost all of the code in this repository (the Go API, the Angular app, the Docker
+setup and the git history, which also holds their mobile client, removed from this fork) is their work, and it is kept here with its history and authorship intact.
 
 - **Original project:** https://github.com/Receipt-Wrangler/receipt-wrangler
 - **Licence:** GNU Affero General Public License v3.0 (see [LICENSE](LICENSE)). This fork stays under the same licence.

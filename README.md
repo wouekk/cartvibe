@@ -46,6 +46,7 @@ services:
     image: ghcr.io/wouekk/cartvibe:latest
     pull_policy: always              # every `docker compose up` checks for a newer image
     restart: unless-stopped
+    stop_grace_period: 30s           # time to finish what it is doing when you stop or update it
     depends_on:
       valkey:
         condition: service_healthy
@@ -60,7 +61,7 @@ services:
       - PUID=${PUID:-}               # optional: the user and group that own the three folders below
       - PGID=${PGID:-}               # (recommended on a Synology, see "On a Synology NAS" below)
     volumes:
-      - ./sqlite:/app/cartvibe-api/sqlite   # the database
+      - ./sqlite:/app/cartvibe-api/sqlite   # the database, and its automatic copies in sqlite/backups
       - ./data:/app/cartvibe-api/data       # receipt photos
       - ./logs:/app/cartvibe-api/logs
 
@@ -112,9 +113,14 @@ in the [FAQ](docs/faq.md#how-do-i-add-a-logodev-api-key).
 docker compose pull && docker compose up -d
 ```
 
-Then hard-refresh the browser. Before updating to a release whose [changelog](CHANGELOG.md) mentions a database change, back up
-first: stop the stack (`docker compose stop`), copy the whole `sqlite` folder somewhere safe (it holds `app.db` plus its `-wal`
-and `-shm` files, and all three belong together), then start it again.
+Then hard-refresh the browser. You do not have to back up by hand first: whenever a new version starts on your data, CartVibe
+saves a copy of the database before it changes anything, and it saves another copy once a day. The copies are in the
+`sqlite/backups` folder (`app-upgrade-<date>-<time>.db` and `app-daily-<date>-<time>.db`; the five newest update copies and
+seven daily ones are kept). Each is one complete file that is safe to copy while CartVibe runs. If an update goes wrong, the
+[FAQ](docs/faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to one.
+
+These copies sit on the same disk as the database and hold the database only, not the receipt photos, so they do not replace
+a backup of the `sqlite` and `data` folders to somewhere else.
 
 ### On a Synology NAS (Container Manager or Dockhand)
 
@@ -166,8 +172,9 @@ cd /volume1/docker/cartvibe
 sudo docker compose pull && sudo docker compose up -d
 ```
 
-Then hard-refresh the browser. Back up as described under [Updating](#updating) first when a release changes the database. Hyper Backup can
-back up the `docker` shared folder on a schedule, but stop the stack for a moment before a copy you mean to restore from, so the database files match.
+Then hard-refresh the browser. CartVibe copies its database to `sqlite/backups` before each update and once a day (see
+[Updating](#updating)). Let Hyper Backup back up the `docker` shared folder on a schedule: it can run while CartVibe is in use, because
+the copies in `sqlite/backups` are always whole files, even when the live database was being written at that moment.
 To try a restore without touching the live install, see the [FAQ](docs/faq.md#how-do-i-check-that-my-backup-really-restores).
 
 **Troubleshooting**

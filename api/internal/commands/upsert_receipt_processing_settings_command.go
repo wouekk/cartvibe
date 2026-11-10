@@ -86,7 +86,7 @@ func (command *UpsertReceiptProcessingSettingsCommand) IsEmpty() bool {
 		command.Url == "" &&
 		command.Key == "" &&
 		command.Model == "" &&
-		command.IsVisionModel == false &&
-		command.EnforceJsonResponseFormat == false &&
+		!command.IsVisionModel &&
+		!command.EnforceJsonResponseFormat &&
 		command.OcrEngine == ""
 }

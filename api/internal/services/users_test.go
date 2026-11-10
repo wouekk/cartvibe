@@ -124,53 +124,6 @@ func createTestSystemTaskForDeletion(t *testing.T, userId uint) models.SystemTas
 	return task
 }
 
-func createTestTagForDeletion(t *testing.T, name string) models.Tag {
-	t.Helper()
-	db := repositories.GetDB()
-	tag := models.Tag{Name: name}
-	if err := db.Create(&tag).Error; err != nil {
-		t.Fatalf("failed to create tag %s: %v", name, err)
-	}
-	return tag
-}
-
-func createTestCategoryForDeletion(t *testing.T, name string) models.Category {
-	t.Helper()
-	db := repositories.GetDB()
-	category := models.Category{Name: name}
-	if err := db.Create(&category).Error; err != nil {
-		t.Fatalf("failed to create category %s: %v", name, err)
-	}
-	return category
-}
-
-func createTestFileDataForDeletion(t *testing.T, receiptId uint) models.FileData {
-	t.Helper()
-	db := repositories.GetDB()
-	fd := models.FileData{
-		Name:      "test-image.jpg",
-		FileType:  "image/jpeg",
-		Size:      1024,
-		ReceiptId: receiptId,
-	}
-	if err := db.Create(&fd).Error; err != nil {
-		t.Fatalf("failed to create file data: %v", err)
-	}
-	return fd
-}
-
-func assertJunctionCount(t *testing.T, table string, where string, args []interface{}, expected int64, desc string) {
-	t.Helper()
-	db := repositories.GetDB()
-	var count int64
-	if err := db.Table(table).Where(where, args...).Count(&count).Error; err != nil {
-		t.Fatalf("failed to count %s in %s: %v", desc, table, err)
-	}
-	if count != expected {
-		t.Errorf("%s: expected %d rows in %s, got %d", desc, expected, table, count)
-	}
-}
-
 func assertCount(t *testing.T, model interface{}, where string, args []interface{}, expected int64, desc string) {
 	t.Helper()
 	db := repositories.GetDB()
@@ -185,22 +138,6 @@ func assertCount(t *testing.T, model interface{}, where string, args []interface
 	if count != expected {
 		t.Errorf("%s: expected %d, got %d", desc, expected, count)
 	}
-}
-
-func getUserGroup(t *testing.T, userId uint) models.Group {
-	t.Helper()
-	db := repositories.GetDB()
-	var gm models.GroupMember
-	err := db.Where("user_id = ?", userId).First(&gm).Error
-	if err != nil {
-		t.Fatalf("failed to find group member for user %d: %v", userId, err)
-	}
-	var group models.Group
-	err = db.First(&group, gm.GroupID).Error
-	if err != nil {
-		t.Fatalf("failed to find group %d: %v", gm.GroupID, err)
-	}
-	return group
 }
 
 func getNonAllGroupForUser(t *testing.T, userId uint) models.Group {

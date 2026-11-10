@@ -10,26 +10,34 @@ import (
 	"cartvibe/api/internal/utils"
 )
 
+// refusedRefreshTokenStatus answers a refresh token the server will not take: missing, not a refresh token, expired,
+// unknown or already used. It is 401 and nothing else on these routes is, because the web app ends the session in the
+// browser on exactly this answer. A failure of the server's own stays a 500, and the app then keeps the session and
+// tries again: a restart or a lost connection must not sign a household out.
+const refusedRefreshTokenStatus = http.StatusUnauthorized
+
 func ValidateRefreshToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenValidator, err := services.InitTokenValidator()
 		errMessage := "Error refreshing token"
 
 		if err != nil {
-			logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
+			// A broken validator is the server's fault, and one request must not stop the process.
+			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
+			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
 			return
 		}
 
 		refreshTokenString, err := getRefreshTokenFromRequest(r, w)
 		if err != nil {
-			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+			utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "Refresh token not found")
 			return
 		}
 
 		refreshToken, err := tokenValidator.ValidateToken(r.Context(), refreshTokenString)
 		if err != nil {
-			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+			utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
 			return
 		}
@@ -39,7 +47,7 @@ func ValidateRefreshToken(next http.Handler) http.Handler {
 		// of the refresh_tokens table lookup in RevokeRefreshToken, which an access
 		// token would also fail).
 		if !isRefreshToken(refreshToken) {
-			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+			utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "non-refresh token presented to the token refresh endpoint")
 			return
 		}
@@ -60,7 +68,7 @@ func RevokeRefreshToken(next http.Handler) http.Handler {
 		if refreshTokenString == nil {
 			refreshTokenString, err = getRefreshTokenFromRequest(r, w)
 			if err != nil {
-				utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+				utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 				logging.LogStd(logging.LOG_LEVEL_ERROR, "Refresh token not found")
 				return
 			}
@@ -92,7 +100,7 @@ func RevokeRefreshToken(next http.Handler) http.Handler {
 			http.SetCookie(w, &emptyAccessTokenCookie)
 			http.SetCookie(w, &emptyRefreshTokenCookie)
 
-			utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+			utils.WriteCustomErrorResponse(w, errMessage, refusedRefreshTokenStatus)
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "Refresh token is invalid or has already been used.")
 
 			return

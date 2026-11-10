@@ -7,6 +7,7 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"errors"
 	"net/http"
 )
 
@@ -165,6 +166,16 @@ func enforcePaidByVisibility(handler structs.Handler, receipts []models.Receipt)
 	}
 
 	return true
+}
+
+// pagedListErrorStatus tells a request the list refused (a sort column it does not offer: 400) from a failure of
+// the server's own (500).
+func pagedListErrorStatus(err error) int {
+	if errors.Is(err, repositories.ErrInvalidSortColumn) {
+		return http.StatusBadRequest
+	}
+
+	return http.StatusInternalServerError
 }
 
 func denyUnauthorized(handler structs.Handler, err error) bool {

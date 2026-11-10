@@ -91,6 +91,11 @@ func (repository TagsRepository) GetAllPagedTags(pagedRequestCommand commands.Pa
 	var tags []models.TagView
 	quotedAlias := "\"NumberOfReceipts\""
 
+	// The sort column comes from the request: only the table's own columns pass (see Sort on why).
+	if !isCatalogSortColumn(pagedRequestCommand.OrderBy) {
+		return nil, ErrInvalidSortColumn
+	}
+
 	if pagedRequestCommand.OrderBy == "numberOfReceipts" {
 		pagedRequestCommand.OrderBy = quotedAlias
 	}

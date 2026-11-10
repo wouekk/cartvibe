@@ -82,23 +82,6 @@
   <div class="app-progress-indeterminate" role="progressbar" [attr.aria-label]="'Working' | t"></div>
 }
 
-<ng-template
-  #navButton
-  let-srcPath="srcPath"
-  let-routerLink="routerLink"
-  let-tooltip="tooltip"
->
-  <button
-    hlmBtn variant="ghost" size="icon"
-    color="accent"
-    class="nav-button"
-    [routerLink]="routerLink"
-    [hlmTooltip]="tooltip"
-  >
-    <img [src]="srcPath"/>
-  </button>
-</ng-template>
-
 <ng-template #paletteMenu>
   <div hlmDropdownMenu class="w-48" data-testid="palette-menu-panel">
     <div hlmDropdownMenuLabel>{{ 'Colour palette' | t }}</div>

@@ -8,6 +8,7 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"strings"
 	"testing"
 )
 
@@ -134,6 +135,41 @@ func TestOllamaGetChatCompletion_MalformedResponseBody(t *testing.T) {
 	_, err := client.GetChatCompletion()
 	if err == nil {
 		utils.PrintTestError(t, err, "expected unmarshal error")
+	}
+}
+
+// A non-2xx answer is an error that carries Ollama's own reason. Read as a chat answer it would be an empty
+// message, and the person would be told the AI's answer could not be read instead of what is wrong.
+func TestOllamaGetChatCompletion_ErrorStatusCarriesTheServersReason(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		status int
+		body   string
+		want   string
+	}{
+		"ollama's own error":       {http.StatusNotFound, `{"error":"model 'llama9' not found"}`, "model 'llama9' not found"},
+		"an OpenAI-style error":    {http.StatusBadRequest, `{"error":{"message":"context length exceeded"}}`, "context length exceeded"},
+		"a proxy's page":           {http.StatusBadGateway, "<html>Bad Gateway</html>", "<html>Bad Gateway</html>"},
+		"nothing in the body":      {http.StatusInternalServerError, "", "no reason given"},
+		"a success body on a 500":  {http.StatusInternalServerError, ollamaSuccessBody("ignored"), "500"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			server, _ := newMockOllamaServer(t, testCase.status, testCase.body)
+			client := newOllamaClient(server.URL, "llama9", false, []structs.AiClientMessage{{Role: "user", Content: "hi"}})
+
+			result, err := client.GetChatCompletion()
+			if err == nil {
+				t.Fatalf("expected an error for status %d, got response %q", testCase.status, result.Response)
+			}
+			if !strings.Contains(err.Error(), testCase.want) {
+				t.Errorf("error %q does not carry %q", err.Error(), testCase.want)
+			}
+			if result.Response != "" {
+				t.Errorf("an error answer must not be read as the model's reply, got %q", result.Response)
+			}
+			if result.RawResponse != testCase.body {
+				t.Errorf("the raw response should be the server's body, got %q", result.RawResponse)
+			}
+		})
 	}
 }
 

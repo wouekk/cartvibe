@@ -20,7 +20,7 @@
     "i18n:import": "node scripts/i18n/import-ts.mjs",
     "e2e": "playwright test",
     "e2e:ci": "playwright test --fail-on-flaky-tests",
-    "e2e:smoke": "playwright test auth.spec dashboard-charts generate-password report-template-list member-grant-security",
+    "e2e:smoke": "playwright test auth.spec dashboard-charts generate-password report-template-list member-grant-security shopping-list.spec quick-scan-dialog.spec receipts.spec",
     "e2e:demo": "playwright test -c playwright.demo.config.ts",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium"
@@ -75,6 +75,7 @@
   "overrides": {
     "esbuild": "^0.28.1",
     "fast-uri": "^3.1.9",
+    "minimatch": "^11.0.5",
     "undici": "^7.30.1",
     "vite": "~8.3.4"
   }

@@ -15,8 +15,12 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-// openAiTimeout bounds one call, like the other providers' AiHttpTimeout; tests shorten it.
+// openAiTimeout bounds one call to OpenAI itself, like the other hosted providers' AiHttpTimeout; tests shorten it.
 var openAiTimeout time.Duration = constants.AiHttpTimeout
+
+// openAiCompatibleTimeout bounds one call to an OpenAI-compatible server at a URL the household entered, which is
+// often a model running on its own machine (LM Studio and the like) and far slower.
+var openAiCompatibleTimeout time.Duration = constants.AiLocalHttpTimeout
 
 type OpenAiClient struct {
 	BaseClient
@@ -49,7 +53,11 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 	if len(openAi.ReceiptProcessingSettings.Url) > 0 {
 		config.BaseURL = openAi.ReceiptProcessingSettings.Url
 	}
-	config.HTTPClient = &http.Client{Timeout: openAiTimeout}
+	timeout := openAiTimeout
+	if openAi.ReceiptProcessingSettings.AiType == models.OPEN_AI_CUSTOM_NEW {
+		timeout = openAiCompatibleTimeout
+	}
+	config.HTTPClient = &http.Client{Timeout: timeout}
 	client := openai.NewClientWithConfig(config)
 
 	openAiMessages := make([]openai.ChatCompletionMessage, len(openAi.Options.Messages))
@@ -108,7 +116,7 @@ func (openAi OpenAiClient) GetChatCompletion() (structs.ChatCompletionResult, er
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), openAiTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	resp, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {

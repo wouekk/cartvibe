@@ -572,8 +572,3 @@ func (repository FileRepository) AssertWithinTempDirectory(path string) error {
 	return utils.AssertWithinDir(repository.GetTempDirectoryPath(), path)
 }
 
-func (repository FileRepository) GetTestJpgBytes() ([]byte, error) {
-	path := filepath.Join(config.GetBasePath(), "testing", "test.jpg")
-
-	return utils.ReadFile(path)
-}

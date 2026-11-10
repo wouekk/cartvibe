@@ -99,6 +99,12 @@ func GetPagedTags(w http.ResponseWriter, r *http.Request) {
 			tagsRepository := repositories.NewTagsRepository(repositories.ImplicitCell(), nil)
 			tags, err := tagsRepository.GetAllPagedTags(pagedRequestCommand)
 			if err != nil {
+				return pagedListErrorStatus(err), err
+			}
+
+			// The total is every tag, not the page just read: the table pages on it.
+			totalCount, err := tagsRepository.GetCount("tags", "1 = 1")
+			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -108,7 +114,7 @@ func GetPagedTags(w http.ResponseWriter, r *http.Request) {
 			}
 
 			pagedData.Data = anyData
-			pagedData.TotalCount = int64(len(anyData))
+			pagedData.TotalCount = totalCount
 
 			bytes, err := utils.MarshalResponseData(pagedData)
 			if err != nil {

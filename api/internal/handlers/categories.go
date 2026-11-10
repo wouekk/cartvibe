@@ -96,6 +96,12 @@ func GetPagedCategories(w http.ResponseWriter, r *http.Request) {
 			categoriesRepository := repositories.NewCategoryRepository(repositories.ImplicitCell(), nil)
 			categories, err := categoriesRepository.GetAllPagedCategories(pagedRequestCommand)
 			if err != nil {
+				return pagedListErrorStatus(err), err
+			}
+
+			// The total is every category, not the page just read: the table pages on it.
+			totalCount, err := categoriesRepository.GetCount("categories", "1 = 1")
+			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
@@ -105,7 +111,7 @@ func GetPagedCategories(w http.ResponseWriter, r *http.Request) {
 			}
 
 			pagedData.Data = anyData
-			pagedData.TotalCount = int64(len(anyData))
+			pagedData.TotalCount = totalCount
 
 			bytes, err := utils.MarshalResponseData(pagedData)
 			if err != nil {

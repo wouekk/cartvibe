@@ -2,7 +2,7 @@ package services
 
 // DefaultReceiptPrompt is the prompt every receipt read uses (prompts are code, not rows, and are
 // only shaped by the group's categories through @categories). It asks for no tags: tags are
-// the household's own labels, set by people (the AI's answer is stripped of any, see dropAiTags).
+// the household's own labels, set by people (an answer keeps the prompted fields only, see onlyPromptedReceiptFields).
 //
 // Short on purpose (fewer input tokens), and the answer is minified JSON (fewer output tokens, which set
 // most of the latency). buildPrompt inserts the products part right before "\nReceipt text: ".

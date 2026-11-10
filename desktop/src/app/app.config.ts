@@ -35,7 +35,7 @@ import { UserState } from "../store/user.state";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { DEMO_MODE, demoInterceptors, demoProviders } from "../demo/demo-runtime";
-import { environment } from "src/environments/environment.development";
+import { environment } from "src/environments/environment";
 
 const ngxsStates = [
   AboutState,

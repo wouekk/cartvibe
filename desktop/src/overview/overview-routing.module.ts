@@ -1,6 +1,7 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { GroupGuard } from "../guards/group.guard";
+import { overviewLandingGuard } from "./guards/overview-landing.guard";
 import { overviewReadGuard } from "./guards/overview-read.guard";
 import { OverviewPageComponent } from "./overview-page/overview-page.component";
 
@@ -23,6 +24,13 @@ const routes: Routes = [
     data: {
       groupGuardBasePath: "/overview/group",
     },
+  },
+  {
+    // No household in the URL (a home-screen shortcut): the guard always redirects to the selected one.
+    path: "",
+    pathMatch: "full",
+    component: OverviewPageComponent,
+    canActivate: [overviewLandingGuard],
   },
 ];
 

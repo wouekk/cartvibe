@@ -303,7 +303,7 @@ export async function createGroupWithMember(
 // `/api`; the admin login cookie is stored on the context for later DELETEs.
 
 /**
- * POST /api/login, retried with backoff while nginx's login limit answers 503 (30 a minute; parallel workers can
+ * POST /api/login, retried with backoff while nginx's login limit answers 429 (30 a minute; parallel workers can
  * hit it). Any other status is returned at once, so a wrong password still fails fast.
  */
 export async function loginWithRetry(
@@ -314,7 +314,7 @@ export async function loginWithRetry(
 ): Promise<APIResponse> {
   let res = await api.post('/api/login', { data: { username, password } });
   for (const delay of delaysMs) {
-    if (res.status() !== 503) {
+    if (res.status() !== 429 && res.status() !== 503) {
       break;
     }
     await new Promise((resolve) => setTimeout(resolve, delay));
@@ -330,7 +330,7 @@ const RETRY_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'fetch']
 
 /**
  * nginx allows 10 requests a second with a burst of 20 for the whole run (every worker shares one address) and answers
- * 503 beyond that. A provisioning call that hits it is repeated after a short wait, so a burst of setup calls never
+ * 429 beyond that (503 before 2026-11). A provisioning call that hits it is repeated after a short wait, so a burst of setup calls never
  * fails a spec.
  */
 export function retryOn503(api: APIRequestContext): APIRequestContext {
@@ -343,7 +343,7 @@ export function retryOn503(api: APIRequestContext): APIRequestContext {
       return async (...args: unknown[]) => {
         let res: APIResponse = await value.apply(target, args);
         for (const delay of [300, 600, 1200, 2400, 4800]) {
-          if (res.status() !== 503) {
+          if (res.status() !== 429 && res.status() !== 503) {
             break;
           }
           await new Promise((resolve) => setTimeout(resolve, delay));

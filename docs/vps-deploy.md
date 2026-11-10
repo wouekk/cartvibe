@@ -59,10 +59,11 @@ each visitor's real address behind Caddy.
 
 ## Updating
 
-`docker compose -f docker-compose.vps.yml pull && docker compose -f docker-compose.vps.yml up -d`. Before a release
-that changes the schema, take a snapshot by hand as well:
+`docker compose -f docker-compose.vps.yml pull && docker compose -f docker-compose.vps.yml up -d`. Nothing has to be
+backed up by hand first: a new version copies the database to `data/sqlite/backups` before it changes anything (the
+[FAQ](faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to a copy), and Litestream has
+every change up to a second ago in the bucket. To list what the bucket holds:
 `docker compose -f docker-compose.vps.yml exec litestream litestream snapshots -config /etc/litestream.yml /data/sqlite/app.db`
-shows the latest one. Litestream has every change up to a second ago anyway.
 
 To roll back, or to stay on a known version, replace `:latest` in the compose file with the `:sha-<commit>` tag of
 that build (each published image carries both; the About page shows the one you run), then `up -d` again. A rollback

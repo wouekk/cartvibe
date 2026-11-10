@@ -2,8 +2,6 @@ package oidc
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
 	"net/http"
 	"testing"
 	"time"
@@ -92,14 +90,6 @@ func withChiContext(r *http.Request, routeContext *chi.Context) context.Context 
 
 func timeInPast() time.Time {
 	return time.Now().Add(-time.Hour)
-}
-
-// challengeFor derives the S256 challenge for a verifier independently of
-// utils.VerifyPkceS256, so the exchange tests are not judged by the code they
-// exercise.
-func challengeFor(verifier string) string {
-	sum := sha256.Sum256([]byte(verifier))
-	return base64.RawURLEncoding.EncodeToString(sum[:])
 }
 
 func createTestUser(t *testing.T, username string) models.User {

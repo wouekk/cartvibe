@@ -2,14 +2,14 @@ package utils
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 var errKey = "errorMsg"
 
 func GetBodyData(w http.ResponseWriter, r *http.Request) ([]byte, error) {
-	bodyData, err := ioutil.ReadAll(r.Body)
+	bodyData, err := io.ReadAll(r.Body)
 	return bodyData, err
 }
 

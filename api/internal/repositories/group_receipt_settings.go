@@ -86,7 +86,7 @@ func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 		groupReceiptSettings.QuickScanCommentEnabled = command.QuickScanCommentEnabled
 		groupReceiptSettings.QuickScanCommentRequired = command.QuickScanCommentRequired
 
-		return tx.Select("*").Model(*&groupReceiptSettings).Updates(groupReceiptSettings).Error
+		return tx.Select("*").Model(groupReceiptSettings).Updates(groupReceiptSettings).Error
 	})
 	if err != nil {
 		return models.GroupReceiptSettings{}, err

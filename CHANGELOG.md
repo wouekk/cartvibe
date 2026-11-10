@@ -11,13 +11,63 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+The first batch of work from the [audit of 9 November 2026](docs/AUDIT-REPORT.md).
+
+**When you update:** nothing to do by hand. The server copies its database before this version changes anything
+(see *Added*). Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed
+that setting), and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the
+server finish what it is doing.
+
 ### Added
 - **Pull down to refresh in the installed app.** Hold the top of a page and drag down; let go once the arrow has turned
   and the page reloads with fresh data *(APP-11)*.
+- **The server copies its own database.** Once before a new version changes anything and once a day, into
+  `sqlite/backups`: the five newest update copies and seven daily ones are kept, each a whole file that is safe to copy
+  while CartVibe runs. A scheduled NAS backup no longer needs the stack stopped, and the
+  [FAQ](docs/faq.md#how-do-i-go-back-to-an-earlier-copy-of-the-database) shows how to go back to a copy *(ADM-14)*.
+- **Take a photo in Quick Scan.** On a phone, Quick Scan now has a *Take a photo* button that opens the camera at once,
+  next to *Upload photos* *(SCAN-11)*.
+- **Shortcuts on the app icon.** A long press on the installed app's icon offers *Shopping lists* and *Scan a receipt*
+  *(APP-12)*.
+
+### Changed
+- **You stay signed in for 30 days.** A sign-in used to end after one day without opening the app, so a family member
+  who skipped a day had to sign in again at the shop door. New installs start at 30 days, and an install still on the
+  old one-day default is moved to 30 days once; a length an admin chose stays *(APP-13)*.
+- **Reading a receipt gives up sooner on a stuck AI.** A hosted provider gets 3 minutes instead of 10, so one stuck
+  call no longer holds up the scans behind it. A model on your own machine keeps 10 minutes *(SCAN-01)*.
+- **The app's files travel compressed and are cached properly.** Scripts, styles and language files are sent
+  gzip-compressed, and every file with a fingerprint in its name is cached for good (15 of them used to be checked
+  again on every visit).
+- **A server that is too busy says so.** Every rate limit now answers "429 Too Many Requests" instead of
+  "503 Service Unavailable".
 
 ### Fixed
+- **A lost connection no longer signs you out.** Opening the app in a dead zone, a server restarting during an update
+  or a busy server used to sign you out and reset the theme, palette and language. Now only a session the server
+  really refuses ends, and those three choices are kept even then *(APP-13)*.
+- **The AI cannot set who paid, the status or a comment.** Whatever a model made up, or read off a receipt, in those
+  fields is ignored; they come from the person who scanned *(SCAN-07)*.
+- **A local model's error is shown.** When Ollama answers with an error (a model that is not installed, for example),
+  the failed scan now says so instead of "the answer could not be read" *(ADM-05)*.
+- **Text read from a receipt keeps its punctuation.** For models that get the receipt as text, dashes, slashes,
+  colons and percent signs are no longer stripped, so dates, times, discounts and VAT rates arrive whole *(SCAN-02)*.
+- **Stopping or updating the server is clean.** The container used to cut the server off mid-request when stopped;
+  it now finishes the requests in hand, closes the live list connections and stops its background work first.
+- **The Categories and Tags pages count correctly.** The total under the table was the number of rows on the page,
+  not the number of categories or tags.
 - **The notifications panel fits a phone screen.** It used to run off the left edge; it now stays inside the screen
   *(NOTE-01)*.
+
+### Security
+- **The sort order of the Categories and Tags lists is checked.** A crafted request from a signed-in admin could put
+  its own SQL into the query; unknown sort columns are now refused.
+- **The sign-up rate limit applies.** It was attached to a misspelt address and never matched.
+- **The published app no longer runs in development mode**, which exposed its state to browser developer-tool
+  extensions and slowed every action.
+- **The server process answers only through the built-in web server**, not directly on its own port.
+- **A failed test can no longer be skipped on the way to a release.** Every check runs on every change to `main`, and
+  the checks now include static analysis and known-vulnerability scans for the server and the app's packages.
 
 ## [0.18.0] - 2026-11-05
 

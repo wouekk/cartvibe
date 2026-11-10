@@ -174,7 +174,7 @@ func TestResolveQuickScanFields_CommentSkippedWithoutPermission(t *testing.T) {
 		QuickScanCommentRequired: true,
 	})
 
-	resolved, configErr, err := services.NewReceiptService(nil).ResolveQuickScanFields(commentCommand(groupId, ""), userId)
+	_, configErr, err := services.NewReceiptService(nil).ResolveQuickScanFields(commentCommand(groupId, ""), userId)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
@@ -182,7 +182,7 @@ func TestResolveQuickScanFields_CommentSkippedWithoutPermission(t *testing.T) {
 		utils.PrintTestError(t, configErr.Errors, "no errors")
 	}
 
-	resolved, configErr, err = services.NewReceiptService(nil).ResolveQuickScanFields(commentCommand(groupId, "not allowed"), userId)
+	resolved, configErr, err := services.NewReceiptService(nil).ResolveQuickScanFields(commentCommand(groupId, "not allowed"), userId)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}

@@ -84,6 +84,7 @@ describe("OverviewPageComponent", () => {
   let overviewService: { getGroupOverview: Mock };
   let receiptService: { getReceiptsForGroup: Mock };
   const params = new BehaviorSubject(convertToParamMap({ groupId: "1" }));
+  const query = new BehaviorSubject(convertToParamMap({}));
   let routeData: BehaviorSubject<Record<string, unknown>>;
   let dashboardLayoutService: { getDashboardLayout: Mock; updateDashboardLayout: Mock };
 
@@ -117,7 +118,7 @@ describe("OverviewPageComponent", () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { paramMap: params, data: routeData, snapshot: { get data() { return routeData.value; } } } },
+        { provide: ActivatedRoute, useValue: { paramMap: params, queryParamMap: query, data: routeData, snapshot: { get data() { return routeData.value; } } } },
         { provide: DashboardLayoutService, useValue: dashboardLayoutService },
         { provide: OverviewService, useValue: overviewService },
         { provide: ReceiptService, useValue: receiptService },
@@ -126,6 +127,7 @@ describe("OverviewPageComponent", () => {
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
+    query.next(convertToParamMap({}));
     TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead] }));
     fixture = TestBed.createComponent(OverviewPageComponent);
     component = fixture.componentInstance;
@@ -622,6 +624,42 @@ describe("OverviewPageComponent", () => {
     it("hides the button from a member who may not scan", async () => {
       await fixture.whenStable();
       expect(quickScanButton()).toBeNull();
+    });
+  });
+
+  describe("the Scan a receipt shortcut (?scan=1)", () => {
+    const arrive = async () => {
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const open = vi.spyOn(component, "openQuickScan").mockImplementation(() => undefined);
+      query.next(convertToParamMap({ scan: "1" }));
+      await fixture.whenStable();
+      return { navigate, open };
+    };
+
+    it("takes scan=1 out of the address, then opens Quick Scan, also when the Dashboard is already open", async () => {
+      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      await fixture.whenStable();
+
+      const { navigate, open } = await arrive();
+
+      expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: {}, replaceUrl: true }));
+      expect(open).toHaveBeenCalledTimes(1);
+      expect(navigate.mock.invocationCallOrder[0]).toBeLessThan(open.mock.invocationCallOrder[0]);
+    });
+
+    it("only cleans the address for someone who may not scan", async () => {
+      const { navigate, open } = await arrive();
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(open).not.toHaveBeenCalled();
+    });
+
+    it("does nothing without scan=1", async () => {
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      query.next(convertToParamMap({ other: "1" }));
+      await fixture.whenStable();
+
+      expect(navigate).not.toHaveBeenCalled();
     });
   });
 

@@ -36,22 +36,22 @@ export class AuthGuard {
       return true;
     }
 
-    if (isLoggedIn) {
+    if (!isLoggedIn) {
+      return this.router.createUrlTree(["/auth/login"]);
+    }
+
+    if (!this.store.selectSnapshot(AuthState.isTokenExpired)) {
       return true;
     }
 
-    // Token is expired but user had a previous session — attempt refresh
-    const hadSession = !!this.store.selectSnapshot(
-      (appState: any) => appState.auth?.expirationDate
+    // A session whose access token ran out: renew it on the way in. When the server refuses, the refresh service has
+    // already signed the person out and the login page follows. When the server could not be reached (no signal),
+    // the session stands and the page opens with what it has.
+    return this.tokenRefreshService.refreshToken().pipe(
+      map(() => true),
+      catchError(() =>
+        of(this.store.selectSnapshot(AuthState.isLoggedIn) ? true : this.router.createUrlTree(["/auth/login"]))
+      ),
     );
-
-    if (hadSession) {
-      return this.tokenRefreshService.refreshToken().pipe(
-        map(() => true),
-        catchError(() => of(this.router.createUrlTree(["/auth/login"]))),
-      );
-    }
-
-    return this.router.createUrlTree(["/auth/login"]);
   }
 }

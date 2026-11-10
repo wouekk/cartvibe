@@ -115,6 +115,11 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   counts as filled only when it changes the form. Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the
   patch; comments go through `ReceiptCommentsComponent.addMagicFilledComments()` (queued in add mode, POSTed in edit
   mode, since a receipt update does not persist comments).
+- **Quick Scan pickers:** the dialog has two native `<label>`s around hidden file inputs. **Take a photo**
+  (`capture="environment"`, `quick-scan-take-photo`) opens the back camera and is shown on touch devices only
+  (`finePointerSignal()` is false); **Upload photos** (`quick-scan-upload`, several files, images, PDF and HEIC) is
+  always there. Both hand their files to `UploadImageComponent.onFileChange`. The app's own hidden input inside
+  `app-upload-image` stays: drag-and-drop and the e2e helpers use it.
 - **Quick Scan:** every entry (Dashboard, `⋮` menu, `app-quick-scan-button`) calls `QuickScanLauncher.open()`. With
   `aiPoweredReceipts` it opens the dialog; without it an admin holding `app.receipt-processing-settings.update` gets a
   confirmation leading to `/ai`, anyone else a hint. The dialog lists photos as attachment rows with per-photo fields
@@ -251,6 +256,16 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **Manifest:** `src/manifest.webmanifest` (standalone), linked from `index.html` with `theme-color` and the Apple
   web-app metas. Icons in `src/assets/brand/pwa/` are rendered from the supplied icon SVG (192/512, maskable 512,
   180px `apple-touch-icon`); to change the icon, re-render those four files from the new SVG, never redraw it.
+  Its `shortcuts` (a long press on the installed icon) are **Shopping lists** (`/shopping-lists`) and **Scan a
+  receipt** (`/overview?scan=1`): `overviewLandingGuard` sends `/overview` to the person's Dashboard keeping the
+  query, and the Dashboard opens Quick Scan once for `scan=1` and removes it from the address
+  (`openScanFromShortcut`). Shortcut names are not translated: the manifest is one static file.
+- **The session outlives a lost connection.** `AuthState.isLoggedIn` means "a session exists" (an expiry time is
+  stored); `isTokenExpired` says whether the 20-minute token ran out. `TokenRefreshService` signs out (and clears
+  storage with `clearSessionStorage()`, which keeps theme, palette and language) only when the refresh call answers
+  401 or 403 (`isSessionRefused`). No connection, a restarting server, a 429 or a 5xx leave the person signed in:
+  `authGuard` lets the page open, and `AppComponent` tries again when the browser comes back online, when the tab
+  becomes visible and every 15 minutes. Never call `localStorage.clear()` directly.
 - **Service worker** (`@angular/service-worker`, `ngsw-config.json`) is in the production build only
   (`provideServiceWorker` with `enabled: !isDevMode()`). It caches the app shell and static assets and has no
   `dataGroups`, so every API, SSE, OAuth and MCP call goes to the network; `navigationUrls` excludes `/api`, `/oauth`,

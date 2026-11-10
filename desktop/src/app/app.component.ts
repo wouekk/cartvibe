@@ -41,11 +41,30 @@ export class AppComponent implements OnInit {
     interval(fifteenMinutes)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        tap(() => {
-          if (this.store.selectSnapshot(AuthState.isLoggedIn)) {
-            this.tokenRefreshService.refreshToken().pipe(take(1)).subscribe();
-          }
-        })
+        tap(() => this.refreshSession())
       ).subscribe();
+
+    // A phone that was asleep or without signal skipped its renewals: catch up when the connection or the app
+    // comes back, instead of waiting for the next quarter of an hour.
+    const catchUp = () => {
+      if (document.visibilityState === "visible" && this.store.selectSnapshot(AuthState.isTokenExpired)) {
+        this.refreshSession();
+      }
+    };
+    window.addEventListener("online", catchUp);
+    document.addEventListener("visibilitychange", catchUp);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener("online", catchUp);
+      document.removeEventListener("visibilitychange", catchUp);
+    });
+  }
+
+  private refreshSession(): void {
+    if (!this.store.selectSnapshot(AuthState.isLoggedIn)) {
+      return;
+    }
+    // A failure is the refresh service's to judge: it signs out when the server refuses and otherwise leaves the
+    // session for the next try.
+    this.tokenRefreshService.refreshToken().pipe(take(1)).subscribe({ error: () => undefined });
   }
 }

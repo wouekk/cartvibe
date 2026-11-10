@@ -8,6 +8,7 @@ Short answers for running a [CartVibe](https://cartvibe.app/) household. Setup, 
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
 - [How do I check that my backup really restores?](#how-do-i-check-that-my-backup-really-restores)
+- [How do I go back to an earlier copy of the database?](#how-do-i-go-back-to-an-earlier-copy-of-the-database)
 - [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household)
 - [How do I move CartVibe to another server?](#how-do-i-move-cartvibe-to-another-server)
 
@@ -145,10 +146,11 @@ A backup you have never restored is a hope, not a backup. Try it once after you 
 a release that changes the database. The check below works on a copy, so the live CartVibe keeps running and nothing in it
 changes. It is written for a Synology with Hyper Backup; with another backup tool, only step 1 differs.
 
-What a backup has to hold, all from the same moment (stop the stack for a minute before the backup runs, or the database
-files will not match):
+What a backup has to hold:
 
-* the `sqlite` folder: `app.db` with its `app.db-wal` and `app.db-shm` files, which belong together;
+* the `sqlite` folder: `app.db` with its `app.db-wal` and `app.db-shm` files, which belong together, and the `backups`
+  folder inside it. A backup that ran while CartVibe was writing can catch those three files out of step; the copies in
+  `backups` (made before every update and once a day) are always whole, so the backup can run while CartVibe is in use;
 * the `data` folder: the receipt images and PDFs;
 * your `SECRET_KEY` and `ENCRYPTION_KEY` (in Dockhand's variables or your `.env`): without the original `ENCRYPTION_KEY`
   the saved AI and Logo.dev keys cannot be read again. Keep a copy somewhere outside the NAS, such as a password manager.
@@ -169,7 +171,9 @@ sudo docker run --rm -v /volume2/docker/cartvibe-restore-test/cartvibe/sqlite:/d
 
 It should print `ok`, then the number of receipts, the number of receipt images, and the date of your newest receipt. In
 CartVibe, the **Receipts** page on **All time** shows the same receipt count; the newest date tells you how old the backup is.
-If the copy has no `app.db-wal` file, the newest changes may be missing: the backup ran while CartVibe was writing.
+If the copy has no `app.db-wal` file, the newest changes may be missing: the backup ran while CartVibe was writing. If the
+check does not print `ok`, run it again on the newest file in the `backups` folder (put `/db/backups/<file name>` in place of
+`/db/app.db`): that copy is the one to restore from.
 
 ### 3. Check the images
 
@@ -194,11 +198,39 @@ compare with.
 `ENCRYPTION_KEY` as they were, then start the stack and hard-refresh the browser. Everyone may need to sign in again. A
 rented server with `docker-compose.vps.yml` restores differently: see [docs/vps-deploy.md](vps-deploy.md#restore-drill-do-it-once-after-setup-then-every-few-months).
 
+If the restored `app.db` will not open, use the newest file from the restored `sqlite/backups` folder in its place, as
+described in the next answer.
+
 **The Export & import tab is not this backup.** System Settings → Export & import downloads the household's receipts,
 lists, categories and photos as spreadsheet files: handy as your own copy, and a way to move to another server. It
 leaves out sign-ins, keys and history, so keep backing up the `sqlite` and `data` folders as above. See
 [How do I keep my own copy of the household?](#how-do-i-keep-my-own-copy-of-the-household) and
 [How do I move CartVibe to another server?](#how-do-i-move-cartvibe-to-another-server)
+
+## How do I go back to an earlier copy of the database?
+
+CartVibe keeps its own copies of the database in the `backups` folder inside `sqlite`:
+
+* `app-upgrade-<date>-<time>.db`: made when a new version of CartVibe starts on your data, before it changes anything.
+  The five newest are kept.
+* `app-daily-<date>-<time>.db`: made once a day while CartVibe runs. The seven newest are kept.
+
+The date and time in the name are in UTC. Each file is the whole database as it was at that moment. The receipt photos
+are not in it: they are in the `data` folder, and going back to an earlier database does not remove any of them.
+
+To go back, for example after an update that went wrong:
+
+1. Stop the stack (in Dockhand, or `docker compose stop`).
+2. In the `sqlite` folder, move `app.db`, `app.db-wal` and `app.db-shm` into a new folder, for example `sqlite/aside`.
+   Do not delete them yet.
+3. Copy the file you want from `sqlite/backups` into `sqlite` and name the copy `app.db`.
+4. If the new version was the problem, go back to the previous image as well: replace `:latest` in the stack with the
+   `:sha-<commit>` tag you ran before. The About page shows the tag you are running, so note it before an update.
+5. Start the stack and hard-refresh the browser. Everything added after the copy was made is gone from the database;
+   receipts photographed since then are still in `data`, but CartVibe no longer lists them.
+
+These copies are on the same disk as the database, so they protect against a bad update or a mistake, not against a
+broken disk. Keep the backup to another place as well.
 
 ## How do I keep my own copy of the household?
 

@@ -270,6 +270,8 @@ func SeedEuroForNewInstall(h cell.Handle) error {
 		// Four workers, not the column default of ten: SQLite takes one writer at a time, so more only
 		// queue on the lock. Existing installs keep their value (System Settings → Task concurrency).
 		TaskConcurrency: 4,
+		// 30 days, not the column default of a day (see DefaultSessionLifetimeHours).
+		RefreshTokenValidForHours: DefaultSessionLifetimeHours,
 	}).Error
 }
 

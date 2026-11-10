@@ -1,16 +1,12 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
 	"testing"
-
-	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
-	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
 func createTestUser() models.User {
@@ -23,24 +19,6 @@ func createTestUser() models.User {
 	repositories.GetDB().Create(&user)
 	return user
 }
-
-// Mock JWT validation by skipping middleware and setting context directly
-func createFakeHandlerWithContext(claims *validator.ValidatedClaims) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if claims != nil {
-			ctx := context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, claims)
-			r = r.WithContext(ctx)
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
-	})
-}
-
-func createTestJWT(userId uint, username string) string {
-	// This is a simplified JWT for testing - in real implementation this would come from the auth service
-	return "test.jwt.token"
-}
-
 func createFakeHandler() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

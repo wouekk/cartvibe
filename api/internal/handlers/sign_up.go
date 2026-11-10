@@ -5,7 +5,6 @@ import (
 
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/logging"
-	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
@@ -56,30 +55,3 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func validateSignUpData(userData models.User) structs.ValidatorError {
-	db := repositories.GetDB()
-	err := structs.ValidatorError{
-		Errors: make(map[string]string),
-	}
-
-	if len(userData.Username) == 0 {
-		err.Errors["username"] = "Username is required"
-	} else {
-		var count int64
-		db.Model(&models.User{}).Where("username = ?", userData.Username).Count(&count)
-
-		if count > 0 {
-			err.Errors["username"] = "Username must be unique"
-		}
-	}
-
-	if len(userData.Password) == 0 {
-		err.Errors["password"] = "Password is required"
-	}
-
-	if len(userData.DisplayName) == 0 {
-		err.Errors["displayName"] = "Displayname is required"
-	}
-
-	return err
-}

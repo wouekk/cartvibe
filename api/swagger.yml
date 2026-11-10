@@ -5,8 +5,8 @@ info:
     there are no TOS at this moment, use at your own risk we take no
     responsibility
   license:
-    name: GPLV3
-    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+    name: AGPL-3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.en.html
   version: 5.0.0
 servers:
   - url: /api
@@ -1094,6 +1094,8 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/Ok"
+        401:
+          description: The refresh token is missing, expired, unknown or already used
         500:
           $ref: "#/components/responses/Internal"
       security: []
@@ -2004,6 +2006,10 @@ paths:
                 anyOf:
                   - $ref: "#/components/schemas/TokenPair"
                   - $ref: "#/components/schemas/Claims"
+        401:
+          description:
+            The refresh token is missing, expired, unknown or already used. The only answer on which a client ends
+            its session; on any other failure it keeps the session and tries again
         500:
           $ref: "#/components/responses/Internal"
       security: []

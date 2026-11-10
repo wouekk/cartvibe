@@ -22,13 +22,38 @@
         <strong>{{ 'Add photos of your receipts' | t }}</strong>
         <span class="text-[0.8125rem] text-muted-foreground">{{ 'Drop them here or choose them. The AI reads each photo as its own receipt, one by one.' | t }}</span>
       }
-      <app-button
-        icon="upload"
-        matButtonType="matRaisedButton"
-        data-testid="quick-scan-upload"
-        [buttonText]="images.length === 0 ? 'Upload photos' : 'Add more photos'"
-        (clicked)="openImageUploadComponent()"
-      ></app-button>
+      <!-- Native labels around file inputs: a phone opens its camera for the first, its photo library for the second. -->
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        @if (!finePointer()) {
+          <label [class]="primaryButtonClass" class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              class="sr-only"
+              data-testid="quick-scan-take-photo"
+              (change)="filesPicked($event)"
+            />
+            <app-icon name="photo_camera"></app-icon>
+            <span>{{ 'Take a photo' | t }}</span>
+          </label>
+        }
+        <label
+          [class]="finePointer() ? primaryButtonClass : outlineButtonClass"
+          class="cursor-pointer focus-within:ring-3 focus-within:ring-ring/50"
+        >
+          <input
+            type="file"
+            multiple
+            [accept]="pickerAccept"
+            class="sr-only"
+            data-testid="quick-scan-upload"
+            (change)="filesPicked($event)"
+          />
+          <app-icon name="upload"></app-icon>
+          <span>{{ (images.length === 0 ? 'Upload photos' : 'Add more photos') | t }}</span>
+        </label>
+      </div>
     </div>
 
     <ul class="m-0 mt-3 flex list-none flex-col gap-3 p-0" data-testid="quick-scan-attachments">

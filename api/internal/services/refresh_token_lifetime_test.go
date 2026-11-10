@@ -42,10 +42,10 @@ func TestClampRefreshTokenLifetime(t *testing.T) {
 		hours    int
 		expected time.Duration
 	}{
-		{"unset falls back to the default", 0, 24 * time.Hour},
-		{"negative falls back to the default", -5, 24 * time.Hour},
-		{"above the maximum falls back to the default", 721, 24 * time.Hour},
-		{"absurd value falls back to the default", 1000000, 24 * time.Hour},
+		{"unset falls back to the default", 0, 30 * 24 * time.Hour},
+		{"negative falls back to the default", -5, 30 * 24 * time.Hour},
+		{"above the maximum falls back to the default", 721, 30 * 24 * time.Hour},
+		{"absurd value falls back to the default", 1000000, 30 * 24 * time.Hour},
 		{"the minimum is honored", 1, time.Hour},
 		{"an in-range value is honored", 168, 168 * time.Hour},
 		{"the maximum is honored", 720, 720 * time.Hour},
@@ -53,10 +53,25 @@ func TestClampRefreshTokenLifetime(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if got := clampRefreshTokenLifetime(test.hours); got != test.expected {
+			if got := clampRefreshTokenLifetime(test.hours, defaultRefreshTokenLifetime); got != test.expected {
 				t.Errorf("clampRefreshTokenLifetime(%d) = %v, expected %v", test.hours, got, test.expected)
 			}
 		})
+	}
+}
+
+// A person's session falls back to 30 days, a connector's to one day: the two fallbacks must not merge, or an unset
+// connector lifetime would quietly become a month.
+func TestUnsetLifetimesFallBackToTheirOwnDefaults(t *testing.T) {
+	defer repositories.TruncateTestDb()
+
+	setRefreshTokenLifetimeSettings(t, 0, 0)
+
+	if got := GetRefreshTokenLifetime(); got != 30*24*time.Hour {
+		t.Errorf("GetRefreshTokenLifetime() = %v, expected 30 days", got)
+	}
+	if got := GetMcpRefreshTokenLifetime(); got != 24*time.Hour {
+		t.Errorf("GetMcpRefreshTokenLifetime() = %v, expected one day", got)
 	}
 }
 

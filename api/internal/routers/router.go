@@ -5,7 +5,6 @@ import (
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/mcp"
-	"cartvibe/api/internal/middleware"
 	"cartvibe/api/internal/oauth"
 	"cartvibe/api/internal/services"
 	"net/http"
@@ -87,10 +86,6 @@ func BuildRootRouter() *chi.Mux {
 	oidcProviderRouter := BuildOidcProviderRouter()
 	rootRouter.Mount("/api/oidcProvider", oidcProviderRouter)
 
-	// Migration router
-	migrationRouter := chi.NewRouter()
-	migrationRouter.Use(middleware.UnifiedAuthMiddleware)
-	rootRouter.Mount("/api/migrate", migrationRouter)
 
 	// Search router
 	searchRouter := BuildSearchRouter()

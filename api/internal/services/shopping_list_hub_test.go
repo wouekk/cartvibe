@@ -145,3 +145,36 @@ func TestShoppingListHubKeepsCellsApart(t *testing.T) {
 		t.Error("dropping a stream in cell A removed cell B's")
 	}
 }
+
+// The server stopping: every open stream is ended (so Shutdown does not wait for requests that never finish), a
+// stream that arrives afterwards is ended at once, and publishing into a closed hub does nothing.
+func TestShoppingListHubCloseEndsEveryStreamAndRefusesNewOnes(t *testing.T) {
+	hub := NewShoppingListHub()
+	first := hub.Subscribe(testCell, 1)
+	second := hub.Subscribe(testCell, 2)
+
+	hub.Close()
+	hub.Close()
+
+	for _, subscriber := range []*ShoppingListSubscriber{first, second} {
+		select {
+		case <-subscriber.Dropped:
+		case <-time.After(time.Second):
+			t.Fatal("an open stream was not ended by Close")
+		}
+	}
+	if hub.SubscriberCount(testCell, 1) != 0 || hub.SubscriberCount(testCell, 2) != 0 {
+		t.Error("a closed hub still counts subscribers")
+	}
+
+	late := hub.Subscribe(testCell, 1)
+	select {
+	case <-late.Dropped:
+	case <-time.After(time.Second):
+		t.Fatal("a stream opened after Close was not ended")
+	}
+
+	hub.Publish(testCell, models.ShoppingListEvent{Type: models.ShoppingListEventItemAdded, GroupId: 1})
+	hub.Unsubscribe(first)
+	hub.Unsubscribe(late)
+}

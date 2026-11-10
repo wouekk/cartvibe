@@ -9,7 +9,7 @@ import (
 
 func GetTaskIdFromContext(ctx context.Context) (string, error) {
 	taskId, ok := asynq.GetTaskID(ctx)
-	if ok == false {
+	if !ok {
 		return "", fmt.Errorf("taskId not found")
 	}
 

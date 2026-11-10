@@ -606,19 +606,6 @@ func TestBuildTempFilePath_FormatAndExtension(t *testing.T) {
 	}
 }
 
-func TestGetTestJpgBytes_ReadsFixture(t *testing.T) {
-	t.Setenv("BASE_PATH", testBasePath())
-
-	repository := NewFileRepository(ImplicitCell(), nil)
-	got, err := repository.GetTestJpgBytes()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	if len(got) == 0 {
-		utils.PrintTestError(t, len(got), ">0")
-	}
-}
-
 func TestWriteTempFile_WritesJpgBytes(t *testing.T) {
 	t.Setenv("BASE_PATH", testBasePath())
 
@@ -1013,7 +1000,7 @@ func TestShouldValidateZipFilesInput(t *testing.T) {
 			}
 
 			// Basic check that the zip was created
-			if zipData == nil || len(zipData) == 0 {
+			if len(zipData) == 0 {
 				utils.PrintTestError(t, "empty data", "non-empty zip data")
 			}
 		}

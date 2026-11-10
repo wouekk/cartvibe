@@ -31,9 +31,6 @@ func StartEmbeddedAsynqScheduler() error {
 	return nil
 }
 
-func GetAsynqScheduler() *asynq.Scheduler {
-	return scheduler
-}
 
 func ShutDownEmbeddedAsynqScheduler() {
 	scheduler.Shutdown()

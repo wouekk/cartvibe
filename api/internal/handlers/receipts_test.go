@@ -21,10 +21,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func uintPtr(u uint) *uint {
-	return &u
-}
-
 func setupReceiptsTest() {
 	repositories.CreateTestGroupWithUsers()
 	repositories.CreateTestCategories()

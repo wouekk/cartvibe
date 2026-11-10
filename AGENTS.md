@@ -45,7 +45,8 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 
 ## Infrastructure
 
-- **One monolith image** from `docker/Dockerfile` (nginx :80 → Go :8081); never add per-component Dockerfiles.
+- **One monolith image** from `docker/Dockerfile` (nginx :80 → Go on 127.0.0.1:8081); never add per-component
+  Dockerfiles. The runtime stage gets the API binary only, and `.dockerignore` keeps local data out of the context.
   Dependencies install from their manifests before the source is copied, so code-only builds reuse the cached layers;
   keep `VERSION`, `BUILD_DATE` and source copies below them.
 - **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`; our ImageMagick policy
@@ -60,8 +61,9 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image, `valkey/valkey:9.1-alpine` (background
   jobs need it; BSD-licensed, found by the app as host `valkey`, port 6379, so no setting is needed), SQLite in `/volume2/docker/cartvibe/sqlite` (`DB_FILENAME=app.db`), and `SECRET_KEY` /
   `ENCRYPTION_KEY` from Dockhand's variables, with no `$` in them (compose reads it as a variable). Deploy = pull, then
-  redeploy (a redeploy alone reuses the cached image). Back up the `sqlite` folder before a release that changes the
-  schema; the database runs in WAL mode, so copy the whole folder (`app.db`, `-wal`, `-shm`) with the container stopped.
+  redeploy (a redeploy alone reuses the cached image). The API copies its database to `sqlite/backups` before a new
+  version migrates and once a day (`api/CLAUDE.md`, Snapshots), so a schema release needs no manual backup; a copy of
+  the live files (`app.db`, `-wal`, `-shm`; WAL mode) still needs the container stopped.
 - **Self-hosters on a VPS** can run `docker-compose.vps.yml` (Caddy TLS, Litestream for the database, restic for the files,
   Valkey with a password); setup and the restore drill are in `docs/vps-deploy.md`. We run no VPS and no hosted service:
   since 2026-11-02 there is no hosted plan (`wouekk/cartvibe-cloud` is frozen), and `cartvibe.app` is the static project page.

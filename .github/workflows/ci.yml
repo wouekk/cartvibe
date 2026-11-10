@@ -3,12 +3,14 @@ name: CI - Build and Test
 
 on:
   push:
-    # Tests only: the image is published by publish-image.yml.
-    branches: [main, 'feature/**']
+    # Tests only: the image is published by publish-image.yml. Dependabot's branches (.github/dependabot.yml) are
+    # tested like a feature branch, so an update proposal shows a result before anyone merges it.
+    branches: [main, 'feature/**', 'dependabot/**']
     paths:
       - 'api/**'
       - 'desktop/**'
       - 'docker/**'
+      - '.dockerignore'
       - '.github/workflows/**'
   # Dispatched by regenerate-clients.yml, whose GITHUB_TOKEN push cannot trigger the push event.
   workflow_dispatch:
@@ -23,6 +25,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # A feature branch runs only the jobs its change touches. main runs every job on every push: the filter compares a
+  # push with the one before it, a skipped job counts as passed, and publish-image.yml publishes :latest after a
+  # passing run, so a filtered run on main could publish a commit whose failing tests were never run again.
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -39,6 +44,7 @@ jobs:
               - 'api/**'
             image:
               - 'docker/**'
+              - '.dockerignore'
             desktop:
               - 'desktop/**'
               # check:csp compares the built index.html with the script-src hash in the nginx config.
@@ -50,20 +56,37 @@ jobs:
 
   test-api:
     needs: detect-changes
-    if: needs.detect-changes.outputs.api == 'true'
+    if: github.ref == 'refs/heads/main' || needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     container: golang:1.26-trixie
     steps:
       - uses: actions/checkout@v7
       - name: Mark workspace as safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      # The libraries the build links, plus what only the tests run (Chromium, a PDF-enabled ImageMagick policy).
       - name: Install app dependencies
-        run: sh set-up-dependencies.sh
+        run: bash set-up-dependencies.sh --with-test-tools
         working-directory: ./api
       - name: Build
         run: go build -v ./...
         working-directory: ./api
+      - name: Vet
+        run: go vet ./...
+        working-directory: ./api
+      # SA: likely bugs. S1: simpler code that means the same. U1000: unused code. Left out on purpose: ST (style,
+      # inherited in bulk) and SA1029 (plain string keys in request contexts, shared by the middleware and every
+      # handler: a change of its own). The checks are named here, not in a staticcheck.conf, so the list is in one place.
+      - name: Static analysis
+        if: ${{ !cancelled() }}
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 -checks "SA*,S1*,U1000,-SA1029" ./...
+        working-directory: ./api
+      # Fails only for an advisory in code this module really calls (the standard library included).
+      - name: Known vulnerabilities
+        if: ${{ !cancelled() }}
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+        working-directory: ./api
       - name: Test
+        if: ${{ !cancelled() }}
         # Failures are also raised as annotations, so they can be read without access to the log.
         shell: bash
         run: |
@@ -79,7 +102,7 @@ jobs:
 
   test-desktop:
     needs: detect-changes
-    if: needs.detect-changes.outputs.desktop == 'true'
+    if: github.ref == 'refs/heads/main' || needs.detect-changes.outputs.desktop == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -88,6 +111,11 @@ jobs:
           node-version: "24.22.1"
       - name: Install dependencies
         run: npm ci --verbose
+        working-directory: ./desktop
+      # The packages the app depends on at run time (dev tools are left out, so an advisory in a test runner does not
+      # stop a release). A finding is fixed as desktop/docs/lockfile.md describes, usually with an override.
+      - name: Known vulnerabilities
+        run: npm audit --omit=dev
         working-directory: ./desktop
       # The English catalogue is generated from the code and every language file must match it (see desktop/CLAUDE.md).
       - name: Check translations
@@ -131,10 +159,11 @@ jobs:
 
   # The image as it ships (nginx, the Go API, the built app) next to a real Valkey, driven by the Playwright specs that
   # are known to pass (`e2e:smoke`, see desktop/docs/e2e.md). The rest of the suite is not run here: many specs predate
-  # the family rework. The login rate limit of the shipped nginx (30 a minute) is why only a few specs run.
+  # the family rework. The job also proves what only a running container can show: compression and cache headers, a
+  # clean stop, and the database snapshot a new version takes before it migrates.
   e2e-smoke:
     needs: detect-changes
-    if: needs.detect-changes.outputs.api == 'true' || needs.detect-changes.outputs.desktop == 'true' || needs.detect-changes.outputs.image == 'true'
+    if: github.ref == 'refs/heads/main' || needs.detect-changes.outputs.api == 'true' || needs.detect-changes.outputs.desktop == 'true' || needs.detect-changes.outputs.image == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -180,6 +209,16 @@ jobs:
           done
           docker inspect --format '{{json .State.Health}}' cartvibe
           exit 1
+      # docker/default.conf: scripts travel compressed, and a file with a content hash in its name is cached for good.
+      # A GET, not a HEAD: nginx does not compress (or say it would) when only the headers are asked for.
+      - name: The app's scripts are compressed and cached
+        run: |
+          main=$(curl -fsS http://localhost:8091/ | grep -oE 'main-[A-Za-z0-9_-]{8}\.js' | head -1)
+          test -n "$main"
+          headers=$(curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null "http://localhost:8091/$main")
+          echo "$headers"
+          echo "$headers" | grep -qi '^content-encoding: gzip'
+          echo "$headers" | grep -qi '^cache-control:.*immutable'
       - uses: actions/setup-node@v7
         with:
           node-version: "24.22.1"
@@ -196,6 +235,30 @@ jobs:
       - name: Run the smoke specs
         run: npm run e2e:smoke
         working-directory: ./desktop
+      # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
+      # 30 seconds the compose files allow (a killed container reports 137).
+      - name: A stop is clean
+        run: |
+          start=$(date +%s)
+          docker stop --time 30 cartvibe
+          took=$(( $(date +%s) - start ))
+          code=$(docker inspect --format '{{.State.ExitCode}}' cartvibe)
+          echo "stopped in ${took}s with exit code ${code}"
+          [ "$code" = "0" ] && [ "$took" -lt 25 ]
+      # The same data under another version, as after an update on the NAS: the API must copy the database to
+      # sqlite/backups before it migrates, then record the version it started as.
+      - name: A new version snapshots the database first
+        run: |
+          docker run -d --name cartvibe-next --network e2e --volumes-from cartvibe             -e VERSION=ci-next -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key -e ENCRYPTION_KEY=ci-encryption-key             -e DB_ENGINE=sqlite -e DB_FILENAME=app.db             cartvibe:ci
+          for i in $(seq 1 30); do
+            if docker exec cartvibe-next grep -qx ci-next /app/cartvibe-api/sqlite/backups/last-version 2> /dev/null; then
+              docker exec cartvibe-next sh -c 'ls -l /app/cartvibe-api/sqlite/backups/app-upgrade-*.db'
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs cartvibe-next --tail 100
+          exit 1
       - name: Container logs
         if: failure()
         run: |

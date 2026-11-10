@@ -4,6 +4,7 @@ import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, shareReplay, tap, throwError } from "rxjs";
 import { AuthService, Claims } from "../open-api";
 import { Logout, SetAuthState } from "../store";
+import { clearSessionStorage, isSessionRefused } from "../utils/session-storage";
 
 @Injectable({
   providedIn: "root",
@@ -17,6 +18,11 @@ export class TokenRefreshService {
     private router: Router,
   ) {}
 
+  /**
+   * Renews the access token. Only the server can end a session: when it refuses the refresh token (401) the person is
+   * signed out here. A refresh that never reached the server, or met one that is restarting, changes nothing: a phone
+   * with no signal in the shop stays signed in, and the callers try again later.
+   */
   public refreshToken(): Observable<Claims> {
     if (this.refreshInFlight$) {
       return this.refreshInFlight$;
@@ -28,9 +34,11 @@ export class TokenRefreshService {
         this.store.dispatch(new SetAuthState(claims));
       }),
       catchError((err) => {
-        this.store.dispatch(new Logout());
-        localStorage.clear();
-        this.router.navigate(["/auth/login"]);
+        if (isSessionRefused(err)) {
+          this.store.dispatch(new Logout());
+          clearSessionStorage();
+          this.router.navigate(["/auth/login"]);
+        }
         return throwError(() => err);
       }),
       finalize(() => {

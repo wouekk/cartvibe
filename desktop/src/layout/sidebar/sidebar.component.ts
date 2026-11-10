@@ -3,7 +3,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { filter, map, startWith, switchMap, take } from "rxjs";
+import { catchError, filter, map, of, startWith, switchMap, take } from "rxjs";
 import { SetPage } from "src/store/receipt-table.actions";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { AboutComponent } from "../../about/about/about.component";
@@ -367,6 +367,9 @@ export class SidebarComponent {
       .logout()
       .pipe(
         take(1),
+        // Signing out always ends the session in this browser, even when the server could not be told (no
+        // connection, or a refresh token it had already retired); the token then just runs out there.
+        catchError(() => of(undefined)),
         switchMap(() => this.store.dispatch(new Logout())),
         switchMap(() => this.router.navigate(["/"])),
       )

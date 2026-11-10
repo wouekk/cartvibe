@@ -22,22 +22,27 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	errMessage := "Error uploading image."
 	fileRepository := repositories.NewFileRepository(repositories.ImplicitCell(), nil)
 
+	// Each of these ends the request: going on after the error answer wrote a second one behind it and, with no
+	// file in the form, closed a nil file.
 	err := r.ParseMultipartForm(constants.MultipartFormMaxSize)
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
-		utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+		utils.WriteCustomErrorResponse(w, errMessage, http.StatusBadRequest)
+		return
 	}
 
 	receiptId, err := utils.StringToUint(r.Form.Get("receiptId"))
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
-		utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+		utils.WriteCustomErrorResponse(w, errMessage, http.StatusBadRequest)
+		return
 	}
 
 	file, fileHeader, err := r.FormFile("file")
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
-		utils.WriteCustomErrorResponse(w, errMessage, http.StatusInternalServerError)
+		utils.WriteCustomErrorResponse(w, errMessage, http.StatusBadRequest)
+		return
 	}
 	defer file.Close()
 
@@ -209,6 +214,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 	err := db.Model(models.FileData{}).Where("id = ?", id).First(&fileData).Error
 	if err != nil {
 		utils.WriteCustomErrorResponse(w, errorMessage, http.StatusInternalServerError)
+		return
 	}
 	stringReceiptId := utils.UintToString(fileData.ReceiptId)
 

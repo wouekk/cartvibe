@@ -7,6 +7,7 @@ import (
 
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/services"
 	"github.com/hibiken/asynq"
 )
@@ -79,8 +80,33 @@ func StartSystemCleanUpTasks() error {
 	// With nothing due it costs two indexed queries.
 	warrantyReminderTask := asynq.NewTask(WarrantyReminderSweep, nil)
 	_, err = RegisterTask("@every 1m", warrantyReminderTask, cleanUpQueue, 0, sweepOptions()...)
+	if err != nil {
+		return err
+	}
+
+	// Once a day: one consistent copy of the database in sqlite/backups, the newest seven kept. It is the file a
+	// backup tool can copy while the app runs.
+	databaseSnapshotTask := asynq.NewTask(DatabaseSnapshot, nil)
+	_, err = RegisterTask("@every 24h", databaseSnapshotTask, cleanUpQueue, 0)
 
 	return err
+}
+
+// HandleDatabaseSnapshotTask writes the daily database snapshot. A failure (a full disk, a folder that refuses the
+// write) is logged and never retried by the queue: tomorrow's run is the retry.
+func HandleDatabaseSnapshotTask(ctx context.Context, _ *asynq.Task) error {
+	if ctx.Err() != nil {
+		return nil
+	}
+
+	path, err := repositories.SnapshotDatabase(time.Now())
+	if err != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
+		return nil
+	}
+	logging.LogStd(logging.LOG_LEVEL_INFO, "database snapshot: "+path)
+
+	return nil
 }
 
 // HandleWarrantyReminderSweepTask sends the due warranty reminders. Only a database error fails the task; push

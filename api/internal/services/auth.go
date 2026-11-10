@@ -33,9 +33,12 @@ const jwtIssuer = "https://cartvibe.app"
 // token is rejected everywhere except the MCP endpoints.
 const defaultAudience = "https://cartvibe.app"
 
-// defaultRefreshTokenLifetime is the fallback refresh-token lifetime, used when
-// the System Settings value is unset (0), out of range, or unreadable.
-const defaultRefreshTokenLifetime = 24 * time.Hour
+// defaultRefreshTokenLifetime is the fallback lifetime of a person's session, used when the System Settings value
+// is unset (0), out of range, or unreadable: 30 days, so a family member who skipped a few days is still signed in.
+const defaultRefreshTokenLifetime = repositories.DefaultSessionLifetimeHours * time.Hour
+
+// defaultMcpRefreshTokenLifetime is the same fallback for MCP/OAuth connector tokens, which stay short: a day.
+const defaultMcpRefreshTokenLifetime = 24 * time.Hour
 
 // GetRefreshTokenLifetime returns how long a REST refresh token stays valid.
 //
@@ -49,7 +52,7 @@ func GetRefreshTokenLifetime() time.Duration {
 		return defaultRefreshTokenLifetime
 	}
 
-	return clampRefreshTokenLifetime(systemSettings.RefreshTokenValidForHours)
+	return clampRefreshTokenLifetime(systemSettings.RefreshTokenValidForHours, defaultRefreshTokenLifetime)
 }
 
 // GetMcpRefreshTokenLifetime returns how long an MCP/OAuth connector refresh
@@ -60,20 +63,20 @@ func GetMcpRefreshTokenLifetime() time.Duration {
 	systemSettings, err := repositories.NewSystemSettingsRepository(repositories.ImplicitCell(), nil).GetSystemSettings()
 	if err != nil {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read MCP refresh token lifetime, using default: "+err.Error())
-		return defaultRefreshTokenLifetime
+		return defaultMcpRefreshTokenLifetime
 	}
 
-	return clampRefreshTokenLifetime(systemSettings.McpRefreshTokenValidForHours)
+	return clampRefreshTokenLifetime(systemSettings.McpRefreshTokenValidForHours, defaultMcpRefreshTokenLifetime)
 }
 
 // clampRefreshTokenLifetime converts a configured hour count into a duration,
-// falling back to the default for anything outside the supported range. This is
+// falling back to the given default for anything outside the supported range. This is
 // the real safety net — it stops a bad stored value (0, negative, absurd) from
 // ever producing a token, independent of whether the value passed command
 // validation on the way in.
-func clampRefreshTokenLifetime(hours int) time.Duration {
+func clampRefreshTokenLifetime(hours int, fallback time.Duration) time.Duration {
 	if hours < commands.MinRefreshTokenValidForHours || hours > commands.MaxRefreshTokenValidForHours {
-		return defaultRefreshTokenLifetime
+		return fallback
 	}
 
 	return time.Duration(hours) * time.Hour

@@ -62,7 +62,6 @@ func UnifiedAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		utils.WriteCustomErrorResponse(w, "Unauthorized", http.StatusForbidden)
-		return
 	})
 }
 

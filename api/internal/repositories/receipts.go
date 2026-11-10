@@ -582,7 +582,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		query = query.Scopes(repository.Paginate(pagedRequest.Page, pagedRequest.PageSize))
 	}
 
-	if associations != nil && len(associations) > 0 {
+	if len(associations) > 0 {
 		for _, association := range associations {
 			query = query.Preload(association)
 		}

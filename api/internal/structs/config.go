@@ -1,16 +1,5 @@
 package structs
 
-import "cartvibe/api/internal/models"
-
-type AiSettings struct {
-	AiType     models.AiClientType `json:"type"`
-	Key        string              `json:"key"`
-	Url        string              `json:"url"`
-	Model      string              `json:"model"`
-	NumWorkers int                 `json:"numWorkers"`
-	OcrEngine  models.OcrEngine    `json:"ocrEngine"`
-}
-
 type FeatureConfig struct {
 	EnableLocalSignUp bool `json:"enableLocalSignUp"`
 	AiPoweredReceipts bool `json:"aiPoweredReceipts"`
@@ -42,16 +31,4 @@ type ValkeyConfig struct {
 	Port     int    `json:"port"`
 	Username string `json:"username"`
 	Password string `json:"password"`
-}
-
-type DebugConfig struct {
-	DebugOcr bool `json:"debugOcr"`
-}
-
-type Config struct {
-	SecretKey  string         `json:"secretKey"`
-	AiSettings AiSettings     `json:"aiSettings"`
-	Features   FeatureConfig  `json:"features"`
-	Database   DatabaseConfig `json:"database"`
-	Debug      DebugConfig    `json:"debug"`
 }

@@ -1,13 +1,17 @@
 # Synology stack. Paste this into Dockhand (or Container Manager) as a plain compose stack: the NAS
 # only downloads the image GitHub publishes after CI passes on main (.github/workflows/
-# publish-image.yml); nothing is built on the NAS. To update, redeploy: pull_policy always fetches the newest image.
+# publish-image.yml); nothing is built on the NAS. To update: pull the image, then redeploy (README, "Updating on a
+# Synology").
 services:
   cartvibe:
     image: ghcr.io/wouekk/cartvibe:latest
-    # Check the registry on every deploy, so a redeploy never reuses a cached older :latest.
+    # Asks the registry whenever compose itself brings the stack up. A stack manager's "redeploy" can still reuse the
+    # image it already has, which is why the update steps pull first.
     pull_policy: always
     container_name: cartvibe
     restart: unless-stopped
+    # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
+    stop_grace_period: 30s
     depends_on:
       valkey:
         condition: service_healthy
@@ -24,7 +28,7 @@ services:
       # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # Background jobs (OCR, email polling, cleanup) queue through Valkey, the second service below. The app finds it as
+      # Background jobs (reading receipts, reminders, clean-up) queue through Valkey, the second service below. The app finds it as
       # "valkey" on port 6379; VALKEY_HOST, VALKEY_PORT, VALKEY_USER and VALKEY_PASSWORD only matter for another setup.
       # The API runs as this user and group, which must be able to write the three folders below. Set both in
       # Dockhand's environment variables, to the DSM user that owns the folders (`id <user>` over SSH, for example
@@ -38,6 +42,8 @@ services:
       - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-}
     volumes:
+      # Left of the colon is the folder on the NAS: change /volume2 to the volume your "docker" shared folder is on
+      # (often /volume1). The app also keeps its own database snapshots in sqlite/backups.
       - /volume2/docker/cartvibe/sqlite:/app/cartvibe-api/sqlite
       - /volume2/docker/cartvibe/data:/app/cartvibe-api/data
       - /volume2/docker/cartvibe/logs:/app/cartvibe-api/logs

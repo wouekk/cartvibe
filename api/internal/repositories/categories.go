@@ -84,6 +84,11 @@ func (repository CategoryRepository) GetAllPagedCategories(pagedRequestCommand c
 	var categories []models.CategoryView
 	quotedAlias := "\"NumberOfReceipts\""
 
+	// The sort column comes from the request: only the table's own columns pass (see Sort on why).
+	if !isCatalogSortColumn(pagedRequestCommand.OrderBy) {
+		return nil, ErrInvalidSortColumn
+	}
+
 	if pagedRequestCommand.OrderBy == "numberOfProducts" {
 		pagedRequestCommand.OrderBy = "\"NumberOfProducts\""
 	}

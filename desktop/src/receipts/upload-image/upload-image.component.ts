@@ -52,33 +52,28 @@ export class UploadImageComponent {
     );
 
     for (let i = 0; i < acceptedFiles.length; i++) {
-      const reader = new FileReader();
       // A phone photo goes up as a smaller JPEG; anything it cannot shrink stays as picked.
       const f = await downscaleImageForUpload(acceptedFiles[i]);
 
-      reader.onload = () => {
-        const command: ReceiptFileUploadCommand = {
-          file: f,
-          receiptId: Number(this.receiptId()),
-        };
-
-        if (f.type === "application/pdf" || f.type === "image/heic" || f.type === "image/heif") {
-          this.receiptImageService
-            .convertToJpg(f)
-            .pipe(
-              take(1),
-              tap((encodedImage) => {
-                command.encodedImage = encodedImage.encodedImage;
-                this.fileLoaded.emit(command);
-              })
-            )
-            .subscribe();
-        } else {
-          this.fileLoaded.emit(command);
-        }
+      const command: ReceiptFileUploadCommand = {
+        file: f,
+        receiptId: Number(this.receiptId()),
       };
 
-      reader.readAsArrayBuffer(f);
+      if (f.type === "application/pdf" || f.type === "image/heic" || f.type === "image/heif") {
+        this.receiptImageService
+          .convertToJpg(f)
+          .pipe(
+            take(1),
+            tap((encodedImage) => {
+              command.encodedImage = encodedImage.encodedImage;
+              this.fileLoaded.emit(command);
+            })
+          )
+          .subscribe();
+      } else {
+        this.fileLoaded.emit(command);
+      }
     }
   }
 }

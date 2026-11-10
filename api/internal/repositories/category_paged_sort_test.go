@@ -3,6 +3,7 @@ package repositories
 import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
+	"errors"
 	"testing"
 )
 
@@ -39,5 +40,57 @@ func TestPagedCategoriesSortByNameAfterTheProductJoin(t *testing.T) {
 	})
 	if byName[0].Name != "Dairy" || byName[0].NumberOfProducts != 1 {
 		t.Errorf("expected Dairy with one product first, got %+v", byName[0])
+	}
+}
+
+// The sort column comes from the request body. A value starting with a double quote used to be written into
+// ORDER BY as raw SQL, which let a caller read any table through the sort order. Only the table's own columns pass.
+func TestPagedCategoriesAndTagsRefuseASortColumnTheyDoNotOffer(t *testing.T) {
+	defer TruncateTestDb()
+
+	GetDB().Create(&models.Category{Name: "Dairy"})
+	GetDB().Create(&models.Tag{Name: "Party"})
+
+	for _, orderBy := range []string{
+		`"NumberOfReceipts", (SELECT password FROM users LIMIT 1)`,
+		`"x" ; DROP TABLE users`,
+		`"NumberOfReceipts"`,
+		"password",
+		"users.password",
+		"name; DROP TABLE users",
+	} {
+		command := commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.ASCENDING}
+
+		if _, err := NewCategoryRepository(ImplicitCell(), nil).GetAllPagedCategories(command); !errors.Is(err, ErrInvalidSortColumn) {
+			t.Errorf("categories sorted by %q: expected ErrInvalidSortColumn, got %v", orderBy, err)
+		}
+		if _, err := NewTagsRepository(ImplicitCell(), nil).GetAllPagedTags(command); !errors.Is(err, ErrInvalidSortColumn) {
+			t.Errorf("tags sorted by %q: expected ErrInvalidSortColumn, got %v", orderBy, err)
+		}
+	}
+
+	for _, orderBy := range []string{"", "id", "name", "description", "numberOfReceipts", "numberOfProducts"} {
+		command := commands.PagedRequestCommand{Page: 1, PageSize: 10, OrderBy: orderBy, SortDirection: commands.DESCENDING}
+
+		if tags, err := NewTagsRepository(ImplicitCell(), nil).GetAllPagedTags(command); err != nil || len(tags) != 1 {
+			t.Errorf("tags sorted by %q: %v, %d rows", orderBy, err, len(tags))
+		}
+	}
+}
+
+// Sort writes a bare select alias as it is and nothing else: a quoted name with more behind it is quoted again by
+// GORM, like any column name, so it can only fail as an unknown column.
+func TestSortWritesOnlyABareAliasRaw(t *testing.T) {
+	for orderBy, raw := range map[string]bool{
+		`"NumberOfReceipts"`:                  true,
+		`"NumberOfProducts"`:                  true,
+		`"x", (SELECT 1)`:                     false,
+		`"NumberOfReceipts" DESC, (SELECT 1)`: false,
+		`name`:                                false,
+		``:                                    false,
+	} {
+		if got := quotedSortAlias.MatchString(orderBy); got != raw {
+			t.Errorf("%q: raw = %v, want %v", orderBy, got, raw)
+		}
 	}
 }

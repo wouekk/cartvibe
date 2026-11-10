@@ -28,17 +28,37 @@ if [ "$(id -u)" = "0" ] && id cartvibe >/dev/null 2>&1; then
   fi
 fi
 
-# Forward TERM/INT to the children: bash runs as PID 1 here, and PID 1 ignores
-# SIGTERM by default, so `docker stop` previously waited out the full grace
-# period and then SIGKILLed everything.
-trap 'kill $(jobs -p) 2>/dev/null' TERM INT
+# bash is PID 1 here. PID 1 ignores TERM unless it traps it, and when PID 1 exits the kernel kills every other
+# process in the container at once. So a stop has to do two things: reach the children, and WAIT for them. The trap
+# only notes the request; the ordered stop below does the work (a trap interrupts `wait`, which then returns).
+stopping=0
+trap 'stopping=1' TERM INT
 
-# Run the API and nginx as background jobs and exit the container if EITHER one
-# exits, so the restart policy / orchestrator can recover it. Previously the API
-# ran in the background while only nginx held the foreground, so a crashed API
-# left the container "up" serving 502s and the restart policy never fired.
+# The API and nginx run as background jobs, and the container ends when EITHER one exits, so the restart policy can
+# recover it (an API that crashed behind a running nginx would otherwise leave the container "up" serving 502s).
 "${RUN_AS[@]}" ./api --env prod &
+api_pid=$!
 nginx -g 'daemon off;' &
+nginx_pid=$!
 
 wait -n
-exit $?
+status=$?
+
+# Either a stop was asked for (docker stop, a redeploy) or one of the two ended on its own. Both are stopped in
+# order: the API first, so it can answer the requests it holds, end the live streams and stop its jobs; nginx after
+# it, once nothing is left to proxy. `docker stop` gives this the stack's stop_grace_period before it kills what is
+# still running.
+kill -TERM "$api_pid" 2>/dev/null
+while kill -0 "$api_pid" 2>/dev/null; do
+  wait "$api_pid" 2>/dev/null
+done
+kill -QUIT "$nginx_pid" 2>/dev/null
+while kill -0 "$nginx_pid" 2>/dev/null; do
+  wait "$nginx_pid" 2>/dev/null
+done
+
+# A requested stop is a clean exit; a child that ended by itself passes its status on.
+if [ "$stopping" = "1" ]; then
+  exit 0
+fi
+exit "$status"
