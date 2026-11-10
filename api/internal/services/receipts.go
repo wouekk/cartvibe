@@ -264,7 +264,7 @@ type QuickScanParams struct {
 	Comment          string
 	TempPath         string
 	OriginalFileName string
-	AsynqTaskId      string
+	JobId      string
 }
 
 // QuickScan reads an uploaded photo with the AI and saves the receipt. When the AI cannot read it (none
@@ -365,7 +365,7 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 		models.QUICK_SCAN,
 		&token.UserId,
 		&groupId,
-		params.AsynqTaskId, nil)
+		params.JobId, nil)
 	if taskErr != nil {
 		return models.Receipt{}, nil, taskErr
 	}
@@ -386,7 +386,7 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 				Type:                 models.QUICK_SCAN,
 				AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 				StartedAt:            now,
-				AsynqTaskId:          params.AsynqTaskId,
+				JobId:          params.JobId,
 				RanByUserId:          &token.UserId,
 				GroupId:              &groupId,
 			}, magicFillErr)
@@ -429,7 +429,7 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 			AssociatedEntityType:   models.RECEIPT_PROCESSING_SETTINGS,
 			AssociatedEntityId:     parentTask.AssociatedEntityId,
 			StartedAt:              finishedAt,
-			AsynqTaskId:            params.AsynqTaskId,
+			JobId:            params.JobId,
 			GroupId:                &groupId,
 			AssociatedSystemTaskId: &parentId,
 		}, failureErr)

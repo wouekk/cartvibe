@@ -8,7 +8,6 @@ import (
 	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"cartvibe/api/internal/jobs"
 	"net/http"
 	"strings"
 )
@@ -133,24 +132,4 @@ func serverPublicUrlStillNeeded(command commands.UpsertSystemSettingsCommand) (b
 	}
 
 	return len(enabledProviders) > 0, nil
-}
-
-func RestartTaskServer(w http.ResponseWriter, r *http.Request) {
-	handler := structs.Handler{
-		ErrorMessage:   "Error restarting task server, please restart the entire application",
-		Writer:         w,
-		Request:        r,
-		AppPermissions: []string{permissions.AppSystemSettingsRestartTaskServer},
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			err := jobs.RestartEmbeddedAsynqServer()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
-
-			return 0, nil
-		},
-	}
-	HandleRequest(handler)
 }

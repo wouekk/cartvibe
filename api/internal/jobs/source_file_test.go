@@ -1,389 +1,274 @@
 package jobs
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
-	"github.com/hibiken/asynq"
 )
+
+// lookupReturning answers every lookup with one quick scan job in the given status.
+func lookupReturning(status models.JobStatus, payload string) jobLookup {
+	return func(string) (models.Job, bool, error) {
+		return models.Job{ID: 7, Kind: QuickScan, Status: status, Payload: payload}, true, nil
+	}
+}
 
 func TestResolveActivityFlags(t *testing.T) {
 	directory := containedTempDir(t)
-	present := writeTempFile(t, directory, "present.jpg", 0)
-	missing := filepath.Join(directory, "gone.jpg")
+	present := writeTempFile(t, directory, "present.jpg", time.Minute)
+	gone := filepath.Join(directory, "gone.jpg")
 
 	tests := []struct {
 		name                   string
-		taskType               models.SystemTaskType
-		state                  asynq.TaskState
-		payload                any
+		status                 models.JobStatus
+		path                   string
 		expectedCanBeRestarted bool
 		expectedHasSourceFile  bool
 	}{
-		{
-			name:                   "archived quick scan with its upload is rerunnable and downloadable",
-			taskType:               models.QUICK_SCAN,
-			state:                  asynq.TaskStateArchived,
-			payload:                QuickScanTaskPayload{TempPath: present},
-			expectedCanBeRestarted: true,
-			expectedHasSourceFile:  true,
-		},
-		{
-			// Once the sweeper reclaims the file, a rerun cannot work and the
-			// button must stop being offered.
-			name:                   "archived quick scan without its upload is neither",
-			taskType:               models.QUICK_SCAN,
-			state:                  asynq.TaskStateArchived,
-			payload:                QuickScanTaskPayload{TempPath: missing},
-			expectedCanBeRestarted: false,
-			expectedHasSourceFile:  false,
-		},
-		{
-			// The point of not gating HasSourceFile on Archived: asynq backs its
-			// retries off exponentially, so this state lasts minutes.
-			name:                   "retrying quick scan offers the file but not a rerun",
-			taskType:               models.QUICK_SCAN,
-			state:                  asynq.TaskStateRetry,
-			payload:                QuickScanTaskPayload{TempPath: present},
-			expectedCanBeRestarted: false,
-			expectedHasSourceFile:  true,
-		},
-		{
-			name:                   "pending quick scan offers the file but not a rerun",
-			taskType:               models.QUICK_SCAN,
-			state:                  asynq.TaskStatePending,
-			payload:                QuickScanTaskPayload{TempPath: present},
-			expectedCanBeRestarted: false,
-			expectedHasSourceFile:  true,
-		},
+		{"a failed scan with its upload can be run again and hands the file back", models.JobFailed, present, true, true},
+		{"a failed scan whose upload is gone offers neither", models.JobFailed, gone, false, false},
+		{"a scan waiting for its next try hands the file back but cannot be run again", models.JobPending, present, false, true},
+		{"a running scan hands the file back but cannot be run again", models.JobRunning, present, false, true},
+		{"a failed scan that names no file can be run again and has nothing to hand back", models.JobFailed, "", true, false},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			lookup := lookupReturning(t, test.state, test.payload)
-
-			flags, err := resolveActivityFlags(lookup, test.taskType, "task-1")
+			flags, err := resolveActivityFlags(lookupReturning(test.status, quickScanPayload(t, test.path)), models.QUICK_SCAN, "7")
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if flags.canBeRestarted != test.expectedCanBeRestarted {
-				t.Errorf("canBeRestarted = %v, want %v", flags.canBeRestarted, test.expectedCanBeRestarted)
+				t.Errorf("canBeRestarted = %v, expected %v", flags.canBeRestarted, test.expectedCanBeRestarted)
 			}
 			if flags.hasSourceFile != test.expectedHasSourceFile {
-				t.Errorf("hasSourceFile = %v, want %v", flags.hasSourceFile, test.expectedHasSourceFile)
+				t.Errorf("hasSourceFile = %v, expected %v", flags.hasSourceFile, test.expectedHasSourceFile)
 			}
 		})
 	}
 }
 
-// RECEIPT_UPLOADED / RECEIPT_UPDATED rows carry no asynq task, and GetTaskInfo
-// rejects an empty id — so it must never be called for one.
-func TestResolveActivityFlags_SkipsLookupForRowsWithNoTask(t *testing.T) {
-	called := false
-	lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-		called = true
-		return nil, nil
+// Rows that name no job, and task types that never own one, must not cost a lookup.
+func TestResolveActivityFlags_SkipsLookupForRowsWithNoJob(t *testing.T) {
+	lookup := func(string) (models.Job, bool, error) {
+		t.Fatal("no lookup expected")
+		return models.Job{}, false, nil
 	}
 
-	flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if called {
-		t.Error("expected no lookup for an empty asynq task id")
-	}
-	if flags.canBeRestarted || flags.hasSourceFile {
-		t.Error("expected no flags")
-	}
-}
-
-func TestResolveActivityFlags_UnsupportedTaskTypeIsNotAnError(t *testing.T) {
-	lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-		t.Fatal("expected no lookup for an unsupported task type")
-		return nil, nil
-	}
-
-	if _, err := resolveActivityFlags(lookup, models.RECEIPT_UPLOADED, "task-1"); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-}
-
-// A task that aged out of Redis is an ordinary end state, not a failure.
-func TestResolveActivityFlags_MissingTaskYieldsNoFlags(t *testing.T) {
-	for _, sentinel := range []error{asynq.ErrTaskNotFound, asynq.ErrQueueNotFound} {
-		lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-			return nil, fmt.Errorf("asynq: %w", sentinel)
-		}
-
-		flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "task-1")
-		if err != nil {
-			t.Fatalf("unexpected error for %v: %v", sentinel, err)
-		}
-		if flags.canBeRestarted || flags.hasSourceFile {
-			t.Errorf("expected no flags for %v", sentinel)
+	for name, row := range map[string]struct {
+		taskType models.SystemTaskType
+		jobId    string
+	}{
+		"a quick scan from before the column existed": {models.QUICK_SCAN, ""},
+		"a task type that owns no job":                {models.RECEIPT_UPLOADED, "7"},
+	} {
+		flags, err := resolveActivityFlags(lookup, row.taskType, row.jobId)
+		if err != nil || flags.canBeRestarted || flags.hasSourceFile {
+			t.Errorf("%s: expected no flags and no error, got %+v, %v", name, flags, err)
 		}
 	}
 }
 
-// Any other lookup failure propagates, so the caller can stop rather than pay a
-// dial timeout per remaining row.
-func TestResolveActivityFlags_PropagatesOtherLookupErrors(t *testing.T) {
-	lookupErr := errors.New("redis unreachable")
-	lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-		return nil, lookupErr
-	}
+// A scan that succeeded has no row any more, and neither has one that was swept.
+func TestResolveActivityFlags_MissingJobYieldsNoFlags(t *testing.T) {
+	lookup := func(string) (models.Job, bool, error) { return models.Job{}, false, nil }
 
-	if _, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "task-1"); !errors.Is(err, lookupErr) {
-		t.Fatalf("expected the lookup error to propagate, got: %v", err)
+	flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "7")
+	if err != nil || flags.canBeRestarted || flags.hasSourceFile {
+		t.Errorf("expected no flags and no error, got %+v, %v", flags, err)
 	}
 }
 
-// An unreadable payload is this row's problem, not the request's.
+// A system task must never borrow the upload of a job of another kind that happens to share its number.
+func TestResolveActivityFlags_AJobOfAnotherKindYieldsNoFlags(t *testing.T) {
+	lookup := func(string) (models.Job, bool, error) {
+		return models.Job{ID: 7, Kind: BackupImport, Status: models.JobFailed, Payload: `{"jobId":1}`}, true, nil
+	}
+
+	flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "7")
+	if err != nil || flags.canBeRestarted || flags.hasSourceFile {
+		t.Errorf("expected no flags and no error, got %+v, %v", flags, err)
+	}
+}
+
+func TestResolveActivityFlags_PropagatesLookupErrors(t *testing.T) {
+	failure := errors.New("database is locked")
+	lookup := func(string) (models.Job, bool, error) { return models.Job{}, false, failure }
+
+	if _, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "7"); !errors.Is(err, failure) {
+		t.Errorf("expected the lookup error, got %v", err)
+	}
+}
+
 func TestResolveActivityFlags_MalformedPayloadYieldsNoFlags(t *testing.T) {
-	lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-		return &asynq.TaskInfo{State: asynq.TaskStateArchived, Payload: []byte("{not json")}, nil
-	}
-
-	flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "task-1")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if flags.canBeRestarted || flags.hasSourceFile {
-		t.Error("expected no flags")
+	flags, err := resolveActivityFlags(lookupReturning(models.JobFailed, "{not json"), models.QUICK_SCAN, "7")
+	if err != nil || flags.canBeRestarted || flags.hasSourceFile {
+		t.Errorf("expected no flags and no error, got %+v, %v", flags, err)
 	}
 }
 
-// A primary and fallback processing setting produce two rows sharing one asynq
-// task id, and the system-task table shows parent and child rows, so the same id
-// repeats several times per page.
-func TestMemoizeTaskInfoLookup_LooksEachTaskUpOnce(t *testing.T) {
-	calls := 0
-	lookup := memoizeTaskInfoLookup(func(queue string, id string) (*asynq.TaskInfo, error) {
-		calls++
-		return &asynq.TaskInfo{State: asynq.TaskStateArchived}, nil
+// A payload naming a path outside temp/ must report no source file, matching what ResolveSystemTaskSourceFile
+// does at the endpoint. Otherwise the client renders a preview control whose request can only fail, and the stat
+// doubles as an existence oracle for arbitrary server paths.
+func TestResolveActivityFlags_PathOutsideTempIsNotUsable(t *testing.T) {
+	containedTempDir(t)
+	outside := writeTempFile(t, t.TempDir(), "outside.jpg", time.Minute)
+
+	flags, err := resolveActivityFlags(lookupReturning(models.JobFailed, quickScanPayload(t, outside)), models.QUICK_SCAN, "7")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if flags.hasSourceFile || flags.canBeRestarted {
+		t.Errorf("a file outside temp/ must be neither served nor rerun, got %+v", flags)
+	}
+}
+
+func TestMemoizeJobLookup_LooksEachJobUpOnce(t *testing.T) {
+	calls := map[string]int{}
+	lookup := memoizeJobLookup(func(jobId string) (models.Job, bool, error) {
+		calls[jobId]++
+		return models.Job{}, false, nil
 	})
 
-	for i := 0; i < 3; i++ {
-		if _, err := lookup("quick_scan", "task-1"); err != nil {
-			t.Fatalf("unexpected error: %v", err)
+	for _, jobId := range []string{"1", "1", "2", "1", "2"} {
+		if _, _, err := lookup(jobId); err != nil {
+			t.Fatal(err)
 		}
 	}
-	if _, err := lookup("quick_scan", "task-2"); err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if calls != 2 {
-		t.Errorf("expected 2 lookups, got %d", calls)
+	if calls["1"] != 1 || calls["2"] != 1 {
+		t.Errorf("expected one lookup per job, got %v", calls)
 	}
 }
 
-func TestRerunSourceFilesPresent(t *testing.T) {
-	directory := containedTempDir(t)
-	present := writeTempFile(t, directory, "present.jpg", 0)
-	missing := filepath.Join(directory, "gone.jpg")
+func TestCanRerunJob_OnlyAFailedJob(t *testing.T) {
+	for status, expected := range map[models.JobStatus]bool{
+		models.JobFailed:  true,
+		models.JobPending: false,
+		models.JobRunning: false,
+		"":                false,
+	} {
+		if got := CanRerunJob(models.Job{Status: status}); got != expected {
+			t.Errorf("CanRerunJob(%q) = %v, expected %v", status, got, expected)
+		}
+	}
+}
 
-	tests := []struct {
-		name     string
-		taskType models.SystemTaskType
-		payload  any
+func TestRerunSourceFilePresent(t *testing.T) {
+	directory := containedTempDir(t)
+	present := writeTempFile(t, directory, "present.jpg", time.Minute)
+
+	for name, test := range map[string]struct {
+		payload  string
 		expected bool
 	}{
-		{"quick scan with its upload", models.QUICK_SCAN, QuickScanTaskPayload{TempPath: present}, true},
-		{"quick scan without its upload", models.QUICK_SCAN, QuickScanTaskPayload{TempPath: missing}, false},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			payloadBytes, err := json.Marshal(test.payload)
-			if err != nil {
-				t.Fatalf("failed to marshal payload: %v", err)
-			}
-
-			if got := RerunSourceFilesPresent(test.taskType, payloadBytes); got != test.expected {
-				t.Errorf("RerunSourceFilesPresent() = %v, want %v", got, test.expected)
-			}
-		})
+		"the upload is on disk":                          {quickScanPayload(t, present), true},
+		"the upload is gone":                             {quickScanPayload(t, filepath.Join(directory, "gone.jpg")), false},
+		"a payload naming no file blocks nothing":        {quickScanPayload(t, ""), true},
+		"an unreadable payload is left for the rerun":    {"{not json", true},
+	} {
+		if got := RerunSourceFilePresent(models.Job{Kind: QuickScan, Payload: test.payload}); got != test.expected {
+			t.Errorf("%s: got %v, expected %v", name, got, test.expected)
+		}
 	}
 }
 
-// The system-task table is app-scoped, so it lists groups the caller may not
-// belong to. A flag there would advertise a button the endpoints refuse.
 func TestSetSystemTaskHasSourceFile_SkipsGroupsTheCallerCannotRead(t *testing.T) {
 	directory := containedTempDir(t)
-	present := writeTempFile(t, directory, "scan.jpg", 0)
+	present := writeTempFile(t, directory, "present.jpg", time.Minute)
+	readable, hidden := uint(1), uint(2)
 
-	readable := uint(1)
-	unreadable := uint(2)
 	systemTasks := []models.SystemTask{
-		{Type: models.QUICK_SCAN, AsynqTaskId: "task-1", GroupId: &readable},
-		{Type: models.QUICK_SCAN, AsynqTaskId: "task-2", GroupId: &unreadable},
-		{Type: models.QUICK_SCAN, AsynqTaskId: "task-3", GroupId: nil},
+		{Type: models.QUICK_SCAN, JobId: "7", GroupId: &readable},
+		{Type: models.QUICK_SCAN, JobId: "7", GroupId: &hidden},
+		{Type: models.QUICK_SCAN, JobId: "7"},
 	}
 
-	lookup := lookupReturning(t, asynq.TaskStateArchived, QuickScanTaskPayload{TempPath: present})
-
-	hydrateSystemTaskSourceFiles(systemTasks, lookup, func(groupId uint) bool { return groupId == readable })
+	hydrateSystemTaskSourceFiles(
+		systemTasks,
+		lookupReturning(models.JobFailed, quickScanPayload(t, present)),
+		func(groupId uint) bool { return groupId == readable },
+	)
 
 	if !systemTasks[0].HasSourceFile {
-		t.Error("expected the readable group's row to be hydrated")
+		t.Errorf("expected the readable group's task to offer its file")
 	}
-	if systemTasks[1].HasSourceFile {
-		t.Error("expected the unreadable group's row to be skipped")
-	}
-	if systemTasks[2].HasSourceFile {
-		t.Error("expected a row with no group to be skipped")
+	if systemTasks[1].HasSourceFile || systemTasks[2].HasSourceFile {
+		t.Errorf("a task in a group the caller cannot read, or in none, must not offer a file")
 	}
 }
 
-func TestSetActivityFlags_AppliesBothFlagsPerRow(t *testing.T) {
+func TestApplyActivityFlags_AppliesBothFlagsPerRow(t *testing.T) {
 	directory := containedTempDir(t)
-	present := writeTempFile(t, directory, "scan.jpg", 0)
-	missing := filepath.Join(directory, "gone.jpg")
+	present := writeTempFile(t, directory, "present.jpg", time.Minute)
 
 	activities := []structs.Activity{
-		{Type: models.QUICK_SCAN, AsynqTaskId: "task-present"},
-		{Type: models.QUICK_SCAN, AsynqTaskId: "task-missing"},
+		{Type: models.QUICK_SCAN, JobId: "7"},
+		{Type: models.RECEIPT_UPLOADED},
 	}
 
-	lookup := func(queue string, id string) (*asynq.TaskInfo, error) {
-		tempPath := present
-		if id == "task-missing" {
-			tempPath = missing
-		}
-
-		payload, err := json.Marshal(QuickScanTaskPayload{TempPath: tempPath})
-		if err != nil {
-			return nil, err
-		}
-
-		return &asynq.TaskInfo{State: asynq.TaskStateArchived, Payload: payload}, nil
-	}
-
-	applyActivityFlags(&activities, lookup)
+	applyActivityFlags(&activities, lookupReturning(models.JobFailed, quickScanPayload(t, present)))
 
 	if !activities[0].CanBeRestarted || !activities[0].HasSourceFile {
-		t.Error("expected the activity with its upload to carry both flags")
+		t.Errorf("expected both flags on the failed quick scan, got %+v", activities[0])
 	}
 	if activities[1].CanBeRestarted || activities[1].HasSourceFile {
-		t.Error("expected the activity without its upload to carry neither flag")
+		t.Errorf("expected no flags on a receipt upload, got %+v", activities[1])
 	}
 }
 
-// --- helpers ---
+// The whole path against the real table: the file behind a failed scan is found through the system task, and a
+// rerun takes the job exactly once.
+func TestResolveSystemTaskSourceFileAndRerun(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	directory := containedTempDir(t)
+	present := writeTempFile(t, directory, "present.jpg", time.Minute)
+	jobRepository := repositories.NewJobRepository(nil)
+	job := failedQuickScan(t, jobRepository, present, time.Now())
+	systemTask := models.SystemTask{Type: models.QUICK_SCAN, JobId: repositories.JobIdString(job.ID)}
 
-func lookupReturning(t *testing.T, state asynq.TaskState, payload any) taskInfoLookup {
-	t.Helper()
-
-	payloadBytes, err := json.Marshal(payload)
+	sourceFile, err := ResolveSystemTaskSourceFile(systemTask)
 	if err != nil {
-		t.Fatalf("failed to marshal payload: %v", err)
+		t.Fatalf("expected the source file, got %v", err)
+	}
+	if sourceFile.Path != present || sourceFile.FileName != "receipt.jpg" || sourceFile.GroupId != "1" {
+		t.Errorf("unexpected source file %+v", sourceFile)
 	}
 
-	return func(queue string, id string) (*asynq.TaskInfo, error) {
-		return &asynq.TaskInfo{ID: id, State: state, Payload: payloadBytes}, nil
+	found, isFound, err := FindJobForSystemTask(systemTask)
+	if err != nil || !isFound || !CanRerunJob(found) {
+		t.Fatalf("expected a failed job to run again, got %+v found=%v err=%v", found, isFound, err)
 	}
-}
-
-// Exhaustive over every asynq state, so a state added upstream is a deliberate
-// decision rather than a silent default.
-//
-// These two predicates are what keeps asynq.Retention on the email queue from
-// changing anything a user sees: RunTask does not refuse a task by state, and a
-// retained completed task still has its files on disk.
-func TestTaskStatePredicates(t *testing.T) {
-	tests := []struct {
-		state                   asynq.TaskState
-		expectedRerunnable      bool
-		expectedOffersSourceFil bool
-	}{
-		{asynq.TaskStateActive, false, true},
-		{asynq.TaskStatePending, false, true},
-		{asynq.TaskStateScheduled, false, true},
-		{asynq.TaskStateRetry, false, true},
-		// The state a failure lands in once asynq exhausts its retries — the one
-		// a rerun is for.
-		{asynq.TaskStateArchived, true, true},
-		// Retained for the temp sweep. It succeeded: its receipt carries the
-		// image, and re-running it would make a second one.
-		{asynq.TaskStateCompleted, false, false},
-		{asynq.TaskStateAggregating, false, true},
+	first, err := RerunJob(found)
+	second, secondErr := RerunJob(found)
+	if err != nil || secondErr != nil || !first || second {
+		t.Errorf("expected exactly one rerun to take the job, got %v/%v (%v, %v)", first, second, err, secondErr)
 	}
 
-	for _, test := range tests {
-		t.Run(test.state.String(), func(t *testing.T) {
-			if got := rerunnableState(test.state); got != test.expectedRerunnable {
-				t.Errorf("rerunnableState(%v) = %v, want %v", test.state, got, test.expectedRerunnable)
-			}
-			if got := CanRerunTask(&asynq.TaskInfo{State: test.state}); got != test.expectedRerunnable {
-				t.Errorf("CanRerunTask(%v) = %v, want %v", test.state, got, test.expectedRerunnable)
-			}
-			if got := offersSourceFile(test.state); got != test.expectedOffersSourceFil {
-				t.Errorf("offersSourceFile(%v) = %v, want %v", test.state, got, test.expectedOffersSourceFil)
-			}
-		})
+	stored, _, err := jobRepository.Find(job.ID)
+	if err != nil || stored.Status != models.JobPending || stored.Attempts != 0 {
+		t.Errorf("expected the job to wait with a fresh set of tries, got %+v, %v", stored, err)
 	}
 }
 
-// The zero TaskState is what an unset struct carries; it must not read as
-// rerunnable, and neither must a nil lookup result.
-func TestCanRerunTask_RefusesNilAndZeroState(t *testing.T) {
-	if CanRerunTask(nil) {
-		t.Error("CanRerunTask(nil) = true, want false")
-	}
-	if CanRerunTask(&asynq.TaskInfo{}) {
-		t.Error("CanRerunTask(zero state) = true, want false")
-	}
-}
-
-// containedTempDir points BASE_PATH at a fresh directory and returns its temp/
-// subdirectory, which is the only place sourcePathUsable accepts a path from.
-//
-// A bare t.TempDir() is NOT inside temp/, so every fixture written there would read as
-// missing once the flag path started asserting containment. Rooting the fixtures properly
-// exercises the real check rather than injecting a stub for it.
-func containedTempDir(t *testing.T) string {
-	t.Helper()
-
-	base := t.TempDir()
-	directory := filepath.Join(base, "temp")
-	if err := os.MkdirAll(directory, 0o755); err != nil {
-		t.Fatalf("failed to create %s: %v", directory, err)
-	}
-	t.Setenv("BASE_PATH", base)
-
-	return directory
-}
-
-// A payload naming a path outside temp/ must report no source file, matching what
-// ResolveSystemTaskSourceFile does at the endpoint. Otherwise the client renders a preview
-// control whose request can only fail, and the stat doubles as an existence oracle for
-// arbitrary server paths.
-func TestResolveActivityFlags_PathOutsideTempIsNotUsable(t *testing.T) {
-	outside := t.TempDir()
-	escaped := filepath.Join(outside, "escaped.jpg")
-	if err := os.WriteFile(escaped, []byte("contents"), 0o644); err != nil {
-		t.Fatalf("failed to write %s: %v", escaped, err)
-	}
-
-	// BASE_PATH is set to a DIFFERENT root, so temp/ does not contain the file above.
+func TestResolveSystemTaskSourceFile_SaysWhyThereIsNone(t *testing.T) {
+	defer repositories.TruncateTestDb()
 	containedTempDir(t)
 
-	lookup := lookupReturning(t, asynq.TaskStateArchived, QuickScanTaskPayload{TempPath: escaped})
-
-	flags, err := resolveActivityFlags(lookup, models.QUICK_SCAN, "task-1")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+	if _, err := ResolveSystemTaskSourceFile(models.SystemTask{Type: models.RECEIPT_UPLOADED, JobId: "1"}); !errors.Is(err, ErrSourceFileUnsupportedTask) {
+		t.Errorf("a task type without uploads: got %v", err)
 	}
-	if flags.hasSourceFile {
-		t.Error("hasSourceFile = true for a path outside temp/, want false")
-	}
-	if flags.canBeRestarted {
-		t.Error("canBeRestarted = true for a path outside temp/, want false")
+	for name, jobId := range map[string]string{
+		"no job named":                    "",
+		"a job that is gone":              "4242",
+		"an id left by the earlier queue": "0b6f6d0e-6f1c-4c35-9d5f-1f0e8a1c2b3d",
+	} {
+		if _, err := ResolveSystemTaskSourceFile(models.SystemTask{Type: models.QUICK_SCAN, JobId: jobId}); !errors.Is(err, ErrSourceFileUnavailable) {
+			t.Errorf("%s: got %v", name, err)
+		}
 	}
 }

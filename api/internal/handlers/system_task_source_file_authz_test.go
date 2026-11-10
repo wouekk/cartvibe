@@ -74,7 +74,7 @@ func seedSourceFileAuthzFixture(t *testing.T) sourceFileAuthzFixture {
 		AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 		GroupId:              &groupId,
 		RanByUserId:          &ranBy,
-		AsynqTaskId:          "iso-sf-task",
+		JobId:          "iso-sf-task",
 		StartedAt:            time.Now(),
 	}
 	if err := db.Create(&task).Error; err != nil {
@@ -103,7 +103,7 @@ func sourceFileRequest(t *testing.T, taskId uint, userId uint) (*httptest.Respon
 // group.activities.read, so the group gate alone admits them — but the activity
 // list hides this row, and naming its id directly must not hand back the upload.
 //
-// Redis is never reached: the visibility check precedes the payload lookup, which
+// The job is never looked up: the visibility check precedes the payload lookup, which
 // is the same ordering that stops an unauthorized caller learning whether the file
 // exists. That is why this test can exist at all.
 func TestSourceFileEndpointsDenyAHiddenPeersActivity(t *testing.T) {
@@ -131,7 +131,7 @@ func TestSourceFileEndpointsDenyAHiddenPeersActivity(t *testing.T) {
 
 // The contrasts, so the 403 above is attributable to isolation rather than to the
 // endpoint failing for everyone. Neither of these reaches 403: they get past the
-// gate and fail later, in Redis, which is not running here.
+// gate and fail later, at the job lookup: no job was queued here.
 func TestSourceFileEndpointsAdmitVisibleActors(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)
@@ -186,7 +186,7 @@ func seedHiddenActivityOfType(t *testing.T, fixture sourceFileAuthzFixture, task
 		AssociatedEntityType: models.NOOP_ENTITY_TYPE,
 		GroupId:              existing.GroupId,
 		RanByUserId:          existing.RanByUserId,
-		AsynqTaskId:          "iso-sf-task-2",
+		JobId:          "iso-sf-task-2",
 		StartedAt:            time.Now(),
 	}
 	if err := repositories.GetDB().Create(&task).Error; err != nil {
@@ -286,8 +286,8 @@ func TestRerunActivityHidesTheTaskTypeFromAnUnauthorizedCaller(t *testing.T) {
 }
 
 // The contrast: a caller who MAY see the activity still gets the 400, so moving the
-// check behind the gate did not quietly drop it. The type check precedes the asynq
-// inspector, so this needs no Redis either.
+// check behind the gate did not quietly drop it. The type check precedes the job
+// lookup.
 func TestRerunActivityStillRejectsANonRerunnableTypeForAnAuthorizedCaller(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	fixture := seedSourceFileAuthzFixture(t)

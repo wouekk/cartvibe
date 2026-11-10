@@ -4,10 +4,13 @@ import (
 	"cartvibe/api/internal/constants"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -59,9 +62,22 @@ func TestConnectSqliteAppliesPragmasOnEveryConnection(t *testing.T) {
 		defer conn.Close()
 
 		var journalMode string
-		var busyTimeout, foreignKeys int
+		var busyTimeout, foreignKeys, journalSizeLimit, tempStore, cacheSize int
 		if err := conn.QueryRowContext(ctx, "PRAGMA journal_mode").Scan(&journalMode); err != nil {
 			t.Fatal(err)
+		}
+		for pragma, target := range map[string]*int{
+			"journal_size_limit": &journalSizeLimit,
+			"temp_store":         &tempStore,
+			"cache_size":         &cacheSize,
+		} {
+			if err := conn.QueryRowContext(ctx, "PRAGMA "+pragma).Scan(target); err != nil {
+				t.Fatal(err)
+			}
+		}
+		// temp_store 2 is MEMORY.
+		if journalSizeLimit != sqliteJournalSizeLimitBytes || tempStore != 2 || cacheSize != sqliteCacheSizeKib {
+			t.Errorf("connection %d: journal_size_limit %d, temp_store %d, cache_size %d", i, journalSizeLimit, tempStore, cacheSize)
 		}
 		if err := conn.QueryRowContext(ctx, "PRAGMA busy_timeout").Scan(&busyTimeout); err != nil {
 			t.Fatal(err)
@@ -79,6 +95,53 @@ func TestConnectSqliteAppliesPragmasOnEveryConnection(t *testing.T) {
 		if foreignKeys != 1 {
 			t.Errorf("connection %d: foreign_keys off", i)
 		}
+	}
+}
+
+// A clean stop folds the -wal file into the database and closes the pool, so app.db alone is a whole copy.
+func TestCloseDBCheckpointsAndCloses(t *testing.T) {
+	connected := connectSqliteForTest(t)
+	previous := db
+	setDB(connected)
+	defer setDB(previous)
+
+	if err := connected.Exec("CREATE TABLE kept (value TEXT)").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := connected.Exec("INSERT INTO kept (value) VALUES ('milk')").Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := OptimizeDatabase(); err != nil {
+		t.Fatalf("the daily housekeeping failed: %v", err)
+	}
+	if err := connected.Exec("INSERT INTO kept (value) VALUES ('bread')").Error; err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CloseDB(); err != nil {
+		t.Fatalf("CloseDB failed: %v", err)
+	}
+
+	if info, err := os.Stat(filepath.Join("sqlite", "app.db-wal")); err == nil && info.Size() != 0 {
+		t.Errorf("expected an empty -wal file after a clean stop, got %d bytes", info.Size())
+	}
+	if err := connected.Exec("SELECT 1").Error; err == nil {
+		t.Errorf("expected the pool to be closed")
+	}
+
+	// The file alone, with no -wal beside it, holds both rows.
+	os.Remove(filepath.Join("sqlite", "app.db-wal"))
+	os.Remove(filepath.Join("sqlite", "app.db-shm"))
+	reopened, err := gorm.Open(sqlite.Open("file:./sqlite/app.db?"+sqliteParams(true)), &gorm.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var count int64
+	if err := reopened.Raw("SELECT COUNT(*) FROM kept").Scan(&count).Error; err != nil || count != 2 {
+		t.Errorf("expected both rows in the database file, got %d, %v", count, err)
+	}
+	if sqlDB, err := reopened.DB(); err == nil {
+		sqlDB.Close()
 	}
 }
 
@@ -205,7 +268,8 @@ func TestShouldCreateTheCorrectSqliteString(t *testing.T) {
 	}
 
 	connectionString, _ := BuildSqliteConnectionString(dbConfig)
-	expected := "file:./sqlite/test.db?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)&_txlock=immediate"
+	expected := "file:./sqlite/test.db?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=synchronous(NORMAL)" +
+		"&_pragma=journal_size_limit(67108864)&_pragma=temp_store(MEMORY)&_pragma=cache_size(-8000)&_txlock=immediate"
 
 	if connectionString != expected {
 		utils.PrintTestError(t, connectionString, expected)

@@ -170,10 +170,8 @@ func GetActivitiesForGroups(w http.ResponseWriter, r *http.Request) {
 func RerunActivity(w http.ResponseWriter, r *http.Request) {
 	errorMsg := "Error rerunning activity"
 
-	// The group and the actor come off the task ROW, and everything Redis knows is
-	// deferred into the handler function below. Resolving the group from the asynq
-	// payload first, as this used to, put a Redis round trip — and any error from
-	// it — ahead of the permission gate. See "Authorization order" in api/CLAUDE.md.
+	// The group and the actor come off the task ROW, and everything the job knows is
+	// read in the handler function below, behind the permission gate.
 	systemTask, groupId, handled := loadSystemTaskForSourceFile(w, r, errorMsg)
 	if handled {
 		return
@@ -202,28 +200,14 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			queueName, err := jobs.SystemTaskToQueueName(systemTask.Type)
+			job, found, err := jobs.FindJobForSystemTask(systemTask)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			inspector, err := jobs.GetAsynqInspector()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			defer inspector.Close()
-
-			taskInfo, err := inspector.GetTaskInfo(queueName, systemTask.AsynqTaskId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			// Inspector.RunTask does not refuse a task by state — it pushes back
-			// anything that is not active or pending, a succeeded task included —
-			// so the rule lives here. A completed task can still be
-			// rerun by mistake, so without this a rerun would process the
-			// same upload twice. See CanRerunTask.
-			if !jobs.CanRerunTask(taskInfo) {
+			// Only a job that failed for good may be run again: one that waits or runs would process the same
+			// upload twice, and one that succeeded (or was swept) has no row left. See CanRerunJob.
+			if !found || !jobs.CanRerunJob(job) {
 				utils.WriteCustomErrorResponse(w, "Only a failed activity can be rerun.", http.StatusBadRequest)
 				return 0, nil
 			}
@@ -232,13 +216,19 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 			// is gone, but the endpoint stays callable. A rerun reads its upload
 			// first, so without this it would fail deep in the pipeline instead of
 			// saying what is wrong.
-			if !jobs.RerunSourceFilesPresent(systemTask.Type, taskInfo.Payload) {
+			if !jobs.RerunSourceFilePresent(job) {
 				utils.WriteCustomErrorResponse(w, "The file this activity needs is no longer available.", http.StatusBadRequest)
 				return 0, nil
 			}
 
-			if err := inspector.RunTask(queueName, systemTask.AsynqTaskId); err != nil {
+			// The claim is one conditional UPDATE: of two people pressing the button at once, one starts the scan.
+			rerun, err := jobs.RerunJob(job)
+			if err != nil {
 				return http.StatusInternalServerError, err
+			}
+			if !rerun {
+				utils.WriteCustomErrorResponse(w, "Only a failed activity can be rerun.", http.StatusBadRequest)
+				return 0, nil
 			}
 
 			return 0, nil
@@ -401,9 +391,9 @@ const activityAccessDeniedMessage = unauthorizedEntityMessage
 // the request must be gated on. It reports true when it has already written a response, in
 // which case the caller must return without building a handler.
 //
-// It reads the group off the system_tasks ROW rather than the asynq payload. That is what
+// It reads the group off the system_tasks ROW rather than the job's payload. That is what
 // lets every authorization answer come before any file-specific one: resolving the payload
-// means a Redis round trip that can itself fail or report the file gone, and doing that
+// means a second lookup that can itself fail or report the file gone, and doing that
 // first told an unauthorized caller whether a task existed and still had its upload. The
 // row carries GroupId for both task types (CreateSystemTasksFromMetadata is passed one by
 // the quick scan and email paths alike), and it saves the GroupSettings lookup

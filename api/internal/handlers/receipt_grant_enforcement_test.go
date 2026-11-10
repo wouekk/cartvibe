@@ -253,7 +253,7 @@ func TestEnforceQuickScanGrantSelection(t *testing.T) {
 
 // TestQuickScanHandlerDeniesOutOfGrantCategory drives the real QuickScan handler to prove the grant
 // gate is actually wired in (returns 403), not just unit-tested in isolation. The deny returns before
-// the enqueue loop, so no Redis/AI/file processing is exercised.
+// the enqueue loop, so no queue/AI/file processing is exercised.
 func TestQuickScanHandlerDeniesOutOfGrantCategory(t *testing.T) {
 	defer repositories.TruncateTestDb()
 

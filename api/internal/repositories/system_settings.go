@@ -46,7 +46,7 @@ func (repository SystemSettingsRepository) GetSystemSettings() (models.SystemSet
 		}
 	}
 
-	err = db.Model(&models.SystemSettings{}).Preload(clause.Associations).Preload("TaskQueueConfigurations").First(&systemSettings).Error
+	err = db.Model(&models.SystemSettings{}).Preload(clause.Associations).First(&systemSettings).Error
 	if err != nil {
 		return models.SystemSettings{}, err
 	}
@@ -59,7 +59,6 @@ func (repository SystemSettingsRepository) GetSystemSettings() (models.SystemSet
 		}
 	}
 
-	systemSettings.TaskQueueConfigurations = withMissingQueueConfigurations(systemSettings.TaskQueueConfigurations)
 	systemSettings.ShopLogoKeySet = ShopLogoSecretKey(systemSettings) != ""
 
 	return systemSettings, nil
@@ -76,46 +75,6 @@ func ShopLogoSecretKey(settings models.SystemSettings) string {
 		return ""
 	}
 	return key
-}
-
-// withMissingQueueConfigurations returns the persisted queue configurations with a
-// default filled in for every queue name the list does not carry, ordered by
-// models.GetQueueNames(). A persisted configuration always wins; only absent names
-// are filled.
-//
-// An install that upgraded across a release which added a queue has rows for only
-// the queues that existed when it last saved, and nothing backfills the rest: this
-// read used to substitute defaults only when the list was EMPTY, and
-// UpdateSystemSettings only ever UPDATEs by name. The settings form builds its rows
-// from this response, so it submitted a short list and
-// UpsertSystemSettingsCommand.Validate — which requires a configuration for every
-// queue name — rejected the whole save with a 400, every field in it along with the
-// queue list. The task server never surfaced the gap, because asynq_server.go falls
-// back to the default priority for a missing configuration.
-//
-// A persisted row naming a queue this build does not know is dropped rather than
-// carried through: QueueName.Value() would reject it on the way back down, so
-// returning it could only make an otherwise valid save fail.
-func withMissingQueueConfigurations(persisted []models.TaskQueueConfiguration) []models.TaskQueueConfiguration {
-	persistedByName := make(map[models.QueueName]models.TaskQueueConfiguration, len(persisted))
-	for _, configuration := range persisted {
-		persistedByName[configuration.Name] = configuration
-	}
-
-	defaultsByName := models.GetDefaultQueueConfigurationMap()
-	queueNames := models.GetQueueNames()
-	configurations := make([]models.TaskQueueConfiguration, 0, len(queueNames))
-
-	for _, queueName := range queueNames {
-		if configuration, ok := persistedByName[queueName]; ok {
-			configurations = append(configurations, configuration)
-			continue
-		}
-
-		configurations = append(configurations, defaultsByName[queueName])
-	}
-
-	return configurations
 }
 
 func (repository SystemSettingsRepository) GetSystemReceiptProcessingSettings() (structs.SystemReceiptProcessingSettings, error) {
@@ -153,7 +112,7 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 	// (so a concurrent update that DID set one is never clobbered by a value we
 	// read before the write), and the in-memory copy is back-filled so the
 	// response echoes the stored value rather than a 0.
-	omittedColumns := append([]string{"TaskQueueConfigurations"}, command.OmittedColumns()...)
+	omittedColumns := command.OmittedColumns()
 	command.ApplyOmittedValues(existingSettings, &updatedSettings)
 
 	// A sent Logo.dev key is stored encrypted, like the AI keys ("" removes it).
@@ -169,64 +128,6 @@ func (repository SystemSettingsRepository) UpdateSystemSettings(command commands
 		txErr := tx.Model(&updatedSettings).Select("*").Omit(omittedColumns...).Where("id = ?", existingSettings.ID).Updates(&updatedSettings).Error
 		if txErr != nil {
 			return txErr
-		}
-
-		var configCount int64
-		txErr = tx.Model(&models.TaskQueueConfiguration{}).Count(&configCount).Error
-		if txErr != nil {
-			return txErr
-		}
-
-		if configCount == 0 {
-			txErr = tx.Model(&updatedSettings).
-				Where("id = ?", existingSettings.ID).
-				Association("TaskQueueConfigurations").
-				Replace(&updatedSettings.TaskQueueConfigurations)
-			if txErr != nil {
-				return txErr
-			}
-		} else {
-			var persistedNames []string
-			txErr = tx.Model(&models.TaskQueueConfiguration{}).Pluck("name", &persistedNames).Error
-			if txErr != nil {
-				return txErr
-			}
-
-			// Which names already have a row is read up front, so each one is either
-			// updated or created.
-			existingNames := make(map[models.QueueName]bool, len(persistedNames))
-			for _, name := range persistedNames {
-				existingNames[models.QueueName(name)] = true
-			}
-
-			for _, config := range updatedSettings.TaskQueueConfigurations {
-				// A queue added by a release this install upgraded across has no row
-				// yet, and GetSystemSettings has just filled its default in for the
-				// caller. Without the insert the UPDATE matches nothing, the submitted
-				// priority is silently discarded, and the missing row never heals.
-				if !existingNames[config.Name] {
-					newConfiguration := models.TaskQueueConfiguration{
-						Name:             config.Name,
-						Priority:         config.Priority,
-						SystemSettingsId: existingSettings.ID,
-					}
-
-					txErr = tx.Create(&newConfiguration).Error
-					if txErr != nil {
-						return txErr
-					}
-
-					continue
-				}
-
-				txErr = tx.Model(&models.TaskQueueConfiguration{}).Where("name = ?", config.Name).Updates(&models.TaskQueueConfiguration{
-					Priority: config.Priority,
-				}).Error
-
-				if txErr != nil {
-					return txErr
-				}
-			}
 		}
 
 		return nil
@@ -265,9 +166,6 @@ func SeedEuroForNewInstall() error {
 		CurrencySymbolPosition:       models.END,
 		CurrencyThousandthsSeparator: models.DOT,
 		CurrencyDecimalSeparator:     models.COMMA,
-		// Four workers, not the column default of ten: SQLite takes one writer at a time, so more only
-		// queue on the lock. Existing installs keep their value (System Settings → Task concurrency).
-		TaskConcurrency: 4,
 		// 30 days, not the column default of a day (see DefaultSessionLifetimeHours).
 		RefreshTokenValidForHours: DefaultSessionLifetimeHours,
 	}).Error

@@ -17,5 +17,5 @@ type UpsertSystemTaskCommand struct {
 	ReceiptId              *uint                       `json:"receiptId"`
 	GroupId                *uint                       `json:"groupId"`
 	AssociatedSystemTaskId *uint                       `json:"associatedSystemTaskId"`
-	AsynqTaskId            string                      `json:"asynqTaskId"`
+	JobId            string                      `json:"jobId"`
 }

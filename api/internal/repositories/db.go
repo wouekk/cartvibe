@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
@@ -44,6 +45,11 @@ func BuildSqliteConnectionString(dbConfig structs.DatabaseConfig) (string, error
 //     corrupt the file.
 //   - _txlock=immediate takes the write lock at BEGIN, so a transaction that read first never fails on
 //     upgrading to a writer (which busy_timeout cannot retry in WAL).
+//   - journal_size_limit caps the -wal file a checkpoint leaves behind (64 MB), so one large import does not
+//     leave a file of that size beside the database for good.
+//   - temp_store(MEMORY) keeps sorting and temporary indexes out of the container's temp folder.
+//   - cache_size(-8000) gives each connection 8 MB of page cache instead of SQLite's 2 MB; a report over a
+//     year of receipts reads the same pages many times.
 func sqliteParams(foreignKeys bool) string {
 	foreignKeysValue := 0
 	if foreignKeys {
@@ -51,14 +57,68 @@ func sqliteParams(foreignKeys bool) string {
 	}
 
 	return fmt.Sprintf(
-		"_pragma=foreign_keys(%d)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(%d)&_pragma=synchronous(NORMAL)&_txlock=immediate",
+		"_pragma=foreign_keys(%d)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(%d)&_pragma=synchronous(NORMAL)"+
+			"&_pragma=journal_size_limit(%d)&_pragma=temp_store(MEMORY)&_pragma=cache_size(%d)&_txlock=immediate",
 		foreignKeysValue,
 		sqliteBusyTimeoutMs,
+		sqliteJournalSizeLimitBytes,
+		sqliteCacheSizeKib,
 	)
+}
+
+// OptimizeDatabase is SQLite's own housekeeping, run once a day: `PRAGMA optimize` refreshes the statistics the
+// query planner works from where a table changed a lot, and a truncating checkpoint folds the -wal file back into
+// the database. The checkpoint is best effort: while something is reading it does what it can and says so.
+func OptimizeDatabase() error {
+	if db == nil {
+		return errors.New("the database is not connected")
+	}
+	if err := db.Exec("PRAGMA optimize").Error; err != nil {
+		return err
+	}
+
+	return checkpointWal(db)
+}
+
+// checkpointWal moves everything in the -wal file into the database file and empties it.
+func checkpointWal(target *gorm.DB) error {
+	var result struct {
+		Busy         int
+		Log          int
+		Checkpointed int
+	}
+
+	return target.Raw("PRAGMA wal_checkpoint(TRUNCATE)").Scan(&result).Error
+}
+
+// CloseDB ends the process's use of the database: a last checkpoint, so the database file alone holds everything
+// (a copy of app.db taken after a clean stop needs no -wal file beside it), then the pool is closed. main.go calls
+// it once the HTTP server and the background work have stopped.
+func CloseDB() error {
+	if db == nil {
+		return nil
+	}
+
+	checkpointErr := checkpointWal(db)
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	if err := sqlDB.Close(); err != nil {
+		return err
+	}
+
+	return checkpointErr
 }
 
 const (
 	sqliteBusyTimeoutMs = 5000
+
+	sqliteJournalSizeLimitBytes = 64 * 1024 * 1024
+
+	// A negative cache_size is in KiB (a positive one would be pages).
+	sqliteCacheSizeKib = -8000
 
 	// sqliteMaxOpenConns caps the pool. SQLite has one writer at a time whatever the pool size, so more
 	// connections only add readers; more than one is still needed because some services open a second
@@ -159,7 +219,6 @@ func migrateSchema(target *gorm.DB) error {
 		&models.UserShortcut{},
 		&models.UserPrefernces{},
 		&models.DashboardLayout{},
-		&models.TaskQueueConfiguration{},
 		&models.SystemSettings{},
 		&models.SystemTask{},
 		&models.ReceiptProcessingSettings{},
@@ -184,6 +243,7 @@ func migrateSchema(target *gorm.DB) error {
 		&models.WarrantyReminder{},
 		&models.PushSubscription{},
 		&models.BackupImportJob{},
+		&models.Job{},
 	)
 
 	return err

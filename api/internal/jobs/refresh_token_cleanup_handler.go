@@ -1,14 +1,15 @@
 package jobs
 
 import (
+	"context"
+	"time"
+
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
-	"context"
-	"github.com/hibiken/asynq"
-	"time"
 )
 
-func HandleRefreshTokenCleanupTask(context context.Context, task *asynq.Task) error {
+// HandleRefreshTokenCleanupTask deletes the refresh tokens that can no longer be exchanged: used or expired.
+func HandleRefreshTokenCleanupTask(_ context.Context) error {
 	// NOTE: Length check can be removed in a while. Length check was added to remove refresh tokens that were not hashed
 	db := repositories.GetDB()
 	return db.Model(&models.RefreshToken{}).

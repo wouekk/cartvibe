@@ -81,6 +81,41 @@ func TestWriteSnapshotReplacesALeftoverOfTheSameSecond(t *testing.T) {
 	}
 }
 
+// The daily copy goes by the newest copy's own time, so restarts neither skip a day nor add copies.
+func TestDailySnapshotDue(t *testing.T) {
+	dir := t.TempDir()
+	now := time.Date(2026, 11, 10, 12, 0, 0, 0, time.UTC)
+
+	if !dailySnapshotDue(dir, "app", now) {
+		t.Errorf("with no copy yet, one is due")
+	}
+
+	for _, name := range []string{
+		"app-daily-20261108-030000.db",
+		"app-daily-20261109-130000.db",
+		"app-upgrade-20261110-115900.db",
+		"other-daily-20261110-115900.db",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0o640); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if dailySnapshotDue(dir, "app", now) {
+		t.Errorf("the newest daily copy is 23 hours old: none is due (an upgrade copy or another base does not count)")
+	}
+	if !dailySnapshotDue(dir, "app", now.Add(time.Hour)) {
+		t.Errorf("the newest daily copy is 24 hours old: one is due")
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "app-daily-not-a-time.db"), []byte("x"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	if !dailySnapshotDue(dir, "app", now) {
+		t.Errorf("a name that cannot be read must not stop the daily copy")
+	}
+}
+
 func TestPruneSnapshotsKeepsTheNewestOfItsKindOnly(t *testing.T) {
 	dir := t.TempDir()
 	for _, name := range []string{

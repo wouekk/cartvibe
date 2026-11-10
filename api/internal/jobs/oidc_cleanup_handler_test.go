@@ -53,7 +53,7 @@ func TestHandleOidcCleanupTaskRemovesOnlySpentRows(t *testing.T) {
 		}
 	}
 
-	if err := HandleOidcCleanupTask(context.Background(), nil); err != nil {
+	if err := HandleOidcCleanupTask(context.Background()); err != nil {
 		t.Fatalf("cleanup failed: %v", err)
 	}
 

@@ -13,7 +13,6 @@ func BuildSystemSettingsRouter() *chi.Mux {
 	systemSettingsRouter.Get("/", handlers.GetSystemSettings)
 	systemSettingsRouter.Get("/logs", handlers.GetAppLog)
 	systemSettingsRouter.Put("/", handlers.UpdateSystemSettings)
-	systemSettingsRouter.Post("/restartTaskServer", handlers.RestartTaskServer)
 
 	return systemSettingsRouter
 }

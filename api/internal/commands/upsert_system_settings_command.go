@@ -49,9 +49,7 @@ type UpsertSystemSettingsCommand struct {
 	CurrencyHideDecimalPlaces           bool                                  `json:"currencyHideDecimalPlaces"`
 	ReceiptProcessingSettingsId         *uint                                 `json:"receiptProcessingSettingsId"`
 	FallbackReceiptProcessingSettingsId *uint                                 `json:"fallbackReceiptProcessingSettingsId"`
-	TaskConcurrency                     int                                   `json:"taskConcurrency"`
 	PdfDpi                              int                                   `json:"pdfDpi"`
-	TaskQueueConfigurations             []UpsertTaskQueueConfigurationCommand `json:"taskQueueConfigurations"`
 	McpEnabled                          bool                                  `json:"mcpEnabled"`
 	McpPublicUrl                        string                                `json:"mcpPublicUrl"`
 	// Pointers so an omitted key is distinguishable from an explicit zero value.
@@ -139,15 +137,6 @@ func (command *UpsertSystemSettingsCommand) Validate() structs.ValidatorError {
 
 	if command.PdfDpi != 0 && (command.PdfDpi < 72 || command.PdfDpi > 1200) {
 		errorMap["pdfDpi"] = "PDF DPI must be between 72 and 1200"
-	}
-
-	if command.TaskConcurrency < 0 {
-		errorMap["taskConcurrency"] = "Task concurrency must be greater than or equal to 0"
-	}
-
-	queueNames := models.GetQueueNames()
-	if len(command.TaskQueueConfigurations) != len(queueNames) {
-		errorMap["taskQueueConfigurations"] = "Task queue configurations must be provided for all queues"
 	}
 
 	trimmedMcpPublicUrl := strings.TrimSpace(command.McpPublicUrl)
@@ -318,9 +307,6 @@ func (command *UpsertSystemSettingsCommand) ToSystemSettings(id uint) (models.Sy
 	}
 
 	systemSettings.ID = id
-	for _, config := range systemSettings.TaskQueueConfigurations {
-		config.SystemSettingsId = id
-	}
 
 	return systemSettings, nil
 }

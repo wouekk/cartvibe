@@ -71,27 +71,15 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "could not record the running version: "+err.Error())
 	}
 
-	err = repositories.ConnectToValkey()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("redis connection error: %w", err))
-	}
-
-	err = jobs.StartEmbeddedAsynqServer()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("asynq worker error: %w", err))
-	}
-
-	err = jobs.StartEmbeddedAsynqScheduler()
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("asynq server error: %w", err))
-	}
-
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Initializing Imagick...")
 	imagick.Initialize()
 	defer imagick.Terminate()
-	err = jobs.StartSystemCleanUpTasks()
+
+	// The job queue and the periodic sweeps. Both live in the database and this process, so there is no other
+	// service to reach first; jobs a previous run was in the middle of are put back before the worker starts.
+	err = jobs.Start()
 	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
+		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Errorf("background work could not start: %w", err))
 	}
 
 	// Fetch what the logo store lacks now rather than at the first daily run (a fresh volume, a new release's
@@ -123,18 +111,27 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "http shutdown: "+err.Error())
 	}
 
-	// Then the background work: no new task is scheduled or taken, and a task that does not finish in asynq's own
-	// shutdown window goes back on its queue for the next start.
-	jobs.ShutDownEmbeddedAsynqScheduler()
-	jobs.ShutDownEmbeddedAsynqServer()
-	repositories.ShutdownAsynqClient()
+	// Then the background work: no new job or sweep starts, and what is running is told to stop. A scan cut short
+	// goes back on the queue for the next start without losing a try.
+	if !jobs.Stop(backgroundShutdownTimeout) {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "background work did not stop in time; the process ends anyway")
+	}
+
+	// Last, the database: one checkpoint, so app.db alone holds everything, and the connections are closed.
+	if err := repositories.CloseDB(); err != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "closing the database: "+err.Error())
+	}
 
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Stopped")
 }
 
-// httpShutdownTimeout is how long requests in flight get to finish when the server stops. The whole stop (this, plus
-// asynq's eight seconds for running tasks) fits the stack's stop_grace_period of 30 seconds.
-const httpShutdownTimeout = 10 * time.Second
+// httpShutdownTimeout is how long requests in flight get to finish when the server stops, and
+// backgroundShutdownTimeout how long a running job or sweep gets after that. Together, with the database's last
+// checkpoint, they fit the stack's stop_grace_period of 30 seconds.
+const (
+	httpShutdownTimeout       = 10 * time.Second
+	backgroundShutdownTimeout = 10 * time.Second
+)
 
 // listenAddress is where the API listens. In the image nginx is the only client and sits in the same container, so
 // the API answers on the loopback interface only: with host networking it would otherwise be reachable past nginx

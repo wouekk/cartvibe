@@ -45,7 +45,7 @@ func runQuickScanKeepingThePhoto(
 		TagIds:           []uint{},
 		TempPath:         tempPath,
 		OriginalFileName: "test.jpg",
-		AsynqTaskId:      "test-task",
+		JobId:      "test-task",
 	})
 	return receipt, aiErr, err, user, tempPath
 }

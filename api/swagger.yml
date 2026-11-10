@@ -3015,20 +3015,6 @@ paths:
           $ref: "#/components/responses/Internal"
         403:
           $ref: "#/components/responses/Forbidden"
-  /systemSettings/restartTaskServer:
-    post:
-      tags:
-        - SystemSettings
-      summary: Restart task server
-      description: This will restart the task server
-      operationId: restartTaskServer
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        500:
-          $ref: "#/components/responses/Internal"
-        403:
-          $ref: "#/components/responses/Forbidden"
   /systemSettings/logs:
     get:
       tags:
@@ -4694,7 +4680,6 @@ components:
         - "app.tags.delete"
         - "app.system-settings.read"
         - "app.system-settings.update"
-        - "app.system-settings.restart-task-server"
         - "app.receipt-processing-settings.create"
         - "app.receipt-processing-settings.read"
         - "app.receipt-processing-settings.update"
@@ -5853,11 +5838,6 @@ components:
       enum:
         - "START"
         - "END"
-    QueueName:
-      type: string
-      enum:
-        - "quick_scan"
-        - "system_clean_up"
     ExportFormat:
       type: string
       enum:
@@ -7748,24 +7728,6 @@ components:
         userId:
           type: integer
           description: User foreign key
-    TaskQueueConfiguration:
-      allOf:
-        - $ref: "#/components/schemas/BaseModel"
-        - type: object
-          properties:
-            name:
-              $ref: "#/components/schemas/QueueName"
-            priority:
-              type: integer
-              description: Queue priority
-    UpsertTaskQueueConfiguration:
-      type: object
-      properties:
-        name:
-          $ref: "#/components/schemas/QueueName"
-        priority:
-          type: integer
-          description: Queue priority
     AiModelsCommand:
       type: object
       description: Which provider and key to list models for. Send a new key, or the id of saved settings to use its stored key.
@@ -8006,8 +7968,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/BaseModel"
         - type: object
-          required:
-            - taskQueueConfigurations
           properties:
             enableLocalSignUp:
               type: boolean
@@ -8037,18 +7997,10 @@ components:
             fallbackReceiptProcessingSettingsId:
               type: integer
               description: Fallback receipt processing settings foreign key
-            taskConcurrency:
-              type: integer
-              description: Concurrency for task worker
-              default: 10
             pdfDpi:
               type: integer
               description: DPI used when rasterizing PDFs for OCR/vision processing
               default: 300
-            taskQueueConfigurations:
-              type: array
-              items:
-                $ref: "#/components/schemas/TaskQueueConfiguration"
             mcpEnabled:
               type: boolean
               description: Whether the OAuth 2.1-protected MCP server is enabled
@@ -8114,7 +8066,6 @@ components:
         - currencyDecimalSeparator
         - currencyHideDecimalPlaces
         - currencySymbolPosition
-        - taskConcurrency
       properties:
         enableLocalSignUp:
           type: boolean
@@ -8139,18 +8090,11 @@ components:
         fallbackReceiptProcessingSettingsId:
           type: integer
           description: Fallback receipt processing settings foreign key
-        taskConcurrency:
-          type: integer
-          description: Concurrency for task worker
         pdfDpi:
           type: integer
           description: DPI used when rasterizing PDFs for OCR/vision processing
           minimum: 72
           maximum: 1200
-        taskQueueConfigurations:
-          type: array
-          items:
-            $ref: "#/components/schemas/UpsertTaskQueueConfiguration"
         mcpEnabled:
           type: boolean
           description: Whether the OAuth 2.1-protected MCP server is enabled

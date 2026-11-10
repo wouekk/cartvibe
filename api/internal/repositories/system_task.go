@@ -311,7 +311,7 @@ func (repository SystemTaskRepository) CreateSystemTask(command commands.UpsertS
 		ReceiptId:              command.ReceiptId,
 		GroupId:                command.GroupId,
 		AssociatedSystemTaskId: command.AssociatedSystemTaskId,
-		AsynqTaskId:            command.AsynqTaskId,
+		JobId:            command.JobId,
 	}
 
 	err := db.Create(&systemTask).Error

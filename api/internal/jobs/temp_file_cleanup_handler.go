@@ -3,7 +3,6 @@ package jobs
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,45 +12,19 @@ import (
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
-	"github.com/hibiken/asynq"
 )
 
-// The temp/ sweeper reclaims files the ingest pipelines leave behind, without
-// ever deleting one that something can still act on.
+// The temp/ sweeper reclaims the uploads quick scans leave behind, without ever deleting one that something can
+// still act on, and then drops the failed jobs whose upload has aged out with them.
 //
-// It replaces a cleanup that was exactly inverted: it released a file once every
-// referencing task was Completed OR Archived, and Archived is precisely the state
-// that makes an activity rerunnable. Worse, no queue set asynq.Retention at the
-// time, so a successfully-processed task was dropped from Redis immediately and
-// never entered the completed set — meaning the old Completed branch could never
-// fire and the only files it ever deleted were the ones it had to keep.
+// A file in temp/ is kept while a job that names it waits or runs, and for the retention window after that job
+// failed for good (so the activity can still hand the file back or run it again). A file no job names is an
+// orphan (a scan that succeeded removes its own upload, so this is a crash between the write and the insert, or
+// a job whose row is gone) and is removed once it is as old as the window.
 //
-// Rule 3 is live now, but on the email queue alone: enqueueOptions attaches
-// asynq.Retention there so a succeeded task survives long enough for this sweep to
-// see it. Quick scan is excluded because it deletes its own file on success and is
-// 1:1 task-to-file, so its completed tasks would name a path that no longer exists.
-//
-// Two invariants keep the orphan branch safe, because the failure mode inverted
-// with it. Previously a task the scan missed meant "we fail to delete" (harmless);
-// now it means the file looks unreferenced and is deleted once aged. So:
-//
-//  1. every inspector list call pages (asynq defaults to 30 per page), and
-//  2. any gap in the scan stands the orphan branch down for that run — a listing
-//     error, an unreadable payload, or a listing that ran past the page cap.
-//
-// Rules 1-3 below rest on positive evidence — a state we actually observed — so
-// they stay live even when the reference map is known-incomplete.
-const (
-	// tempFileListPageSize is the page size for every inspector listing. Asynq's
-	// default is 30; a queue with more tasks than that would silently truncate.
-	tempFileListPageSize = 100
-
-	// tempFileMaxListPages bounds the paging loop so a misbehaving lister cannot
-	// spin forever inside a background job. A well-behaved one ends it with a
-	// short page long before this; reaching the cap means the scan is incomplete,
-	// which forEachTaskPage reports so the orphan branch stands down.
-	tempFileMaxListPages = 1000
-)
+// One invariant keeps the orphan rule safe: a job whose payload cannot be read has files this sweep does not know
+// about, so any such gap stands the orphan rule down for the run. Missing a file then means "kept a little
+// longer", never "deleted while still needed".
 
 const defaultTempFileRetention = commands.DefaultTempFileRetentionHours * time.Hour
 
@@ -63,177 +36,101 @@ const (
 	tempFileRemove
 )
 
-// tempFileTaskLister lists one state of one queue. It is a named type purely so
-// the reference scan can be driven without Redis in tests; in production every
-// value is an asynq.Inspector method.
-type tempFileTaskLister func(queue string, opts ...asynq.ListOption) ([]*asynq.TaskInfo, error)
+// jobLister lists the jobs of one kind. Named so the reference scan can be tested without a database; in
+// production it is JobRepository.ListByKind.
+type jobLister func(kind string) ([]models.Job, error)
 
-// tempFileQueue pairs an ingest queue with the extractor for its payload shape.
-type tempFileQueue struct {
-	name    models.QueueName
-	extract func(payload []byte) ([]string, error)
-}
-
-// tempFileQueues are the only queues whose payloads reference temp/ files.
-// SystemCleanUpQueue is deliberately absent: its tasks carry a nil payload, which
-// would fail every unmarshal and drop the completeness flag on every run.
-func tempFileQueues() []tempFileQueue {
-	return []tempFileQueue{
-		{name: models.QuickScanQueue, extract: tempPathsFromQuickScanPayload},
+// HandleTempFileCleanUpTask sweeps temp/ and then the failed jobs.
+func HandleTempFileCleanUpTask(ctx context.Context) error {
+	if ctx.Err() != nil {
+		return nil
 	}
-}
 
-func HandleTempFileCleanUpTask(context context.Context, task *asynq.Task) error {
-	inspector, err := GetAsynqInspector()
-	if err != nil {
-		return err
-	}
-	defer inspector.Close()
-
-	references, referencesComplete, err := listTempFileReferences(inspectorTaskListers(inspector))
+	jobRepository := repositories.NewJobRepository(nil)
+	references, referencesComplete, err := listTempFileReferences(jobRepository.ListByKind)
 	if err != nil {
 		return err
 	}
 
-	fileRepository := repositories.NewFileRepository(nil)
+	now := time.Now()
+	retention := tempFileRetention()
 	removed, err := sweepTempDirectory(
-		fileRepository.GetTempDirectoryPath(),
+		repositories.NewFileRepository(nil).GetTempDirectoryPath(),
 		references,
 		referencesComplete,
-		time.Now(),
-		tempFileRetention(),
+		now,
+		retention,
 	)
 	if err != nil {
 		return err
 	}
-
 	if removed > 0 {
 		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("Temp file cleanup removed %d file(s)", removed))
+	}
+
+	// A failed job is only worth keeping while its upload is: the file is at least as old as the job's last
+	// change, so once that is past the window the file is gone and there is nothing left to run again.
+	dropped, err := jobRepository.DeleteFailedOlderThan(now.Add(-retention))
+	if err != nil {
+		return err
+	}
+	if dropped > 0 {
+		logging.LogStd(logging.LOG_LEVEL_INFO, fmt.Sprintf("Temp file cleanup dropped %d failed job(s)", dropped))
 	}
 
 	return nil
 }
 
-func inspectorTaskListers(inspector *asynq.Inspector) []tempFileTaskLister {
-	return []tempFileTaskLister{
-		inspector.ListPendingTasks,
-		inspector.ListActiveTasks,
-		inspector.ListScheduledTasks,
-		inspector.ListRetryTasks,
-		inspector.ListArchivedTasks,
-		inspector.ListCompletedTasks,
-	}
-}
-
-// listTempFileReferences maps every temp path an ingest task still refers to onto
-// the states of the tasks referring to it.
+// listTempFileReferences maps every temp path a quick scan job still names onto the statuses of the jobs naming
+// it.
 //
-// The second return value reports whether the map is known-complete. It goes
-// false when a payload cannot be read, or when a listing runs past the page cap:
-// either way some task's paths are missing from the map, so treating their files
-// as unreferenced would delete them. Only the orphan branch consults it.
-//
-// A listing error is fatal to the whole sweep rather than partial, so a Redis
-// hiccup can never be mistaken for "nothing references these files".
-func listTempFileReferences(listers []tempFileTaskLister) (map[string][]asynq.TaskState, bool, error) {
-	references := make(map[string][]asynq.TaskState)
+// The second return value reports whether the map is known-complete. It goes false when a payload cannot be
+// read: that job's path is missing from the map, so treating its file as unreferenced would delete it. Only the
+// orphan rule consults it. A listing error is fatal to the whole sweep, so a database hiccup can never be
+// mistaken for "nothing references these files".
+func listTempFileReferences(list jobLister) (map[string][]models.JobStatus, bool, error) {
+	references := make(map[string][]models.JobStatus)
 	referencesComplete := true
 
-	for _, queue := range tempFileQueues() {
-		for _, list := range listers {
-			scannedAll, err := forEachTaskPage(list, string(queue.name), func(tasks []*asynq.TaskInfo) {
-				for _, task := range tasks {
-					paths, err := queue.extract(task.Payload)
-					if err != nil {
-						logging.LogStd(
-							logging.LOG_LEVEL_ERROR,
-							"Could not read temp file references from task ", task.ID, ": ", err.Error(),
-						)
-						referencesComplete = false
-						continue
-					}
+	jobs, err := list(QuickScan)
+	if err != nil {
+		return nil, false, err
+	}
 
-					for _, path := range paths {
-						references[path] = append(references[path], task.State)
-					}
-				}
-			})
-			if err != nil {
-				return nil, false, err
-			}
+	for _, job := range jobs {
+		paths, err := tempPathsFromQuickScanPayload(job.Payload)
+		if err != nil {
+			logging.LogStd(
+				logging.LOG_LEVEL_ERROR,
+				"Could not read temp file references from job ", repositories.JobIdString(job.ID), ": ", err.Error(),
+			)
+			referencesComplete = false
+			continue
+		}
 
-			referencesComplete = referencesComplete && scannedAll
+		for _, path := range paths {
+			references[path] = append(references[path], job.Status)
 		}
 	}
 
 	return references, referencesComplete, nil
 }
 
-// forEachTaskPage pages one listing to exhaustion, handing each page to visit and
-// then letting it go. A queue that has never been used does not exist in Redis
-// yet, which is not an error worth aborting a sweep over.
+// classifyTempFile decides the fate of a single file. Pure (no database, no filesystem), so the rules can be
+// table-tested exhaustively.
 //
-// It hands over PAGES rather than returning every task because the caller only
-// wants each payload's paths and state, while the payloads themselves are the
-// large part: EmailProcessTaskPayload carries the email body twice
-// (Metadata.Body + Metadata.BodyHtml) and email.go copies that metadata per
-// groupSettingsId. Accumulating a whole listing first held the archived email set
-// — which asynq caps at 10,000 tasks and keeps for 90 days — in memory at once,
-// inside an hourly background job. Peak is now one page.
+//  1. a job naming it still waits or runs  -> keep
+//  2. else every job naming it has failed  -> keep until aged
+//  3. no job names it                      -> keep until aged, and only when the reference map is complete
 //
-// It reports whether the listing was scanned to exhaustion. Running out of pages
-// is the one case that silently skips real tasks, so it is a gap in the reference
-// map exactly as an unreadable payload is — and a gap stands the orphan branch
-// down for the run rather than letting it delete files it never saw referenced.
-func forEachTaskPage(list tempFileTaskLister, queue string, visit func(tasks []*asynq.TaskInfo)) (bool, error) {
-	for page := 1; page <= tempFileMaxListPages; page++ {
-		tasks, err := list(queue, asynq.PageSize(tempFileListPageSize), asynq.Page(page))
-		if err != nil {
-			// Nothing was left unscanned — the queue simply is not there.
-			if errors.Is(err, asynq.ErrQueueNotFound) {
-				return true, nil
-			}
-			return false, err
-		}
-
-		visit(tasks)
-
-		if len(tasks) < tempFileListPageSize {
-			return true, nil
-		}
-	}
-
-	logging.LogStd(
-		logging.LOG_LEVEL_ERROR,
-		"Temp file sweep stopped listing ", queue, " after ", tempFileMaxListPages,
-		" pages; unreferenced files will not be reclaimed this run",
-	)
-
-	return false, nil
-}
-
-// classifyTempFile decides the fate of a single file. Pure — no Redis, no
-// filesystem — so the precedence rules can be table-tested exhaustively.
-//
-// Precedence, and the order matters:
-//
-//  1. any referencing task is still actionable  -> keep
-//  2. else any referencing task is archived     -> keep until aged
-//  3. else every referencing task succeeded     -> remove now
-//  4. unreferenced                              -> keep until aged, and only
-//     when the reference map is complete
-//
-// Rule 2 must be tested before rule 3. One email attachment fans out to a sibling
-// task per group, so a file can be referenced by both a succeeded task and a
-// permanently failed one; releasing it because something succeeded is the exact
-// bug this sweeper replaces.
+// A status this code does not know counts as "still waits or runs": keeping a file too long is the safe mistake.
 func classifyTempFile(
-	states []asynq.TaskState,
+	statuses []models.JobStatus,
 	age time.Duration,
 	retention time.Duration,
 	referencesComplete bool,
 ) tempFileAction {
-	if len(states) == 0 {
+	if len(statuses) == 0 {
 		if !referencesComplete {
 			return tempFileKeep
 		}
@@ -241,31 +138,17 @@ func classifyTempFile(
 		return agedTempFileAction(age, retention)
 	}
 
-	hasArchived := false
-	for _, state := range states {
-		switch state {
-		case asynq.TaskStateArchived:
-			hasArchived = true
-		case asynq.TaskStateCompleted:
-			// Terminal success. On its own it releases the file, but only if
-			// nothing else below outranks it.
-		default:
-			// Pending, active, scheduled, retry, aggregating — and anything a
-			// future asynq adds. Still actionable, so the file stays.
+	for _, status := range statuses {
+		if status != models.JobFailed {
 			return tempFileKeep
 		}
 	}
 
-	if hasArchived {
-		return agedTempFileAction(age, retention)
-	}
-
-	return tempFileRemove
+	return agedTempFileAction(age, retention)
 }
 
-// agedTempFileAction releases a file once it is at least retention old. The
-// window doubles as the grace period for the race where a file is written just
-// before the task referencing it becomes visible in Redis.
+// agedTempFileAction releases a file once it is at least retention old. The window doubles as the grace period
+// for the moment between a file being written and the job naming it being stored.
 func agedTempFileAction(age time.Duration, retention time.Duration) tempFileAction {
 	if age >= retention {
 		return tempFileRemove
@@ -274,16 +157,13 @@ func agedTempFileAction(age time.Duration, retention time.Duration) tempFileActi
 	return tempFileKeep
 }
 
-// sweepTempDirectory applies the classification to every file in directory and
-// reports how many it removed.
+// sweepTempDirectory applies the classification to every file in directory and reports how many it removed.
 //
-// A missing directory is not an error and is deliberately not created: temp/ is
-// made on demand by the writers, and utils.MakeDirectory is os.Mkdir rather than
-// os.MkdirAll. Per-file failures are logged and skipped so one unreadable or
-// undeletable entry cannot strand the rest.
+// A missing directory is not an error and is deliberately not created: temp/ is made on demand by the writers.
+// Per-file failures are logged and skipped so one unreadable or undeletable entry cannot strand the rest.
 func sweepTempDirectory(
 	directory string,
-	references map[string][]asynq.TaskState,
+	references map[string][]models.JobStatus,
 	referencesComplete bool,
 	now time.Time,
 	retention time.Duration,
@@ -332,18 +212,17 @@ func sweepTempDirectory(
 	return removed, nil
 }
 
-func tempPathsFromQuickScanPayload(payload []byte) ([]string, error) {
+func tempPathsFromQuickScanPayload(payload string) ([]string, error) {
 	var parsedPayload QuickScanTaskPayload
-	if err := json.Unmarshal(payload, &parsedPayload); err != nil {
+	if err := json.Unmarshal([]byte(payload), &parsedPayload); err != nil {
 		return nil, err
 	}
 
 	return cleanedTempPaths(parsedPayload.TempPath), nil
 }
 
-// cleanedTempPaths drops empty entries and normalizes the rest, so a path read
-// out of a payload compares equal to the one filepath.Join produces while
-// walking the directory.
+// cleanedTempPaths drops empty entries and normalizes the rest, so a path read out of a payload compares equal
+// to the one filepath.Join produces while walking the directory.
 func cleanedTempPaths(paths ...string) []string {
 	cleaned := make([]string, 0, len(paths))
 
@@ -358,12 +237,9 @@ func cleanedTempPaths(paths ...string) []string {
 	return cleaned
 }
 
-// tempFileRetention resolves the configured retention window, falling back to the
-// built-in default when it is unset, out of range, or unreadable.
-//
-// Same clamp-with-fallback shape as repositories.pdfRasterizationDpi: the clamp,
-// not the command validator, is the real safety net, because it also covers a
-// value that predates the bounds or a settings row that cannot be read at all.
+// tempFileRetention resolves the configured retention window, falling back to the built-in default when it is
+// unset, out of range, or unreadable. The clamp, not the command validator, is the real safety net, because it
+// also covers a value that predates the bounds or a settings row that cannot be read at all.
 func tempFileRetention() time.Duration {
 	systemSettingsRepository := repositories.NewSystemSettingsRepository(nil)
 

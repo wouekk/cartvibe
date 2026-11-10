@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hibiken/asynq"
 )
 
 type QuickScanTaskPayload struct {
@@ -26,21 +25,6 @@ type QuickScanTaskPayload struct {
 	OriginalFileName string
 }
 
-// quickScanSlot lets the scans run one at a time: five photos uploaded together are read one by one instead of five
-// AI calls at once (which is also what the AI provider's rate limit prefers). A scan waiting for the slot gives up
-// when its task is cancelled (shutdown, timeout) instead of waiting forever.
-var quickScanSlot = make(chan struct{}, 1)
-
-// acquireQuickScanSlot waits for the slot or for ctx to end; release is called once the scan is done.
-func acquireQuickScanSlot(ctx context.Context) (release func(), err error) {
-	select {
-	case quickScanSlot <- struct{}{}:
-		return func() { <-quickScanSlot }, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-}
-
 const (
 	quickScanReadyTitle  = "Receipt ready"
 	quickScanFailedTitle = "Receipt scan failed"
@@ -49,27 +33,22 @@ const (
 // errQuickScanNotAllowed: the uploader lost Quick Scan in the group between the upload and the scan.
 var errQuickScanNotAllowed = errors.New("the uploader may no longer quick scan in this group")
 
-func HandleQuickScanTask(ctx context.Context, task *asynq.Task) error {
-	taskId, err := GetTaskIdFromContext(ctx)
-	if err != nil {
-		return HandleError(err)
-	}
-
+// HandleQuickScanTask reads one uploaded photo into a receipt. The queue's single worker runs the scans one at a
+// time: five photos uploaded together are read one by one instead of five AI calls at once (which is also what
+// the AI provider's rate limit prefers).
+func HandleQuickScanTask(ctx context.Context, job models.Job) error {
 	var payload QuickScanTaskPayload
 
-	err = json.Unmarshal(task.Payload(), &payload)
+	err := json.Unmarshal([]byte(job.Payload), &payload)
 	if err != nil {
-		return HandleError(err)
+		return HandleError(fmt.Errorf("quick scan job with an unreadable payload: %v: %w", err, ErrNoRetry))
 	}
 	if payload.Token == nil {
-		return HandleError(fmt.Errorf("quick scan task without an uploader: %w", asynq.SkipRetry))
+		return HandleError(fmt.Errorf("quick scan job without an uploader: %w", ErrNoRetry))
 	}
-
-	release, err := acquireQuickScanSlot(ctx)
-	if err != nil {
-		return HandleError(err)
+	if ctx.Err() != nil {
+		return ctx.Err()
 	}
-	defer release()
 
 	// Authorization is read from the database when the scan runs, never from the claims in the payload: a member
 	// removed (or whose role lost Quick Scan) since the upload gets no receipt. Retrying would not change that.
@@ -78,7 +57,7 @@ func HandleQuickScanTask(ctx context.Context, task *asynq.Task) error {
 		return HandleError(err)
 	}
 	if !allowed {
-		return HandleError(fmt.Errorf("%w: %w", errQuickScanNotAllowed, asynq.SkipRetry))
+		return HandleError(fmt.Errorf("%w: %w", errQuickScanNotAllowed, ErrNoRetry))
 	}
 
 	receiptService := services.NewReceiptService(nil)
@@ -92,10 +71,10 @@ func HandleQuickScanTask(ctx context.Context, task *asynq.Task) error {
 		Comment:          payload.Comment,
 		TempPath:         payload.TempPath,
 		OriginalFileName: payload.OriginalFileName,
-		AsynqTaskId:      taskId,
+		JobId:            repositories.JobIdString(job.ID),
 	})
 	if err != nil {
-		if isFinalAttempt(ctx) {
+		if IsFinalAttempt(ctx) {
 			notifyQuickScanResult(payload, quickScanFailedTitle, 0, "")
 		}
 		return HandleError(err)
@@ -111,15 +90,6 @@ func HandleQuickScanTask(ctx context.Context, task *asynq.Task) error {
 
 	notifyQuickScanResult(payload, quickScanReadyTitle, receipt.ID, receipt.Name)
 	return nil
-}
-
-// isFinalAttempt is true on the last try asynq will make, so a scan that is about to be retried does not tell the
-// user it failed.
-func isFinalAttempt(context context.Context) bool {
-	retried, retriedOk := asynq.GetRetryCount(context)
-	maxRetry, maxRetryOk := asynq.GetMaxRetry(context)
-
-	return !retriedOk || !maxRetryOk || retried >= maxRetry
 }
 
 // notifyQuickScanResult tells the person who uploaded the photo how it went: read (a receipt and its name), saved

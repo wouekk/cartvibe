@@ -8,15 +8,10 @@ import (
 )
 
 func validSystemSettingsCommand() UpsertSystemSettingsCommand {
-	queueNames := models.GetQueueNames()
-	configs := make([]UpsertTaskQueueConfigurationCommand, len(queueNames))
-
 	return UpsertSystemSettingsCommand{
 		CurrencySymbolPosition:       models.START,
 		CurrencyThousandthsSeparator: models.COMMA,
 		CurrencyDecimalSeparator:     models.DOT,
-		TaskConcurrency:              1,
-		TaskQueueConfigurations:      configs,
 	}
 }
 
@@ -35,13 +30,6 @@ func TestUpsertSystemSettingsCommand_Validate_ValidInputs(t *testing.T) {
 				cmd := validSystemSettingsCommand()
 				cmd.ReceiptProcessingSettingsId = &primaryId
 				cmd.FallbackReceiptProcessingSettingsId = &fallbackId
-				return cmd
-			}(),
-		},
-		"valid with zero task concurrency": {
-			command: func() UpsertSystemSettingsCommand {
-				cmd := validSystemSettingsCommand()
-				cmd.TaskConcurrency = 0
 				return cmd
 			}(),
 		},
@@ -187,16 +175,6 @@ func TestUpsertSystemSettingsCommand_Validate_InvalidInputs(t *testing.T) {
 			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.CurrencyDecimalSeparator = "" },
 			expectedError: "currencyDecimalSeparator",
 		},
-		"negative task concurrency": {
-			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.TaskConcurrency = -1 },
-			expectedError: "taskConcurrency",
-		},
-		"wrong queue config count": {
-			modify: func(cmd *UpsertSystemSettingsCommand) {
-				cmd.TaskQueueConfigurations = []UpsertTaskQueueConfigurationCommand{}
-			},
-			expectedError: "taskQueueConfigurations",
-		},
 		"mcp enabled without a public url": {
 			modify:        func(cmd *UpsertSystemSettingsCommand) { cmd.McpEnabled = true; cmd.McpPublicUrl = "" },
 			expectedError: "mcpPublicUrl",
@@ -266,8 +244,10 @@ func TestUpsertSystemSettingsCommand_Validate_InvalidInputs(t *testing.T) {
 }
 
 func TestUpsertSystemSettingsCommand_Validate_MultipleErrors(t *testing.T) {
+	// Three missing currency fields, a PDF resolution out of range and the MCP server on without an address.
 	command := UpsertSystemSettingsCommand{
-		TaskConcurrency:      -1,
+		PdfDpi:     5,
+		McpEnabled: true,
 	}
 
 	vErr := command.Validate()

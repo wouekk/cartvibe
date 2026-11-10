@@ -17,7 +17,6 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hibiken/asynq"
 	"gorm.io/gorm"
 )
 
@@ -460,15 +459,7 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 					OriginalFileName: quickScanCommand.FileHeaders[i].Filename,
 				}
 
-				payloadBytes, err := json.Marshal(payload)
-				if err != nil {
-					return http.StatusInternalServerError, err
-				}
-
-				task := asynq.NewTask(jobs.QuickScan, payloadBytes)
-
-				_, err = jobs.EnqueueTask(task, models.QuickScanQueue)
-				if err != nil {
+				if _, err := jobs.Enqueue(jobs.QuickScan, payload); err != nil {
 					return http.StatusInternalServerError, err
 				}
 			}
