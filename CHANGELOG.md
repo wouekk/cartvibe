@@ -62,6 +62,10 @@ it is doing.
 - **The daily jobs no longer depend on the server staying up.** The daily copy of the database is made once a day
   whatever restarts happen in between (it used to wait a full day after every start, so a server that restarted
   nightly never made one), and the daily clean-ups run ten minutes after a start *(ADM-14)*.
+- **Saving waits its turn instead of failing.** Two things that wrote to the database at the same moment (a
+  scan being stored while someone saved a receipt, anything during an import) used to end with "database is
+  locked" for one of them after five seconds. Writes now queue inside the server, for up to thirty seconds, and
+  reading never waits for them.
 - **A clean stop leaves one whole database file.** When the server stops it folds its write-ahead file back into
   `app.db`, so a copy of that file taken while the container is stopped is complete by itself *(ADM-08)*.
 - **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity

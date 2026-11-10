@@ -9,7 +9,7 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   owner approved all of it except S1; no hosted plan, ever (a VPS stays a self-hoster's option).
   - Sprints 1 to 5 are on `main` since 2026-11-10 (the owner's go each time), with `preview` on the same commit,
     published as `:latest`, not tagged as a release (the owner's call). Sprint 5 adds a `jobs` table and needs a
-    stack change on the NAS (below). Its B2.4 (writer and reader pools) is not done: see Backlog.
+    stack change on the NAS (below).
   - Sprint 6, `feature/releases-and-ci`, was started on 2026-11-10 in another session, from sprint 5's last commit
     (which is on `main`). Two sessions then shared this checkout: do branch work for `main` in a separate worktree.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
@@ -56,8 +56,6 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Backlog (own branch each, not started)
 
-- B2.4, a writer pool of one connection and a reader pool: first find every write made outside its `tx` inside a
-  transaction (`api/CLAUDE.md`, SQLite), or they hang instead of failing after 5 s.
 - Litestream 0.3.13 to 0.5.x for `docker-compose.vps.yml`, with a restore drill.
 - The receipts page on a phone: its title, search, period row and filters fill a screen before the first receipt.
 
