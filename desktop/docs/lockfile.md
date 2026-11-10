@@ -5,7 +5,7 @@ are in `../CLAUDE.md` → Dependencies.
 
 ## Use CI's Node and npm
 
-CI pins one exact Node in `.github/workflows/ci.yml` (`node-version`, 24.22.1 with npm 11.19.1 at the time of writing).
+CI pins one exact Node in `.github/workflows/ci.yml` (`node-version`, 26.13.0 with npm 11.20.0 at the time of writing).
 Write the lockfile with that npm, so the npm that runs `npm ci` later wrote it. If your machine has another, unpack the
 `nodejs.org/dist` tarball and put its `bin/` first on `PATH`.
 

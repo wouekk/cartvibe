@@ -43,14 +43,17 @@ describe("ImageCanvasComponent", () => {
   let host: HTMLElement;
   let image: HTMLImageElement;
 
-  /** The image's transform, parsed back into the viewport it encodes. */
+  /**
+   * The image's transform, parsed back into the viewport it encodes. jsdom (from 31) hands a style back in its
+   * shortest form, so `translate(150px, 0px)` reads as `translate(150px)`: a missing second length is 0.
+   */
   const viewport = (): { x: number; y: number; scale: number } => {
-    const match = /translate\((-?[\d.]+)px, (-?[\d.]+)px\) scale\(([\d.]+)\)/.exec(
+    const match = /translate\((-?[\d.]+)px(?:, (-?[\d.]+)px)?\) scale\(([\d.]+)\)/.exec(
       image.style.transform,
     );
 
     return match
-      ? { x: Number(match[1]), y: Number(match[2]), scale: Number(match[3]) }
+      ? { x: Number(match[1]), y: Number(match[2] ?? 0), scale: Number(match[3]) }
       : { x: NaN, y: NaN, scale: NaN };
   };
 

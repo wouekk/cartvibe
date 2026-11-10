@@ -60,7 +60,7 @@ jobs:
     needs: detect-changes
     if: github.ref == 'refs/heads/main' || needs.detect-changes.outputs.api == 'true'
     runs-on: ubuntu-latest
-    container: golang:1.26-trixie
+    container: golang:1.27-trixie
     steps:
       - uses: actions/checkout@v7
       - name: Mark workspace as safe directory
@@ -110,7 +110,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: "26.13.0"
       - name: Install dependencies
         run: npm ci --verbose
         working-directory: ./desktop
@@ -231,7 +231,7 @@ jobs:
           echo "$codes" | grep -q ' 429$'
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: "26.13.0"
       - name: Install dependencies
         run: npm ci
         working-directory: ./desktop
