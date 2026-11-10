@@ -3534,7 +3534,10 @@ paths:
       tags:
         - ShoppingList
       summary: Get shopping lists for a group
-      description: This will get every shopping list in a group, each with its items [group.shopping-lists.read]
+      description: >-
+        This will get every shopping list in a group, each with its items [group.shopping-lists.read]. The
+        answer carries an ETag and "Cache-Control: private, no-cache": a request with a matching
+        If-None-Match is answered 304 without a body.
       operationId: getShoppingListsForGroup
       responses:
         200:
@@ -3545,6 +3548,8 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ShoppingList"
+        304:
+          description: Nothing changed since the answer the If-None-Match tag came from
         400:
           $ref: "#/components/responses/BadRequest"
         403:
@@ -3750,7 +3755,8 @@ paths:
       description: >-
         This will add an item to a shopping list [group.shopping-lists.update]. When the name matches a
         crossed-off item on the same list (ignoring case), that item is un-checked instead of a duplicate
-        being created; a supplied quantity or note replaces the stored one.
+        being created; a supplied quantity or note replaces the stored one. An add that carries a clientId
+        may be sent again safely: the repeat answers with the same item and adds nothing.
       operationId: addShoppingListItem
       requestBody:
         description: Item to add
@@ -4794,6 +4800,11 @@ components:
           type: integer
           format: uint64
           description: List the item belongs to
+        clientId:
+          type: string
+          description: >-
+            The key the adding client made up for this item (see UpsertShoppingListItemCommand); absent on
+            items added without one
         name:
           type: string
         amount:
@@ -4877,6 +4888,13 @@ components:
         note:
           type: string
           maxLength: 500
+        clientId:
+          type: string
+          maxLength: 64
+          description: >-
+            A key the client makes up for a new item (a UUID; letters, digits, "-" and "_"), unique within
+            the list. Sending the same add again with the same key answers with the item the first one made,
+            as it is now, instead of adding a second line. Read by an add only.
     PreviewShoppingListRecipeCommand:
       type: object
       description: Exactly one of url and text.
@@ -5022,8 +5040,10 @@ components:
           type: string
           description: >-
             One of LIST_CREATED, LIST_UPDATED, LIST_DELETED, ITEM_ADDED, ITEM_UPDATED, ITEM_TOGGLED,
-            ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED. TRIPS_CHANGED carries no entity: refetch the
-            list's trips, which need receipt access the stream does not check. Deliberately a plain
+            ITEM_DELETED, CHECKED_CLEARED, TRIPS_CHANGED, RECEIPT_READ. TRIPS_CHANGED carries no entity:
+            refetch the list's trips, which need receipt access the stream does not check. RECEIPT_READ
+            carries receiptId only (shoppingListId is 0): the AI finished with that receipt, so a page
+            showing it refetches its product lines. Deliberately a plain
             string rather than an enum, so a client built before a new event type ships can ignore it
             instead of failing to deserialize.
         groupId:
@@ -5042,6 +5062,10 @@ components:
           items:
             type: integer
             format: uint64
+        receiptId:
+          type: integer
+          format: uint64
+          description: The receipt a RECEIPT_READ is about
     GroupOverview:
       type: object
       required:

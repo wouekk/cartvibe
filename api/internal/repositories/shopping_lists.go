@@ -191,6 +191,27 @@ func (repository ShoppingListRepository) FindCheckedShoppingListItemByName(listI
 	return item, nil
 }
 
+// FindShoppingListItemByClientId finds the item a client already added to a list under this key.
+// Returns gorm.ErrRecordNotFound when there is none.
+func (repository ShoppingListRepository) FindShoppingListItemByClientId(listId uint, clientId string) (models.ShoppingListItem, error) {
+	db := repository.GetDB()
+	var item models.ShoppingListItem
+
+	err := db.Where("shopping_list_id = ? AND client_id = ?", listId, clientId).Take(&item).Error
+	if err != nil {
+		return models.ShoppingListItem{}, err
+	}
+
+	return item, nil
+}
+
+// SetShoppingListItemClientId records the key of the add that brought an existing item back onto its list.
+func (repository ShoppingListRepository) SetShoppingListItemClientId(itemId uint, clientId string) error {
+	db := repository.GetDB()
+
+	return db.Model(&models.ShoppingListItem{}).Where("id = ?", itemId).Update("client_id", clientId).Error
+}
+
 // ShoppingListItemFields are the user-editable fields of an item.
 type ShoppingListItemFields struct {
 	Name     string

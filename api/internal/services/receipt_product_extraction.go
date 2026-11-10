@@ -237,7 +237,11 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 		return err
 	}
 	if len(imagePaths) == 0 {
-		return repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), extraction.Attempts, "The receipt has no image to read")
+		err = repository.UpdateExtraction(extraction.ReceiptId, models.PRODUCT_EXTRACTION_FAILED, time.Now(), extraction.Attempts, "The receipt has no image to read")
+		if err == nil {
+			publishReceiptRead(receipt.GroupId, receipt.ID)
+		}
+		return err
 	}
 
 	resolver, err := newFoodGroupResolver(service.TX)
@@ -258,14 +262,33 @@ func (service ReceiptProductExtractionService) extract(extraction models.Receipt
 	products, shopName, currency, aiErr, answerErr := service.readProducts(receipt.GroupId, imagePaths, prompt)
 	switch {
 	case aiErr != nil:
-		return service.recordOutage(extraction, aiErr)
+		err = service.recordOutage(extraction, aiErr)
 	case answerErr != nil:
-		return service.recordBadAnswer(extraction, answerErr)
+		err = service.recordBadAnswer(extraction, answerErr)
+	default:
+		// The AI call can take minutes: applyProducts decides from the receipt as it is now, and receipt.Status is
+		// what it was before the call, so a status a person set meanwhile is kept.
+		err = service.applyProducts(receipt.ID, receipt.Status, products, shopName, currency, resolver, corrections)
+	}
+	if err != nil {
+		return err
 	}
 
-	// The AI call can take minutes: applyProducts decides from the receipt as it is now, and receipt.Status is
-	// what it was before the call, so a status a person set meanwhile is kept.
-	return service.applyProducts(receipt.ID, receipt.Status, products, shopName, currency, resolver, corrections)
+	// Whatever the outcome (lines stored, a retry planned, given up), the open receipt page shows it at once.
+	publishReceiptRead(receipt.GroupId, receipt.ID)
+
+	return nil
+}
+
+// publishReceiptRead tells the group's open pages that a receipt's read moved on, so they need not poll for it.
+// Like every list event it goes out only after the write returned, and only from a service built without an
+// outer transaction (the sweep and Quick Scan both are).
+func publishReceiptRead(groupId uint, receiptId uint) {
+	publishShoppingListEvent(models.ShoppingListEvent{
+		Type:      models.ShoppingListEventReceiptRead,
+		GroupId:   groupId,
+		ReceiptId: receiptId,
+	})
 }
 
 // ApplyInlineRead applies the products a quick scan's own answer carried, so a scanned receipt needs one AI
@@ -305,7 +328,12 @@ func (service ReceiptProductExtractionService) ApplyInlineRead(receiptId uint, r
 		return false, err
 	}
 
-	return true, service.applyProducts(receipt.ID, receipt.Status, products, parseShopName(cleaned), parseCurrency(cleaned), resolver, corrections)
+	err = service.applyProducts(receipt.ID, receipt.Status, products, parseShopName(cleaned), parseCurrency(cleaned), resolver, corrections)
+	if err == nil {
+		publishReceiptRead(receipt.GroupId, receipt.ID)
+	}
+
+	return true, err
 }
 
 // applyProducts stores a finished read: amounts converted like the receipt's, corrections and categories

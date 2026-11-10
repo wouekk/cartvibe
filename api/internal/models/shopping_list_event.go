@@ -18,6 +18,10 @@ const (
 	// TRIPS_CHANGED says a list's shopping trips changed. It carries nothing else: a trip shows receipt
 	// details that need receipt permissions the stream does not check, so clients refetch them.
 	ShoppingListEventTripsChanged ShoppingListEventType = "TRIPS_CHANGED"
+	// RECEIPT_READ says the AI finished with a receipt of the group: its product lines are stored, or the read
+	// failed. It carries the receipt id and nothing of the receipt, so the page showing it refetches through
+	// the receipt's own permission-checked read. ShoppingListId is 0.
+	ShoppingListEventReceiptRead ShoppingListEventType = "RECEIPT_READ"
 )
 
 // ShoppingListEvent carries the full changed entity so a client can apply it without refetching.
@@ -30,4 +34,5 @@ type ShoppingListEvent struct {
 	List           *ShoppingList         `json:"list,omitempty"`
 	Item           *ShoppingListItem     `json:"item,omitempty"`
 	ItemIds        []uint                `json:"itemIds,omitempty"`
+	ReceiptId      uint                  `json:"receiptId,omitempty"`
 }
