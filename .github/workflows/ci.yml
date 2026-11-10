@@ -125,7 +125,9 @@ jobs:
       - name: Race detector
         if: ${{ !cancelled() }}
         run: |
-          go test -race ./internal/jobs/ ./internal/oidc/ ./internal/logging/ ./internal/ai/
+          go test -race ./internal/jobs/ ./internal/logging/ ./internal/ai/
+          # Only the provider cache: the whole oidc package under the detector passes Go's ten-minute limit.
+          go test -race -run 'GetProvider|InvalidateProvider' ./internal/oidc/
           go test -race -run 'SplitPool|Claim|Job' ./internal/repositories/
           go test -race -run 'Hub|Stream|Throttle' ./internal/services/ ./internal/handlers/
         working-directory: ./api
