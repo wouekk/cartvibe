@@ -8,7 +8,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 ## 1. Build and test
 
 - Go 1.26.10+ (`go.mod` sets `go 1.26.10` so no build runs on a standard library with the advisories fixed there; raise it
-  when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.26-trixie`,
+  when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.27-trixie`
+  (since 2026-11-10; the directive stays at 1.26.10, so a machine with Go 1.26 still builds),
   which sets `GOTOOLCHAIN=local` itself, so check the image digest before raising the directive.
 - CI's `test-api` also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
   are in `ci.yml`) and `govulncheck`, each a failure. Neither tool runs through `go-without-cgo.sh` on Windows; vet does.

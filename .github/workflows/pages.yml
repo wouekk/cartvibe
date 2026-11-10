@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: "26.13.0"
           cache: npm
           cache-dependency-path: |
             site/package-lock.json
@@ -114,7 +114,7 @@ jobs:
           sparse-checkout: site/tools
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: "26.13.0"
       - run: node site/tools/indexnow.mjs
 
   # Manual: the site's screenshots come from a browser and Linux fonts, so CI takes them (site/tools/shots.mjs) and commits
@@ -128,7 +128,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version: "24.22.1"
+          node-version: "26.13.0"
           cache: npm
           cache-dependency-path: |
             site/package-lock.json

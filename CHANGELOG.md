@@ -102,7 +102,9 @@ it is doing.
   says they are kept and sent later, and how many are waiting *(LIST-13)*.
 - **Dependency updates.** Angular 22.2.5, Chart.js 4.6.1, Tailwind 4.3.5 and Vitest 5.1 in the app; chromedp 0.23
   (report PDFs), the tagged excelize 2.11.1 (Excel reports), `x/oauth2` 0.38 and the Gemini client 1.77 in the
-  server; Astro 7.4.7 for the project page.
+  server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
+  release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
+  Go 1.26 still works.
 
 ### Fixed
 - **Signing out clears the session from the browser at once.** The browser used to keep its short-lived access for
