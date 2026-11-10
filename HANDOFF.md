@@ -10,6 +10,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   - Sprints 1 to 5 are on `main` since 2026-11-10 (the owner's go each time), with `preview` on the same commit,
     published as `:latest`, not tagged as a release (the owner's call). Sprint 5 adds a `jobs` table and needs a
     stack change on the NAS (below).
+  - In `preview` since 2026-11-10 and not on `main` (waiting for the owner's go), each with green CI:
+    `feature/smoke-flakes` (CI only), `feature/sqlite-pools` (B2.4: one writing connection, a pool of readers) and
+    `feature/dependency-updates` (cut from the smoke branch). The merged `preview` commit has had no CI run of its
+    own (CI does not run on `preview`), and `:preview` is not published yet: the owner picks what goes on the tag.
+    Their worktrees are in `.claude/worktrees/` on the Windows PC.
   - Sprint 6, `feature/releases-and-ci`, was started on 2026-11-10 in another session, from sprint 5's last commit
     (which is on `main`). Two sessions then shared this checkout: do branch work for `main` in a separate worktree.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
@@ -54,6 +59,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   service), redeploy, then delete the `cartvibe-valkey` container and the `valkey-data` volume. Then: a Quick Scan
   is read; redeploy while one is being read and it finishes afterwards; `sqlite/backups` gets an `app-daily-*.db`
   within ten minutes of the start; with the stack stopped, `app.db-wal` is empty or gone.
+- The pools and the updates (`:preview`, once published): a Quick Scan is read while someone saves a receipt and
+  both are kept; a report comes out as PDF and as Excel; the container log has no "database is locked".
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
