@@ -27,18 +27,13 @@ export function registerAdmin(router: DemoRouter): void {
   router.get("/systemSettings/logs", () => [
     { timestamp: "2026-01-01T00:00:00Z", level: "info", message: "The demo has no server log: this page shows a sample line." },
   ]);
-  router.post("/systemSettings/restartTaskServer", () => ok());
   router.get("/systemSettings", ({ db }) => db.settings);
   router.put("/systemSettings", (ctx) => {
     const command = body<UpsertSystemSettingsCommand>(ctx);
     // A typed Logo.dev key is never stored (the demo keeps no secret); everything else is kept in memory.
-    const { shopLogoKey, taskQueueConfigurations, ...rest } = command;
+    const { shopLogoKey, ...rest } = command;
     void shopLogoKey;
     const next: SystemSettings = { ...ctx.db.settings, ...rest, updatedAt: instantOn(ctx.db.today) };
-    next.taskQueueConfigurations = ctx.db.settings.taskQueueConfigurations.map((config) => ({
-      ...config,
-      priority: taskQueueConfigurations?.find((sent) => sent.name === config.name)?.priority ?? config.priority,
-    }));
     ctx.db.settings = next;
     return next;
   });

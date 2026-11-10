@@ -256,10 +256,10 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   dropped with their file on the next upload. Entry names are never used as paths; a ZIP with `..`, an absolute name or a
   backslash is refused.
 - `BackupImportJob` (`status`: previewed, queued, running, succeeded, failed: plain strings) is the import's record: no
-  `SystemTaskType` was added. `POST /backup/import/{id}/start` queues `system_clean_up:backup_import` (payload: the job
-  id only) on the existing clean-up queue. The worker claims the job with a conditional UPDATE (a `running` job is taken
-  over after a two-hour lease), returns `asynq.SkipRetry` on failure (a failed import changed nothing) and records the
-  error on the job and in `logs/app.log`.
+  `SystemTaskType` was added. `POST /backup/import/{id}/start` queues a `system_clean_up:backup_import` job (payload: the import's
+  id only; one try). The worker claims the import with a conditional UPDATE (a `running` one is taken
+  over after a two-hour lease), returns `jobs.ErrNoRetry` on failure (a failed import changed nothing) and records the
+  error on the import and in `logs/app.log`.
 - `Import`: photos are staged under `data/.import-<jobId>/` first, outside the transaction; then **one transaction**
   writes every row with new ids (in-memory maps from the file's ids) and moves each staged photo to `BuildFilePath`.
   A failure rolls the rows back and moves the photos back; the staging folder is always removed. `failWriteForTest`
@@ -297,12 +297,16 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   dropped (an id-only category would blank the category's name on save). Failures before the create transaction, and a
   failed `CreateReceipt` (the transaction is rolled back first, never committed half-written), record a FAILED
   `RECEIPT_UPLOADED` child (`recordEarlyQuickScanFailure`).
-- **Sweeps** (`jobs/clean_up.go`): product extraction every 30 s (5 receipts), food classification every 1 min
-  (60 products + 60 list items, batched per group and purchase month), shopping trips every 1 min (5 trips), warranty
-  reminders every 1 min, temp files hourly, refresh tokens and OIDC sessions daily. The frequent ones carry
-  `sweepOptions()` (`asynq.Unique` and `asynq.Timeout`, 30 min), so a hung AI cannot pile up copies; a cancelled task
-  stops (the product sweep before its next receipt). Rows are claimed with a conditional UPDATE and a 30-minute lease
-  (`claimDue`), so overlapping sweeps never double-process and a dead sweep's row returns.
+- **Sweeps** (`jobs/periodic.go`, timers in the API process): product extraction every 30 s (5 receipts), food
+  classification every 1 min (60 products + 60 list items, batched per group and purchase month), shopping trips every
+  1 min (5 trips), warranty reminders every 1 min, temp files hourly, shop logos every 12 h, refresh tokens, OIDC
+  sessions and SQLite's housekeeping daily, and the database snapshot once a day (asked hourly). Each task has its own
+  timer, so a run never overlaps the one before it, and a run ends after 30 minutes or when the server stops, so a
+  hung AI cannot pile up copies (the product sweep stops before its next receipt). Rows are claimed with a conditional
+  UPDATE and a 30-minute lease (`claimDue`), so a row is never processed twice and a dead sweep's row returns.
+- **Quick scans** are jobs (`jobs/queue.go`): one worker reads them one at a time, a failed try is made again after
+  20 s, 1 min and 3 min, and the fourth failure leaves the job `FAILED` for the activity list to hand the upload back
+  or run it again (`activity-source-files.md`).
 - A product read is stored in one transaction against the receipt re-read after the AI call (`applyProducts`): a
   receipt deleted meanwhile gets nothing, and it is moved to Done only if its status is still the one before the call
   and it has a total.

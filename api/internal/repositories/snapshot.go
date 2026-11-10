@@ -122,6 +122,31 @@ func SnapshotDatabase(now time.Time) (string, error) {
 	return path, nil
 }
 
+// DailySnapshotDue reports whether a daily snapshot should be written now: there is none yet, or the newest one
+// is a day old, going by the time in its name. The hourly task asks this instead of counting from the process's
+// start, so a server that restarts every night still gets its copy once a day, and one that restarts ten times
+// in an hour does not write ten.
+func DailySnapshotDue(now time.Time) bool {
+	return dailySnapshotDue(snapshotDirectory(), snapshotBaseName(), now)
+}
+
+func dailySnapshotDue(dir string, base string, now time.Time) bool {
+	prefix := fmt.Sprintf("%s-%s-", base, snapshotKindDaily)
+	paths, err := filepath.Glob(filepath.Join(dir, prefix+"*.db"))
+	if err != nil || len(paths) == 0 {
+		return true
+	}
+
+	sort.Strings(paths)
+	name := strings.TrimSuffix(strings.TrimPrefix(filepath.Base(paths[len(paths)-1]), prefix), ".db")
+	newest, err := time.Parse("20060102-150405", name)
+	if err != nil {
+		return true
+	}
+
+	return now.UTC().Sub(newest) >= 24*time.Hour
+}
+
 // writeSnapshot writes dir/<base>-<kind>-<UTC time>.db. VACUUM INTO reads inside one transaction, so the copy is
 // consistent whatever is being written meanwhile, and the result carries no -wal file. It refuses an existing
 // target, so a leftover of the same second is removed first.

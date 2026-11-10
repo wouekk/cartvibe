@@ -47,9 +47,6 @@ services:
     pull_policy: always              # every `docker compose up` checks for a newer image
     restart: unless-stopped
     stop_grace_period: 30s           # time to finish what it is doing when you stop or update it
-    depends_on:
-      valkey:
-        condition: service_healthy
     ports:
       - "8091:80"                    # open CartVibe at http://<your-server>:8091
     environment:
@@ -64,22 +61,10 @@ services:
       - ./sqlite:/app/cartvibe-api/sqlite   # the database, and its automatic copies in sqlite/backups
       - ./data:/app/cartvibe-api/data       # receipt photos
       - ./logs:/app/cartvibe-api/logs
-
-  valkey:                            # background jobs (AI reads, clean-up) queue here
-    image: valkey/valkey:9.1-alpine
-    restart: unless-stopped
-    command: ["valkey-server", "--appendonly", "yes"]
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    volumes:
-      - valkey-data:/data
-
-volumes:
-  valkey-data:
 ```
+
+That one container is the whole app: the web pages, the server, the database and the background jobs (reading receipts
+with the AI, reminders, clean-up).
 
 ### 2. Add your two keys
 
@@ -121,6 +106,18 @@ seven daily ones are kept). Each is one complete file that is safe to copy while
 
 These copies sit on the same disk as the database and hold the database only, not the receipt photos, so they do not replace
 a backup of the `sqlite` and `data` folders to somewhere else.
+
+**Coming from a version with a `valkey` service?** CartVibe no longer needs it: background jobs are kept in its own
+database. Take the new stack from step 1 (the `valkey` service, the `depends_on` lines and the `valkey-data` volume are
+gone), update as above, and then remove what is left over:
+
+```bash
+docker compose up -d --remove-orphans && docker volume ls | grep valkey-data
+```
+
+Delete the volume that last command lists with `docker volume rm <name>`. In Dockhand or Container Manager, delete the
+`valkey` container and its volume by hand after redeploying. A scan that was still waiting in the old queue at that moment
+is not carried over: upload that receipt again.
 
 ### On a Synology NAS (Container Manager or Dockhand)
 
@@ -181,8 +178,7 @@ To try a restore without touching the live install, see the [FAQ](docs/faq.md#ho
 
 * **The log says a folder "is not writable … so the API runs as root".** DSM's permissions refused the container's default user. Set `PUID` and `PGID` to the user who owns the
   folders (step 2) and redeploy.
-* **The page does not load.** Check that both `cartvibe` and `valkey` are running, and that the port in `ports` is free. CartVibe waits for Valkey to be healthy
-  before it starts.
+* **The page does not load.** Check that the `cartvibe` container is running and that the port in `ports` is free.
 * **You start with an empty database after an update.** `DB_FILENAME` must still be `app.db`, and `./sqlite` must still point at the same folder.
 
 ## FAQ
@@ -241,7 +237,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 
 | Folder | What |
 |---|---|
-| `api/` | Go backend (Chi router, GORM, Asynq background workers on Valkey) |
+| `api/` | Go backend (Chi router, GORM on SQLite, with its own job queue and timers for the background work) |
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
 | `docker/` | One production image: nginx serves the app and proxies the Go API |
 | `docs/` | The [FAQ](docs/faq.md), the [feature registry](docs/FEATURES.md), developer setup, the AI prompts, themes, and these screenshots |

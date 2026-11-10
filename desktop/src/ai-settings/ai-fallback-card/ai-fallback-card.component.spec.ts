@@ -64,7 +64,7 @@ describe("AiFallbackCardComponent", () => {
   });
 
   it("creates Gemini settings and links them as the backup", async () => {
-    await setUp({ receiptProcessingSettingsId: 1, taskConcurrency: 2 });
+    await setUp({ receiptProcessingSettingsId: 1, pdfDpi: 200 });
     component.form.patchValue({ enabled: true, model: "gemini-2.5-flash", key: "secret" });
 
     component.save();
@@ -73,7 +73,7 @@ describe("AiFallbackCardComponent", () => {
       expect.objectContaining({ name: AI_FALLBACK_SETTINGS_NAME, aiType: AiType.Gemini, key: "secret", url: "" })
     );
     expect(systemSettingsService["updateSystemSettings"]).toHaveBeenCalledWith(
-      expect.objectContaining({ receiptProcessingSettingsId: 1, taskConcurrency: 2, fallbackReceiptProcessingSettingsId: 9 })
+      expect.objectContaining({ receiptProcessingSettingsId: 1, pdfDpi: 200, fallbackReceiptProcessingSettingsId: 9 })
     );
     expect(component.saved()?.id).toBe(9);
   });

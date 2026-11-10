@@ -17,8 +17,7 @@ type Activity struct {
 	CanBeRestarted         bool                    `json:"canBeRestarted"`
 	HasSourceFile          bool                    `json:"hasSourceFile"`
 	AssociatedSystemTaskId *uint                   `json:"-"`
-	// AsynqTaskId is selected so the flags above can be resolved without a
-	// per-activity database round trip. It is an internal Redis key and is kept
-	// off the wire.
-	AsynqTaskId string `json:"-"`
+	// JobId names the job behind the activity (models.Job), so the flags above can be
+	// resolved. It is internal and kept off the wire.
+	JobId string `json:"-"`
 }

@@ -12,10 +12,6 @@ const (
 	SecretKey     EnvironmentVariable = "SECRET_KEY"
 	DbFileName    EnvironmentVariable = "DB_FILENAME"
 	DbEngine      EnvironmentVariable = "DB_ENGINE"
-	ValkeyHost     EnvironmentVariable = "VALKEY_HOST"
-	ValkeyPort     EnvironmentVariable = "VALKEY_PORT"
-	ValkeyUser     EnvironmentVariable = "VALKEY_USER"
-	ValkeyPassword EnvironmentVariable = "VALKEY_PASSWORD"
 	BasePath      EnvironmentVariable = "BASE_PATH"
 	Env           EnvironmentVariable = "ENV"
 

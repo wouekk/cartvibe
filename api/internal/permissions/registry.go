@@ -33,7 +33,6 @@ const (
 
 	AppSystemSettingsRead              = "app.system-settings.read"
 	AppSystemSettingsUpdate            = "app.system-settings.update"
-	AppSystemSettingsRestartTaskServer = "app.system-settings.restart-task-server"
 
 	AppReceiptProcessingSettingsCreate = "app.receipt-processing-settings.create"
 	AppReceiptProcessingSettingsRead   = "app.receipt-processing-settings.read"
@@ -150,7 +149,6 @@ var registry = []Descriptor{
 
 	{AppSystemSettingsRead, "Read System Settings", "View system settings.", "System", ScopeApp},
 	{AppSystemSettingsUpdate, "Update System Settings", "Edit system settings.", "System", ScopeApp},
-	{AppSystemSettingsRestartTaskServer, "Restart Task Server", "Restart the background task worker.", "System", ScopeApp},
 
 	{AppReceiptProcessingSettingsCreate, "Create Receipt Processing Configs", "Add new OCR/AI processing configurations.", "System", ScopeApp},
 	{AppReceiptProcessingSettingsRead, "Read Receipt Processing Configs", "View and test OCR/AI processing configurations.", "System", ScopeApp},

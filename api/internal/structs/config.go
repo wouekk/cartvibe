@@ -25,10 +25,3 @@ type DatabaseConfig struct {
 	Engine   string `json:"engine"`
 	Filename string `json:"filename"`
 }
-
-type ValkeyConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-}

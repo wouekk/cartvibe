@@ -552,7 +552,7 @@ func TestGetTempDirectoryPath_UsesBasePath(t *testing.T) {
 	}
 }
 
-// A temp path read back out of an asynq payload is attacker-adjacent, so it goes
+// A temp path read back out of a job's payload is attacker-adjacent, so it goes
 // through this before anything opens or serves it. temp/ is exempt from the
 // data-dir helpers, which resolve against data/ and would reject every path
 // here -- so it is the only containment check that path ever gets.

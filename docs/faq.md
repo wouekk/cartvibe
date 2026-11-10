@@ -193,7 +193,8 @@ sudo docker run --rm -v /volume2/docker/cartvibe-restore-test/cartvibe/sqlite:/d
 
 It should print `ok`, then the number of receipts, the number of receipt images, and the date of your newest receipt. In
 CartVibe, the **Receipts** page on **All time** shows the same receipt count; the newest date tells you how old the backup is.
-If the copy has no `app.db-wal` file, the newest changes may be missing: the backup ran while CartVibe was writing. If the
+If the copy has no `app.db-wal` file and the backup ran while CartVibe was in use, the newest changes may be missing.
+(A backup made while the container was stopped needs no such file: CartVibe folds it into `app.db` when it stops.) If the
 check does not print `ok`, run it again on the newest file in the `backups` folder (put `/db/backups/<file name>` in place of
 `/db/app.db`): that copy is the one to restore from.
 

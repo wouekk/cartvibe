@@ -112,7 +112,7 @@ test.describe.serial('Failed activity source file', () => {
   });
 
   // This is the assertion no unit test can make: the upload actually survived in
-  // temp/ through a failure, and the asynq payload still resolves to it.
+  // temp/ through a failure, and the job's payload still resolves to it.
   test('a failed quick scan keeps its upload and reports it on the activity', async () => {
     expect(activityId).toBeGreaterThan(0);
   });
@@ -146,7 +146,7 @@ test.describe.serial('Failed activity source file', () => {
   });
 
   // The regression guard for the shared BuildDisplayImageString path. There is no
-  // Go test that can cover it: GetSystemTaskSourceFile needs a live Redis to
+  // Go test that can cover it: GetSystemTaskSourceFile needs a queued job to
   // resolve the task payload, so the handler sits at 0% coverage and this is the
   // only thing that proves it still converts.
   test('a PDF upload previews as a real image and downloads as the PDF', async () => {

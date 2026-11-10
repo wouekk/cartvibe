@@ -15,13 +15,12 @@
     "A few choices to make it yours. You can change them any time under Settings.": "Kilka ustawień na start. Zmienisz je w każdej chwili w Ustawieniach.",
     "A file with photos can be large: upload it over Wi-Fi, from a computer if you can.": "Plik ze zdjęciami może być duży: wyślij go przez Wi-Fi, najlepiej z komputera.",
     "A general guide from Nutri-Score, NOVA and the additives, not medical advice.": "Ogólna wskazówka na podstawie Nutri-Score, NOVA i dodatków, a nie porada medyczna.",
-    "A higher number means a higher priority.": "Wyższa liczba oznacza wyższy priorytet.",
     "A label you can group / read by": "Etykieta, według której można grupować lub czytać",
     "A large amount": "Duża kwota",
     "A negative amount": "Kwota ujemna",
     "A number summed across rows": "Liczba sumowana w wierszach",
     "A person with no account here keeps their name on their receipts but cannot sign in. Give them a password later under Users.": "Osoba bez konta na tym serwerze zachowa swoje imię na paragonach, ale nie może się zalogować. Hasło możesz jej nadać później w Użytkownikach.",
-    "A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": "Nieudane szybkie skanowanie lub wysyłka z e-maila zachowuje obraz przez ten czas, abyś mógł ponowić próbę lub pobrać oryginał. Minimum 24 godziny, maksimum 8760 godzin (1 rok).",
+    "A quick scan that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": "Nieudane szybkie skanowanie zachowuje obraz przez ten czas, abyś mógł ponowić próbę lub pobrać oryginał. Minimum 24 godziny, maksimum 8760 godzin (1 rok).",
     "A receipt in another currency is converted to the main currency when it is added, at the rate you type here. A currency without a rate keeps the receipt as read and flags it until you add one. Changing a rate later does not change receipts that were already converted.": "Paragon w innej walucie jest przeliczany na walutę główną w chwili dodania, według wpisanego tu kursu. Waluta bez kursu zostawia paragon bez zmian i oznacza go, dopóki nie dodasz kursu. Późniejsza zmiana kursu nie zmienia paragonów już przeliczonych.",
     "A report template name is required": "Nazwa szablonu raportu jest wymagana",
     "A small amount": "Mała kwota",
@@ -417,7 +416,6 @@
     "Everything was planned": "Wszystko było zaplanowane",
     "Exchange rates": "Kursy wymiany",
     "Exchange rates saved": "Zapisano kursy wymiany",
-    "Expires refresh tokens and reclaims temporary files": "Unieważnia stare tokeny odświeżania i usuwa pliki tymczasowe",
     "Export": "Eksport",
     "Export & import": "Eksport i import",
     "Export CSV": "Eksportuj CSV",
@@ -828,8 +826,6 @@
     "Previous (Left Arrow)": "Poprzedni (strzałka w lewo)",
     "Previous image": "Poprzedni obraz",
     "Previous page": "Poprzednia strona",
-    "Priorities": "Priorytety",
-    "Processes quick scan receipts": "Przetwarza paragony z szybkiego skanowania",
     "Produce": "Owoce i warzywa",
     "Product": "Produkt",
     "Product check (ODbL):": "Sprawdzanie produktów (ODbL):",
@@ -954,9 +950,9 @@
     "Resolved": "Rozliczone",
     "Resolved at:": "Zamknięto:",
     "Resolves to": "Wynik",
-    "Restart Task Server": "Uruchom ponownie serwer zadań",
     "Restaurant": "Restauracja",
     "Restore": "Przywróć",
+    "Retention": "Przechowywanie",
     "Review the background tasks the system has run and their results.": "Przeglądaj zadania w tle uruchomione przez system i ich wyniki.",
     "Role": "Rola",
     "Role not found": "Nie znaleziono roli",
@@ -1109,7 +1105,6 @@
     "Symbol Display": "Wyświetlanie symbolu",
     "Symbol Position": "Położenie symbolu",
     "System": "System",
-    "System Clean Up": "Sprzątanie systemowe",
     "System Emails": "Poczta systemowa",
     "System Settings": "Ustawienia systemu",
     "System Tasks": "Zadania systemowe",
@@ -1129,9 +1124,6 @@
     "Takeaway & Delivery": "Na wynos i dostawa",
     "Taller": "Wyższy",
     "Tap an item to mark it done.": "Dotknij pozycji, aby oznaczyć ją jako kupioną.",
-    "Task Concurrency": "Współbieżność zadań",
-    "Task queue priorities": "Priorytety kolejek zadań",
-    "Task server restarted successfully": "Uruchomiono ponownie serwer zadań",
     "Tasks & Storage": "Zadania i przechowywanie",
     "Taxi": "Taksówki",
     "Teal": "Morski",
@@ -1194,7 +1186,6 @@
     "The models could not be loaded. Type the name instead.": "Nie udało się wczytać modeli. Wpisz nazwę ręcznie.",
     "The monthly spending goal must be an amount above 0, like 1500,00.": "Miesięczny cel wydatków musi być kwotą większą niż 0, np. 1500,00.",
     "The monthly spending goal must be an amount above 0, like 500,00.": "Miesięczny cel wydatków musi być kwotą większą niż 0, np. 500,00.",
-    "The most tasks that run at once. 0 or a negative number uses every CPU core.": "Maksymalna liczba zadań uruchamianych równocześnie. 0 lub wartość ujemna oznacza wszystkie dostępne rdzenie procesora.",
     "The newest lines of the app log, server-wide. The first place to look when someone reports an error.": "Najnowsze wiersze dziennika aplikacji, dla całego serwera. Pierwsze miejsce do sprawdzenia, gdy ktoś zgłasza błąd.",
     "The period at a glance": "Okres w skrócie",
     "The photo is too large: 8 MB at most.": "Zdjęcie jest za duże: najwyżej 8 MB.",
@@ -1361,8 +1352,6 @@
     "Within current month": "W bieżącym miesiącu",
     "Without them the file stays small; the receipts keep their data.": "Bez nich plik jest mały, a paragony zachowują swoje dane.",
     "Work": "Praca",
-    "Worker": "Zadania w tle",
-    "Worker & retention": "Zadania w tle i przechowywanie",
     "Working": "Trwa wczytywanie",
     "Writing the household…": "Zapisywanie gospodarstwa…",
     "Year": "Rok",
@@ -1574,6 +1563,14 @@
       "value": "Klucz publiczny Logo.dev zaczyna się od pk_",
       "closest": "A Logo.dev secret key starts with sk_"
     },
+    "A higher number means a higher priority.": {
+      "value": "Wyższa liczba oznacza wyższy priorytet.",
+      "closest": "A number summed across rows"
+    },
+    "A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": {
+      "value": "Nieudane szybkie skanowanie lub wysyłka z e-maila zachowuje obraz przez ten czas, abyś mógł ponowić próbę lub pobrać oryginał. Minimum 24 godziny, maksimum 8760 godzin (1 rok).",
+      "closest": "A quick scan that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year)."
+    },
     "API Key Deleted": {
       "value": "Usunięto klucz API",
       "closest": "API key"
@@ -1694,6 +1691,9 @@
       "value": "Nazwa klucza API",
       "closest": "AI API key needed"
     },
+    "Expires refresh tokens and reclaims temporary files": {
+      "value": "Unieważnia stare tokeny odświeżania i usuwa pliki tymczasowe"
+    },
     "Failed to copy API key to clipboard": {
       "value": "Nie udało się skopiować klucza API do schowka"
     },
@@ -1812,6 +1812,13 @@
       "value": "Poprzedni rok",
       "closest": "Previous image"
     },
+    "Priorities": {
+      "value": "Priorytety"
+    },
+    "Processes quick scan receipts": {
+      "value": "Przetwarza paragony z szybkiego skanowania",
+      "closest": "Quick Scan"
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Kurs: 1 {symbol} w Twojej walucie"
     },
@@ -1826,6 +1833,9 @@
     "Receipt Processing Settings": {
       "value": "Ustawienia przetwarzania paragonów",
       "closest": "Group Receipt Settings"
+    },
+    "Restart Task Server": {
+      "value": "Uruchom ponownie serwer zadań"
     },
     "Scope": {
       "value": "Zakres"
@@ -1853,12 +1863,27 @@
     "Switch to night mode": {
       "value": "Przełącz na tryb nocny"
     },
+    "System Clean Up": {
+      "value": "Sprzątanie systemowe"
+    },
+    "Task Concurrency": {
+      "value": "Współbieżność zadań"
+    },
+    "Task queue priorities": {
+      "value": "Priorytety kolejek zadań"
+    },
+    "Task server restarted successfully": {
+      "value": "Uruchomiono ponownie serwer zadań"
+    },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Darmowy plan w zupełności wystarczy: pierwsze pobieranie pyta Logo.dev o każdą markę raz, potem codzienne sprawdzenie pyta o dane logo raz w miesiącu."
     },
     "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": {
       "value": "Darmowy plan pozwala na około 250 logo miesięcznie. CartVibe pobiera tylko sklepy z Twoich paragonów, każdy raz, szuka nowych co 12 godzin, a gdy limit się wyczerpie, czeka do następnego miesiąca. „Pobierz logo teraz” szuka od razu.",
       "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
+    },
+    "The most tasks that run at once. 0 or a negative number uses every CPU core.": {
+      "value": "Maksymalna liczba zadań uruchamianych równocześnie. 0 lub wartość ujemna oznacza wszystkie dostępne rdzenie procesora."
     },
     "This API key will only be shown once. Make sure to copy it now!": {
       "value": "Ten klucz API zostanie pokazany tylko raz. Skopiuj go teraz!"
@@ -1888,6 +1913,13 @@
     "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
       "value": "Z kluczem Logo.dev paragony z około 390 znanych sklepów, restauracji, linii lotniczych i usług pokazują logo marki zamiast pierwszej litery. Bez klucza każdy paragon pokazuje pierwszą literę.",
       "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
+    },
+    "Worker": {
+      "value": "Zadania w tle"
+    },
+    "Worker & retention": {
+      "value": "Zadania w tle i przechowywanie",
+      "closest": "Retention"
     },
     "Write": {
       "value": "Zapis"

@@ -389,7 +389,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   Tasks & Storage, Export & import (`export-import`, only with `app.backup.export`), Logs. The first four render
   `SystemSettingsFormComponent` (route data `section` picks the cards); the form holds every control whatever the tab,
   so a save sends the whole payload. A new tab goes into `system-settings.component.ts`'s `allTabs` and the landing
-  guard order. Old paths redirect. Embedded tables sit outside the `<form>`.
+  guard order. Old paths redirect. Embedded tables sit outside the `<form>`. Tasks & Storage holds the task table
+  and one card, Retention (how long a failed upload is kept); the worker, queue-priority and restart controls went
+  with the queue server on 2026-11-10.
   - Shop logos: the Logo.dev secret key (`shopLogoKey`, sent only when typed; a saved one shows as
     `SAVED_KEY_PLACEHOLDER`; `shopLogoKeyValidator` refuses `pk_`), the download status from
     `GET /shopLogo/status` (over the known shops on the receipts), polled while a download runs, Download logos

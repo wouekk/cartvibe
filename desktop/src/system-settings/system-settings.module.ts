@@ -15,7 +15,6 @@ import { ReceiptProcessingSettingsModule } from "../receipt-processing-settings/
 import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { TableModule } from "../table/table.module";
-import { TaskQueueFormControlPipe } from "./pipes/task-queue-form-control.pipe";
 import { ExchangeRatesComponent } from "./exchange-rates/exchange-rates.component";
 import { SystemSettingsFormComponent } from "./system-settings-form/system-settings-form.component";
 
@@ -31,7 +30,6 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
     SystemSettingsFormComponent,
     SystemTaskFilterComponent,
     SystemTaskTableComponent,
-    TaskQueueFormControlPipe,
   ],
   imports: [
     ButtonModule,

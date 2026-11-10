@@ -57,7 +57,7 @@ func (service SystemTaskService) CreateSystemTasksFromMetadata(metadata commands
 	taskType models.SystemTaskType,
 	userId *uint,
 	groupId *uint,
-	asynqTaskId string,
+	jobId string,
 	parentAssociatedSystemTaskId func(command commands.UpsertSystemTaskCommand) *uint) (structs.ReceiptProcessingSystemTasks, error) {
 	systemTaskRepository := repositories.NewSystemTaskRepository(service.TX)
 	result := structs.ReceiptProcessingSystemTasks{}
@@ -71,7 +71,7 @@ func (service SystemTaskService) CreateSystemTasksFromMetadata(metadata commands
 			StartedAt:            startDate,
 			EndedAt:              &endDate,
 			ResultDescription:    metadata.RawResponse,
-			AsynqTaskId:          asynqTaskId,
+			JobId:          jobId,
 			RanByUserId:          userId,
 			GroupId:              groupId,
 		}
@@ -101,7 +101,7 @@ func (service SystemTaskService) CreateSystemTasksFromMetadata(metadata commands
 			StartedAt:            startDate,
 			EndedAt:              &endDate,
 			ResultDescription:    metadata.FallbackRawResponse,
-			AsynqTaskId:          asynqTaskId,
+			JobId:          jobId,
 			RanByUserId:          userId,
 			GroupId:              groupId,
 		}

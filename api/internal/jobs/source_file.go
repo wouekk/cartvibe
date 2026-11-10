@@ -3,64 +3,41 @@ package jobs
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
-	"github.com/hibiken/asynq"
 )
+
+// A failed quick scan keeps its job row, and the row's payload names the upload in temp/. That is what lets the
+// activity that reports the failure hand the file back (preview, download) and run the scan again. A scan that
+// succeeded has no row any more: its receipt carries the image.
 
 var (
 	// ErrSourceFileUnsupportedTask is returned for a system task type that never
 	// owns an upload. It is a malformed request rather than a missing file.
 	ErrSourceFileUnsupportedTask = errors.New("system task type has no source file")
 
-	// ErrSourceFileUnavailable is returned when the task legitimately has no
-	// upload, or the upload is gone — aged out of Redis, or swept once past the
-	// retention window.
+	// ErrSourceFileUnavailable is returned when the task has no upload to hand back: the scan succeeded, or the
+	// job and its file were swept once past the retention window.
 	ErrSourceFileUnavailable = errors.New("source file is no longer available")
 )
 
-// SystemTaskSourceFile locates the upload behind a quick scan or email upload,
-// so a failed activity can hand the user their file back.
+// SystemTaskSourceFile locates the upload behind a quick scan, so a failed activity can hand the user their file
+// back.
 type SystemTaskSourceFile struct {
-	// Path is the original upload, exactly as it arrived. The download endpoint
-	// serves this and nothing else.
+	// Path is the original upload, exactly as it arrived.
 	Path string
-	// PreviewPath is a server-made copy already converted for OCR, when the
-	// pipeline produced one. The preview endpoint prefers it because converting
-	// Path instead can mean rasterizing a multi-page PDF at 300 DPI inside a
-	// request. Empty for quick scan, which has no such copy.
+	// PreviewPath is a server-made copy already converted for display, when the pipeline produced one. Empty for
+	// quick scan, which has no such copy.
 	PreviewPath string
 	// FileName is what the upload was called, used for Content-Disposition.
 	FileName string
 	// GroupId is the group the activity belongs to, for the permission gate.
 	GroupId string
-}
-
-// taskSourceFiles are the temp files one task's payload refers to.
-type taskSourceFiles struct {
-	// Primary is the original upload — what the user recognises. Empty when the
-	// task legitimately has none, e.g. an email with a body but no attachment.
-	Primary string
-	// Preview is the converted copy, when the pipeline made one.
-	Preview string
-}
-
-// expectsSourceFile reports whether this task should have an upload at all.
-// Distinguishing "has none by design" from "had one and it is gone" is what lets
-// a body-only email stay rerunnable.
-func (files taskSourceFiles) expectsSourceFile() bool {
-	return len(files.Primary) > 0
-}
-
-// rerunPaths are every file a rerun reads. Email needs both: HandleEmailProcessTask
-// reads Primary for the FileData it persists and hands Preview to the OCR/vision
-// pipeline, so one missing file is enough to make the rerun fail.
-func (files taskSourceFiles) rerunPaths() []string {
-	return cleanedTempPaths(files.Primary, files.Preview)
 }
 
 // activityFlags are the two computed booleans an activity carries.
@@ -69,48 +46,49 @@ type activityFlags struct {
 	hasSourceFile  bool
 }
 
-// taskInfoLookup fetches one task by id. Named so the flag resolution can be
-// tested without Redis; in production it is always asynq.Inspector.GetTaskInfo.
-type taskInfoLookup func(queue string, id string) (*asynq.TaskInfo, error)
+// jobLookup fetches the job a system task names, by the id it keeps as a string. Named so the flag rules can be
+// tested without a database; in production it is always findJob.
+type jobLookup func(jobId string) (job models.Job, found bool, err error)
+
+// findJob reads one job. An id that is not a job's (empty, or left by the queue this table replaced) is simply
+// not found.
+func findJob(jobId string) (models.Job, bool, error) {
+	id, ok := repositories.ParseJobId(jobId)
+	if !ok {
+		return models.Job{}, false, nil
+	}
+
+	return repositories.NewJobRepository(nil).Find(id)
+}
+
+// ownsJob reports whether a system task of this type reports on a job with an upload.
+func ownsJob(taskType models.SystemTaskType) bool {
+	return taskType == models.QUICK_SCAN
+}
 
 // SetActivityFlags fills CanBeRestarted and HasSourceFile on each activity.
 //
-// It looks each task up by id rather than listing the archived set, as this used
-// to. The listing was capped at asynq's default 30 per page, so the flag was
-// simply wrong past 30 archived tasks, and it needed a GetSystemTaskById per row
-// on top. A direct lookup is O(1), has no page cap, and reports the task's state
-// whatever that state is — which HasSourceFile needs, since it is not restricted
-// to archived tasks.
-//
-// Nothing here fails the request. The activity feed rendering is worth more than
-// the two flags, so an unreachable Redis or an unreadable payload leaves them
-// false, exactly as the previous implementation tolerated a fresh Redis instance.
+// Nothing here fails the request. The activity feed rendering is worth more than the two flags, so a lookup that
+// fails leaves them false.
 func SetActivityFlags(activities *[]structs.Activity) error {
 	if len(*activities) == 0 {
 		return nil
 	}
 
-	inspector, err := GetAsynqInspector()
-	if err != nil {
-		return nil
-	}
-	defer inspector.Close()
-
-	applyActivityFlags(activities, memoizeTaskInfoLookup(inspector.GetTaskInfo))
+	applyActivityFlags(activities, memoizeJobLookup(findJob))
 
 	return nil
 }
 
-// applyActivityFlags is the loop of SetActivityFlags with the inspector lifted
-// out, so the rules can be tested without Redis.
-func applyActivityFlags(activities *[]structs.Activity, lookup taskInfoLookup) {
+// applyActivityFlags is the loop of SetActivityFlags with the lookup lifted out, so the rules can be tested
+// without a database.
+func applyActivityFlags(activities *[]structs.Activity, lookup jobLookup) {
 	for i := range *activities {
 		activity := &(*activities)[i]
 
-		flags, err := resolveActivityFlags(lookup, activity.Type, activity.AsynqTaskId)
+		flags, err := resolveActivityFlags(lookup, activity.Type, activity.JobId)
 		if err != nil {
-			// A hard lookup failure means Redis is unhappy, not that this one row
-			// is odd. Stop rather than paying a dial timeout per remaining row.
+			// A failed lookup means the database is unhappy, not that this one row is odd.
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not resolve activity flags: ", err.Error())
 			return
 		}
@@ -122,36 +100,23 @@ func applyActivityFlags(activities *[]structs.Activity, lookup taskInfoLookup) {
 
 // SetSystemTaskHasSourceFile fills HasSourceFile on the system tasks of one page.
 //
-// canReadGroup decides per group whether the caller may reach the file. The
-// system-task table is app-scoped, so an administrator can see rows from groups
-// they are not a member of; the endpoints gate on the group permission, and
-// without this the table would offer buttons that 403.
-//
-// It deliberately does NOT descend into ChildSystemTasks. Every EMAIL_UPLOAD task
-// is chained under an EMAIL_READ parent, so "top level" cannot be tested with
-// AssociatedSystemTaskId == nil — that reads as false for exactly the rows this
-// feature exists for. Only the rows the page itself returned are hydrated.
+// canReadGroup decides per group whether the caller may reach the file. The system-task table is app-scoped, so an
+// administrator can see rows from groups they are not a member of; the endpoints gate on the group permission,
+// and without this the table would offer buttons that 403. Only the rows the page itself returned are hydrated,
+// not their child tasks.
 func SetSystemTaskHasSourceFile(systemTasks []models.SystemTask, canReadGroup func(groupId uint) bool) error {
 	if len(systemTasks) == 0 {
 		return nil
 	}
 
-	inspector, err := GetAsynqInspector()
-	if err != nil {
-		return nil
-	}
-	defer inspector.Close()
-
-	hydrateSystemTaskSourceFiles(systemTasks, memoizeTaskInfoLookup(inspector.GetTaskInfo), canReadGroup)
+	hydrateSystemTaskSourceFiles(systemTasks, memoizeJobLookup(findJob), canReadGroup)
 
 	return nil
 }
 
-// hydrateSystemTaskSourceFiles is the loop of SetSystemTaskHasSourceFile with the
-// inspector lifted out, so the rules can be tested without Redis.
 func hydrateSystemTaskSourceFiles(
 	systemTasks []models.SystemTask,
-	lookup taskInfoLookup,
+	lookup jobLookup,
 	canReadGroup func(groupId uint) bool,
 ) {
 	for i := range systemTasks {
@@ -161,7 +126,7 @@ func hydrateSystemTaskSourceFiles(
 			continue
 		}
 
-		flags, err := resolveActivityFlags(lookup, systemTask.Type, systemTask.AsynqTaskId)
+		flags, err := resolveActivityFlags(lookup, systemTask.Type, systemTask.JobId)
 		if err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not resolve system task flags: ", err.Error())
 			return
@@ -171,107 +136,86 @@ func hydrateSystemTaskSourceFiles(
 	}
 }
 
-// rerunnableState reports whether a task in this state may be handed to
-// Inspector.RunTask.
-//
-// The rule is ours to enforce, not asynq's: RunTask does NOT refuse a task by
-// state. Its Lua script special-cases only active and pending, and every other
-// state — Completed included — is dropped from its set and pushed straight back
-// onto the pending list (asynq/internal/rdb/inspect.go). Archived is the state a
-// failure lands in once asynq has exhausted its retries, so it is the only one a
-// rerun is meant for; re-running a succeeded email task — which now lingers in
-// Redis for completedTaskRetention — would create a duplicate receipt.
-func rerunnableState(state asynq.TaskState) bool {
-	return state == asynq.TaskStateArchived
-}
-
-// CanRerunTask is rerunnableState for callers outside this package, so the
-// RerunActivity endpoint and the CanBeRestarted flag it advertises cannot drift.
-func CanRerunTask(taskInfo *asynq.TaskInfo) bool {
-	return taskInfo != nil && rerunnableState(taskInfo.State)
-}
-
-// offersSourceFile reports whether a task in this state should still hand its
-// upload back.
-//
-// A Completed task succeeded, so its receipt already carries the image and the
-// temp file is only waiting for the next sweep to release it. Without this the
-// email queue's completedTaskRetention would put preview and download controls on
-// succeeded activities for up to an hour, and then 404 them once the sweep ran.
-func offersSourceFile(state asynq.TaskState) bool {
-	return state != asynq.TaskStateCompleted
+// CanRerunJob reports whether a job may be run again: only one that failed for good. Running a waiting or running
+// job again would process one upload twice. The RerunActivity endpoint and the CanBeRestarted flag it advertises
+// both ask here, so they cannot drift.
+func CanRerunJob(job models.Job) bool {
+	return job.Status == models.JobFailed
 }
 
 // resolveActivityFlags computes both flags for one task.
 //
-// CanBeRestarted stays pinned to Archived (see rerunnableState) — only the lookup
-// became state-agnostic, not the rule. HasSourceFile is deliberately not gated on
-// Archived: asynq backs its retries off exponentially, so a task takes minutes to
-// archive, and the user should not watch an activity sit at FAILED with no way to
-// retrieve their image. It is gated on the task not having *succeeded*, which is a
-// different thing entirely (see offersSourceFile).
-func resolveActivityFlags(
-	lookup taskInfoLookup,
-	taskType models.SystemTaskType,
-	asynqTaskId string,
-) (activityFlags, error) {
-	// RECEIPT_UPLOADED / RECEIPT_UPDATED rows, and anything predating the column,
-	// have no task to look up. GetTaskInfo would reject the empty id.
-	if len(asynqTaskId) == 0 {
+// CanBeRestarted needs a job that failed for good and its upload still on disk. HasSourceFile is deliberately not
+// tied to that: a scan waiting for its next try has failed once already, and the person should not watch the
+// activity sit at FAILED with no way to get their image back. A job row exists only until the scan succeeds, so
+// "there is a row" already means "it has not succeeded".
+func resolveActivityFlags(lookup jobLookup, taskType models.SystemTaskType, jobId string) (activityFlags, error) {
+	// RECEIPT_UPLOADED / RECEIPT_UPDATED rows, and anything predating the column, have no job to look up.
+	if len(jobId) == 0 || !ownsJob(taskType) {
 		return activityFlags{}, nil
 	}
 
-	queueName, err := SystemTaskToQueueName(taskType)
+	job, found, err := lookup(jobId)
 	if err != nil {
-		// Not a type that owns an asynq task; neither flag applies.
-		return activityFlags{}, nil
-	}
-
-	taskInfo, err := lookup(queueName, asynqTaskId)
-	if err != nil {
-		if errors.Is(err, asynq.ErrTaskNotFound) || errors.Is(err, asynq.ErrQueueNotFound) {
-			// The task aged out of Redis. Nothing to rerun, nothing to serve.
-			return activityFlags{}, nil
-		}
-
 		return activityFlags{}, err
 	}
-
-	files, err := taskSourceFilesFromPayload(taskType, taskInfo.Payload)
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read source files from task ", asynqTaskId, ": ", err.Error())
+	if !found || job.Kind != QuickScan {
+		// The scan succeeded, or the job was swept. Nothing to rerun, nothing to serve.
 		return activityFlags{}, nil
 	}
 
+	path, err := quickScanSourcePath(job.Payload)
+	if err != nil {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, "Could not read the source file of job ", jobId, ": ", err.Error())
+		return activityFlags{}, nil
+	}
+
+	usable := len(path) > 0 && sourcePathUsable(path)
+
 	return activityFlags{
-		canBeRestarted: rerunnableState(taskInfo.State) && allFilesPresent(files.rerunPaths()),
-		hasSourceFile: offersSourceFile(taskInfo.State) &&
-			files.expectsSourceFile() &&
-			sourcePathUsable(files.Primary),
+		canBeRestarted: CanRerunJob(job) && (len(path) == 0 || usable),
+		hasSourceFile:  usable,
 	}, nil
 }
 
-// RerunSourceFilesPresent reports whether every file a rerun of this task would
-// read is still on disk. A task type that reads none — or an unreadable payload,
-// which the rerun itself will surface — counts as present, so this only ever
-// blocks the case it can actually prove.
-func RerunSourceFilesPresent(taskType models.SystemTaskType, payload []byte) bool {
-	files, err := taskSourceFilesFromPayload(taskType, payload)
-	if err != nil {
+// RerunSourceFilePresent reports whether the file a rerun of this job would read is still on disk. A payload that
+// cannot be read (the rerun itself will say so) or names no file counts as present, so this only ever blocks the
+// case it can prove.
+func RerunSourceFilePresent(job models.Job) bool {
+	path, err := quickScanSourcePath(job.Payload)
+	if err != nil || len(path) == 0 {
 		return true
 	}
 
-	return allFilesPresent(files.rerunPaths())
+	return sourcePathUsable(path)
 }
 
-// sourcePathUsable reports whether a payload path is one this server may serve: inside
-// temp/, and present on disk.
+// FindJobForSystemTask returns the job a system task reports on. found is false when there is none (any more).
+func FindJobForSystemTask(systemTask models.SystemTask) (job models.Job, found bool, err error) {
+	if !ownsJob(systemTask.Type) {
+		return models.Job{}, false, nil
+	}
+
+	return findJob(systemTask.JobId)
+}
+
+// RerunJob queues a failed job again and wakes the worker. It reports false when the job is no longer a failed
+// one (somebody else ran it again a moment ago).
+func RerunJob(job models.Job) (bool, error) {
+	rerun, err := repositories.NewJobRepository(nil).Rerun(job.ID, time.Now())
+	if err == nil && rerun {
+		Wake()
+	}
+
+	return rerun, err
+}
+
+// sourcePathUsable reports whether a payload path is one this server may serve: inside temp/, and present on disk.
 //
-// The containment half matters because these paths come out of a Redis payload, which the
-// Filesystem section of api/CLAUDE.md classes as attacker-adjacent — and because
-// ResolveSystemTaskSourceFile already applies it. Without the same rule here the flag and
-// the endpoint disagree: the client renders a preview button that can only fail. It also
-// stops a bare FileExists from reporting whether an arbitrary server path exists.
+// The containment half matters because the path was stored with the job at upload time and is read back much
+// later (api/CLAUDE.md, Paths), and because ResolveSystemTaskSourceFile applies it too: without the same rule
+// here the flag and the endpoint would disagree. It also stops a bare FileExists from reporting whether an
+// arbitrary server path exists.
 func sourcePathUsable(path string) bool {
 	if err := repositories.NewFileRepository(nil).AssertWithinTempDirectory(path); err != nil {
 		return false
@@ -280,107 +224,65 @@ func sourcePathUsable(path string) bool {
 	return utils.FileExists(path)
 }
 
-func allFilesPresent(paths []string) bool {
-	for _, path := range paths {
-		if !sourcePathUsable(path) {
-			return false
-		}
-	}
-
-	return true
-}
-
-// memoizeTaskInfoLookup caches within a single call. A primary and fallback
-// processing setting produce two system tasks sharing one asynq task id, and the
-// system-task table shows parent and child rows, so the same id is looked up
+// memoizeJobLookup caches within a single call: a primary and a fallback processing setting produce two system
+// tasks naming one job, and the system-task table shows parent and child rows, so the same id is looked up
 // several times per page.
-func memoizeTaskInfoLookup(lookup taskInfoLookup) taskInfoLookup {
+func memoizeJobLookup(lookup jobLookup) jobLookup {
 	type result struct {
-		taskInfo *asynq.TaskInfo
-		err      error
+		job   models.Job
+		found bool
+		err   error
 	}
 
 	cache := make(map[string]result)
 
-	return func(queue string, id string) (*asynq.TaskInfo, error) {
-		key := queue + "|" + id
-
-		if cached, ok := cache[key]; ok {
-			return cached.taskInfo, cached.err
+	return func(jobId string) (models.Job, bool, error) {
+		if cached, ok := cache[jobId]; ok {
+			return cached.job, cached.found, cached.err
 		}
 
-		taskInfo, err := lookup(queue, id)
-		cache[key] = result{taskInfo: taskInfo, err: err}
+		job, found, err := lookup(jobId)
+		cache[jobId] = result{job: job, found: found, err: err}
 
-		return taskInfo, err
+		return job, found, err
 	}
 }
 
-func taskSourceFilesFromPayload(taskType models.SystemTaskType, payload []byte) (taskSourceFiles, error) {
-	switch taskType {
-	case models.QUICK_SCAN:
-		var parsedPayload QuickScanTaskPayload
-		if err := json.Unmarshal(payload, &parsedPayload); err != nil {
-			return taskSourceFiles{}, err
-		}
-
-		return taskSourceFiles{Primary: parsedPayload.TempPath}, nil
-
+// quickScanSourcePath is the cleaned temp path a quick scan's payload names; empty when it names none.
+func quickScanSourcePath(payload string) (string, error) {
+	paths, err := tempPathsFromQuickScanPayload(payload)
+	if err != nil || len(paths) == 0 {
+		return "", err
 	}
 
-	return taskSourceFiles{}, nil
+	return paths[0], nil
 }
 
-// ResolveSystemTaskSourceFile locates the upload behind a system task, ready to
-// preview or download.
-//
-// The path comes out of a Redis payload, so it is confined to temp/ before the
-// caller is allowed near it.
+// ResolveSystemTaskSourceFile locates the upload behind a system task, ready to preview or download. The path is
+// confined to temp/ before the caller is allowed near it.
 func ResolveSystemTaskSourceFile(systemTask models.SystemTask) (SystemTaskSourceFile, error) {
-	queueName, err := SystemTaskToQueueName(systemTask.Type)
-	if err != nil {
+	if !ownsJob(systemTask.Type) {
 		return SystemTaskSourceFile{}, ErrSourceFileUnsupportedTask
 	}
 
-	if len(systemTask.AsynqTaskId) == 0 {
-		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
-	}
-
-	inspector, err := GetAsynqInspector()
+	job, found, err := findJob(systemTask.JobId)
 	if err != nil {
 		return SystemTaskSourceFile{}, err
 	}
-	defer inspector.Close()
-
-	taskInfo, err := inspector.GetTaskInfo(queueName, systemTask.AsynqTaskId)
-	if err != nil {
-		if errors.Is(err, asynq.ErrTaskNotFound) || errors.Is(err, asynq.ErrQueueNotFound) {
-			return SystemTaskSourceFile{}, ErrSourceFileUnavailable
-		}
-
-		return SystemTaskSourceFile{}, err
-	}
-
-	// The same rule the flag reports: a succeeded task's file is on its way out,
-	// not on offer. Both read the task's state, so they share one predicate.
-	if !offersSourceFile(taskInfo.State) {
+	if !found || job.Kind != QuickScan {
 		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
 	}
 
-	var payload RerunTaskPayload
-	if err := json.Unmarshal(taskInfo.Payload, &payload); err != nil {
+	var payload QuickScanTaskPayload
+	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
 		return SystemTaskSourceFile{}, err
 	}
 
-	groupId := utils.UintToString(payload.GroupId)
-	sourceFile := SystemTaskSourceFile{GroupId: groupId}
-
-	switch systemTask.Type {
-	case models.QUICK_SCAN:
-		sourceFile.Path = payload.TempPath
-		sourceFile.FileName = payload.OriginalFileName
+	sourceFile := SystemTaskSourceFile{
+		GroupId:  utils.UintToString(payload.GroupId),
+		Path:     payload.TempPath,
+		FileName: payload.OriginalFileName,
 	}
-
 	if len(sourceFile.Path) == 0 {
 		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
 	}

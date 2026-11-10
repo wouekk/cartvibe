@@ -23,11 +23,6 @@ func TestGetActivitiesForGroupsFiltersCountAndRowsForIsolatedGroup(t *testing.T)
 	defer repositories.TruncateTestDb()
 	services.ClearRolePermissionCacheForTests()
 	services.ClearGroupRoleGrantCacheForTests()
-	// The handler calls SetActivityCanBeRestarted, which needs the Valkey connection
-	// env vars to build an asynq inspector; point it at the local Valkey (the inspector
-	// tolerates an empty/unreachable queue and no-ops).
-	t.Setenv("VALKEY_HOST", "localhost")
-	t.Setenv("VALKEY_PORT", "6379")
 
 	db := repositories.GetDB()
 	roleRepository := repositories.NewRoleRepository(nil)

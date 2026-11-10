@@ -182,7 +182,7 @@ feature.
 ## E2E (setup and per-spec notes: `docs/e2e.md`)
 
 - Specs in `e2e/` need a live API. CI runs only the fully green ones (`npm run e2e:smoke`, the `e2e-smoke` job: the built
-  image next to Valkey); a spec that passes locally joins that list in `package.json`. The whole suite is green in Docker
+  image, started alone); a spec that passes locally joins that list in `package.json`. The whole suite is green in Docker
   (`docs/e2e.md`). A describe whose `beforeAll` provisions one account is `serial`; a spec that changes a global setting is a
   `global-settings-*` project in `playwright.config.ts`.
 - Select with `getByTestId` (`<resource>-<action>`) or by role/label; never structural CSS chains or styling classes.

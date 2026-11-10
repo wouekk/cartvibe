@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Full e2e run against the built image on Docker Desktop (see docs/e2e.md "Running the full suite in Docker").
-#   e2e/run-docker.sh up        fresh app container + Valkey + a Playwright runner (run from desktop/)
+#   e2e/run-docker.sh up        fresh app container + a Playwright runner (run from desktop/)
 #   e2e/run-docker.sh run [args] playwright test [args] in the runner (setup project runs every time)
 #   e2e/run-docker.sh down
 set -euo pipefail
@@ -9,9 +9,8 @@ cd "$(dirname "$0")/.."
 IMAGE=${CARTVIBE_IMAGE:-cartvibe:ci}
 case "${1:-}" in
   up)
-    docker rm -f cartvibe valkey runner >/dev/null 2>&1 || true
+    docker rm -f cartvibe runner >/dev/null 2>&1 || true
     docker network create e2e >/dev/null 2>&1 || true
-    docker run -d --name valkey --network e2e valkey/valkey:9.1-alpine valkey-server --appendonly no >/dev/null
     docker run -d --name cartvibe --network e2e -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key \
       -e ENCRYPTION_KEY=ci-encryption-key -e DB_ENGINE=sqlite -e DB_FILENAME=app.db "$IMAGE" >/dev/null
     # The specs (and the app's own page loads) exceed nginx's production request limits (10 a second, 30 logins a
@@ -41,7 +40,7 @@ case "${1:-}" in
     docker exec runner sh -c "cd /w && npx playwright test --workers=${E2E_WORKERS:-2} $*"
     ;;
   down)
-    docker rm -f cartvibe valkey runner >/dev/null 2>&1 || true
+    docker rm -f cartvibe runner >/dev/null 2>&1 || true
     ;;
   *) echo "usage: $0 up|run [playwright args]|down"; exit 1 ;;
 esac

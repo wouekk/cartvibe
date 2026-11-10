@@ -12,9 +12,6 @@ services:
     restart: unless-stopped
     # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
     stop_grace_period: 30s
-    depends_on:
-      valkey:
-        condition: service_healthy
     ports:
       - "8091:80" # Change 8091 if that port is already used on your Synology
     environment:
@@ -28,8 +25,8 @@ services:
       # so keep DB_FILENAME the same across updates or the app starts with an empty database.
       - DB_ENGINE=sqlite
       - DB_FILENAME=app.db
-      # Background jobs (reading receipts, reminders, clean-up) queue through Valkey, the second service below. The app finds it as
-      # "valkey" on port 6379; VALKEY_HOST, VALKEY_PORT, VALKEY_USER and VALKEY_PASSWORD only matter for another setup.
+      # Background jobs (reading receipts, reminders, clean-up) are kept in the same database: there is no second
+      # service. A stack from before had a "valkey" service and a "valkey-data" volume; both can be deleted.
       # The API runs as this user and group, which must be able to write the three folders below. Set both in
       # Dockhand's environment variables, to the DSM user that owns the folders (`id <user>` over SSH, for example
       # 1026 and 100). Left unset, the image's own user is tried, and the API falls back to root if the folders refuse it.
@@ -47,24 +44,3 @@ services:
       - /volume2/docker/cartvibe/sqlite:/app/cartvibe-api/sqlite
       - /volume2/docker/cartvibe/data:/app/cartvibe-api/data
       - /volume2/docker/cartvibe/logs:/app/cartvibe-api/logs
-
-  # Replaces the Redis 7.4 service of earlier versions. Its container (cartvibe-redis) and volume (redis-data) are not
-  # used any more: remove them by hand once this stack is up. Only jobs still waiting in the queue are lost.
-  valkey:
-    image: valkey/valkey:9.1-alpine
-    container_name: cartvibe-valkey
-    restart: unless-stopped
-    # Persist queued jobs across restarts.
-    # tcp-backlog 128 matches the NAS kernel's somaxconn, which silences the "TCP backlog 511" warning; one household never needs more.
-    command: ["valkey-server", "--appendonly", "yes", "--tcp-backlog", "128"]
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-    volumes:
-      # A Docker-managed volume, so there is no NAS folder to create first.
-      - valkey-data:/data
-
-volumes:
-  valkey-data:

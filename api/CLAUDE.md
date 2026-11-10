@@ -60,14 +60,20 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - GORM's "record not found" log is silenced (`quietGormLogger`): empty sweep queues are normal.
 - **SQLite opens through `sqliteParams`** (`repositories/db.go`; the test DB too): WAL (Litestream needs it),
   `busy_timeout` 5 s, `synchronous(NORMAL)`, foreign keys, `_txlock=immediate` (a transaction takes the write lock at
-  BEGIN, so a read-then-write never fails on the upgrade), pool capped at 8. A write on a second connection inside a
-  transaction waits for that transaction and fails after 5 s: write through the `tx`.
+  BEGIN, so a read-then-write never fails on the upgrade), `journal_size_limit` 64 MB, `temp_store(MEMORY)`, an 8 MB
+  page cache per connection, pool capped at 8. A write on a second connection inside a transaction waits for that
+  transaction and fails after 5 s: write through the `tx`. Once a day `OptimizeDatabase` runs `PRAGMA optimize` and
+  a truncating checkpoint. One pool serves readers and writers; splitting it is not done (the audit's B2.4): a
+  one-connection writer pool turns any write made outside the `tx` inside a transaction from a 5 s error into a hang,
+  so every such path has to be found and fixed first.
 - **Snapshots** (`repositories/snapshot.go`, `VACUUM INTO sqlite/backups/`): `main.go` takes one before
   `MakeMigrations` when `VERSION` differs from the one that last booted (five kept), and the `DatabaseSnapshot`
   clean-up task takes one a day (seven kept). A failed snapshot is logged and never stops the boot. They are why a
   schema release no longer needs a manual backup step; keep the call ahead of anything that changes the schema.
 - **Shutdown** (`main.go`): HTTP stops first (10 s; open list streams end through `RegisterOnShutdown` and
-  `ShoppingListHub.Close`), then the scheduler and the queue. A timeout is logged, never `FATAL`. In `prod` the API
+  `ShoppingListHub.Close`), then the background work (`jobs.Stop`, 10 s: a job cut short goes back on the queue
+  without losing a try), then the database (`repositories.CloseDB`: a truncating checkpoint, so `app.db` alone holds
+  everything, and the pool is closed). A timeout is logged, never `FATAL`. In `prod` the API
   listens on `127.0.0.1:8081` only (nginx is in the same container); elsewhere on every interface for the dev proxy.
 
 ## 3. Security invariants
@@ -81,7 +87,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   re-asserting containment. A group rename moves the folder inside `UpdateGroup`'s transaction (`docs/domain.md`). No ad-hoc sanitizing and no
   raw `os.*` on a data path. `UpsertGroupCommand.Validate` also rejects separators and `.`/`..` in names.
 - Server-built paths (`temp/`, `logs/`, `sqlite/`, OCR and PDF scratch) may use the generic helpers. A `temp/` path read
-  back out of an asynq payload is attacker-adjacent: assert it with `FileRepository.AssertWithinTempDirectory` before
+  back out of a job's payload is attacker-adjacent: assert it with `FileRepository.AssertWithinTempDirectory` before
   opening it. Both checks delegate to `utils.AssertWithinDir(base, path)` (lexical); prefer a scoped wrapper.
 - Any image returned to a browser goes through `FileRepository.BuildDisplayImageString` (rasterizes PDF, transcodes
   HEIC). `BuildEncodedImageString` alone labels PDF bytes `image/jpeg`. Avatars are converted once, at upload, and
@@ -212,22 +218,31 @@ which day an instant falls on and what "today" means.
 
 ## 7. Background work and AI
 
-- Queues: `quick_scan` and `system_clean_up` only. New periodic work is a task on the clean-up queue, not a new queue
-  or `SystemTaskType`; so is one-off work an admin starts (the household import keeps its own job row instead of a
-  system task, and its progress in memory while its transaction holds the write lock: `docs/domain.md`). Sweep rows are claimed with a conditional UPDATE and a lease (`claimDue`); schedules and the
-  quick-scan pipeline: `docs/domain.md`.
+- **Background work lives in the API process and the database** (`internal/jobs`); there is no Valkey, Redis or
+  queue library, and none is to be added.
+  - A **job** is work a request starts: a row of `jobs` (`models.Job`, `JobRepository`), claimed with a conditional
+    UPDATE, worked by one goroutine (`queue.go`), tried again after 20 s, 1 min and 3 min, deleted on success and kept
+    as `FAILED` otherwise (`jobs.ErrNoRetry` fails it at once). The kinds are `jobKinds`: a quick scan (four tries)
+    and a household import (one; it keeps its own row for progress, `docs/domain.md`). One-off work an admin starts
+    is a new kind there, not a new `SystemTaskType`. `jobs.Enqueue` stores and wakes the worker; a job that was
+    running when the process ended is put back at the next start.
+  - **Periodic work** is an entry in `periodicTasks()` (`periodic.go`): its own timer and goroutine, so a run never
+    overlaps the one before it, bounded to 30 minutes like the lease a sweep holds on its rows (`claimDue`). The
+    daily clean-ups first run ten minutes after a start; the daily snapshot goes by the newest copy's own time
+    (`DailySnapshotDue`), so restarts neither skip a day nor add copies.
+  - A system task names its job in `SystemTask.JobId` (column `asynq_task_id`, kept for existing rows; an id from
+    before 2026-11-10 is simply not a job). Schedules and the quick-scan pipeline: `docs/domain.md`.
 - **AI is fallible:** no AI configured means nothing is called and nothing counted. A failed call or unreadable answer
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage
   but backs off in memory (`outageBackoff`). Guessing "unplanned" on an incomplete trip answer is forbidden (it would
   overstate spend). Primary processing settings are tried, then the fallback.
-- **Quick Scan never loses the upload:** the queue calls `QuickScanKeepingThePhoto`; when the AI cannot read the photo
+- **Quick Scan never loses the upload:** the job calls `QuickScanKeepingThePhoto`; when the AI cannot read the photo
   the receipt is saved with it ("Receipt <today>", today, no total, the configured status and payer), a FAILED
   `QUICK_SCAN` task says why, and the task is not retried. `QuickScan` (shopping trips) still returns the AI error.
   Magic Fill answers 409 (no AI) or 502 (the AI failed) with an `errorMsg`, never a bare 500.
 - Every provider call is bounded (the HTTP client, and a context where the SDK takes one): `constants.AiHttpTimeout` (3 min) for hosted providers,
-  `AiLocalHttpTimeout` (10 min) for Ollama and OpenAI-compatible servers. The frequent sweeps are
-  scheduled with `sweepOptions()` (`asynq.Unique` + `asynq.Timeout`, 30 min like the claim lease) and their handlers
-  honour a cancelled context. A product read is stored in one transaction against the receipt as it is then.
+  `AiLocalHttpTimeout` (10 min) for Ollama and OpenAI-compatible servers. Every sweep run gets a context that ends after
+  30 minutes or when the server stops (`runPeriodicTask`), and the handlers honour it. A product read is stored in one transaction against the receipt as it is then.
 - **Providers** (`internal/ai/`): Gemini, Claude (`ANTHROPIC`; no temperature, ```json fences stripped, a refusal is an
   error so the backup takes over), ChatGPT (`OPEN_AI`, JSON mode), OpenAI-compatible servers and Ollama. SDK retries are
   off everywhere: the sweeps count every try. A stored key is used only for the provider it was saved under.
@@ -309,3 +324,7 @@ The database is fresh-only since the clean-schema rework; these are gone from co
   `tools/celllint` and the twin-cell tests. There is no hosted plan; one process serves one household database.
 - `GET /api/search` (the header search box it served is gone; receipts are searched through the list's filter, and the
   MCP tool calls the service), and the `numWorkers` setting, which nothing read.
+- Valkey and `hibiken/asynq` (2026-11-10): `VALKEY_*`, the queue names and priorities (`TaskQueueConfiguration`,
+  `QueueName`), `taskConcurrency`, and `POST /systemSettings/restartTaskServer` with its permission
+  `app.system-settings.restart-task-server` (a role that still lists it is unaffected). The
+  `task_queue_configurations` table and the `task_concurrency` column stay in existing databases, unused.

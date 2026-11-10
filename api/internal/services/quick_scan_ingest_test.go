@@ -142,7 +142,7 @@ func runQuickScanWithSetup(
 		Comment:          comment,
 		TempPath:         tempPath,
 		OriginalFileName: "test.jpg",
-		AsynqTaskId:      "test-task",
+		JobId:      "test-task",
 	})
 	return receipt, user, group, err
 }
@@ -568,7 +568,7 @@ func quickScanCreatedReceiptCount() int64 {
 }
 
 // quickScanSystemTaskByType fetches the single system task of the given type written by a runQuickScan
-// call (all carry asynqTaskId "test-task"). Returns false when none exists.
+// call (all carry jobId "test-task"). Returns false when none exists.
 func quickScanSystemTaskByType(taskType models.SystemTaskType) (models.SystemTask, bool) {
 	var task models.SystemTask
 	err := repositories.GetDB().

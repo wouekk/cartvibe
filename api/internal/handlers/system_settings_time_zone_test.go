@@ -21,19 +21,12 @@ import (
 func putSystemSettings(t *testing.T, extra map[string]interface{}) *httptest.ResponseRecorder {
 	t.Helper()
 
-	queueConfigs := make([]map[string]interface{}, 0)
-	for _, config := range models.GetAllDefaultQueueConfigurations() {
-		queueConfigs = append(queueConfigs, map[string]interface{}{"name": config.Name, "priority": 1})
-	}
 	body := map[string]interface{}{
 		"currencyDisplay":              "$",
 		"currencySymbolPosition":       models.START,
 		"currencyThousandthsSeparator": models.COMMA,
 		"currencyDecimalSeparator":     models.DOT,
 		"currencyHideDecimalPlaces":    false,
-		"taskConcurrency":              1,
-		"emailPollingInterval":         60,
-		"taskQueueConfigurations":      queueConfigs,
 	}
 	for key, value := range extra {
 		body[key] = value

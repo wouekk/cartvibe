@@ -15,13 +15,12 @@
     "A few choices to make it yours. You can change them any time under Settings.": "Ein paar Einstellungen für den Start. Du kannst sie jederzeit unter Einstellungen ändern.",
     "A file with photos can be large: upload it over Wi-Fi, from a computer if you can.": "Eine Datei mit Fotos kann groß sein: Lade sie über WLAN hoch, am besten von einem Computer.",
     "A general guide from Nutri-Score, NOVA and the additives, not medical advice.": "Eine allgemeine Einschätzung aus Nutri-Score, NOVA und den Zusatzstoffen, keine medizinische Beratung.",
-    "A higher number means a higher priority.": "Eine höhere Zahl bedeutet eine höhere Priorität.",
     "A label you can group / read by": "Ein Merkmal, nach dem gruppiert oder gelesen wird",
     "A large amount": "Ein großer Betrag",
     "A negative amount": "Ein negativer Betrag",
     "A number summed across rows": "Eine Zahl, die über die Zeilen summiert wird",
     "A person with no account here keeps their name on their receipts but cannot sign in. Give them a password later under Users.": "Eine Person ohne Konto hier behält ihren Namen auf ihren Belegen, kann sich aber nicht anmelden. Gib ihr später unter Benutzer ein Passwort.",
-    "A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": "Ein fehlgeschlagener Schnellscan oder E-Mail-Upload behält sein Bild so lange, damit du es erneut versuchen oder das Original herunterladen kannst. Mindestens 24 Stunden, höchstens 8760 Stunden (1 Jahr).",
+    "A quick scan that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": "Ein fehlgeschlagener Schnellscan behält sein Bild so lange, damit du es erneut versuchen oder das Original herunterladen kannst. Mindestens 24 Stunden, höchstens 8760 Stunden (1 Jahr).",
     "A receipt in another currency is converted to the main currency when it is added, at the rate you type here. A currency without a rate keeps the receipt as read and flags it until you add one. Changing a rate later does not change receipts that were already converted.": "Ein Beleg in einer anderen Währung wird beim Hinzufügen zum hier eingegebenen Kurs in die Hauptwährung umgerechnet. Eine Währung ohne Kurs lässt den Beleg wie gelesen und markiert ihn, bis du einen Kurs einträgst. Eine spätere Kursänderung ändert bereits umgerechnete Belege nicht.",
     "A report template name is required": "Ein Name für die Berichtsvorlage ist erforderlich",
     "A small amount": "Ein kleiner Betrag",
@@ -417,7 +416,6 @@
     "Everything was planned": "Alles war geplant",
     "Exchange rates": "Wechselkurse",
     "Exchange rates saved": "Wechselkurse gespeichert",
-    "Expires refresh tokens and reclaims temporary files": "Lässt alte Aktualisierungstoken ablaufen und löscht temporäre Dateien",
     "Export": "Export",
     "Export & import": "Export & Import",
     "Export CSV": "CSV exportieren",
@@ -828,8 +826,6 @@
     "Previous (Left Arrow)": "Zurück (Pfeil nach links)",
     "Previous image": "Vorheriges Bild",
     "Previous page": "Vorherige Seite",
-    "Priorities": "Prioritäten",
-    "Processes quick scan receipts": "Verarbeitet Belege aus dem Schnellscan",
     "Produce": "Obst und Gemüse",
     "Product": "Produkt",
     "Product check (ODbL):": "Produktprüfung (ODbL):",
@@ -954,9 +950,9 @@
     "Resolved": "Erledigt",
     "Resolved at:": "Erledigt am:",
     "Resolves to": "Ergibt",
-    "Restart Task Server": "Aufgabenserver neu starten",
     "Restaurant": "Restaurant",
     "Restore": "Wiederherstellen",
+    "Retention": "Aufbewahrung",
     "Review the background tasks the system has run and their results.": "Sieh dir die Hintergrundaufgaben an, die das System ausgeführt hat, und ihre Ergebnisse.",
     "Role": "Rolle",
     "Role not found": "Rolle nicht gefunden",
@@ -1109,7 +1105,6 @@
     "Symbol Display": "Symbolanzeige",
     "Symbol Position": "Position des Symbols",
     "System": "System",
-    "System Clean Up": "Systembereinigung",
     "System Emails": "System-E-Mails",
     "System Settings": "Systemeinstellungen",
     "System Tasks": "Systemaufgaben",
@@ -1129,9 +1124,6 @@
     "Takeaway & Delivery": "Mitnahme & Lieferung",
     "Taller": "Höher",
     "Tap an item to mark it done.": "Tippe auf einen Artikel, um ihn abzuhaken.",
-    "Task Concurrency": "Gleichzeitige Aufgaben",
-    "Task queue priorities": "Prioritäten der Aufgabenwarteschlangen",
-    "Task server restarted successfully": "Aufgabenserver wurde neu gestartet",
     "Tasks & Storage": "Aufgaben und Speicher",
     "Taxi": "Taxi",
     "Teal": "Petrol",
@@ -1194,7 +1186,6 @@
     "The models could not be loaded. Type the name instead.": "Die Modelle konnten nicht geladen werden. Gib den Namen stattdessen ein.",
     "The monthly spending goal must be an amount above 0, like 1500,00.": "Das monatliche Ausgabenziel muss ein Betrag über 0 sein, z. B. 1500,00.",
     "The monthly spending goal must be an amount above 0, like 500,00.": "Das monatliche Ausgabenziel muss ein Betrag über 0 sein, z. B. 500,00.",
-    "The most tasks that run at once. 0 or a negative number uses every CPU core.": "Wie viele Aufgaben höchstens gleichzeitig laufen. 0 oder eine negative Zahl nutzt alle CPU-Kerne.",
     "The newest lines of the app log, server-wide. The first place to look when someone reports an error.": "Die neuesten Zeilen des App-Protokolls, serverweit. Die erste Anlaufstelle, wenn jemand einen Fehler meldet.",
     "The period at a glance": "Der Zeitraum auf einen Blick",
     "The photo is too large: 8 MB at most.": "Das Foto ist zu groß: höchstens 8 MB.",
@@ -1361,8 +1352,6 @@
     "Within current month": "Im aktuellen Monat",
     "Without them the file stays small; the receipts keep their data.": "Ohne sie bleibt die Datei klein; die Belege behalten ihre Daten.",
     "Work": "Arbeit",
-    "Worker": "Hintergrundaufgaben",
-    "Worker & retention": "Hintergrundaufgaben und Aufbewahrung",
     "Working": "Wird geladen",
     "Writing the household…": "Der Haushalt wird gespeichert…",
     "Year": "Jahr",
@@ -1542,6 +1531,14 @@
       "value": "Ein öffentlicher Logo.dev-Schlüssel beginnt mit pk_",
       "closest": "A Logo.dev secret key starts with sk_"
     },
+    "A higher number means a higher priority.": {
+      "value": "Eine höhere Zahl bedeutet eine höhere Priorität.",
+      "closest": "A number summed across rows"
+    },
+    "A quick scan or email upload that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year).": {
+      "value": "Ein fehlgeschlagener Schnellscan oder E-Mail-Upload behält sein Bild so lange, damit du es erneut versuchen oder das Original herunterladen kannst. Mindestens 24 Stunden, höchstens 8760 Stunden (1 Jahr).",
+      "closest": "A quick scan that fails keeps its image this long, so you can retry it or download the original. Minimum 24 hours, maximum 8760 hours (1 year)."
+    },
     "API Key Deleted": {
       "value": "API-Schlüssel gelöscht",
       "closest": "API key"
@@ -1662,6 +1659,9 @@
       "value": "Namen des API-Schlüssels eingeben",
       "closest": "AI API key needed"
     },
+    "Expires refresh tokens and reclaims temporary files": {
+      "value": "Lässt alte Aktualisierungstoken ablaufen und löscht temporäre Dateien"
+    },
     "Failed to copy API key to clipboard": {
       "value": "API-Schlüssel konnte nicht in die Zwischenablage kopiert werden"
     },
@@ -1780,6 +1780,13 @@
       "value": "Vorheriges Jahr",
       "closest": "Previous image"
     },
+    "Priorities": {
+      "value": "Prioritäten"
+    },
+    "Processes quick scan receipts": {
+      "value": "Verarbeitet Belege aus dem Schnellscan",
+      "closest": "Quick Scan"
+    },
     "Rate: 1 {symbol} in your currency": {
       "value": "Kurs: 1 {symbol} in deiner Währung"
     },
@@ -1794,6 +1801,9 @@
     "Receipt Processing Settings": {
       "value": "Einstellungen der Belegverarbeitung",
       "closest": "Group Receipt Settings"
+    },
+    "Restart Task Server": {
+      "value": "Aufgabenserver neu starten"
     },
     "Scope": {
       "value": "Bereich"
@@ -1821,12 +1831,27 @@
     "Switch to night mode": {
       "value": "Zum Nachtmodus wechseln"
     },
+    "System Clean Up": {
+      "value": "Systembereinigung"
+    },
+    "Task Concurrency": {
+      "value": "Gleichzeitige Aufgaben"
+    },
+    "Task queue priorities": {
+      "value": "Prioritäten der Aufgabenwarteschlangen"
+    },
+    "Task server restarted successfully": {
+      "value": "Aufgabenserver wurde neu gestartet"
+    },
     "The free plan is plenty: the first download asks Logo.dev about each brand once, then a daily check asks again about a logo once a month.": {
       "value": "Der kostenlose Tarif reicht völlig: Der erste Download fragt Logo.dev einmal je Marke, danach fragt eine tägliche Prüfung einmal im Monat erneut nach einem Logo."
     },
     "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Fetch logos now looks at once.": {
       "value": "Der kostenlose Tarif reicht für etwa 250 Logos im Monat. CartVibe lädt nur die Geschäfte auf deinen Belegen, jedes einmal, sucht alle 12 Stunden nach neuen und wartet auf den nächsten Monat, wenn das Guthaben aufgebraucht ist. „Logos jetzt laden“ sucht sofort.",
       "closest": "The free plan pays for about 250 logos a month. CartVibe fetches only the shops on your receipts, each once, looks for new ones every 12 hours, and waits for next month if the credits run out. Download logos looks at once."
+    },
+    "The most tasks that run at once. 0 or a negative number uses every CPU core.": {
+      "value": "Wie viele Aufgaben höchstens gleichzeitig laufen. 0 oder eine negative Zahl nutzt alle CPU-Kerne."
     },
     "This API key will only be shown once. Make sure to copy it now!": {
       "value": "Dieser API-Schlüssel wird nur einmal angezeigt. Kopiere ihn jetzt!"
@@ -1856,6 +1881,13 @@
     "With a Logo.dev key, receipts from about 390 known shops, restaurants, airlines and services show the brand's logo instead of its first letter. Without a key, every receipt shows the first letter.": {
       "value": "Mit einem Logo.dev-Schlüssel zeigen Belege von rund 390 bekannten Geschäften, Restaurants, Fluglinien und Diensten das Logo der Marke statt ihres ersten Buchstabens. Ohne Schlüssel zeigt jeder Beleg den ersten Buchstaben.",
       "closest": "With a Logo.dev key, CartVibe downloads the logos of about 390 known shops, restaurants, airlines and services to this server and shows them next to receipts. Without a key, every receipt shows the shop's first letter."
+    },
+    "Worker": {
+      "value": "Hintergrundaufgaben"
+    },
+    "Worker & retention": {
+      "value": "Hintergrundaufgaben und Aufbewahrung",
+      "closest": "Retention"
     },
     "Write": {
       "value": "Schreiben"

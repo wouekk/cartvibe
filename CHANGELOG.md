@@ -13,10 +13,17 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 The first batch of work from the [audit of 9 November 2026](docs/AUDIT-REPORT.md).
 
-**When you update:** nothing to do by hand. The server copies its database before this version changes anything
-(see *Added*). Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed
-that setting), and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the
-server finish what it is doing.
+**When you update:** take the new `docker-compose.yml` from the README. CartVibe is now one container: the `valkey`
+service, the `depends_on` lines that waited for it and the `valkey-data` volume are gone, and after the update you
+can delete the old `valkey` container and volume (the README's *Updating* section has the two commands). A stack that
+still has them keeps working; they are simply no longer used. A scan that was still waiting in the old queue at the
+moment of the update is not carried over: upload that receipt again. On a server set up from
+`docker-compose.vps.yml`, also remove `VALKEY_PASSWORD` from `.env`.
+
+Nothing else is needed by hand. The server copies its database before this version changes anything (see *Added*).
+Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed that setting),
+and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the server finish what
+it is doing.
 
 ### Added
 - **A tab bar on phones.** Dashboard, Lists, Scan, Receipts and More sit at the bottom of the screen, under the
@@ -48,6 +55,15 @@ server finish what it is doing.
   *(APP-12)*.
 
 ### Changed
+- **CartVibe is one container.** Reading receipts, reminders and clean-up used to queue through a second service
+  (Valkey), and the app would not start without it. They now live in CartVibe's own database: one container to run,
+  one thing to back up, and nothing that can be missing at start. A scan interrupted by a restart or an update carries
+  on afterwards *(ADM-15)*.
+- **The daily jobs no longer depend on the server staying up.** The daily copy of the database is made once a day
+  whatever restarts happen in between (it used to wait a full day after every start, so a server that restarted
+  nightly never made one), and the daily clean-ups run ten minutes after a start *(ADM-14)*.
+- **A clean stop leaves one whole database file.** When the server stops it folds its write-ahead file back into
+  `app.db`, so a copy of that file taken while the container is stopped is complete by itself *(ADM-08)*.
 - **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity
   log no longer scroll sideways on a phone: each row is a card with one ⋮ menu, and *Sort by* replaces the column
   headers. A receipt's product lines are cards as well *(APP-17)*.
@@ -106,6 +122,9 @@ server finish what it is doing.
   *(NOTE-01)*.
 
 ### Removed
+- **The worker settings.** System Settings → Tasks & Storage no longer has *Task Concurrency*, the queue priorities
+  or *Restart Task Server*: scans are read one at a time and the rest runs on its own timers, so there was nothing
+  left to tune or restart. The tab keeps how long a failed upload is kept *(ADM-04)*.
 - **The groundwork for a hosted plan.** There is no hosted CartVibe and there will not be one, so the code that
   prepared one server for many households is gone (about 3,000 lines, most of them tests). Nothing changes in the
   app. The `CARTVIBE_MODE` setting no longer exists; a stack that sets it can drop the line.

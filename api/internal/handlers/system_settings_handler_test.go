@@ -93,14 +93,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 		Name:     "test2",
 	})
 
-	defaultAsynqConfigCommands := make([]commands.UpsertTaskQueueConfigurationCommand, 0)
-	for _, config := range models.GetAllDefaultQueueConfigurations() {
-		defaultAsynqConfigCommands = append(defaultAsynqConfigCommands, commands.UpsertTaskQueueConfigurationCommand{
-			Name:     config.Name,
-			Priority: 1,
-		})
-	}
-
 	id := uint(1)
 	id2 := uint(2)
 
@@ -145,17 +137,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 			},
 			expect: http.StatusBadRequest,
 		},
-		"no task concurrency and no queues": {
-			input: commands.UpsertSystemSettingsCommand{
-				EnableLocalSignUp:                   true,
-				ReceiptProcessingSettingsId:         &id,
-				FallbackReceiptProcessingSettingsId: &id2,
-				CurrencyThousandthsSeparator:        models.COMMA,
-				CurrencyDecimalSeparator:            models.DOT,
-				CurrencySymbolPosition:              models.START,
-			},
-			expect: http.StatusBadRequest,
-		},
 		"missing currency thousandths separator": {
 			input: commands.UpsertSystemSettingsCommand{
 				EnableLocalSignUp:                   true,
@@ -163,8 +144,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				FallbackReceiptProcessingSettingsId: &id2,
 				CurrencyDecimalSeparator:            models.DOT,
 				CurrencySymbolPosition:              models.START,
-				TaskConcurrency:                     10,
-				TaskQueueConfigurations:             defaultAsynqConfigCommands,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -175,8 +154,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				FallbackReceiptProcessingSettingsId: &id2,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencySymbolPosition:              models.START,
-				TaskConcurrency:                     10,
-				TaskQueueConfigurations:             defaultAsynqConfigCommands,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -187,8 +164,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				FallbackReceiptProcessingSettingsId: &id2,
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencyDecimalSeparator:            models.DOT,
-				TaskConcurrency:                     10,
-				TaskQueueConfigurations:             defaultAsynqConfigCommands,
 			},
 			expect: http.StatusBadRequest,
 		},
@@ -201,8 +176,6 @@ func TestShouldValidateUpsertSystemSettingsCommand(t *testing.T) {
 				CurrencyThousandthsSeparator:        models.COMMA,
 				CurrencyDecimalSeparator:            models.DOT,
 				CurrencySymbolPosition:              models.START,
-				TaskConcurrency:                     10,
-				TaskQueueConfigurations:             defaultAsynqConfigCommands,
 			},
 			expect: http.StatusOK,
 		},
@@ -252,14 +225,6 @@ func TestUpdateSystemSettingsPreservesOmittedRefreshTokenLifetimes(t *testing.T)
 		t.Fatalf("failed to seed configured lifetimes: %v", err)
 	}
 
-	queueConfigs := make([]map[string]interface{}, 0)
-	for _, config := range models.GetAllDefaultQueueConfigurations() {
-		queueConfigs = append(queueConfigs, map[string]interface{}{
-			"name":     config.Name,
-			"priority": 1,
-		})
-	}
-
 	// A valid body that simply does not mention either lifetime key.
 	body := map[string]interface{}{
 		"currencyDisplay":              "$",
@@ -267,9 +232,6 @@ func TestUpdateSystemSettingsPreservesOmittedRefreshTokenLifetimes(t *testing.T)
 		"currencyThousandthsSeparator": models.COMMA,
 		"currencyDecimalSeparator":     models.DOT,
 		"currencyHideDecimalPlaces":    false,
-		"taskConcurrency":              1,
-		"emailPollingInterval":         60,
-		"taskQueueConfigurations":      queueConfigs,
 	}
 	bodyBytes, err := json.Marshal(body)
 	if err != nil {
@@ -322,14 +284,6 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 	db.Create(&models.SystemSettings{})
 	grantAllAppPerms(t, 1)
 
-	queueConfigs := make([]commands.UpsertTaskQueueConfigurationCommand, 0)
-	for _, config := range models.GetAllDefaultQueueConfigurations() {
-		queueConfigs = append(queueConfigs, commands.UpsertTaskQueueConfigurationCommand{
-			Name:     config.Name,
-			Priority: 1,
-		})
-	}
-
 	appHours := 168
 	mcpHours := 12
 	secureCookies := true
@@ -338,8 +292,6 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 		CurrencySymbolPosition:       models.START,
 		CurrencyThousandthsSeparator: models.COMMA,
 		CurrencyDecimalSeparator:     models.DOT,
-		TaskConcurrency:              1,
-		TaskQueueConfigurations:      queueConfigs,
 		RefreshTokenValidForHours:    &appHours,
 		McpRefreshTokenValidForHours: &mcpHours,
 		SecureCookies:                &secureCookies,
@@ -375,97 +327,5 @@ func TestUpdateSystemSettingsPersistsExplicitRefreshTokenLifetimes(t *testing.T)
 
 	if !updated.SecureCookies {
 		utils.PrintTestError(t, updated.SecureCookies, true)
-	}
-}
-
-// The end-to-end shape of the upgrade bug: an install whose task_queue_configuration
-// table predates models.SystemCleanUpQueue has four rows, the settings form builds
-// its inputs from whatever the GET returned, and so it submits four --
-// UpsertSystemSettingsCommand.Validate requires one per queue name and rejected the
-// entire body with a 400. tempFileRetentionHours is the setting that made this
-// reachable in practice: changing it is exactly the save that failed.
-func TestUpdateSystemSettingsSucceedsOnAnInstallMissingAQueueConfiguration(t *testing.T) {
-	defer tearDownSystemSettingsTest()
-
-	db := repositories.GetDB()
-	db.Create(&models.SystemSettings{})
-	grantAllAppPerms(t, 1)
-
-	for _, queueName := range models.GetQueueNames() {
-		if queueName == models.SystemCleanUpQueue {
-			continue
-		}
-
-		err := db.Create(&models.TaskQueueConfiguration{
-			Name:             queueName,
-			Priority:         3,
-			SystemSettingsId: 1,
-		}).Error
-		if err != nil {
-			t.Fatalf("failed to seed queue configuration %s: %v", queueName, err)
-		}
-	}
-
-	// Build the queue list the way the settings form does: from the payload the
-	// server just handed the client, never from the client's own enum.
-	served, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
-	if err != nil {
-		t.Fatalf("failed to read system settings: %v", err)
-	}
-
-	queueConfigs := make([]map[string]interface{}, 0)
-	for _, config := range served.TaskQueueConfigurations {
-		queueConfigs = append(queueConfigs, map[string]interface{}{
-			"name":     config.Name,
-			"priority": config.Priority,
-		})
-	}
-
-	body := map[string]interface{}{
-		"currencyDisplay":              "$",
-		"currencySymbolPosition":       models.START,
-		"currencyThousandthsSeparator": models.COMMA,
-		"currencyDecimalSeparator":     models.DOT,
-		"currencyHideDecimalPlaces":    false,
-		"taskConcurrency":              1,
-		"emailPollingInterval":         60,
-		"tempFileRetentionHours":       4320,
-		"taskQueueConfigurations":      queueConfigs,
-	}
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		t.Fatalf("failed to marshal body: %v", err)
-	}
-
-	r := httptest.NewRequest("PUT", "/api", strings.NewReader(string(bodyBytes)))
-	newContext := context.WithValue(r.Context(), jwtmiddleware.ContextKey{}, &validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}})
-	r = r.WithContext(newContext)
-	w := httptest.NewRecorder()
-
-	UpdateSystemSettings(w, r)
-
-	if w.Result().StatusCode != http.StatusOK {
-		utils.PrintTestError(t, w.Result().StatusCode, http.StatusOK)
-	}
-
-	// A 200 that dropped the value would be the worse outcome of the two, so the
-	// setting the save exists to change is asserted alongside the status.
-	updated, err := repositories.NewSystemSettingsRepository(nil).GetSystemSettings()
-	if err != nil {
-		t.Fatalf("failed to read back system settings: %v", err)
-	}
-
-	if updated.TempFileRetentionHours != 4320 {
-		utils.PrintTestError(t, updated.TempFileRetentionHours, 4320)
-	}
-
-	var persistedCount int64
-	if err := db.Model(&models.TaskQueueConfiguration{}).Count(&persistedCount).Error; err != nil {
-		t.Fatalf("failed to count queue configurations: %v", err)
-	}
-
-	// And the row heals, so the next read no longer has to invent it.
-	if persistedCount != int64(len(models.GetQueueNames())) {
-		utils.PrintTestError(t, persistedCount, len(models.GetQueueNames()))
 	}
 }
