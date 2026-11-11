@@ -48,8 +48,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     the audit report, not corrected); and `feature/shop-order` (`04df4e63`, green CI): in Shop mode what is
     left to buy is in the order the household crossed things off before (LIST-23), worked out in the web app
     from the lists it holds, one order for the household (the owner's choice), no server or contract change;
-    seen in the built demo only. **Next, the last sprint 11 item:** signal stores in place of NGXS (not
-    started). The working worktree is `.claude/worktrees/dependency-updates`.
+    seen in the built demo only; and `feature/signal-stores` (`71abe787`, green CI, 2026-11-12): NGXS is gone,
+    the web app's sixteen states are signal stores (`desktop/CLAUDE.md` → State), under the same `localStorage`
+    keys; proved in the real app on the PC, and it fixed the Web Push key that never reached the app.
+    **Every item of the audit is now in `preview`; nothing of it is on `main` past sprint 5.** The working
+    worktree is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
   - Since cgo and nginx went, the PC can run the real server in production mode with the built app
@@ -140,6 +143,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   more), then on a later list with some of the same items switch Shop mode on: they come in the order you
   walked, with one line above them saying so, and new items after them. Crossing one off must not make the
   rest jump. Never seen with a real household's lists.
+- Sprint 11, the stores (`:preview`): after the update nobody should have to sign in again, and the receipts
+  list should open with the page size, filter and columns it had; the sidebar stays collapsed if it was. If a
+  device does ask for the password or forgets these, tell the agent which. With push set up on the server
+  (`VAPID` keys) and the app on HTTPS, adding a warranty date should now ask once to allow notifications.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
@@ -147,8 +154,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Backlog
 
-Empty on purpose (the owner's word of 2026-11-10). What is not done yet is the audit's sprints 7 to 11, listed
-under Current state.
+Empty on purpose (the owner's word of 2026-11-10). The audit's eleven sprints are all in `preview`; what is left
+is the owner's: trying `:preview` on the NAS (below), then the word for `main`, and the decisions the audit
+report marks as made differently (icons on one map, the six Dashboard tiles as markup, three contract
+inaccuracies, `receipts.amount` kept in step by triggers).
 
 ## Parked (only when the owner asks)
 
