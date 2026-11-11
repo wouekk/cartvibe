@@ -1,36 +1,31 @@
 package services
 
 import (
-	"fmt"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
+	"fmt"
 	"unicode/utf8"
 )
 
-// ResolvedQuickScanFields holds the final per-file values a quick scan will be created with, after
-// each field is checked against its group's quick-scan configuration and defaults are applied.
+// ResolvedQuickScanFields holds the final per-file values a quick scan will be created with, after the
+// household's defaults have filled in what the person did not say.
 type ResolvedQuickScanFields struct {
 	PaidByUserId uint
 	Status       models.ReceiptStatus
 	CategoryIds  []uint
 	TagIds       []uint
-	Comment      string
+	Note         string
 }
 
-// ResolveQuickScanFields walks each uploaded file, loads its target group's receipt settings
-// (cached per group), enforces the group's required quick-scan fields into a ValidatorError, and
-// backfills paid-by/status defaults for fields the user left blank. A non-empty ValidatorError means
-// the request should 400 without enqueuing anything.
+// ResolveQuickScanFields walks each uploaded file, loads its target household's receipt settings (cached per
+// household) and fills in what the scan left empty. Nothing is ever required: a scan is a photo, and every
+// other field has a value to fall back on. A non-empty ValidatorError (a note that is too long) means the
+// request should 400 without queuing anything.
 func (service ReceiptService) ResolveQuickScanFields(command commands.QuickScanCommand, uploaderUserId uint) ([]ResolvedQuickScanFields, structs.ValidatorError, error) {
 	settingsRepository := repositories.NewGroupReceiptSettingsRepository(service.TX)
-	permissionService := NewPermissionService(service.TX)
 	settingsCache := make(map[uint]models.GroupReceiptSettings)
-	// Only the role's permission list is cached globally; the membership lookup behind each check is
-	// not, so cache the resolved answer per group for multi-file scans.
-	commentPermissionCache := make(map[uint]bool)
 	resolved := make([]ResolvedQuickScanFields, len(command.Files))
 	configErr := structs.ValidatorError{Errors: make(map[string]string)}
 
@@ -47,23 +42,14 @@ func (service ReceiptService) ResolveQuickScanFields(command commands.QuickScanC
 			settingsCache[groupId] = settings
 		}
 
+		// Paid by: what the scan says, else the household's default, else the person scanning.
 		paidByUserId := command.PaidByUserIds[i]
-		status := command.Statuses[i]
-		categoryIds := command.CategoryIdsForFile(i)
-		tagIds := command.TagIdsForFile(i)
-		fileKey := fmt.Sprintf("files.%d", i)
-
-		// Phase 3 C3: a family never has to fill a field in. The group's "required" flags for
-		// paid-by, status, categories and tags are kept (and still saved) but no longer enforced; a
-		// blank paid-by or status falls back to the group's default, then to the uploader and OPEN
-		// ("To check"), so a receipt is never left without either.
 		if paidByUserId == 0 {
 			paidByUserId = resolveQuickScanDefaultPaidBy(settings, uploaderUserId)
 		}
-		if paidByUserId == 0 {
-			paidByUserId = uploaderUserId
-		}
 
+		// Status: what the scan says, else the household's default, else "To check".
+		status := command.Statuses[i]
 		if len(status) == 0 {
 			status = settings.QuickScanDefaultStatus
 		}
@@ -71,65 +57,35 @@ func (service ReceiptService) ResolveQuickScanFields(command commands.QuickScanC
 			status = models.OPEN
 		}
 
-		// group.comments.create acts as an extra AND on "shown": a caller who can't comment in the
-		// target group never sees the field, is never required to fill it, and any comment they
-		// submit anyway is silently dropped rather than 403'd — the comment is incidental to the
-		// receipt, so refusing the whole fire-and-forget scan over it would be a worse outcome. The
-		// permission is only resolved when the field is on, so the default (off) config costs no
-		// extra queries.
-		comment := command.CommentForFile(i)
-		commentShown := settings.IsQuickScanCommentShown()
-		if commentShown {
-			canComment, cached := commentPermissionCache[groupId]
-			if !cached {
-				allowed, err := permissionService.HasGroupPermissions(uploaderUserId, groupId, permissions.GroupCommentsCreate)
-				if err != nil {
-					return nil, structs.ValidatorError{}, err
-				}
-
-				canComment = allowed
-				commentPermissionCache[groupId] = canComment
-			}
-
-			commentShown = canComment
-		}
-		commentRequired := commentShown && settings.IsQuickScanCommentRequired()
-
-		if !commentShown {
-			comment = ""
-		} else if commentRequired && len(comment) == 0 {
-			configErr.Errors[fileKey+".comment"] = "Comment is required"
-		} else if utf8.RuneCountInString(comment) > models.MaxCommentLength {
-			// Counted in runes, not bytes: a len() check would reject an accented or non-Latin
-			// comment of 500 characters. Checked here, before the scan is queued, so the person
-			// sees the reason at once; SQLite itself would store a comment of any length.
-			configErr.Errors[fileKey+".comment"] = fmt.Sprintf("Comment must be %d characters or fewer", models.MaxCommentLength)
+		// A note is kept only where the household's Quick Scan asks for one: a hidden field takes nothing.
+		note := command.NoteForFile(i)
+		if !settings.IsQuickScanNoteShown() {
+			note = ""
+		} else if utf8.RuneCountInString(note) > models.MaxReceiptNoteLength {
+			// Counted in characters, not bytes, and checked before the scan is queued, so the person sees the
+			// reason at once.
+			configErr.Errors[fmt.Sprintf("files.%d.note", i)] = fmt.Sprintf("Note must be %d characters or fewer", models.MaxReceiptNoteLength)
 		}
 
 		resolved[i] = ResolvedQuickScanFields{
 			PaidByUserId: paidByUserId,
 			Status:       status,
-			CategoryIds:  categoryIds,
-			TagIds:       tagIds,
-			Comment:      comment,
+			CategoryIds:  command.CategoryIdsForFile(i),
+			TagIds:       command.TagIdsForFile(i),
+			Note:         note,
 		}
 	}
 
 	return resolved, configErr, nil
 }
 
-// resolveQuickScanDefaultPaidBy resolves the configured default paid-by for a group: the uploader
-// (the user running the quick scan) or a specific user. Returns 0 when unset (guarded upstream by
-// group-settings validation).
+// resolveQuickScanDefaultPaidBy is who paid when a scan does not say: the member the household named as its
+// default, else the person scanning.
 func resolveQuickScanDefaultPaidBy(settings models.GroupReceiptSettings, uploaderUserId uint) uint {
-	switch settings.QuickScanDefaultPaidByType {
-	case models.QUICK_SCAN_PAID_BY_UPLOADER:
-		return uploaderUserId
-	case models.QUICK_SCAN_PAID_BY_USER:
-		if settings.QuickScanDefaultPaidById != nil {
-			return *settings.QuickScanDefaultPaidById
-		}
+	if settings.QuickScanDefaultPaidByType == models.QUICK_SCAN_PAID_BY_USER &&
+		settings.QuickScanDefaultPaidById != nil && *settings.QuickScanDefaultPaidById != 0 {
+		return *settings.QuickScanDefaultPaidById
 	}
 
-	return 0
+	return uploaderUserId
 }

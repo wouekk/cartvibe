@@ -47,7 +47,7 @@ func TestReceipt_MarshalsUnloadedListsAsEmptyArrays(t *testing.T) {
 			t.Fatalf("marshal: %v", err)
 		}
 		body := string(bytes)
-		for _, field := range []string{`"categories":[]`, `"tags":[]`, `"imageFiles":[]`, `"comments":[]`} {
+		for _, field := range []string{`"categories":[]`, `"tags":[]`, `"imageFiles":[]`, `"note":""`} {
 			if !strings.Contains(body, field) {
 				t.Errorf("expected %s in %s", field, body)
 			}

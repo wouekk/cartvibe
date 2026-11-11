@@ -52,13 +52,13 @@ func TestQuickScanCommand_Validate_ValidInputs(t *testing.T) {
 				TagIds:        [][]uint{{}, {5}},
 			},
 		},
-		"valid with comments": {
+		"valid with notes": {
 			command: QuickScanCommand{
 				Files:         []multipart.File{newMockFile(), newMockFile()},
 				PaidByUserIds: []uint{1, 2},
 				GroupIds:      []uint{1, 1},
 				Statuses:      []models.ReceiptStatus{"OPEN", "OPEN"},
-				Comments:      []string{"a note", ""},
+				Notes:         []string{"a note", ""},
 			},
 		},
 	}
@@ -139,15 +139,15 @@ func TestQuickScanCommand_Validate_InvalidInputs(t *testing.T) {
 			},
 			expectedErrors: []string{"tagIds"},
 		},
-		"mismatched comments": {
+		"mismatched notes": {
 			command: QuickScanCommand{
 				Files:         []multipart.File{newMockFile(), newMockFile()},
 				PaidByUserIds: []uint{1, 2},
 				GroupIds:      []uint{1, 1},
 				Statuses:      []models.ReceiptStatus{"OPEN", "OPEN"},
-				Comments:      []string{"only one"},
+				Notes:         []string{"only one"},
 			},
-			expectedErrors: []string{"comments"},
+			expectedErrors: []string{"notes"},
 		},
 	}
 
@@ -225,42 +225,40 @@ func TestParseCommaSeparatedUints(t *testing.T) {
 	}
 }
 
-func TestQuickScanCommand_CommentForFile(t *testing.T) {
-	command := QuickScanCommand{Comments: []string{"first", ""}}
+func TestQuickScanCommand_NoteForFile(t *testing.T) {
+	command := QuickScanCommand{Notes: []string{"first", ""}}
 
-	if command.CommentForFile(0) != "first" {
-		utils.PrintTestError(t, command.CommentForFile(0), "first")
+	if command.NoteForFile(0) != "first" {
+		utils.PrintTestError(t, command.NoteForFile(0), "first")
 	}
-	if command.CommentForFile(1) != "" {
-		utils.PrintTestError(t, command.CommentForFile(1), "")
+	if command.NoteForFile(1) != "" {
+		utils.PrintTestError(t, command.NoteForFile(1), "")
 	}
-	// Out of range: a client that omitted comments entirely (e.g. any released before the field
-	// existed) must resolve to no comment rather than panic.
-	if command.CommentForFile(5) != "" {
-		utils.PrintTestError(t, command.CommentForFile(5), "")
+	// Out of range: a client that sent no notes at all must resolve to no note rather than panic.
+	if command.NoteForFile(5) != "" {
+		utils.PrintTestError(t, command.NoteForFile(5), "")
 	}
 }
 
-func TestQuickScanCommand_LoadDataFromRequestTrimsComments(t *testing.T) {
+// quickScanFormCommand loads a Quick Scan request of one file with the given extra form fields.
+func quickScanFormCommand(t *testing.T, fields [][2]string) QuickScanCommand {
+	t.Helper()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	part, err := writer.CreateFormFile("files", "receipt.png")
 	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
+		t.Fatal(err)
 	}
 	part.Write([]byte("image-bytes"))
 
 	writer.WriteField("groupIds", "1")
 	writer.WriteField("paidByUserIds", "1")
-	writer.WriteField("statuses", "OPEN")
-	// A whitespace-only comment must land as empty so it fails a required check rather than
-	// persisting a blank comment.
-	writer.WriteField("comments", "   \n  ")
+	for _, field := range fields {
+		writer.WriteField(field[0], field[1])
+	}
 	if err := writer.Close(); err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
+		t.Fatal(err)
 	}
 
 	r := httptest.NewRequest("POST", "/api", body)
@@ -268,15 +266,39 @@ func TestQuickScanCommand_LoadDataFromRequestTrimsComments(t *testing.T) {
 
 	command := QuickScanCommand{}
 	if err := command.LoadDataFromRequest(httptest.NewRecorder(), r); err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
+		t.Fatal(err)
+	}
+	return command
+}
+
+func TestQuickScanCommand_LoadDataFromRequestTrimsNotes(t *testing.T) {
+	// A note of spaces alone is no note.
+	command := quickScanFormCommand(t, [][2]string{{"statuses", "OPEN"}, {"notes", "   \n  "}})
+
+	if len(command.Notes) != 1 || command.Notes[0] != "" {
+		t.Errorf("notes = %q, want one empty note", command.Notes)
+	}
+}
+
+// Until 2026-11 the note's form field was called comments. A page that was open during the update still sends
+// it, and so does a scan that was queued before it.
+func TestQuickScanCommand_LoadDataFromRequestReadsTheOldCommentsField(t *testing.T) {
+	old := quickScanFormCommand(t, [][2]string{{"statuses", "OPEN"}, {"comments", " for the party "}})
+	if len(old.Notes) != 1 || old.Notes[0] != "for the party" {
+		t.Errorf("notes = %q, want the old field's text", old.Notes)
 	}
 
-	if len(command.Comments) != 1 {
-		utils.PrintTestError(t, len(command.Comments), 1)
-		return
+	both := quickScanFormCommand(t, [][2]string{{"statuses", "OPEN"}, {"notes", "new"}, {"comments", "old"}})
+	if len(both.Notes) != 1 || both.Notes[0] != "new" {
+		t.Errorf("notes = %q, want the new field to win", both.Notes)
 	}
-	if command.Comments[0] != "" {
-		utils.PrintTestError(t, command.Comments[0], "")
+}
+
+// A status removed in 2026-11 is read as what it became.
+func TestQuickScanCommand_LoadDataFromRequestReadsARemovedStatus(t *testing.T) {
+	command := quickScanFormCommand(t, [][2]string{{"statuses", "NEEDS_ATTENTION"}})
+
+	if len(command.Statuses) != 1 || command.Statuses[0] != models.OPEN {
+		t.Errorf("statuses = %q, want OPEN", command.Statuses)
 	}
 }

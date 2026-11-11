@@ -20,9 +20,20 @@ type QuickScanTaskPayload struct {
 	Status           models.ReceiptStatus
 	CategoryIds      []uint
 	TagIds           []uint
+	Note             string
+	// Comment is what Note was called while a receipt had comments. A scan queued before the update still
+	// carries it; nothing writes it any more.
 	Comment          string
 	TempPath         string
 	OriginalFileName string
+}
+
+// noteText is the scan's note, under whichever name the job was queued with.
+func (payload QuickScanTaskPayload) noteText() string {
+	if payload.Note != "" {
+		return payload.Note
+	}
+	return payload.Comment
 }
 
 const (
@@ -68,7 +79,7 @@ func HandleQuickScanTask(ctx context.Context, job models.Job) error {
 		Status:           payload.Status,
 		CategoryIds:      payload.CategoryIds,
 		TagIds:           payload.TagIds,
-		Comment:          payload.Comment,
+		Note:             payload.noteText(),
 		TempPath:         payload.TempPath,
 		OriginalFileName: payload.OriginalFileName,
 		JobId:            repositories.JobIdString(job.ID),

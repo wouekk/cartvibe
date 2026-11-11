@@ -46,15 +46,15 @@ func searchNames(t *testing.T, phrase string) ([]string, int64) {
 	return names, count
 }
 
-func TestSearchMatchesNameShopCommentAndProductLines(t *testing.T) {
+func TestSearchMatchesNameShopNoteAndProductLines(t *testing.T) {
 	defer teardownReceiptTest()
 	setupReceiptTest()
 
 	byName := createSortableReceipt("Chocolate festival")
 	byShop := createSortableReceipt("r-shop")
 	GetDB().Model(&byShop).Update("shop_name", "Choc Shop")
-	byComment := createSortableReceipt("r-comment")
-	addCommentAt(byComment.ID, uintPtr(1), "bought choclate for the party", firstCommentBaseTime)
+	byNote := createSortableReceipt("r-note")
+	GetDB().Model(&byNote).Update("note", "bought choclate for the party")
 	byProduct := createSortableReceipt("r-product")
 	addSearchProduct(byProduct.ID, "CHOC NOIR 70%", "Dark chocolate", "2.49")
 	createSortableReceipt("r-nothing")
@@ -64,7 +64,7 @@ func TestSearchMatchesNameShopCommentAndProductLines(t *testing.T) {
 	_ = byName
 
 	names, count := searchNames(t, "chocolate")
-	assertOrder(t, names, []string{"Chocolate festival", "r-comment", "r-product", "r-shop"})
+	assertOrder(t, names, []string{"Chocolate festival", "r-note", "r-product", "r-shop"})
 	if count != 4 {
 		utils.PrintTestError(t, count, 4)
 	}

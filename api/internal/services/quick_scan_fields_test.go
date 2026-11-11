@@ -1,11 +1,11 @@
 package services
 
 import (
-	"mime/multipart"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/utils"
+	"mime/multipart"
+	"strings"
 	"testing"
 )
 
@@ -18,27 +18,22 @@ func seedQuickScanGroup(settings models.GroupReceiptSettings) {
 	}
 
 	command := commands.UpdateGroupReceiptSettingsCommand{
-		HideComments:                settings.HideComments,
-		QuickScanPaidByEnabled:      settings.QuickScanPaidByEnabled,
-		QuickScanPaidByRequired:     settings.QuickScanPaidByRequired,
-		QuickScanDefaultPaidByType:  settings.QuickScanDefaultPaidByType,
-		QuickScanDefaultPaidById:    settings.QuickScanDefaultPaidById,
-		QuickScanStatusEnabled:      settings.QuickScanStatusEnabled,
-		QuickScanStatusRequired:     settings.QuickScanStatusRequired,
-		QuickScanDefaultStatus:      settings.QuickScanDefaultStatus,
-		QuickScanCategoriesEnabled:  settings.QuickScanCategoriesEnabled,
-		QuickScanCategoriesRequired: settings.QuickScanCategoriesRequired,
-		QuickScanTagsEnabled:        settings.QuickScanTagsEnabled,
-		QuickScanTagsRequired:       settings.QuickScanTagsRequired,
-		QuickScanCommentEnabled:     settings.QuickScanCommentEnabled,
-		QuickScanCommentRequired:    settings.QuickScanCommentRequired,
+		HideNote:                   settings.HideNote,
+		QuickScanPaidByEnabled:     settings.QuickScanPaidByEnabled,
+		QuickScanDefaultPaidByType: settings.QuickScanDefaultPaidByType,
+		QuickScanDefaultPaidById:   settings.QuickScanDefaultPaidById,
+		QuickScanStatusEnabled:     settings.QuickScanStatusEnabled,
+		QuickScanDefaultStatus:     settings.QuickScanDefaultStatus,
+		QuickScanCategoriesEnabled: settings.QuickScanCategoriesEnabled,
+		QuickScanTagsEnabled:       settings.QuickScanTagsEnabled,
+		QuickScanNoteEnabled:       settings.QuickScanNoteEnabled,
 	}
 	if _, err := repository.UpdateGroupReceiptSettings("1", command); err != nil {
 		panic(err)
 	}
 }
 
-func singleFileCommand(paidBy uint, status models.ReceiptStatus, categoryIds []uint, tagIds []uint, comment string) commands.QuickScanCommand {
+func singleFileCommand(paidBy uint, status models.ReceiptStatus, categoryIds []uint, tagIds []uint, note string) commands.QuickScanCommand {
 	return commands.QuickScanCommand{
 		Files:         []multipart.File{nil},
 		GroupIds:      []uint{1},
@@ -46,114 +41,153 @@ func singleFileCommand(paidBy uint, status models.ReceiptStatus, categoryIds []u
 		Statuses:      []models.ReceiptStatus{status},
 		CategoryIds:   [][]uint{categoryIds},
 		TagIds:        [][]uint{tagIds},
-		Comments:      []string{comment},
+		Notes:         []string{note},
 	}
 }
 
-// Phase 3 C3: the group's required flags are no longer enforced; blanks fall back to the uploader
-// and OPEN when the group configures no default.
-func TestResolveQuickScanFields_RequiredFieldsFallBackInsteadOfRejecting(t *testing.T) {
+func resolveOne(t *testing.T, command commands.QuickScanCommand, uploader uint) (ResolvedQuickScanFields, map[string]string) {
+	t.Helper()
+	resolved, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, uploader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return resolved[0], configErr.Errors
+}
+
+// A new household: Quick Scan asks for nothing, and a scan that says nothing is paid by the person scanning
+// and is to check.
+func TestResolveQuickScanFields_AScanThatSaysNothingGetsThePersonScanningAndToCheck(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	seedQuickScanGroup(models.GroupReceiptSettings{})
+
+	resolved, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, ""), 42)
+
+	if len(errors) > 0 {
+		t.Errorf("nothing is required, got %v", errors)
+	}
+	if resolved.PaidByUserId != 42 || resolved.Status != models.OPEN {
+		t.Errorf("got paid by %d, status %s; want 42, OPEN", resolved.PaidByUserId, resolved.Status)
+	}
+}
+
+// Asking for every field requires none of them.
+func TestResolveQuickScanFields_NothingIsRequiredEvenWhenEveryFieldIsAskedFor(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	seedQuickScanGroup(models.GroupReceiptSettings{
-		QuickScanPaidByEnabled:      true,
-		QuickScanPaidByRequired:     true,
-		QuickScanStatusEnabled:      true,
-		QuickScanStatusRequired:     true,
-		QuickScanCategoriesEnabled:  true,
-		QuickScanCategoriesRequired: true,
-		QuickScanTagsEnabled:        true,
-		QuickScanTagsRequired:       true,
+		QuickScanPaidByEnabled: true, QuickScanStatusEnabled: true, QuickScanCategoriesEnabled: true,
+		QuickScanTagsEnabled: true, QuickScanNoteEnabled: true,
 	})
 
-	command := singleFileCommand(0, "", []uint{}, []uint{}, "")
-	resolved, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
+	resolved, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, ""), 42)
+
+	if len(errors) > 0 {
+		t.Errorf("nothing is required, got %v", errors)
 	}
-	if len(configErr.Errors) > 0 {
-		utils.PrintTestError(t, configErr.Errors, "no errors")
+	if resolved.PaidByUserId != 42 || resolved.Status != models.OPEN || resolved.Note != "" {
+		t.Errorf("got %+v", resolved)
 	}
-	if resolved[0].PaidByUserId != 42 {
-		utils.PrintTestError(t, resolved[0].PaidByUserId, 42)
-	}
-	if resolved[0].Status != models.OPEN {
-		utils.PrintTestError(t, resolved[0].Status, models.OPEN)
+}
+
+func TestResolveQuickScanFields_TheHouseholdsDefaults(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	defaultUser := uint(7)
+	seedQuickScanGroup(models.GroupReceiptSettings{
+		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
+		QuickScanDefaultPaidById:   &defaultUser,
+		QuickScanDefaultStatus:     models.RESOLVED,
+	})
+
+	resolved, _ := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, ""), 42)
+
+	if resolved.PaidByUserId != 7 || resolved.Status != models.RESOLVED {
+		t.Errorf("got paid by %d, status %s; want the household's 7, RESOLVED", resolved.PaidByUserId, resolved.Status)
 	}
 }
 
 func TestResolveQuickScanFields_UploaderDefault(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	seedQuickScanGroup(models.GroupReceiptSettings{
-		QuickScanPaidByEnabled:     true,
-		QuickScanPaidByRequired:    false,
 		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
-		QuickScanStatusEnabled:     true,
-		QuickScanStatusRequired:    false,
-		QuickScanDefaultStatus:     models.RESOLVED,
 	})
 
-	command := singleFileCommand(0, "", []uint{}, []uint{}, "")
-	resolved, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-	}
-	if len(configErr.Errors) > 0 {
-		utils.PrintTestError(t, configErr.Errors, "no errors")
-	}
-	if resolved[0].PaidByUserId != 42 {
-		utils.PrintTestError(t, resolved[0].PaidByUserId, 42)
-	}
-	if resolved[0].Status != models.RESOLVED {
-		utils.PrintTestError(t, resolved[0].Status, models.RESOLVED)
-	}
-}
+	resolved, _ := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, ""), 42)
 
-func TestResolveQuickScanFields_SpecificUserDefault(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	defaultUser := uint(7)
-	seedQuickScanGroup(models.GroupReceiptSettings{
-		QuickScanPaidByEnabled:     false,
-		QuickScanPaidByRequired:    false,
-		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
-		QuickScanDefaultPaidById:   &defaultUser,
-		QuickScanStatusEnabled:     true,
-		QuickScanStatusRequired:    true,
-	})
-
-	command := singleFileCommand(0, models.OPEN, []uint{}, []uint{}, "")
-	resolved, configErr, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-	}
-	if len(configErr.Errors) > 0 {
-		utils.PrintTestError(t, configErr.Errors, "no errors")
-	}
-	if resolved[0].PaidByUserId != 7 {
-		utils.PrintTestError(t, resolved[0].PaidByUserId, 7)
+	if resolved.PaidByUserId != 42 {
+		t.Errorf("paid by %d, want the person scanning (42)", resolved.PaidByUserId)
 	}
 }
 
 func TestResolveQuickScanFields_ProvidedValuesKept(t *testing.T) {
 	defer repositories.TruncateTestDb()
+	defaultUser := uint(7)
 	seedQuickScanGroup(models.GroupReceiptSettings{
 		QuickScanPaidByEnabled:     true,
-		QuickScanPaidByRequired:    false,
-		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
+		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
+		QuickScanDefaultPaidById:   &defaultUser,
 		QuickScanStatusEnabled:     true,
-		QuickScanStatusRequired:    false,
 		QuickScanDefaultStatus:     models.OPEN,
 	})
 
-	// User supplied a payer and status even though the fields are optional; keep them.
-	command := singleFileCommand(99, models.RESOLVED, []uint{}, []uint{}, "")
-	resolved, _, err := NewReceiptService(nil).ResolveQuickScanFields(command, 42)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
+	// What the scan says wins over the household's defaults.
+	resolved, _ := resolveOne(t, singleFileCommand(99, models.RESOLVED, []uint{3}, []uint{4}, ""), 42)
+
+	if resolved.PaidByUserId != 99 || resolved.Status != models.RESOLVED {
+		t.Errorf("got paid by %d, status %s; want 99, RESOLVED", resolved.PaidByUserId, resolved.Status)
 	}
-	if resolved[0].PaidByUserId != 99 {
-		utils.PrintTestError(t, resolved[0].PaidByUserId, 99)
+	if len(resolved.CategoryIds) != 1 || resolved.CategoryIds[0] != 3 || len(resolved.TagIds) != 1 || resolved.TagIds[0] != 4 {
+		t.Errorf("categories and tags should be kept, got %+v", resolved)
 	}
-	if resolved[0].Status != models.RESOLVED {
-		utils.PrintTestError(t, resolved[0].Status, models.RESOLVED)
+}
+
+// The note is kept only where the household's Quick Scan asks for one.
+func TestResolveQuickScanFields_TheNote(t *testing.T) {
+	cases := map[string]struct {
+		settings models.GroupReceiptSettings
+		want     string
+	}{
+		"asked for: kept":                     {models.GroupReceiptSettings{QuickScanNoteEnabled: true}, "for the party"},
+		"not asked for: dropped":              {models.GroupReceiptSettings{}, ""},
+		"asked for but hidden for the household: dropped": {models.GroupReceiptSettings{QuickScanNoteEnabled: true, HideNote: true}, ""},
+	}
+
+	for name, test := range cases {
+		t.Run(name, func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			seedQuickScanGroup(test.settings)
+
+			resolved, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, "for the party"), 42)
+
+			if len(errors) > 0 {
+				t.Errorf("unexpected errors %v", errors)
+			}
+			if resolved.Note != test.want {
+				t.Errorf("note = %q, want %q", resolved.Note, test.want)
+			}
+		})
+	}
+}
+
+// The limit counts characters, and a note over it is refused before anything is queued.
+func TestResolveQuickScanFields_ANoteThatIsTooLongIsRefused(t *testing.T) {
+	defer repositories.TruncateTestDb()
+	seedQuickScanGroup(models.GroupReceiptSettings{QuickScanNoteEnabled: true})
+
+	atLimit := strings.Repeat("ż", models.MaxReceiptNoteLength)
+	_, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, atLimit), 42)
+	if len(errors) > 0 {
+		t.Errorf("a note at the limit should pass, got %v", errors)
+	}
+
+	_, errors = resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, atLimit+"ż"), 42)
+	if _, refused := errors["files.0.note"]; !refused {
+		t.Errorf("a note over the limit should be refused under files.0.note, got %v", errors)
+	}
+
+	// Where the household does not ask for a note, a long one is dropped, not refused.
+	repositories.TruncateTestDb()
+	seedQuickScanGroup(models.GroupReceiptSettings{})
+	resolved, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, atLimit+"ż"), 42)
+	if len(errors) > 0 || resolved.Note != "" {
+		t.Errorf("a note nobody asked for should be dropped quietly, got %q %v", resolved.Note, errors)
 	}
 }

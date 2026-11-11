@@ -32,18 +32,6 @@ func SetGeneralBodyData(contextKey string, dataType interface{}) (mw func(http.H
 				ctx := context.WithValue(r.Context(), contextKey, group)
 				serveWithContext(r, w, h, ctx)
 
-			case models.Comment:
-				var comment models.Comment
-				err = json.Unmarshal(bodyData, &comment)
-				shouldReturn := checkError(err, w)
-				if shouldReturn {
-					return
-				}
-
-				ctx := context.WithValue(r.Context(), "receiptId", utils.UintToString(comment.ReceiptId))
-				ctx = context.WithValue(ctx, contextKey, comment)
-				serveWithContext(r, w, h, ctx)
-
 			case commands.BulkStatusUpdateCommand:
 				var bulkResolve commands.BulkStatusUpdateCommand
 				err = json.Unmarshal(bodyData, &bulkResolve)

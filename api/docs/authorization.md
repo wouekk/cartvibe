@@ -12,10 +12,10 @@ Since 2026-11 (audit item C14) there are four roles and nothing an admin can tun
 | app | Admin | `Legacy Admin` | every app key |
 | app | User | `User` | `FamilyUserAppKeys`: own account and preferences, notifications, search, the shared categories and tags, the AI page |
 | household | Owner (shown as Admin) | `Legacy Owner` | every group key |
-| household | Member (shown as User) | `Member` | `FamilyMemberGroupKeys`: receipts, comments, shopping lists, the activity log |
+| household | Member (shown as User) | `Member` | `FamilyMemberGroupKeys`: receipts (their note included), shopping lists, the activity log |
 
 Inside a household everyone sees everything: every receipt whoever paid, every category and tag, every member,
-comment and activity. What differs between an Owner and a Member is what they may change about the household
+note and activity. What differs between an Owner and a Member is what they may change about the household
 itself (its name and look, its receipt settings, its members, deleting it) and whether they read its reports.
 
 Why it was cut down. The model before it was built for a company: seven seeded roles, custom roles, category and tag
@@ -69,7 +69,7 @@ Dashboard, notifications and the MCP tools at once.
 `HandleRequest` (`handlers/generic_handler.go`) resolves the permissions a handler declares from the database. A
 receipt named by id is judged in its own household: the gate reads the receipt's `group_id` and checks the declared
 group permissions there, and an id that does not exist answers the same 403 as a refusal. That one place covers the
-single read, images, comments, duplicate, update, delete and the multi-id export.
+single read, images, duplicate, update, delete and the multi-id export.
 
 `ReceiptService.GetReceiptForUser` is the same rule as a service, shared by the REST read and the MCP tool: read
 permission in the receipt's household, checked again after the full load in case the receipt moved in between.

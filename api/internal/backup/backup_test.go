@@ -87,7 +87,7 @@ func seedHousehold(t *testing.T) seeded {
 	mustCreate(&models.GroupMember{UserID: admin.ID, GroupID: household.ID, GroupRoleID: &memberRole.ID})
 	mustCreate(&models.GroupMember{UserID: partner.ID, GroupID: household.ID, GroupRoleID: &memberRole.ID})
 	mustCreate(&models.GroupMember{UserID: admin.ID, GroupID: allGroup.ID, GroupRoleID: &memberRole.ID})
-	mustCreate(&models.GroupReceiptSettings{GroupId: household.ID, HideComments: true})
+	mustCreate(&models.GroupReceiptSettings{GroupId: household.ID, HideNote: true, QuickScanNoteEnabled: true})
 
 	dairy := models.Category{Name: "Dairy", Aliases: "Milk products"}
 	mustCreate(&dairy)
@@ -104,6 +104,8 @@ func seedHousehold(t *testing.T) seeded {
 		Date: time.Date(2026, 10, 4, 0, 0, 0, 0, time.UTC), WarrantyUntil: &warranty, ResolvedDate: &resolved,
 		PaidByUserID: partner.ID, Status: models.RESOLVED, GroupId: household.ID,
 		Categories: []models.Category{dairy}, Tags: []models.Tag{treat},
+		// Starts like a spreadsheet formula and has a line break: both must come back as written.
+		Note: "'For the party\nThanks",
 	}
 	mustCreate(&receipt)
 
@@ -111,10 +113,6 @@ func seedHousehold(t *testing.T) seeded {
 	planned := false
 	mustCreate(&models.ReceiptProduct{ReceiptId: receipt.ID, Name: "RABAT", DisplayName: "Discount", Amount: &productAmount,
 		Quantity: "1", Position: 2, CategoryId: &dairy.ID, Planned: &planned, Tags: []models.Tag{treat}})
-
-	parent := models.Comment{ReceiptId: receipt.ID, UserId: &admin.ID, Comment: "'For the party"}
-	mustCreate(&parent)
-	mustCreate(&models.Comment{ReceiptId: receipt.ID, UserId: &partner.ID, Comment: "Thanks", CommentId: &parent.ID})
 
 	fileBytes := []byte("%PDF-1.4 backup test")
 	file := models.FileData{Name: "scan.pdf", FileType: "application/pdf", Size: uint(len(fileBytes)), ReceiptId: receipt.ID}
@@ -220,7 +218,7 @@ func TestExportReadsBackEveryRowExactly(t *testing.T) {
 
 	wantRows := map[string]int{
 		"users": 2, "groups": 1, "group_members": 2, "categories": 1, "tags": 1, "receipts": 1,
-		"receipt_categories": 1, "receipt_tags": 1, "receipt_products": 1, "receipt_product_tags": 1, "comments": 2,
+		"receipt_categories": 1, "receipt_tags": 1, "receipt_products": 1, "receipt_product_tags": 1,
 		"files": 1, "shopping_lists": 1, "shopping_list_items": 1, "shopping_trips": 1, "classification_overrides": 0,
 		"exchange_rates": 1, "report_templates": 1, "report_template_groups": 1, "user_preferences": 1,
 		"dashboard_layouts": 0, "group_receipt_settings": 1,
@@ -252,9 +250,19 @@ func TestExportReadsBackEveryRowExactly(t *testing.T) {
 	if products[0]["amount"] != "-2.5" || products[0]["planned"] != "false" || products[0]["display_name"] != "Discount" {
 		t.Errorf("product row: %v", products[0])
 	}
-	comments, _ := archive.Table("comments")
-	if comments[0]["comment"] != "'For the party" || comments[1]["comment_id"] != comments[0]["id"] {
-		t.Errorf("comments: %v", comments)
+	if receipt["note"] != "'For the party\nThanks" {
+		t.Errorf("receipts.note = %q, want it as written", receipt["note"])
+	}
+	// A receipt has a note now, not comments: the export has no comments file.
+	if comments, _ := archive.Table("comments"); len(comments) != 0 {
+		t.Errorf("no comments table is exported, got %v", comments)
+	}
+	settings, _ := archive.Table("group_receipt_settings")
+	if settings[0]["hide_note"] != "true" || settings[0]["quick_scan_note_enabled"] != "true" {
+		t.Errorf("group_receipt_settings: %v", settings[0])
+	}
+	if _, old := settings[0]["quick_scan_paid_by_required"]; old {
+		t.Errorf("the removed required columns are not exported: %v", settings[0])
 	}
 	tags, _ := archive.Table("tags")
 	if tags[0]["name"] != "=treat" {

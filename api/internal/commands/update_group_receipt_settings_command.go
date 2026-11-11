@@ -8,29 +8,28 @@ import (
 	"net/http"
 )
 
+// UpdateGroupReceiptSettingsCommand is a household's receipt settings as its settings page sends them (see
+// models.GroupReceiptSettings for what each means). Nothing in Quick Scan is ever required, so there is no
+// "required" switch: a field that is not asked for, or left empty, gets its value from the defaults here.
 type UpdateGroupReceiptSettingsCommand struct {
 	HideImages            bool `json:"hideImages"`
 	HideReceiptCategories bool `json:"hideReceiptCategories"`
 	HideReceiptTags       bool `json:"hideReceiptTags"`
-	HideComments          bool `json:"hideComments"`
+	HideNote              bool `json:"hideNote"`
 
-	QuickScanPaidByEnabled     bool                              `json:"quickScanPaidByEnabled"`
-	QuickScanPaidByRequired    bool                              `json:"quickScanPaidByRequired"`
+	QuickScanPaidByEnabled bool `json:"quickScanPaidByEnabled"`
+	// QuickScanDefaultPaidByType says who paid when Quick Scan is not told: "" or UPLOADER is the person
+	// scanning, USER is the member named by QuickScanDefaultPaidById.
 	QuickScanDefaultPaidByType models.QuickScanDefaultPaidByType `json:"quickScanDefaultPaidByType"`
 	QuickScanDefaultPaidById   *uint                             `json:"quickScanDefaultPaidById"`
 
-	QuickScanStatusEnabled  bool                 `json:"quickScanStatusEnabled"`
-	QuickScanStatusRequired bool                 `json:"quickScanStatusRequired"`
-	QuickScanDefaultStatus  models.ReceiptStatus `json:"quickScanDefaultStatus"`
+	QuickScanStatusEnabled bool `json:"quickScanStatusEnabled"`
+	// QuickScanDefaultStatus is the status of a scan that names none; "" is OPEN ("To check").
+	QuickScanDefaultStatus models.ReceiptStatus `json:"quickScanDefaultStatus"`
 
-	QuickScanCategoriesEnabled  bool `json:"quickScanCategoriesEnabled"`
-	QuickScanCategoriesRequired bool `json:"quickScanCategoriesRequired"`
-
-	QuickScanTagsEnabled  bool `json:"quickScanTagsEnabled"`
-	QuickScanTagsRequired bool `json:"quickScanTagsRequired"`
-
-	QuickScanCommentEnabled  bool `json:"quickScanCommentEnabled"`
-	QuickScanCommentRequired bool `json:"quickScanCommentRequired"`
+	QuickScanCategoriesEnabled bool `json:"quickScanCategoriesEnabled"`
+	QuickScanTagsEnabled       bool `json:"quickScanTagsEnabled"`
+	QuickScanNoteEnabled       bool `json:"quickScanNoteEnabled"`
 }
 
 func (command *UpdateGroupReceiptSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -52,26 +51,19 @@ func (command UpdateGroupReceiptSettingsCommand) Validate() structs.ValidatorErr
 		Errors: make(map[string]string),
 	}
 
-	// When paid-by is not both shown and required, the user may skip it, so a default must be
-	// configured to backfill the value (a receipt always has a paid-by).
-	if !(command.QuickScanPaidByEnabled && command.QuickScanPaidByRequired) {
-		switch command.QuickScanDefaultPaidByType {
-		case models.QUICK_SCAN_PAID_BY_UPLOADER:
-			// Uploader resolves at scan time; no id needed.
-		case models.QUICK_SCAN_PAID_BY_USER:
-			if command.QuickScanDefaultPaidById == nil || *command.QuickScanDefaultPaidById == 0 {
-				vErr.Errors["quickScanDefaultPaidById"] = "A default paid by user is required when paid by is optional"
-			}
-		default:
-			vErr.Errors["quickScanDefaultPaidByType"] = "A default paid by is required when paid by is optional"
+	switch command.QuickScanDefaultPaidByType {
+	case "", models.QUICK_SCAN_PAID_BY_UPLOADER:
+		// The person scanning; no id needed.
+	case models.QUICK_SCAN_PAID_BY_USER:
+		if command.QuickScanDefaultPaidById == nil || *command.QuickScanDefaultPaidById == 0 {
+			vErr.Errors["quickScanDefaultPaidById"] = "Choose who pays by default"
 		}
+	default:
+		vErr.Errors["quickScanDefaultPaidByType"] = "Unknown default for paid by"
 	}
 
-	// Same rule for status.
-	if !(command.QuickScanStatusEnabled && command.QuickScanStatusRequired) {
-		if !isValidReceiptStatus(command.QuickScanDefaultStatus) {
-			vErr.Errors["quickScanDefaultStatus"] = "A default status is required when status is optional"
-		}
+	if command.QuickScanDefaultStatus != "" && !isValidReceiptStatus(command.QuickScanDefaultStatus) {
+		vErr.Errors["quickScanDefaultStatus"] = "Unknown default status"
 	}
 
 	return vErr

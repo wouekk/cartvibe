@@ -58,12 +58,6 @@ func GetPagedReceiptsForGroup(w http.ResponseWriter, r *http.Request) {
 				return http.StatusInternalServerError, err
 			}
 
-			// The receipts table's Comment column. One query per page.
-			err = permissionService.LoadFirstComments(receipts)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
 			// While a search is active, say which product lines made each receipt match.
 			searchQuery := utils.NewFuzzyQuery(pagedRequest.Filter.Search)
 			if !searchQuery.Empty() {
@@ -384,7 +378,7 @@ func QuickScan(w http.ResponseWriter, r *http.Request) {
 					Status:           resolvedFields[i].Status,
 					CategoryIds:      resolvedFields[i].CategoryIds,
 					TagIds:           resolvedFields[i].TagIds,
-					Comment:          resolvedFields[i].Comment,
+					Note:             resolvedFields[i].Note,
 					TempPath:         tempPath,
 					OriginalFileName: quickScanCommand.FileHeaders[i].Filename,
 				}
@@ -583,24 +577,6 @@ func BulkReceiptStatusUpdate(w http.ResponseWriter, r *http.Request) {
 						if tErr != nil {
 							return tErr
 						}
-					}
-				}
-
-				if len(bulkCommand.Comment) > 0 {
-					token := structs.GetClaims(r)
-					comments := make([]models.Comment, len(bulkCommand.ReceiptIds))
-
-					for i := 0; i < len(bulkCommand.ReceiptIds); i++ {
-						comments[i] = models.Comment{
-							ReceiptId: bulkCommand.ReceiptIds[i],
-							Comment:   bulkCommand.Comment,
-							UserId:    &token.UserId,
-						}
-					}
-
-					tErr = tx.Create(&comments).Error
-					if tErr != nil {
-						return tErr
 					}
 				}
 

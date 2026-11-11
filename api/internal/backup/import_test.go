@@ -99,7 +99,6 @@ func TestImportRestoresTheHouseholdIntoAFreshServer(t *testing.T) {
 	}{
 		"receipts":            {models.Receipt{}, 1},
 		"products":            {models.ReceiptProduct{}, 1},
-		"comments":            {models.Comment{}, 2},
 		"files":               {models.FileData{}, 1},
 		"shopping lists":      {models.ShoppingList{}, 1},
 		"shopping list items": {models.ShoppingListItem{}, 1},
@@ -129,6 +128,14 @@ func TestImportRestoresTheHouseholdIntoAFreshServer(t *testing.T) {
 	}
 	if len(receipt.Categories) != 1 || receipt.Categories[0].Name != "Dairy" || len(receipt.Tags) != 1 || receipt.Tags[0].Name != "=treat" {
 		t.Errorf("receipt links: %+v %+v", receipt.Categories, receipt.Tags)
+	}
+	if receipt.Note != "'For the party\nThanks" {
+		t.Errorf("receipt note: %q", receipt.Note)
+	}
+	var importedSettings models.GroupReceiptSettings
+	db.Where("group_id = ?", receipt.GroupId).First(&importedSettings)
+	if !importedSettings.HideNote || !importedSettings.QuickScanNoteEnabled {
+		t.Errorf("the household's receipt settings: %+v", importedSettings)
 	}
 
 	// Piotr has no account here: he is kept as a name, cannot sign in, and stays the payer.

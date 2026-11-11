@@ -68,7 +68,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   that queues a read (`ReceiptProductExtraction` → PENDING, in the caller's transaction); a new image re-reads the whole
   set. `DeleteReceipt` removes products and extraction explicitly (not associations).
 - A finished read fills a blank `shopName`, renames a placeholder-named receipt (`IsPlaceholderReceiptName`) to the shop,
-  and moves a receipt still "To check" (OPEN / NEEDS_ATTENTION / DRAFT) to RESOLVED through `AfterReceiptUpdated`.
+  and moves a receipt still "To check" (OPEN) to RESOLVED through `AfterReceiptUpdated`.
 - Classification (`FoodClassification`: health HEALTHY/MEDIUM/UNHEALTHY/NOT_FOOD/UNKNOWN, food group, seasonality for
   Western Europe in the month bought) is usually done by the read itself; the sweep covers the rest. Corrections set
   `classificationOverridden` (the sweep's UPDATE skips it) and remember the health per group by normalized name
@@ -87,7 +87,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 - **Trips** (`ShoppingTrip`): a receipt attached to a list; products not on the list get `planned = false` (unplanned
   spend); `null` counts as planned. Attach an existing receipt (`group.shopping-lists.update` + `group.receipts.read`,
   paid-by included) or upload a photo (`+ group.receipts.quick-scan`), stored in `data/shopping-trips/` (not `temp/`),
-  scanned when the AI is available with a 1 h → 12 h backoff. A role requiring a comment is refused at upload. The planned
+  scanned when the AI is available with a 1 h → 12 h backoff. The planned
   snapshot is taken at attach time. Every sweep write requires the trip still `RUNNING`, so a detach or product re-read
   mid-comparison discards the result. A receipt is on one trip at most.
 
@@ -103,10 +103,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   way are scaled to it), so the slices always add up to `total`. `unhealthyTotal`, `unplannedTotal` and `tags[]` add
   the same shares; `tags[]` gives a tile per tag with `showOnDashboard` (a line counts toward each of its tags).
   `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|FOODGROUP|TAG` lists the lines behind a tile. Open
-  receipts are OPEN, NEEDS_ATTENTION and DRAFT.
-- Category/tag grants apply per receipt group (`overviewGrants`): a hidden line category becomes the `(Restricted)`
-  slice; a hidden tag gets no tile (a tile needs the tag visible in the group, or for All in one readable real group)
-  and its lines do not count; a drill-down by a hidden category or tag id lists nothing.
+  receipts are the OPEN ones.
 - `GET/PUT /dashboardLayout`: one row per user; `layout` is a client-owned JSON document. The API checks only the
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
@@ -128,7 +125,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 ## Search
 
 - The receipts filter carries `search`; `GetPagedReceiptsByGroupId` calls `fuzzySearchReceiptIds` over the already
-  resolved scope (names, shop, comments, product names), matched in Go by `utils/fuzzy_match.go` (accent folding, prefix
+  resolved scope (names, shop, note, product names), matched in Go by `utils/fuzzy_match.go` (accent folding, prefix
   abbreviations, OSA distance 1 for 4-7 letters, 2 for 8+, exact under 4), and ANDs `receipts.id IN (...)` before the
   count. It only narrows; every visibility rule still applies. `Receipt.searchMatches` lists up to 3 matching lines
   while a search is active. `GET /search` (name `LIKE`) remains for MCP.
@@ -284,16 +281,18 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   (`IncludeProducts` → `InlineProductPrompt`), then `ApplyInlineRead` stores the products after claiming the extraction
   (`ClaimPendingExtraction`), so the sweep never applies twice. When the AI cannot read the photo,
   `QuickScanKeepingThePhoto` saves the receipt anyway ("Receipt <today>", today in the app zone, amount 0, the resolved
-  status and payer, the person's picks and comment), records a FAILED `QUICK_SCAN` task (created when no AI ran), and the
+  status and payer, the person's picks and note), records a FAILED `QUICK_SCAN` task (created when no AI ran), and the
   uploader is told to fill it in; the task succeeds, so the AI is not asked again. Only other errors are retried (3 tries,
   then archived, "failed" on the last one: `isFinalAttempt`). A missing name or date in a read is filled the same way
   (`fillQuickScanDefaults`). It removes its upload only after the receipt commits. `ReceiptService.QuickScan` (used by
   shopping trips) takes `QuickScanParams` and still returns the AI error with nothing saved.
-- Quick-scan ingress (`ResolveQuickScanFields`) enforces only the comment (group config, role requirement,
-  `MaxCommentLength` 500 counted in runes) and the All-group refusal, synchronously before enqueue; paid-by falls back to
-  the configured default then the uploader, status to the default then OPEN. A comment from a caller without
-  `group.comments.create` is dropped, not refused. Picked categories/tags are grant-checked (403). AI-returned category
-  ids are resolved to names; unknown, out-of-grant and switched-off (`skipped`, unless the person picked it too) ids are
+- Quick-scan ingress (`ResolveQuickScanFields`) requires nothing but the photo. Synchronously, before anything is
+  queued, it refuses the All group and a note longer than `MaxReceiptNoteLength` (counted in runes); paid-by falls
+  back to the household's default member then the uploader, status to the household's default then OPEN. A note is
+  kept only where the household's Quick Scan asks for one (`IsQuickScanNoteShown`), otherwise dropped, not refused.
+  The form field is `notes` (`comments`, its older name, is still read; a job queued before 2026-11 carries the note
+  as `Comment`, which the handler reads too). AI-returned category
+  ids are resolved to names; unknown and switched-off (`skipped`, unless the person picked it too) ids are
   dropped (an id-only category would blank the category's name on save). Failures before the create transaction, and a
   failed `CreateReceipt` (the transaction is rolled back first, never committed half-written), record a FAILED
   `RECEIPT_UPLOADED` child (`recordEarlyQuickScanFailure`).
@@ -364,7 +363,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   JPEG 85); the stored original is untouched. Tesseract is the only OCR engine; a setting naming EasyOCR is read with
   Tesseract.
 - **Prompts are code** (`services/receipt_prompt.go`, `DefaultReceiptPrompt`, the product and classification prompts).
-  The AI never assigns tags, a payer, a status or comments (`onlyPromptedReceiptFields` keeps the prompted fields
+  The AI never assigns tags, a payer, a status or the note (`onlyPromptedReceiptFields` keeps the prompted fields
   only) and never a category switched off under Manage Categories. Read `docs/ai-prompts.md` before changing a prompt.
 - `foodGroupResolver` maps AI category names onto Manage Categories: a name or old alias resolves, a skipped one becomes
   Uncategorized, an unknown one is created (Title Case). Renames keep the old name in `aliases`.

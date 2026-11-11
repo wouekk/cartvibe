@@ -92,12 +92,6 @@ func DeleteUser(userId string) error {
 			}
 		}
 
-		// Nullify comment user references
-		txErr = tx.Model(&models.Comment{}).Where("user_id = ?", userId).Update("user_id", nil).Error
-		if txErr != nil {
-			return txErr
-		}
-
 		// Remove groups where the user is the only user
 		groups, txErr := groupService.GetGroupsForUser(userId)
 		if txErr != nil {
@@ -165,7 +159,6 @@ func DeleteUser(userId string) error {
 			&models.FileData{},
 			&models.Tag{},
 			&models.Category{},
-			&models.Comment{},
 			&models.Notification{},
 			&models.UserPrefernces{},
 			&models.SystemSettings{},

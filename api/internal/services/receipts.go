@@ -239,7 +239,7 @@ type QuickScanParams struct {
 	Status           models.ReceiptStatus
 	CategoryIds      []uint
 	TagIds           []uint
-	Comment          string
+	Note             string
 	TempPath         string
 	OriginalFileName string
 	JobId      string
@@ -428,16 +428,11 @@ func (service ReceiptService) quickScan(params QuickScanParams, keepPhotoOnAiFai
 		return models.Receipt{}, nil, recordEarlyQuickScanFailure(err)
 	}
 
-	// The person's quick-scan comment is the receipt's only comment: the AI's answer brings none. UserId is
-	// required — UpsertCommentCommand.Validate rejects a nil one, which would fail the whole receipt.
-	// ReceiptId stays unset; it is only required when updating, and CreateReceipt fills the foreign key
-	// through the association.
-	if len(params.Comment) > 0 {
-		commentUserId := token.UserId
-		receiptCommand.Comments = append(receiptCommand.Comments, commands.UpsertCommentCommand{
-			Comment: params.Comment,
-			UserId:  &commentUserId,
-		})
+	// The note is the person's own: the AI's answer never brings one.
+	receiptCommand.Note = nil
+	if len(params.Note) > 0 {
+		note := params.Note
+		receiptCommand.Note = &note
 	}
 
 	vErr := receiptCommand.Validate(token.UserId, true)
@@ -642,7 +637,7 @@ func (service ReceiptService) resolveQuickScanTags(
 	return resolved, nil
 }
 
-// DuplicateReceipt copies a receipt, its items, comments and images, all or
+// DuplicateReceipt copies a receipt with its note and images, all or
 // nothing: the new receipt and its image files are created together or not at
 // all, and the RECEIPT_UPLOADED task records which.
 //
@@ -686,7 +681,6 @@ func (service ReceiptService) DuplicateReceipt(
 	newReceipt.ID = 0
 	newReceipt.Name = newReceipt.Name + " duplicate"
 	newReceipt.ImageFiles = make([]models.FileData, 0)
-	newReceipt.Comments = make([]models.Comment, 0)
 	newReceipt.CreatedAt = time.Now()
 	newReceipt.UpdatedAt = time.Now()
 	newReceipt.CreatedBy = &userId
@@ -700,17 +694,6 @@ func (service ReceiptService) DuplicateReceipt(
 		newFileData.ReceiptId = 0
 		newFileData.Receipt = models.Receipt{}
 		newReceipt.ImageFiles = append(newReceipt.ImageFiles, newFileData)
-	}
-
-	// Copy comments
-	for _, comment := range receipt.Comments {
-		var newComment models.Comment
-		copier.Copy(&newComment, comment)
-
-		newComment.ID = 0
-		newComment.ReceiptId = 0
-		newComment.Receipt = models.Receipt{}
-		newReceipt.Comments = append(newReceipt.Comments, newComment)
 	}
 
 	var resultString string

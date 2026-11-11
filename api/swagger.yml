@@ -485,52 +485,6 @@ paths:
           $ref: "#/components/responses/Internal"
       security:
         - bearerAuth: [ ]
-  /comment/:
-    post:
-      tags:
-        - Comment
-      summary: Add comment
-      description: This will add a comment to a receipt, [SYSTEM USER]
-      requestBody:
-        description: Comment to create
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpsertCommentCommand"
-      operationId: addComment
-      responses:
-        200:
-          description: The created comment
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Comment"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
-  /comment/{commentId}:
-    delete:
-      tags:
-        - Comment
-      summary: Delete comment
-      description: This will delete a comment by id [SYSTEM User]
-      parameters:
-        - in: path
-          name: commentId
-          schema:
-            type: integer
-          required: true
-          description: Comment Id to delete
-      operationId: deleteComment
-      responses:
-        200:
-          $ref: "#/components/responses/Ok"
-        500:
-          $ref: "#/components/responses/Internal"
-      security:
-        - bearerAuth: [ ]
   /backup/summary:
     get:
       tags:
@@ -1193,12 +1147,10 @@ paths:
         - Receipt
       summary: Create receipt with files
       description: >-
-        Creates a receipt, its comments and its images in one atomic call: a
+        Creates a receipt and its images in one atomic call: a
         failure anywhere leaves no receipt, image or file behind. Requires
         group.receipts.create in the receipt's group. Every file must be an image
-        or PDF (checked before anything is written). Returns 400 when the
-        caller's group role requires a comment (key `comments`) or an image (key
-        `files`) that the request does not carry. [SYSTEM USER]
+        or PDF (checked before anything is written). [SYSTEM USER]
       requestBody:
         description: Receipt to create, with its images
         required: true
@@ -1515,8 +1467,7 @@ paths:
         - Receipt
       summary: Bulk receipt status update
       description:
-        This will bulk update receipt statuses with the option of adding
-        a comment to each [SYSTEM USER]
+        This will bulk update receipt statuses [SYSTEM USER]
       operationId: bulkReceiptStatusUpdate
       requestBody:
         description: Bulk status data
@@ -3832,8 +3783,7 @@ paths:
       description: >-
         This will keep the photo and turn it into a receipt the way Quick Scan does, with the group's
         quick-scan defaults, then compare it with the list. While the AI is unavailable the photo
-        waits, for up to 14 days [group.shopping-lists.update, group.receipts.quick-scan]. Refused when
-        the caller's role requires a comment on receipts.
+        waits, for up to 14 days [group.shopping-lists.update, group.receipts.quick-scan].
       operationId: uploadShoppingTripPhoto
       requestBody:
         required: true
@@ -4502,7 +4452,9 @@ components:
         - "RESOLVED"
         - ""
     QuickScanDefaultPaidByType:
-      description: How the default paid-by is resolved for optional quick-scan paid-by
+      description:
+        Who paid when a Quick Scan does not say. UPLOADER, or empty, is the person scanning; USER is the member
+        named by quickScanDefaultPaidById.
       type: string
       enum:
         - "UPLOADER"
@@ -4590,8 +4542,6 @@ components:
         - "group.receipts.duplicate"
         - "group.receipts.magic-fill"
         - "group.receipts.quick-scan"
-        - "group.comments.create"
-        - "group.comments.delete"
         - "group.reports.read"
         - "group.activities.read"
         - "group.activities.rerun"
@@ -5654,42 +5604,6 @@ components:
           type: integer
           description: Number of receipts associated with this category
       description: Category to relate receipts to
-    Comment:
-      required:
-        - comment
-        - receiptId
-        - userId
-        - id
-      type: object
-      properties:
-        additionalInfo:
-          type: string
-          description: Additional information about the comment
-        comment:
-          type: string
-          description: Comment itself
-        commentId:
-          type: integer
-          description: Comment foreign key used for repleis
-          format: uint64
-        createdAt:
-          type: string
-        createdBy:
-          type: integer
-          format: uint64
-        id:
-          type: integer
-          format: uint64
-        receiptId:
-          type: integer
-          description: Receipt foreign key
-        updatedAt:
-          type: string
-        userId:
-          type: integer
-          description: User foreign key
-          format: uint64
-      description: User comment left on receipts
     FileData:
       required:
         - receiptId
@@ -5957,7 +5871,7 @@ components:
         - status
         - categories
         - tags
-        - comments
+        - note
         - id
       type: object
       properties:
@@ -5969,11 +5883,11 @@ components:
           description: Categories associated to receipt
           items:
             $ref: "#/components/schemas/Category"
-        comments:
-          type: array
-          description: Comments associated to receipt
-          items:
-            $ref: "#/components/schemas/Comment"
+        note:
+          type: string
+          description:
+            The household's own words about the receipt, "" when there is none. One free text (until 2026-11 a
+            receipt had a thread of comments, which was joined into it); the AI never writes it.
         createdAt:
           type: string
         createdBy:
@@ -5988,9 +5902,6 @@ components:
           description: >-
             The last day of the purchase's warranty, yyyy-MM-dd; null when none was entered. Changed only through
             PUT /receipt/{receiptId}/warranty.
-        firstComment:
-          type: string
-          description: Text of the receipt's earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
         searchMatches:
           type: array
           description: The product lines that made the receipt match the list's search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
@@ -6306,9 +6217,6 @@ components:
         - receiptIds
       type: object
       properties:
-        comment:
-          type: string
-          description: Optional comment to leave on each receipt
         status:
           type: string
           description: Status to update to
@@ -6380,7 +6288,7 @@ components:
           description: Number of records per page
         orderBy:
           type: string
-          description: field to order on - a receipt column, or first_comment for the receipt's first comment
+          description: field to order on - a receipt column (note among them; first_comment, its key before 2026-11, still sorts by the note)
         sortDirection:
           type: string
           $ref: "#/components/schemas/SortDirection"
@@ -6388,7 +6296,7 @@ components:
           $ref: "#/components/schemas/ReceiptPagedRequestFilter"
         fullReceipts:
           type: boolean
-          description: Whether to include all receipt associations (comments, imageFiles, etc.)
+          description: Whether to include all receipt associations (imageFiles, the payer)
     ReceiptPagedRequestFilter:
       type: object
       properties:
@@ -6414,7 +6322,7 @@ components:
           $ref: "#/components/schemas/PagedRequestField"
         search:
           type: string
-          description: Free-text, typo-tolerant phrase matched against a receipt's name, shop, comments and product lines. Every word of the phrase must match.
+          description: Free-text, typo-tolerant phrase matched against a receipt's name, shop, note and product lines. Every word of the phrase must match.
         warrantyActive:
           type: boolean
           description: Only receipts whose warranty ends today (app time zone) or later. Sort with orderBy warranty_until.
@@ -6725,12 +6633,14 @@ components:
           items:
             type: string
             description: Comma-joined tag ids for the file at the same index
-        comments:
+        notes:
           type: array
           items:
             type: string
-            maxLength: 500
-            description: Comment for the file at the same index (empty for none)
+            maxLength: 10000
+            description:
+              Note for the file at the same index (empty for none). Kept only where the household's Quick Scan
+              asks for a note. The field was called comments before 2026-11, and that name is still read.
     ShopLogo:
       type: object
       required:
@@ -6877,6 +6787,10 @@ components:
               nullable: true
               description: Days before a warranty ends that its reminder comes, 0 on the day; null is 30
     GroupReceiptSettings:
+      description:
+        What a household set for its receipts. Quick Scan asks for nothing beside the photo unless a
+        quickScan...Enabled switch adds a field to its dialog; no field is ever required, and what is not asked
+        for gets a value by itself (see the two defaults).
       allOf:
         - $ref: "#/components/schemas/BaseModel"
         - type: object
@@ -6895,47 +6809,32 @@ components:
             hideReceiptTags:
               type: boolean
               description: Hide receipt tags
-            hideComments:
+            hideNote:
               type: boolean
-              description: Hide receipt comments
+              description: Take the note off the household's receipts (the form, the list and Quick Scan)
             quickScanPaidByEnabled:
               type: boolean
-              description: Show the paid by field in quick scan
-            quickScanPaidByRequired:
-              type: boolean
-              description: Require the paid by field in quick scan
+              description: Quick Scan asks who paid
             quickScanDefaultPaidByType:
               $ref: "#/components/schemas/QuickScanDefaultPaidByType"
             quickScanDefaultPaidById:
               type: integer
               nullable: true
-              description: Default paid by user id when paid by is optional and type is USER
+              description: Who paid when a scan does not say and the type is USER
             quickScanStatusEnabled:
               type: boolean
-              description: Show the status field in quick scan
-            quickScanStatusRequired:
-              type: boolean
-              description: Require the status field in quick scan
+              description: Quick Scan asks for the status
             quickScanDefaultStatus:
               $ref: "#/components/schemas/ReceiptStatus"
             quickScanCategoriesEnabled:
               type: boolean
-              description: Show the categories field in quick scan
-            quickScanCategoriesRequired:
-              type: boolean
-              description: Require the categories field in quick scan
+              description: Quick Scan asks for categories
             quickScanTagsEnabled:
               type: boolean
-              description: Show the tags field in quick scan
-            quickScanTagsRequired:
+              description: Quick Scan asks for tags
+            quickScanNoteEnabled:
               type: boolean
-              description: Require the tags field in quick scan
-            quickScanCommentEnabled:
-              type: boolean
-              description: Show the comment field in quick scan
-            quickScanCommentRequired:
-              type: boolean
-              description: Require the comment field in quick scan
+              description: Quick Scan asks for a note (not while hideNote is on)
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
@@ -6948,47 +6847,32 @@ components:
         hideReceiptTags:
           type: boolean
           description: Hide receipt tags
-        hideComments:
+        hideNote:
           type: boolean
-          description: Hide receipt comments
+          description: Take the note off the household's receipts (the form, the list and Quick Scan)
         quickScanPaidByEnabled:
           type: boolean
-          description: Show the paid by field in quick scan
-        quickScanPaidByRequired:
-          type: boolean
-          description: Require the paid by field in quick scan
+          description: Quick Scan asks who paid
         quickScanDefaultPaidByType:
           $ref: "#/components/schemas/QuickScanDefaultPaidByType"
         quickScanDefaultPaidById:
           type: integer
           nullable: true
-          description: Default paid by user id when paid by is optional and type is USER
+          description: Who paid when a scan does not say; required when the type is USER
         quickScanStatusEnabled:
           type: boolean
-          description: Show the status field in quick scan
-        quickScanStatusRequired:
-          type: boolean
-          description: Require the status field in quick scan
+          description: Quick Scan asks for the status
         quickScanDefaultStatus:
           $ref: "#/components/schemas/ReceiptStatus"
         quickScanCategoriesEnabled:
           type: boolean
-          description: Show the categories field in quick scan
-        quickScanCategoriesRequired:
-          type: boolean
-          description: Require the categories field in quick scan
+          description: Quick Scan asks for categories
         quickScanTagsEnabled:
           type: boolean
-          description: Show the tags field in quick scan
-        quickScanTagsRequired:
+          description: Quick Scan asks for tags
+        quickScanNoteEnabled:
           type: boolean
-          description: Require the tags field in quick scan
-        quickScanCommentEnabled:
-          type: boolean
-          description: Show the comment field in quick scan
-        quickScanCommentRequired:
-          type: boolean
-          description: Require the comment field in quick scan
+          description: Quick Scan asks for a note (not while hideNote is on)
     CreateReceiptWithFilesCommand:
       type: object
       required:
@@ -7280,26 +7164,13 @@ components:
           description: Tags associated to receipt
           items:
             $ref: "#/components/schemas/UpsertTagCommand"
-        comments:
-          type: array
-          description: Comments associated to receipt
-          items:
-            $ref: "#/components/schemas/UpsertCommentCommand"
-    UpsertCommentCommand:
-      type: object
-      required:
-        - comment
-        - receiptId
-      properties:
-        comment:
+        note:
           type: string
-          description: Comment itself
-        receiptId:
-          type: integer
-          description: Receipt foreign key
-        userId:
-          type: integer
-          description: User foreign key
+          nullable: true
+          maxLength: 10000
+          description:
+            The household's own words about the receipt. Leave the key out (or send null) to keep the stored
+            note; an empty text clears it.
     AiModelsCommand:
       type: object
       description: Which provider and key to list models for. Send a new key, or the id of saved settings to use its stored key.

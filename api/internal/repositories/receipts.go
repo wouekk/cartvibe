@@ -180,6 +180,15 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 			return txErr
 		}
 
+		// The struct update above skips an empty text, so a note that was emptied is written on its own. A
+		// command without the key leaves the note as it is.
+		if command.Note != nil {
+			txErr = tx.Model(&models.Receipt{}).Where("id = ?", currentReceipt.ID).Update("note", *command.Note).Error
+			if txErr != nil {
+				return txErr
+			}
+		}
+
 		txErr = tx.Model(&currentReceipt).Association("Tags").Replace(&updatedReceipt.Tags)
 		if txErr != nil {
 			return txErr
@@ -469,16 +478,25 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		return nil, 0, errors.New("untrusted value " + pagedRequest.OrderBy + " " + string(pagedRequest.SortDirection))
 	}
 
-	if pagedRequest.OrderBy == constants.FIRST_COMMENT_ORDER_BY {
-		query = repository.orderByFirstComment(query, pagedRequest.SortDirection)
-	} else if repository.isTrustedValue(pagedRequest) {
+	// A browser that kept its table state from before a receipt had a note still asks for the old Comment
+	// column's key.
+	if pagedRequest.OrderBy == constants.LEGACY_FIRST_COMMENT_ORDER_BY {
+		pagedRequest.OrderBy = constants.NOTE_ORDER_BY
+	}
+
+	if repository.isTrustedValue(pagedRequest) {
 		orderBy := pagedRequest.OrderBy
+		tiebreak := ""
 		if orderBy == "shop_name" {
 			// The table's Shop column shows the shop, or the receipt's name when none was read, so
 			// it sorts the same way. Both operands are hardcoded columns.
 			orderBy = "COALESCE(NULLIF(receipts.shop_name, ''), receipts.name)"
+		} else if orderBy == constants.NOTE_ORDER_BY {
+			// Most receipts have no note, so without a unique last term paging would repeat and skip rows.
+			orderBy = "receipts.note"
+			tiebreak = ", receipts.id DESC"
 		}
-		query = query.Order(orderBy + " " + string(pagedRequest.SortDirection))
+		query = query.Order(orderBy + " " + string(pagedRequest.SortDirection) + tiebreak)
 	} else {
 		return nil, 0, errors.New("untrusted value " + pagedRequest.OrderBy + " " + string(pagedRequest.SortDirection))
 	}
@@ -637,53 +655,8 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	return query, nil
 }
 
-// orderByFirstComment orders query by the text of each receipt's first comment
-// (firstCommentOrder), read with a correlated subquery: a receipt has many
-// comments, and a join would multiply its rows and corrupt the count and pagination.
-func (repository ReceiptRepository) orderByFirstComment(query *gorm.DB, sortDirection commands.SortDirection) *gorm.DB {
-	commentQuery := repository.GetDB().
-		Model(&models.Comment{}).
-		Select("comments.comment").
-		Where("comments.receipt_id = receipts.id").
-		Order(firstCommentOrder).
-		Limit(1)
-
-	return repository.orderBySubquery(query, commentQuery, sortDirection)
-}
-
-// orderBySubquery orders query by the value valueQuery - a correlated subquery
-// against the outer receipts row - yields for each receipt.
-//
-// The direction and the tiebreaker have to live in this one expression.
-// clause.OrderBy builds its Expression *instead of* its Columns and Desc, and
-// a second Order() call would silently replace this clause rather than append
-// to it. The tiebreaker is not cosmetic: a boolean or select field has a
-// handful of distinct values, many receipts have no comment at all, and
-// without a unique last term LIMIT/OFFSET paging repeats and skips rows between
-// pages.
-//
-// Because Columns and Desc are unavailable here, this is the one ordering path
-// that cannot delegate to BaseRepository.Sort. The keyword is therefore chosen
-// from literals rather than built from sortDirection, so the caller's string
-// never reaches the SQL even if a future call site skips IsValidSortDirection.
-func (repository ReceiptRepository) orderBySubquery(
-	query *gorm.DB,
-	valueQuery *gorm.DB,
-	sortDirection commands.SortDirection,
-) *gorm.DB {
-	direction := "ASC"
-	if sortDirection == commands.DESCENDING {
-		direction = "DESC"
-	}
-
-	return query.Order(clause.OrderBy{Expression: clause.Expr{
-		SQL:  "(?) " + direction + ", receipts.id DESC",
-		Vars: []any{valueQuery},
-	}})
-}
-
 func (repository ReceiptRepository) isTrustedValue(pagedRequest commands.ReceiptPagedRequestCommand) bool {
-	orderByTrusted := []interface{}{"date", "name", "shop_name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at", "warranty_until"}
+	orderByTrusted := []interface{}{"date", "name", "shop_name", "paid_by_user_id", "amount", "categories", "tags", "status", "resolved_date", "created_at", "warranty_until", constants.NOTE_ORDER_BY}
 	directionTrusted := commands.GetValidSortDirections()
 
 	isOrderByTrusted := utils.Contains(orderByTrusted, pagedRequest.OrderBy)

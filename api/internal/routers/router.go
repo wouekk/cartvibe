@@ -52,10 +52,6 @@ func BuildRootRouter() *chi.Mux {
 	receiptImageRouter := BuildReceiptImageRouter()
 	rootRouter.Mount("/api/receiptImage", receiptImageRouter)
 
-	// Comment Router
-	commentRouter := BuildCommentRouter()
-	rootRouter.Mount("/api/comment", commentRouter)
-
 	// Tag Router
 	tagRouter := BuildTagRouter()
 	rootRouter.Mount("/api/tag", tagRouter)

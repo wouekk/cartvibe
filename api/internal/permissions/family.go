@@ -36,7 +36,7 @@ func FamilyUserAppKeys() []string {
 }
 
 // FamilyMemberGroupKeys is what a family member may do in the household group: everything with
-// receipts (deleting included), shopping lists, comments and the activity log.
+// receipts (deleting included, and their note, which is part of the receipt), shopping lists and the activity log.
 // Not reports (see FamilyUserAppKeys), nor the group's settings, members or deletion.
 func FamilyMemberGroupKeys() []string {
 	return []string{
@@ -48,8 +48,6 @@ func FamilyMemberGroupKeys() []string {
 		GroupReceiptsDuplicate,
 		GroupReceiptsQuickScan,
 		GroupReceiptsMagicFill,
-		GroupCommentsCreate,
-		GroupCommentsDelete,
 		GroupActivitiesRead,
 		GroupActivitiesRerun,
 		GroupShoppingListsCreate,
