@@ -253,7 +253,11 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     - Proved here before CI, which the removal of cgo and nginx made possible: the server run on the Windows PC
       in production mode with the built app, driven by curl and a browser (sign-in, the Dashboard, pages opened
       by their address, the service worker, compression, a 429, a 413, a clean console). Never on a Synology.
-    - Still to come, each on its own branch: arm64 images.
+  - B9, step three (`feature/arm64-image`, cut from `preview`, 2026-11-11): every tag is published for amd64
+    and arm64. Each platform is built, checked (`runtime-check.sh`, natively) and scanned on a runner of its own
+    kind and pushed by digest; a last job puts both under the tags. Nothing is emulated. amd64 is what the smoke
+    suite tests and what must publish; a failed arm64 build publishes the tags with amd64 alone and says so.
+    Never run on an ARM machine.
 
 ---
 

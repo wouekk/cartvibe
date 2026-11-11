@@ -192,6 +192,11 @@ it is doing.
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
   release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
   Go 1.26 still works.
+- **An image for ARM too.** Every tag is now published for 64-bit ARM (a Raspberry Pi 4 or 5 with a 64-bit
+  system, an ARM NAS or server) beside Intel and AMD, and Docker picks the right one by itself. Each is built and
+  checked on a machine of its own kind. The ARM image passes the same build-time checks (photo and PDF
+  conversion, reading text, printing a report), but the full test suite runs on the Intel one only, and nobody
+  has run CartVibe on an ARM machine yet: say how it goes.
 - **One process in the container.** The image no longer carries nginx: the server answers on port 80 itself
   and serves the web app, with the same request limits (ten requests a second per visitor, thirty sign-ins a
   minute and the rest), upload sizes, security headers, compression and cache rules as before. Your compose file
