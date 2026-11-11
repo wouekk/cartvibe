@@ -310,6 +310,12 @@ func openSplitDatabase(file string, params string, config *gorm.Config) (*gorm.D
 		return nil, err
 	}
 
+	// Every database the app or a test opens refuses an update that would write money wrongly (money_columns.go).
+	if err := registerMoneyWriteGuard(connected); err != nil {
+		pool.Close()
+		return nil, err
+	}
+
 	return connected, nil
 }
 

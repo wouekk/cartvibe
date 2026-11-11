@@ -266,6 +266,22 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     older name, a file that cannot be moved) and by a real upgrade on the PC: the previous binary stored two
     photos, the new one moved them at its start (after the database snapshot), served the same bytes, renamed
     the household without touching a file and stored a new upload by id. Never on the NAS.
+  - Money as integers (`feature/money-minor-units`, cut from `preview`, 2026-11-11; the owner chose new
+    columns beside the old ones over rebuilding tables): the four amounts are whole hundredths in INTEGER
+    `*_minor` columns, read and written through one GORM serializer; in Go they stay decimals and on the
+    contract the same text as before. The amount filter and sort of the receipts list run on the integers. The
+    data migration `money-minor-units-v1` fills the new columns once and checks every amount in the same
+    transaction. The old columns stay.
+    - One thing differs from "the old columns stay, unused": `receipts.amount` is NOT NULL without a default in
+      every existing database, so an insert must name it. Two triggers keep it equal to the new column, so it is
+      never a second, different amount. SQLite cannot relax the column without rebuilding the table.
+    - A guard on the database refuses an update that names an old decimal column or hands a decimal to a
+      `_minor` column: both mistakes would otherwise store or drop an amount in silence.
+    - Found by the tests while writing it: the preferences table is named `user_prefernces`, and the migration
+      would have skipped the monthly goal without a word. It now fails when a listed column does not exist.
+    - Proved by unit tests and a real upgrade on the PC: thirteen receipts (among them the amounts floating
+      point gets wrong times a hundred) and a goal written by the previous binary came back from the new one
+      as exactly the same text, sorted and filtered exactly. Never on the NAS.
 
 ---
 

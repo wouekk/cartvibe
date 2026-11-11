@@ -31,7 +31,7 @@ func TestAReadKeepsAStatusAPersonChangedWhileTheAiWasReading(t *testing.T) {
 func TestAReadLeavesAReceiptWithoutATotalToCheck(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, false)
-	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("amount", decimal.Zero)
+	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("amount_minor", models.ToMinorUnits(decimal.Zero))
 	receipt.Amount = decimal.Zero
 
 	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, receipt.Status, "Auchan", currencyContext{}, "", nil); err != nil {

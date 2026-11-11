@@ -38,8 +38,9 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
 - New statuses, types and units are plain strings on the contract, not new values in a closed enum (this also rules out
   new `SystemTaskType` values).
 - Lists serialize as `[]`, never `null`.
-- Money is `shopspring/decimal`, a string on the wire; totals are folded in Go, never with SQL `SUM`. Everything works on
-  SQLite, and migrations are additive.
+- Money is `shopspring/decimal` in Go, a string on the wire, and whole hundredths in the database (INTEGER
+  `*_minor` columns, `api/internal/models/money.go`); a write that names a column itself converts with
+  `models.ToMinorUnits`. Totals are folded in Go. Everything works on SQLite, and migrations are additive.
 - **IMPORTANT:** authorization is server-side and read from the database, never the JWT; details in `api/CLAUDE.md`.
 - The synthetic "All" group is never a destination (no lists, receipts or backfills in it).
 - New permissions go in `permissions/registry.go` and the swagger `Permission` enum; a User or a Member gets one only

@@ -15,10 +15,19 @@ type Receipt struct {
 	// OriginalAmount, OriginalCurrency and ExchangeRate record a receipt that was in another currency
 	// than the main one: Amount is then the converted amount. ExchangeRate is the rate used (main units
 	// per foreign unit); with a currency but no rate the receipt is unconverted and waits for a rate.
-	OriginalAmount   *decimal.Decimal `gorm:"type:decimal(14,2)" json:"originalAmount"`
+	//
+	// Both amounts are stored as whole hundredths (money.go): original_amount_minor and amount_minor.
+	OriginalAmount   *decimal.Decimal `gorm:"column:original_amount_minor;type:integer;serializer:minor" json:"originalAmount"`
 	OriginalCurrency string           `gorm:"type:varchar(3);not null;default:''" json:"originalCurrency"`
 	ExchangeRate     *decimal.Decimal `gorm:"type:decimal(18,6)" json:"exchangeRate"`
-	Amount           decimal.Decimal  `gorm:"type:decimal(10,2);not null" json:"amount"`
+	Amount           decimal.Decimal  `gorm:"column:amount_minor;type:integer;not null;default:0;serializer:minor" json:"amount"`
+	// AmountDecimal is the column the amount lived in until 2026-11 (receipts.amount, a decimal SQLite keeps as a
+	// floating-point number). Nothing reads it. It is still here because the column is NOT NULL without a default
+	// in every database made before, so an insert must name it; the database then keeps it equal to Amount by
+	// itself (the triggers in repositories/money_columns.go), which is why Go writes it at creation only and
+	// never again. Its tag must stay exactly what the column was made with: any difference would make the
+	// migration rebuild the receipts table.
+	AmountDecimal decimal.Decimal `gorm:"column:amount;type:decimal(10,2);not null;<-:create" json:"-"`
 	Date             time.Time        `gorm:"not null" json:"date"`
 	// WarrantyUntil is the last day of the purchase's warranty, a calendar day "2028-10-29" (not a
 	// timestamp), so ">= today" is a plain string comparison. Nil when none was entered. It is set only

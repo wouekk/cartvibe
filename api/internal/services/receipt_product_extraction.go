@@ -721,14 +721,14 @@ func (service ReceiptProductExtractionService) applyReadResult(
 	if currency != "" && currencies.foreign(currency) {
 		updates := map[string]any{}
 		if receipt.OriginalCurrency == "" {
-			updates["original_amount"] = receipt.Amount
+			updates["original_amount_minor"] = models.ToMinorUnits(receipt.Amount)
 			updates["original_currency"] = currency
 			if rate != nil {
-				updates["amount"] = ConvertAmount(receipt.Amount, *rate)
+				updates["amount_minor"] = models.ToMinorUnits(ConvertAmount(receipt.Amount, *rate))
 				updates["exchange_rate"] = *rate
 			}
 		} else if receipt.ExchangeRate == nil && rate != nil && receipt.OriginalAmount != nil {
-			updates["amount"] = ConvertAmount(*receipt.OriginalAmount, *rate)
+			updates["amount_minor"] = models.ToMinorUnits(ConvertAmount(*receipt.OriginalAmount, *rate))
 			updates["exchange_rate"] = *rate
 		}
 

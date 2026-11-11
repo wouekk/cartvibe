@@ -18,7 +18,8 @@ type UserPreferences struct {
 	QuickScanDefaultStatus   ReceiptStatus `json:"quickScanDefaultStatus"`
 	CloseChipSelectOnSelect  bool          `json:"closeChipSelectOnSelect"`
 	// MonthlySpendingGoal is the most this person wants to spend in a month; nil or zero means no goal.
-	MonthlySpendingGoal *decimal.Decimal `gorm:"type:decimal(12,2)" json:"monthlySpendingGoal"`
+	// Stored as whole hundredths in monthly_spending_goal_minor (money.go).
+	MonthlySpendingGoal *decimal.Decimal `gorm:"column:monthly_spending_goal_minor;type:integer;serializer:minor" json:"monthlySpendingGoal"`
 	// DisplayCurrency is the ISO code this person sees the Dashboard figures in ("" means the household currency), and
 	// DisplayCurrencyRate how many of it one unit of the household currency is worth. Only the Dashboard converts; stored
 	// amounts and every other screen stay in the household currency.

@@ -169,7 +169,7 @@ func TestQuickScanPromptAsksForTheProductsBeforeTheReceiptText(t *testing.T) {
 func TestApplyInlineReadGrossesUpALineReadBeforeVat(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := queueInlineReceipt(t)
-	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("amount", "1399.00")
+	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("amount_minor", int64(139900))
 
 	answer := `{"name": "Apple", "shopName": "Apple", "currency": "EUR", "amount": 1399.00,
 		"products": [{"name": "MBA13.6 MDN", "displayName": "MacBook Air 13.6", "amount": 1165.83, "health": "NOT_FOOD", "foodGroup": "electronics"}]}`

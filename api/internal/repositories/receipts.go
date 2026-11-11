@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -483,6 +484,9 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 			// The table's Shop column shows the shop, or the receipt's name when none was read, so
 			// it sorts the same way. Both operands are hardcoded columns.
 			orderBy = "COALESCE(NULLIF(receipts.shop_name, ''), receipts.name)"
+		} else if orderBy == "amount" {
+			// The list is sorted by "amount"; the column is the stored hundredths.
+			orderBy = "receipts.amount_minor"
 		} else if orderBy == constants.NOTE_ORDER_BY {
 			// Most receipts have no note, so without a unique last term paging would repeat and skip rows.
 			orderBy = "receipts.note"
@@ -593,18 +597,14 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	}
 
 	// Amount
-	if pagedRequest.Filter.Amount.Value != nil {
-		var amount interface{}
-		if pagedRequest.Filter.Amount.Operation == commands.BETWEEN {
-			amount = pagedRequest.Filter.Amount.Value.([]interface{})
-		} else {
-			amount = pagedRequest.Filter.Amount.Value.(float64)
-		}
+	// The amount is compared as it is stored, in whole hundredths, so "equals 12.10" is exact. A value that is not
+	// a number adds no condition (a malformed body must not panic).
+	if amount, ok := amountFilterInMinorUnits(pagedRequest.Filter.Amount.Value, pagedRequest.Filter.Amount.Operation); ok {
 		query = repository.BuildFilterQuery(
 			query,
 			amount,
 			pagedRequest.Filter.Amount.Operation,
-			"amount", pagedRequest.Filter.Amount.Operation == commands.BETWEEN,
+			"receipts.amount_minor", pagedRequest.Filter.Amount.Operation == commands.BETWEEN,
 		)
 	}
 
@@ -645,6 +645,34 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 	)
 
 	return query, nil
+}
+
+// amountFilterInMinorUnits turns the amount filter's value (a JSON number, or two for BETWEEN) into the whole
+// hundredths the column holds. ok is false when there is no value or it is not what the operation takes.
+func amountFilterInMinorUnits(value interface{}, operation commands.FilterOperation) (interface{}, bool) {
+	toMinor := func(candidate interface{}) (int64, bool) {
+		number, isNumber := candidate.(float64)
+		if !isNumber {
+			return 0, false
+		}
+		return models.ToMinorUnits(decimal.NewFromFloat(number)), true
+	}
+
+	if operation == commands.BETWEEN {
+		bounds, isList := value.([]interface{})
+		if !isList || len(bounds) != 2 {
+			return nil, false
+		}
+		from, fromOk := toMinor(bounds[0])
+		to, toOk := toMinor(bounds[1])
+		if !fromOk || !toOk {
+			return nil, false
+		}
+		return []interface{}{from, to}, true
+	}
+
+	minor, ok := toMinor(value)
+	return minor, ok
 }
 
 func (repository ReceiptRepository) isTrustedValue(pagedRequest commands.ReceiptPagedRequestCommand) bool {

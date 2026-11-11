@@ -289,6 +289,11 @@ func InitDB() error {
 	if err := RunDataMigrations(); err != nil {
 		return err
 	}
+	// After the data migrations, never before: the one that fills the whole-hundredths columns must have run
+	// before the database starts keeping receipts.amount equal to them (money_columns.go).
+	if err := EnsureReceiptAmountMirror(); err != nil {
+		return err
+	}
 	if err := SeedStarterReportTemplates(); err != nil {
 		return err
 	}

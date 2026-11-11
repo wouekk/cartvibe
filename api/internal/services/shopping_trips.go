@@ -310,7 +310,7 @@ func (service ShoppingTripService) GetTripsForList(listId uint) ([]structs.Shopp
 	receipts := []models.Receipt{}
 	if len(receiptIds) > 0 {
 		err = service.GetDB().Model(&models.Receipt{}).
-			Select("id", "name", "date", "amount", "group_id", "paid_by_user_id").
+			Select("id", "name", "date", "amount_minor", "group_id", "paid_by_user_id").
 			Where("id IN ?", receiptIds).
 			Find(&receipts).Error
 		if err != nil {

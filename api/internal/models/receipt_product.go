@@ -25,7 +25,8 @@ type ReceiptProduct struct {
 	Name        string `gorm:"type:varchar(200);not null" json:"name"`
 	DisplayName string `gorm:"type:varchar(200);not null;default:''" json:"displayName"`
 	// Amount is what the line cost, discounts applied; nil when the receipt does not show it.
-	Amount   *decimal.Decimal `gorm:"type:decimal(10,2)" json:"amount"`
+	// Stored as whole hundredths in amount_minor (money.go).
+	Amount   *decimal.Decimal `gorm:"column:amount_minor;type:integer;serializer:minor" json:"amount"`
 	Quantity string           `gorm:"type:varchar(50);not null;default:''" json:"quantity"`
 	// Position is the line's order on the receipt.
 	Position int `gorm:"not null;default:0" json:"position"`

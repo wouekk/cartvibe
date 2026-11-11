@@ -380,8 +380,8 @@ func (repository ReceiptProductRepository) GetPricedProductsWithHealth(receiptId
 
 		batch := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "amount").
-			Where("receipt_id IN ? AND health = ? AND amount IS NOT NULL", receiptIds[start:end], health).
+			Select("id", "receipt_id", "amount_minor").
+			Where("receipt_id IN ? AND health = ? AND amount_minor IS NOT NULL", receiptIds[start:end], health).
 			Find(&batch).Error
 		if err != nil {
 			return []models.ReceiptProduct{}, err
@@ -455,7 +455,7 @@ func (repository ReceiptProductRepository) UpdateProduct(product models.ReceiptP
 	updates := map[string]any{
 		"name":                command.Name,
 		"display_name":        command.Name,
-		"amount":              command.Amount,
+		"amount_minor":        models.ToMinorUnitsPtr(command.Amount),
 		"quantity":            command.Quantity,
 		"category_id":         categoryId,
 		"category_overridden": categoryChosen,
@@ -530,8 +530,8 @@ func (repository ReceiptProductRepository) GetPricedUnplannedProducts(receiptIds
 
 		batch := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "amount").
-			Where("receipt_id IN ? AND planned = ? AND amount IS NOT NULL", receiptIds[start:end], false).
+			Select("id", "receipt_id", "amount_minor").
+			Where("receipt_id IN ? AND planned = ? AND amount_minor IS NOT NULL", receiptIds[start:end], false).
 			Find(&batch).Error
 		if err != nil {
 			return []models.ReceiptProduct{}, err
@@ -603,8 +603,8 @@ func (repository ReceiptProductRepository) GetPricedProductsForReceipts(receiptI
 
 		batch := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "amount", "food_group", "category_id").
-			Where("receipt_id IN ? AND amount IS NOT NULL", receiptIds[start:end]).
+			Select("id", "receipt_id", "amount_minor", "food_group", "category_id").
+			Where("receipt_id IN ? AND amount_minor IS NOT NULL", receiptIds[start:end]).
 			Find(&batch).Error
 		if err != nil {
 			return []models.ReceiptProduct{}, err
@@ -657,9 +657,9 @@ func (repository ReceiptProductRepository) GetReportLinesForReceipts(receiptIds 
 
 		batch := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "amount", "category_id", "food_group", "health", "planned", "position").
+			Select("id", "receipt_id", "amount_minor", "category_id", "food_group", "health", "planned", "position").
 			Preload("Tags").
-			Where("receipt_id IN ? AND amount IS NOT NULL", receiptIds[start:end]).
+			Where("receipt_id IN ? AND amount_minor IS NOT NULL", receiptIds[start:end]).
 			Order("receipt_id, position, id").
 			Find(&batch).Error
 		if err != nil {
@@ -676,7 +676,9 @@ type PricedProductTag struct {
 	ReceiptProductId uint
 	ReceiptId        uint
 	TagId            uint
-	Amount           decimal.Decimal
+	// AmountMinor is the line's amount as it is stored, in whole hundredths; Amount is the same as a decimal.
+	AmountMinor int64
+	Amount      decimal.Decimal `gorm:"-"`
 }
 
 // GetPricedProductTags returns, for the given receipts, every priced product line carrying one of the
@@ -693,12 +695,15 @@ func (repository ReceiptProductRepository) GetPricedProductTags(receiptIds []uin
 
 		batch := []PricedProductTag{}
 		err := db.Table("receipt_product_tags").
-			Select("receipt_products.id AS receipt_product_id, receipt_products.receipt_id AS receipt_id, receipt_product_tags.tag_id AS tag_id, receipt_products.amount AS amount").
+			Select("receipt_products.id AS receipt_product_id, receipt_products.receipt_id AS receipt_id, receipt_product_tags.tag_id AS tag_id, receipt_products.amount_minor AS amount_minor").
 			Joins("JOIN receipt_products ON receipt_products.id = receipt_product_tags.receipt_product_id").
-			Where("receipt_products.receipt_id IN ? AND receipt_products.amount IS NOT NULL AND receipt_product_tags.tag_id IN ?", receiptIds[start:end], tagIds).
+			Where("receipt_products.receipt_id IN ? AND receipt_products.amount_minor IS NOT NULL AND receipt_product_tags.tag_id IN ?", receiptIds[start:end], tagIds).
 			Scan(&batch).Error
 		if err != nil {
 			return []PricedProductTag{}, err
+		}
+		for index := range batch {
+			batch[index].Amount = models.FromMinorUnits(batch[index].AmountMinor)
 		}
 		rows = append(rows, batch...)
 	}

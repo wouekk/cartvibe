@@ -361,6 +361,25 @@ which day an instant falls on and what "today" means.
   extraction, lists, trips and corrections explicitly.
 - Money totals are folded in Go (`services/group_overview.go`); every month in the window is seeded, arrays never null.
   A receipt `amount` is always main currency, converted when added and never recomputed.
+- **Money is stored as whole hundredths** (since 2026-11-11, `models/money.go`): `receipts.amount_minor` and
+  `original_amount_minor`, `receipt_products.amount_minor`, `user_prefernces.monthly_spending_goal_minor`, all
+  INTEGER. The Go fields stay `decimal.Decimal` (tag `serializer:minor`) and the contract a string with no
+  trailing zeros, as it always was (`FromMinorUnits`). A sum, a comparison or a sort in SQL is exact on these
+  columns, which a `decimal(n,2)` column never was in SQLite (it is a floating-point number there). Traps:
+  - **A write that names a column converts by hand.** GORM applies the serializer to model fields only, so a
+    map passed to `Updates` or a single-column `Update` writes `amount_minor` with `models.ToMinorUnits(…)`
+    (`ToMinorUnitsPtr` for an amount that may be absent). Getting it wrong is refused, not stored: every
+    database handle carries `registerMoneyWriteGuard`, which fails an update that names an old decimal column
+    or hands anything but a whole number to a `_minor` one.
+  - **A query names `amount_minor`** in `Select`, `Where` and `Order`. `Select("amount")` on a receipt would
+    load the old column into a field nothing reads and leave `Amount` zero.
+  - `receipts.amount` (the old decimal) is still declared (`Receipt.AmountDecimal`) because it is NOT NULL
+    without a default in every database made before; two triggers keep it equal to `amount_minor`
+    (`repositories/money_columns.go`, made at the end of `money-minor-units-v1` and checked at every start).
+    Its GORM tag must stay exactly as the column was made, or the migration rebuilds the table. The other three
+    old columns stay in older databases, unused; a new install does not have them.
+  - Not money: an exchange rate (six decimals) and a shopping list item's `amount` (a quantity).
+  - A new money field gets the tag, an entry in `moneyColumns` and in `models.moneyColumnsOf`.
 - `GET/PUT /dashboardLayout` is its own row, not a `UserPreferences` field: `PUT /userPreferences` replaces the whole
   object and would erase it.
 - **Receipt statuses are two:** `OPEN` ("To check") and `RESOLVED` ("Settled"). The three upstream had beside

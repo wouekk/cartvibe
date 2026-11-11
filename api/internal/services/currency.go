@@ -128,7 +128,7 @@ func ApplyRatesToWaitingReceipts() (int, error) {
 
 	db := repositories.GetDB()
 	var waiting []models.Receipt
-	err = db.Where("original_currency <> ? AND exchange_rate IS NULL AND original_amount IS NOT NULL", "").Find(&waiting).Error
+	err = db.Where("original_currency <> ? AND exchange_rate IS NULL AND original_amount_minor IS NOT NULL", "").Find(&waiting).Error
 	if err != nil {
 		return 0, err
 	}
@@ -142,7 +142,7 @@ func ApplyRatesToWaitingReceipts() (int, error) {
 		}
 
 		err = db.Model(&models.Receipt{}).Where("id = ?", receipt.ID).Updates(map[string]any{
-			"amount":        ConvertAmount(*receipt.OriginalAmount, rate),
+			"amount_minor":  models.ToMinorUnits(ConvertAmount(*receipt.OriginalAmount, rate)),
 			"exchange_rate": rate,
 		}).Error
 		if err != nil {

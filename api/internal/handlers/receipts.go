@@ -766,7 +766,7 @@ func SetReceiptAmount(w http.ResponseWriter, r *http.Request) {
 			err = repositories.GetDB().
 				Model(&models.Receipt{}).
 				Where("id = ?", receiptId).
-				Update("amount", *command.Amount).Error
+				Update("amount_minor", models.ToMinorUnits(*command.Amount)).Error
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
