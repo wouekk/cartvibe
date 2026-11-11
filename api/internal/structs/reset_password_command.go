@@ -1,5 +1,5 @@
 package structs
 
 type ResetPasswordCommand struct {
-	Password string
+	Password string `json:"password"`
 }

@@ -47,9 +47,14 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - Open strings on the contract: `AiType`, `timeZone`, `dateFormat`, report `dateField`, OIDC error codes, extraction and trip
   statuses, `AppLogEntry.level` and every effective-permission string are `type: string`. A Go type may still guard what
   is stored (`AiClientType.Value()`).
-- **Two tests guard what a guide cannot.** `routers/contract_test.go` walks the router and fails for a route that
+- **Three tests guard what a guide cannot.** `routers/contract_test.go` walks the router and fails for a route that
   `swagger.yml` does not name, or the reverse (a route kept on purpose goes in `routesOutsideTheContract` with its
-  reason). `repositories/release_upgrade_test.go` builds the database of each release in `testdata/schema-v*.sql`,
+  reason). `routers/contract_schemas_test.go` compares every object schema of `swagger.yml` with the Go type
+  behind it, by the names of their fields (it reads the Go source, so a struct tag is enough to change it): **a
+  JSON field added to a type that goes on the wire needs its property in `swagger.yml` in the same change, and
+  the reverse**. A schema whose Go type has another name goes in `contractGoTypes`; a difference that is right
+  as it is goes in `contractDifferences` with its reason, and an entry that is no longer needed fails the test.
+  It does not check a property's type or which are required. `repositories/release_upgrade_test.go` builds the database of each release in `testdata/schema-v*.sql`,
   migrates it with today's code and asks for every table, column and index a fresh install has; add a fixture
   after a release (the test's header says how) and never edit one.
 - **The log** (`internal/logging`): `LogStd` writes one JSON object per message to `logs/app.log` (`log/slog`:
