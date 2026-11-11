@@ -16,7 +16,6 @@ import { NgIcon } from "@ng-icons/core";
 import { HlmCollapsibleImports } from "@spartan-ng/helm/collapsible";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSidebarImports } from "@spartan-ng/helm/sidebar";
-import { ButtonModule } from "../button";
 import { DemoBannerComponent, DemoFooterComponent } from "../demo/demo-runtime";
 
 import { AddReceiptIconComponent } from "./add-receipt-icon/add-receipt-icon.component";
@@ -30,7 +29,6 @@ import { TabBarComponent } from "./tab-bar/tab-bar.component";
     imports: [
     AutocompleteModule,
     AvatarModule,
-    ButtonModule,
     CommonModule,
     DemoBannerComponent,
     DemoFooterComponent,

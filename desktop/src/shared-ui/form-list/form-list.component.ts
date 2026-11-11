@@ -1,3 +1,4 @@
+import { HlmButton } from "@spartan-ng/helm/button";
 import {
   Component,
   TemplateRef,
@@ -10,7 +11,6 @@ import { EditButtonComponent } from '../edit-button/edit-button.component';
 import { DeleteButtonComponent } from '../delete-button/delete-button.component';
 import { SubmitButtonComponent } from '../submit-button/submit-button.component';
 import { CancelButtonComponent } from '../cancel-button/cancel-button.component';
-import { ButtonComponent } from '../../button/button/button.component';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
 @Component({
@@ -18,7 +18,7 @@ import { TranslatePipe } from '../../i18n/translate.pipe';
     templateUrl: './form-list.component.html',
     styleUrls: ['./form-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, NgFor, NgTemplateOutlet, EditButtonComponent, DeleteButtonComponent, SubmitButtonComponent, CancelButtonComponent, ButtonComponent, TranslatePipe]
+    imports: [NgIf, NgFor, NgTemplateOutlet, EditButtonComponent, DeleteButtonComponent, SubmitButtonComponent, CancelButtonComponent, TranslatePipe, HlmButton]
 })
 export class FormListComponent {
   public readonly array = input<any[]>([]);

@@ -65,15 +65,18 @@
 </ng-template>
 
 <ng-template #buttonTemplate>
-  <app-button
+  <button
     *ngIf="!(formConfig.mode | inputReadonly) && canCreateGroupMembers()"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     data-testid="add-group-member"
-    buttonType="iconButton"
-    icon="add"
-    color="accent"
-    [tooltip]="'Add User to Group' | t"
-    (clicked)="addGroupMemberClicked()"
-  ></app-button>
+    [hlmTooltip]="'Add User to Group' | t"
+    (click)="addGroupMemberClicked()"
+  >
+    <app-icon name="add"></app-icon>
+  </button>
 </ng-template>
 
 <ng-template #nameCell let-element="element">

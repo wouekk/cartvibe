@@ -3,32 +3,43 @@
   description="Review the background tasks the system has run and their results."
 >
   <div sectionActions class="flex items-center">
-    <app-button
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
+      class="relative"
       data-testid="system-tasks-filter"
-      icon="filter_alt"
-      buttonType="iconButton"
-      [tooltip]="'Filter System Tasks' | t"
-      color="accent"
-      badgeColor="accent"
-      [badgeContent]="numFiltersApplied()"
-      (clicked)="filterButtonClicked()"
-    ></app-button>
-    <app-button
+      [hlmTooltip]="'Filter System Tasks' | t"
+      (click)="filterButtonClicked()"
+    >
+      <app-icon name="filter_alt"></app-icon>
+      @if (numFiltersApplied(); as count) {
+        <span hlmBadge class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums" data-testid="button-badge">{{ count }}</span>
+      }
+    </button>
+    <button
       *ngIf="(numFiltersApplied() ?? 0) > 0"
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       data-testid="system-tasks-filter-reset"
-      icon="restart_alt"
-      buttonType="iconButton"
-      [tooltip]="'Reset filter' | t"
-      color="accent"
-      (clicked)="resetFilterButtonClicked()"
-    ></app-button>
-    <app-button
-      buttonType="iconButton"
-      icon="refresh"
-      color="accent"
-      [tooltip]="'Refresh System Tasks' | t"
-      (clicked)="refresh()"
-    ></app-button>
+      [hlmTooltip]="'Reset filter' | t"
+      (click)="resetFilterButtonClicked()"
+    >
+      <app-icon name="restart_alt"></app-icon>
+    </button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
+      [hlmTooltip]="'Refresh System Tasks' | t"
+      (click)="refresh()"
+    >
+      <app-icon name="refresh"></app-icon>
+    </button>
   </div>
 
 @if (filterChips().length > 0) {

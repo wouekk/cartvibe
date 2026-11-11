@@ -1,8 +1,8 @@
 import { Component, Inject, Optional, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
 import { InputComponent } from "../../input/input/input.component";
 import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
@@ -35,7 +35,7 @@ export type DeleteAccountDialogResult =
     templateUrl: "./delete-account-dialog.component.html",
     styleUrls: ["./delete-account-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [DialogComponent, ButtonComponent, CancelButtonComponent, InputComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
+    imports: [DialogComponent, CancelButtonComponent, InputComponent, DialogFooterComponent, TranslatePipe, FormGetPipe, HlmButton]
 })
 export class DeleteAccountDialogComponent {
   public form: FormGroup;

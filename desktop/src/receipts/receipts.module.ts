@@ -26,7 +26,6 @@ import { SlideToggleModule } from "src/slide-toggle/slide-toggle.module";
 import { TableModule } from "src/table/table.module";
 import { TextareaModule } from "src/textarea/textarea.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
-import { ButtonModule } from "../button";
 import { CarouselModule as ReceiptCarousel } from "../carousel/carousel.module";
 import { CategoryAutocompleteComponent } from "../category-autocomplete/category-autocomplete.component";
 import { CheckboxModule } from "../checkbox/checkbox.module";
@@ -34,7 +33,6 @@ import { CheckboxModule } from "../checkbox/checkbox.module";
 import { InputModule } from "../input";
 import { PeriodPickerComponent } from "../overview/period-picker/period-picker.component";
 import { ReceiptCurrencyNoteComponent } from "./receipt-currency-note/receipt-currency-note.component";
-import { FilteredStatefulMenuComponent } from "../standalone/components/filtered-stateful-menu/filtered-stateful-menu.component";
 import { TagAutocompleteComponent } from "../tag-autocomplete/tag-autocomplete.component";
 import { BulkStatusUpdateComponent } from "./bulk-resolve-dialog/bulk-status-update-dialog.component";
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog/column-configuration-dialog.component";
@@ -54,7 +52,6 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     UploadProgressComponent,
     AutocompleteModule,
     AvatarModule,
-    ButtonModule,
     CategoryAutocompleteComponent,
     CommonModule,
     DatepickerModule,
@@ -82,7 +79,6 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     TagAutocompleteComponent,
     TextareaModule,
     UserAutocompleteModule,
-    FilteredStatefulMenuComponent,
     CheckboxModule,
     PeriodPickerComponent,
     ReceiptCurrencyNoteComponent,

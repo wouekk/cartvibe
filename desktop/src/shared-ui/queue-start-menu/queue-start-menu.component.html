@@ -1,11 +1,9 @@
-<app-button
-  [buttonType]="buttonType()"
-  [hlmDropdownMenuTrigger]="menu"
-  [buttonText]="buttonText()"
-  [color]="color()"
-  [icon]="buttonIcon()"
-  [tooltip]="'Start queue' | t"
-></app-button>
+<button hlmBtn type="button" data-testid="queue-start" [hlmDropdownMenuTrigger]="menu" [hlmTooltip]="'Start queue' | t">
+  @if (buttonIcon(); as icon) {
+    <app-icon [name]="icon"></app-icon>
+  }
+  <span class="font-medium">{{ buttonText() | t }}</span>
+</button>
 <ng-template #menu>
 <div hlmDropdownMenu class="w-56">
   <button hlmDropdownMenuItem (click)="initQueue(QueueMode.VIEW)">{{ 'View Mode' | t }}</button>

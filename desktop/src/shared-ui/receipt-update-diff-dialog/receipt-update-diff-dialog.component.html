@@ -69,11 +69,14 @@
     </table>
   </div>
   <div class="flex justify-end mt-4">
-    <app-button
-      [buttonText]="'Close' | t"
-      buttonType="basic"
-      (clicked)="close()"
-    ></app-button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      (click)="close()"
+    >
+      <span class="font-medium">{{ 'Close' | t }}</span>
+    </button>
   </div>
 </app-dialog>
 

@@ -267,3 +267,11 @@ export function parseInlineGoalInput(text: string): { ok: boolean; value?: strin
 
   return parseGoalInput(trimmed);
 }
+
+/** A pointer cursor over what a click opens; the canvas is the chart's only element, so it is set on it. */
+export function setChartPointer(event: { native: Event | null }, over: boolean): void {
+  const target = event.native?.target;
+  if (target instanceof HTMLElement) {
+    target.style.cursor = over ? "pointer" : "default";
+  }
+}

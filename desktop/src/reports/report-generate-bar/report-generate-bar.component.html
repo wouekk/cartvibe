@@ -27,24 +27,30 @@
       <app-icon class="size-4 animate-spin text-muted-foreground" name="autorenew"></app-icon>
     }
     @if (saveTemplateAllowed()) {
-      <app-button
-        buttonType="raised"
-        [buttonText]="saveTemplateText()"
-        icon="bookmark_add"
-        [disabled]="!canSaveTemplate() || saving()"
-        (clicked)="onSaveTemplate()"
+      <button
+        hlmBtn
+        type="button"
         data-testid="report-save-template"
-      ></app-button>
+        [disabled]="!canSaveTemplate() || saving()"
+        (click)="onSaveTemplate()"
+      >
+        <app-icon name="bookmark_add"></app-icon>
+        <span class="font-medium">{{ (saveTemplateText()) | t }}</span>
+      </button>
     }
     @if (generateAllowed()) {
-      <app-button
-        buttonType="raised"
-        [buttonText]="generating() ? 'Generating…' : 'Generate Report'"
-        [icon]="generating() ? '' : 'play_arrow'"
-        [disabled]="!canGenerate() || generating()"
-        (clicked)="onGenerate()"
+      <button
+        hlmBtn
+        type="button"
         data-testid="report-generate"
-      ></app-button>
+        [disabled]="!canGenerate() || generating()"
+        (click)="onGenerate()"
+      >
+        @if (generating() ? '' : 'play_arrow'; as icon) {
+          <app-icon [name]="icon"></app-icon>
+        }
+        <span class="font-medium">{{ (generating() ? 'Generating…' : 'Generate Report') | t }}</span>
+      </button>
     }
   </div>
 </div>

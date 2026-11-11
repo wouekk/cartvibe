@@ -5,7 +5,6 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core"
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { provideRouter } from "@angular/router";
-import { ButtonModule } from "../../button/button.module";
 import { ReportGenerateBarComponent } from "./report-generate-bar.component";
 
 describe("ReportGenerateBarComponent", () => {
@@ -15,10 +14,10 @@ describe("ReportGenerateBarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    // The real ButtonModule renders the Save/Generate app-buttons as real <button>s
+    // Save and Generate are real <button>s
     // whose rendered/disabled state the DOM assertions below can inspect. The bar no
     // longer gates on permissions itself — the parent passes resolved booleans.
-    imports: [TranslatePipe, ButtonModule, ReportGenerateBarComponent],
+    imports: [TranslatePipe, ReportGenerateBarComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -126,7 +125,7 @@ describe("ReportGenerateBarComponent", () => {
     expect(el.querySelector("[data-testid=report-format-summary]")!.textContent).toContain("Single XLSX file");
 
     // canGenerate=true → the Generate button is enabled.
-    const button = () => el.querySelector('[data-testid="report-generate"] button') as HTMLButtonElement;
+    const button = () => el.querySelector('[data-testid="report-generate"]') as HTMLButtonElement;
     expect(button().disabled).toBe(false);
 
     // Flipping the inputs disables it (no format-generatable / mid-generation).

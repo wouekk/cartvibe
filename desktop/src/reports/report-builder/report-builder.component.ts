@@ -24,8 +24,9 @@ import { buildReportForm, buildReportFormFromCommand } from "../models/report-fo
 import { ReportRunnerService } from "../services/report-runner.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { localizeStoredTexts, restoreStoredTexts } from "../models/report-stored-text";
-import { ButtonComponent } from "../../button/button/button.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ReportConfigPanelComponent } from "../report-config-panel/report-config-panel.component";
 import { ReportPreviewPanelComponent } from "../report-preview-panel/report-preview-panel.component";
@@ -43,14 +44,12 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     templateUrl: "./report-builder.component.html",
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [
-        ButtonComponent,
         RouterLink,
         AppIconComponent,
         ReportConfigPanelComponent,
         ReportPreviewPanelComponent,
         ReportGenerateBarComponent,
-        TranslatePipe,
-    ],
+        TranslatePipe, HlmButton, HlmTooltip],
 })
 export class ReportBuilderComponent {
   private readonly formBuilder = inject(FormBuilder);

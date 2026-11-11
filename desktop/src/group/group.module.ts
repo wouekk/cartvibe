@@ -9,7 +9,6 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
-import { ButtonModule } from "../button";
 
 import { InputModule } from "../input";
 import { GroupDetailsComponent } from "./group-details/group-details.component";
@@ -30,7 +29,6 @@ import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.compon
 
 @NgModule({
     imports: [
-    ButtonModule,
     ReceiptProductBackfillComponent,
     CheckboxModule,
     CommonModule,

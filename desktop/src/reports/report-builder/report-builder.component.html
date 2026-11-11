@@ -1,12 +1,16 @@
 <div class="flex h-full min-h-0 flex-col bg-background">
   <header class="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-border px-4 py-3 sm:px-6">
-    <app-button
-      buttonType="iconButton"
-      icon="arrow_back"
-      [tooltip]="'Back to Reports' | t"
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       data-testid="report-builder-back"
-      [buttonRouterLink]="['/reports']"
-    ></app-button>
+      [hlmTooltip]="'Back to Reports' | t"
+      [routerLink]="['/reports']"
+    >
+      <app-icon name="arrow_back"></app-icon>
+    </button>
     <div class="min-w-0 flex-1">
       <nav class="flex min-w-0 items-center gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground [&_app-icon]:size-3 [&_app-icon]:flex-none" [attr.aria-label]="'Breadcrumb' | t">
         <a class="text-inherit no-underline transition-colors duration-150 hover:text-foreground" [routerLink]="['/reports']">{{ 'Reports' | t }}</a>

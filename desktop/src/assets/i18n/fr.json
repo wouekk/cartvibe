@@ -428,7 +428,6 @@
     "Filter": "Filtrer",
     "Filter Receipts": "Filtrer les tickets",
     "Filter System Tasks": "Filtrer les tâches système",
-    "Filter options": "Options de filtre",
     "Filters": "Filtres",
     "Finished:": "Terminée :",
     "First page": "Première page",
@@ -689,7 +688,6 @@
     "No grouping": "Aucun regroupement",
     "No households yet.": "Aucun foyer pour l’instant.",
     "No ingredients were found in that text. Put each ingredient on its own line, like “200 g flour”.": "Aucun ingrédient n’a été trouvé dans ce texte. Placez chaque ingrédient sur sa propre ligne, par exemple « 200 g de farine ».",
-    "No items found": "Aucun élément trouvé",
     "No matches": "Aucun résultat",
     "No models were listed for this key.": "Aucun modèle n’a été listé pour cette clé.",
     "No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized.": "Aucun produit pour l’instant. Ajoutez-les ci-dessous pour classer ce ticket par catégories ; d’ici là, tout compte comme « Sans catégorie ».",
@@ -1821,6 +1819,10 @@
       "value": "Filtrer par mois",
       "closest": "Month by month"
     },
+    "Filter options": {
+      "value": "Options de filtre",
+      "closest": "Add filter…"
+    },
     "For example {model}": {
       "value": "Par exemple {model}"
     },
@@ -1932,6 +1934,9 @@
     "No comments for this receipt yet": {
       "value": "Pas encore de commentaire pour ce ticket",
       "closest": "No models were listed for this key."
+    },
+    "No items found": {
+      "value": "Aucun élément trouvé"
     },
     "No report templates yet": {
       "value": "Aucun modèle de rapport pour l’instant",

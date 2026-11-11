@@ -7,7 +7,6 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
-import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 import { DatepickerModule } from "../datepicker/datepicker.module";
 
@@ -32,7 +31,6 @@ import { ReportsRoutingModule } from "./reports-routing.module";
     imports: [
     ...HlmButtonImports,
     AutocompleteModule,
-    ButtonModule,
     CheckboxModule,
     CommonModule,
     DatepickerModule,

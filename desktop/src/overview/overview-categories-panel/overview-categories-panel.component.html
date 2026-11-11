@@ -1,0 +1,74 @@
+<div class="cv-panel-header">
+  <div>
+    <h2 id="overview-categories-title">{{ 'Spending by category' | t }}</h2>
+    <p class="mt-0.5 text-xs text-muted-foreground">{{ periodLabel() }}</p>
+  </div>
+</div>
+@if (segments().length > 0) {
+  <div class="donut flex flex-wrap items-center gap-8">
+    <div class="flex w-full flex-col items-center gap-4 @md:w-auto @md:flex-none">
+      <app-chart
+        class="donut__chart size-[13.75rem] flex-none"
+        data-testid="overview-donut"
+        [options]="donutOptions"
+        [activeIndex]="activeSegmentIndex()"
+        [label]="'Spending by category, {period}' | t: { period: periodLabel() }"
+      ></app-chart>
+    </div>
+    <table class="donut__legend min-w-52 flex-1 text-sm">
+      <thead hlmTHead>
+        <tr>
+          <th hlmTh scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">{{ 'Category' | t }}</th>
+          <th hlmTh scope="col" class="pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (segment of segments(); track segment.name) {
+          <tr
+            class="cursor-pointer border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
+            [class.opacity-45]="isDimmed(segment.name)"
+            [attr.data-testid]="'overview-donut-row-' + segment.name"
+            [attr.data-dimmed]="isDimmed(segment.name)"
+            (mouseenter)="hoverSegment(segment.name)"
+            (mouseleave)="hoverSegment(null)"
+            (focusin)="hoverSegment(segment.name)"
+            (focusout)="hoverSegment(null)"
+            (click)="open.emit(segment)"
+          >
+            <td class="py-2.5">
+              <!-- Dot, share, name: the share leads so the name gets the room, and the dot stays beside a wrapping name. -->
+              <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="inline-flex size-4 flex-none cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                [attr.aria-pressed]="focusedSegment() === segment.name"
+                [attr.aria-label]="'Focus on: {name}' | t: { name: segment.name }"
+                [attr.data-testid]="'overview-donut-focus-' + segment.name"
+                (click)="toggleFocus(segment.name); $event.stopPropagation()"
+              >
+                <span class="size-2.5 rounded-full transition-transform" [class.scale-150]="focusedSegment() === segment.name" [style.background]="segment.color"></span>
+              </button>
+              <span class="w-12 flex-none whitespace-nowrap tabular-nums text-muted-foreground" data-testid="overview-donut-share">{{ segment.share }}</span>
+              <button
+                type="button"
+                class="link-button cursor-pointer border-0 bg-transparent p-0 text-left font-medium text-foreground underline-offset-4 hover:underline"
+                data-testid="overview-category-open"
+                (click)="open.emit(segment); $event.stopPropagation()"
+              >
+                {{ segment.name | tData }}
+              </button>
+              </div>
+            </td>
+            <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums"><app-money [value]="segment.total" [display]="true"></app-money></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <p class="m-0 py-6 text-center text-muted-foreground">{{ 'No spending in {period} yet.' | t: { period: periodLabel() } }}</p>
+}
+<div class="cv-panel-footer">
+  <span>{{ periodLabel() }}</span>
+  <a routerLink="/reports" class="cv-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
+</div>

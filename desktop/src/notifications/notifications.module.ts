@@ -5,7 +5,6 @@ import { NgModule } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { RouterModule } from "@angular/router";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { ButtonModule } from "../button";
 import { NotificationComponent } from "./notification/notification.component";
 import { NotificationsListComponent } from "./notifications-list/notifications-list.component";
 
@@ -13,7 +12,6 @@ import { NotificationsListComponent } from "./notifications-list/notifications-l
     imports: [
         AppDatePipe,
         TranslatePipe,
-        ButtonModule,
         CommonModule,
         HlmButton,
         RouterModule,

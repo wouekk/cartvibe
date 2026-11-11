@@ -20,6 +20,9 @@ import {AddGroup, AuthState, UpdateGroup} from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { FormComponent } from "../../shared-ui/form/form.component";
 import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
@@ -29,7 +32,6 @@ import { FormSectionComponent } from "../../shared-ui/form-section/form-section.
 import { InputComponent } from "../../input/input/input.component";
 import { SelectComponent } from "../../select/select/select.component";
 import { GroupLookPickerComponent } from "../group-look-picker/group-look-picker.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
@@ -42,7 +44,7 @@ import { UserPipe } from "../../pipes/user.pipe";
     styleUrls: ["./group-form.component.scss"],
     host: DEFAULT_HOST_CLASS,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [FormComponent, SettingsPageComponent, NgTemplateOutlet, AuditDetailSectionComponent, FormSectionComponent, InputComponent, SelectComponent, GroupLookPickerComponent, TableComponent, NgIf, ButtonComponent, RowActionsComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe, RoleNamePipe, UserPipe]
+    imports: [FormComponent, SettingsPageComponent, NgTemplateOutlet, AuditDetailSectionComponent, FormSectionComponent, InputComponent, SelectComponent, GroupLookPickerComponent, TableComponent, NgIf, RowActionsComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe, RoleNamePipe, UserPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
   protected readonly PermissionScope = PermissionScope;

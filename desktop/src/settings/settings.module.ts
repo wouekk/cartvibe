@@ -12,7 +12,6 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
-import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 
 import { InputModule } from "../input";
@@ -26,7 +25,6 @@ import { AvatarPhotoComponent } from "./avatar-photo/avatar-photo.component";
 @NgModule({
     imports: [
     AutocompleteModule,
-    ButtonModule,
     CheckboxModule,
     ColorSwatchesComponent,
     CommonModule,

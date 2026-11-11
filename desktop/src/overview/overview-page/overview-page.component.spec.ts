@@ -11,6 +11,7 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from "@angular/router";
 import { parseLayout } from "../dashboard-layout/dashboard-layout";
@@ -38,6 +39,9 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
+import { OverviewCategoriesPanelComponent } from "../overview-categories-panel/overview-categories-panel.component";
+import { OverviewTrendPanelComponent } from "../overview-trend-panel/overview-trend-panel.component";
+import { OverviewSpentTileComponent } from "../overview-spent-tile/overview-spent-tile.component";
 import { OverviewPageComponent } from "./overview-page.component";
 
 import type { Mock } from "vitest";
@@ -86,6 +90,16 @@ describe("OverviewPageComponent", () => {
   const query = new BehaviorSubject(convertToParamMap({}));
   let routeData: BehaviorSubject<Record<string, unknown>>;
   let dashboardLayoutService: { getDashboardLayout: Mock; updateDashboardLayout: Mock };
+
+  /** The categories panel the page renders: the donut's state is its own. */
+  const categoriesPanel = (): OverviewCategoriesPanelComponent =>
+    fixture.debugElement.query(By.directive(OverviewCategoriesPanelComponent)).componentInstance;
+
+  /** The trend panel the page renders: the bars, the goal line and the export are its own. */
+  const trendPanel = (): OverviewTrendPanelComponent => fixture.debugElement.query(By.directive(OverviewTrendPanelComponent)).componentInstance;
+
+  /** The Spent tile the page renders: the goal editor and its save are its own. */
+  const spentTile = (): OverviewSpentTileComponent => fixture.debugElement.query(By.directive(OverviewSpentTileComponent)).componentInstance;
 
   const text = (testId: string): string =>
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "";
@@ -252,12 +266,12 @@ describe("OverviewPageComponent", () => {
 
     byId("overview-donut-focus-Drinks").dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(open).toHaveBeenCalledTimes(1);
-    expect(component.focusedSegment()).toBe("Drinks");
+    expect(categoriesPanel().focusedSegment()).toBe("Drinks");
   });
 
   it("opens the list when a slice of the ring is clicked", () => {
     const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
-    const spec = component.donutOptions(CHART_COLORS) as ChartConfiguration<"doughnut">;
+    const spec = categoriesPanel().donutOptions(CHART_COLORS) as ChartConfiguration<"doughnut">;
 
     (spec.options?.plugins as { cvPointer: { click: (index: number) => void } }).cvPointer.click(0);
 
@@ -266,10 +280,10 @@ describe("OverviewPageComponent", () => {
 
   it("opens the receipts of a month bar, and of a day bar", async () => {
     const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    const bars = component.chartBars();
+    const bars = trendPanel().chartBars();
     expect(bars.length).toBeGreaterThan(0);
 
-    component.openBar(0);
+    trendPanel().openBar(0);
     expect(navigate).toHaveBeenLastCalledWith(["/receipts/group", 1], { queryParams: { from: "2026-09-01", to: "2026-09-30" } });
 
     overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
@@ -277,7 +291,7 @@ describe("OverviewPageComponent", () => {
     );
     component.period.set({ from: "2026-10-20", to: "2026-10-25", label: "20 Oct 2026 – 25 Oct 2026" });
     await fixture.whenStable();
-    component.openBar(0);
+    trendPanel().openBar(0);
     expect(navigate).toHaveBeenLastCalledWith(["/receipts/group", 1], { queryParams: { from: "2026-10-21", to: "2026-10-21" } });
   });
 
@@ -353,8 +367,8 @@ describe("OverviewPageComponent", () => {
       expect(text("overview-spent-goal")).toContain("100");
       expect(text("overview-spent-remaining")).toContain("left");
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-over]")).toBeNull();
-      expect(component.spentGoal()).toEqual({ goal: 100, over: 0, remaining: 8 });
-      expect(component.goalProgress()).toBe(92);
+      expect(spentTile().spentGoal()).toEqual({ goal: 100, over: 0, remaining: 8 });
+      expect(spentTile().goalProgress()).toBe(92);
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-progress] > div").style.width).toBe("92%");
     });
 
@@ -362,8 +376,8 @@ describe("OverviewPageComponent", () => {
       await setGoal("80");
 
       expect(text("overview-spent-over")).toContain("over goal");
-      expect(component.spentGoal()).toEqual({ goal: 80, over: 12, remaining: 0 });
-      expect(component.goalProgress()).toBe(100);
+      expect(spentTile().spentGoal()).toEqual({ goal: 80, over: 12, remaining: 0 });
+      expect(spentTile().goalProgress()).toBe(100);
       const fill = fixture.nativeElement.querySelector("[data-testid=overview-spent-progress] > div");
       expect(fill.classList).toContain("tile__progress-fill--over");
       expect(fill.style.width).toBe("100%");
@@ -421,7 +435,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2026-10-12", to: "2026-10-18", label: "week" });
       await fixture.whenStable();
 
-      expect(component.spentGoal()).toBeUndefined();
+      expect(spentTile().spentGoal()).toBeUndefined();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-goal]")).toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-spent-progress]")).toBeNull();
     });
@@ -430,7 +444,7 @@ describe("OverviewPageComponent", () => {
       await setGoal("95");
 
       expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).not.toBeNull();
-      const bars = component.bars();
+      const bars = trendPanel().bars();
       // The trend is September 100 and this month 92, so September is over a goal of 95 and this month is not.
       expect(bars[0].overAmount).toBe(5);
       expect(bars[1].overAmount).toBe(0);
@@ -441,7 +455,7 @@ describe("OverviewPageComponent", () => {
     it("gives the chart the goal, a red over-goal part, and rounds only the top segment of each bar", async () => {
       await setGoal("95");
 
-      const spec = component.barsOptions(CHART_COLORS) as ChartConfiguration<"bar">;
+      const spec = trendPanel().barsOptions(CHART_COLORS) as ChartConfiguration<"bar">;
       expect(spec.options?.plugins?.cvGoalLine).toMatchObject({ value: 95, color: CHART_COLORS.mutedForeground });
       const [spent, over] = spec.data.datasets;
       expect(spent.data).toEqual([95, 92]);
@@ -469,8 +483,8 @@ describe("OverviewPageComponent", () => {
     it("keeps the scale on the tallest month and leaves out a goal line that would not fit", async () => {
       await setGoal("1500");
 
-      expect(component.bars().every((bar) => (bar.overAmount ?? 0) === 0)).toBe(true);
-      expect(component.bars()[0].fraction).toBe(1);
+      expect(trendPanel().bars().every((bar) => (bar.overAmount ?? 0) === 0)).toBe(true);
+      expect(trendPanel().bars()[0].fraction).toBe(1);
       expect(fixture.nativeElement.querySelector("[data-testid=overview-goal-line]")).toBeNull();
       expect(text("overview-trend-summary")).toContain("Goal");
     });
@@ -482,8 +496,8 @@ describe("OverviewPageComponent", () => {
         userPreferencesService = {
           updateUserPreferences: vi.fn((preferences: UserPreferences) => of(preferences)),
         };
-        (component as any).userPreferencesService = userPreferencesService;
-        (component as any).snackbarService = { error: vi.fn(), success: vi.fn() };
+        (spentTile() as any).userPreferencesService = userPreferencesService;
+        (spentTile() as any).snackbarService = { error: vi.fn(), success: vi.fn() };
       });
 
       const type = async (value: string) => {
@@ -566,7 +580,7 @@ describe("OverviewPageComponent", () => {
         await fixture.whenStable();
 
         expect(userPreferencesService.updateUserPreferences).not.toHaveBeenCalled();
-        expect(component.editingGoal()).toBe(true);
+        expect(spentTile().editingGoal()).toBe(true);
       });
     });
   });
@@ -585,7 +599,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2026-01-01", to: "2026-12-31", label: "2026" });
       await fixture.whenStable();
 
-      const spec = component.barsOptions(CHART_COLORS);
+      const spec = trendPanel().barsOptions(CHART_COLORS);
       const labels = spec.data.labels as string[];
       expect(labels.length).toBe(12);
       expect(labels.every((name) => name.length > 0)).toBe(true);
@@ -602,7 +616,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2025-10-21", to: "2026-10-20", label: "year" });
       await fixture.whenStable();
 
-      expect(component.chartBars().length).toBe(12);
+      expect(trendPanel().chartBars().length).toBe(12);
       expect(fixture.nativeElement.querySelector("[data-testid=overview-chart-capped]")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=overview-range-export]")).toBeNull();
     });
@@ -611,7 +625,7 @@ describe("OverviewPageComponent", () => {
       component.period.set({ from: "2024-01-01", to: "2026-03-01", label: "long" });
       await fixture.whenStable();
 
-      expect(component.rangeTooLongForChart()).toBe(true);
+      expect(trendPanel().rangeTooLongForChart()).toBe(true);
       expect(fixture.nativeElement.querySelector(".bars")).toBeNull();
       expect(text("overview-range-export")).toContain("best viewed as a report");
       expect(fixture.nativeElement.querySelector("[data-testid=overview-export-pdf]")).not.toBeNull();
@@ -729,122 +743,6 @@ describe("OverviewPageComponent", () => {
       await fixture.whenStable();
 
       expect(navigate).not.toHaveBeenCalled();
-    });
-  });
-
-  it("focuses a category on the ring, dims the others, and clears again", async () => {
-    await fixture.whenStable();
-    const first = component.segments()[0];
-    expect(first).toBeDefined();
-    const count = () => component.donutOptions(CHART_COLORS).data.datasets[0].data.length;
-    const all = count();
-
-    component.toggleFocus(first.name);
-    expect(component.isDimmed(first.name)).toBe(false);
-    expect(component.isDimmed("Someone else")).toBe(true);
-    expect(component.focusedSegment()).toBe(first.name);
-    expect(count()).toBe(all);
-
-    component.toggleFocus(first.name);
-    expect(component.focusedSegment()).toBeNull();
-    expect(component.isDimmed("Someone else")).toBe(false);
-    expect(count()).toBe(all);
-  });
-
-  describe("donut and legend in step", () => {
-    const twoCategories = (from: string, to: string): GroupOverview => ({
-      ...overview(from, to),
-      categories: [
-        { name: "Groceries", total: "60" },
-        { name: "Drinks", total: "32" },
-      ],
-    });
-
-    beforeEach(async () => {
-      overviewService.getGroupOverview.mockImplementation((_groupId: number, _month: string, from: string, to: string) =>
-        of(twoCategories(from, to))
-      );
-      component.period.set({ from: "2025-01-01", to: "2025-01-31", label: "January 2025" });
-      await fixture.whenStable();
-    });
-
-    const row = (name: string): HTMLElement => fixture.nativeElement.querySelector(`[data-testid="overview-donut-row-${name}"]`);
-
-    it("puts the share in front of the name, with no Share column", () => {
-      const headers = Array.from(fixture.nativeElement.querySelectorAll(".donut__legend th") as NodeListOf<HTMLElement>).map((th) =>
-        th.textContent?.trim()
-      );
-      expect(headers).toEqual(["Category", "Spent"]);
-
-      const cells = row("Groceries").querySelectorAll("td");
-      expect(cells.length).toBe(2);
-      const first = cells[0].textContent?.replace(/\s+/g, " ").trim() ?? "";
-      expect(first).toMatch(/^\d+(\.\d)?% Groceries$/);
-      expect(row("Groceries").querySelector('[data-testid="overview-donut-share"]')).not.toBeNull();
-    });
-
-    it("dims the other legend rows while one is hovered, and clears on leave", async () => {
-      row("Drinks").dispatchEvent(new Event("mouseenter"));
-      await fixture.whenStable();
-
-      expect(component.activeSegment()).toBe("Drinks");
-      expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
-      expect(row("Drinks").getAttribute("data-dimmed")).toBe("false");
-
-      row("Drinks").dispatchEvent(new Event("mouseleave"));
-      await fixture.whenStable();
-      expect(component.activeSegment()).toBeNull();
-      expect(row("Groceries").getAttribute("data-dimmed")).toBe("false");
-    });
-
-    const donut = () => component.donutOptions(CHART_COLORS) as ChartConfiguration<"doughnut">;
-    const hostIndex = () => (fixture.nativeElement.querySelector('[data-testid="overview-donut"]') as HTMLElement).getAttribute("data-active-index");
-    const fill = (index: number) => (donut().data.datasets[0].backgroundColor as (context: { dataIndex: number }) => string)({ dataIndex: index });
-
-    it("emphasises the hovered row's slice, fades the others and names it in the middle, without new chart data", async () => {
-      const before = donut().data.datasets[0].data;
-      expect(donut().options?.plugins?.cvCenterText?.text?.().label).toBe("January 2025");
-      expect(hostIndex()).toBeNull();
-
-      row("Drinks").dispatchEvent(new Event("mouseenter"));
-      await fixture.whenStable();
-
-      expect(component.activeSegmentIndex()).toBe(1);
-      expect(hostIndex()).toBe("1");
-      const middle = donut().options?.plugins?.cvCenterText?.text?.();
-      expect(middle?.label).toBe("Drinks");
-      expect(middle?.value).toContain("32");
-      // The slice colors are scriptable, so the others go faint without the chart being given new data.
-      expect(fill(1)).toBe("rgb(2, 2, 2)");
-      expect(fill(0)).toBe("rgba(1, 1, 1, 0.45)");
-      expect(donut().data.datasets[0].data).toEqual(before);
-
-      row("Drinks").dispatchEvent(new Event("mouseleave"));
-      await fixture.whenStable();
-      expect(hostIndex()).toBeNull();
-      expect(fill(0)).toBe("rgb(1, 1, 1)");
-      expect(donut().options?.plugins?.cvCenterText?.text?.().label).toBe("January 2025");
-    });
-
-    it("dims the legend when a slice is hovered on the ring, a click opens its list, and the focused slice stays emphasised", async () => {
-      const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({} as never);
-      const pointer = donut().options?.plugins?.cvPointer;
-
-      pointer?.hover?.(0);
-      await fixture.whenStable();
-      expect(row("Drinks").getAttribute("data-dimmed")).toBe("true");
-
-      pointer?.hover?.(null);
-      pointer?.click?.(1);
-      expect(open.mock.calls[0][1]?.data).toMatchObject({ kind: "FOODGROUP", foodGroup: "Drinks" });
-
-      component.toggleFocus("Drinks");
-      await fixture.whenStable();
-      expect(component.focusedSegment()).toBe("Drinks");
-      expect(row("Groceries").getAttribute("data-dimmed")).toBe("true");
-      // Once the pointer leaves, the focused slice is the one the chart keeps emphasised.
-      expect(pointer?.active?.()).toBe(1);
-      expect(hostIndex()).toBe("1");
     });
   });
 

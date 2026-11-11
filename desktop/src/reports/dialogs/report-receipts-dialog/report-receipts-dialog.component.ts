@@ -18,6 +18,7 @@ import { marker } from "../../../i18n/marker";
 import { TranslateFn } from "../../../i18n/translate-fn";
 import { TranslationService } from "../../../i18n/translation.service";
 import { ReportBuilderValue } from "../../models/report-command.mapper";
+import { HlmButton } from "@spartan-ng/helm/button";
 import {
   formatPeriodRange,
   reportPeriodDateFieldHint,
@@ -26,7 +27,6 @@ import {
 } from "../../models/report-period.util";
 import { DialogComponent } from "../../../shared-ui/dialog/dialog.component";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
-import { ButtonComponent } from "../../../button/button/button.component";
 import { StatusChipComponent } from "../../../shared-ui/status-chip/status-chip.component";
 import { MoneyComponent } from "../../../shared-ui/money/money.component";
 import { TranslatePipe, PluralPipe } from "../../../i18n/translate.pipe";
@@ -56,13 +56,11 @@ export interface ReportReceiptsDialogData {
     imports: [
         DialogComponent,
         AppIconComponent,
-        ButtonComponent,
         StatusChipComponent,
         MoneyComponent,
         TranslatePipe,
         PluralPipe,
-        AppDatePipe,
-    ],
+        AppDatePipe, HlmButton],
 })
 export class ReportReceiptsDialogComponent {
   private readonly reportService = inject(ReportService);

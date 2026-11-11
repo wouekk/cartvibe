@@ -2,7 +2,6 @@ import { CommonModule } from "@angular/common";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { ButtonModule } from "../../button";
 import { CarouselComponent } from "./carousel.component";
 
 describe("CarouselComponent", () => {
@@ -15,7 +14,6 @@ describe("CarouselComponent", () => {
         CommonModule,
         HlmButton,
         AppIconComponent,
-        ButtonModule,
         CarouselComponent,
     ],
 }).compileComponents();

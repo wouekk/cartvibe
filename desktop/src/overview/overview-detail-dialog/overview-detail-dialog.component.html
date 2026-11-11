@@ -80,6 +80,14 @@
     }
   }
   <div class="flex justify-end mt-4">
-    <app-button [buttonText]="'Close' | t" buttonType="basic" data-testid="overview-detail-close" (clicked)="close()"></app-button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      data-testid="overview-detail-close"
+      (click)="close()"
+    >
+      <span class="font-medium">{{ 'Close' | t }}</span>
+    </button>
   </div>
 </app-dialog>

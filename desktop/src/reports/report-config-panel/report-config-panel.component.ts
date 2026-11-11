@@ -50,6 +50,8 @@ import {
 } from "../dialogs/column-picker-dialog/column-picker-dialog.component";
 import { marker } from "../../i18n/marker";
 import { TranslateFn } from "../../i18n/translate-fn";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { TranslationService } from "../../i18n/translation.service";
 import { ReportSectionComponent } from "../report-section/report-section.component";
 import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
@@ -58,7 +60,6 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SelectComponent } from "../../select/select/select.component";
 import { DatepickerComponent } from "../../datepicker/datepicker/datepicker.component";
 import { ReportFiltersComponent } from "../report-filters/report-filters.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.component";
 import { NgClass } from "@angular/common";
 import { BadgeComponent } from "../../shared-ui/badge/badge.component";
@@ -134,15 +135,13 @@ const KIND_META: Record<
         SelectComponent,
         DatepickerComponent,
         ReportFiltersComponent,
-        ButtonComponent,
         SettingsTabsComponent,
         NgClass,
         BadgeComponent,
         CheckboxComponent,
         TextareaComponent,
         TranslatePipe,
-        FormGetPipe,
-    ],
+        FormGetPipe, HlmButton, HlmTooltip],
 })
 export class ReportConfigPanelComponent implements OnInit {
   private readonly translation = inject(TranslationService);

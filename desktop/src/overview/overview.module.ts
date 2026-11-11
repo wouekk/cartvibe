@@ -3,7 +3,6 @@ import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { ButtonModule } from "../button";
 import { PeriodPickerComponent } from "./period-picker/period-picker.component";
 
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
@@ -21,6 +20,6 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 
 @NgModule({
-    imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, SharedUiModule, OverviewShoppingPanelComponent, WarrantyMenuComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports, OverviewPageComponent],
+    imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, SharedUiModule, OverviewShoppingPanelComponent, WarrantyMenuComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports, OverviewPageComponent],
 })
 export class OverviewModule {}

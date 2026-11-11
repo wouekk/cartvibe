@@ -22,14 +22,17 @@
     </div>
   } @else if (selected(); as receipt) {
     <!-- Detail: a simple breakdown of the selected receipt -->
-    <app-button
-      class="mb-3.5 inline-block"
-      buttonType="basic"
-      icon="arrow_back"
-      [buttonText]="'All receipts' | t"
-      (clicked)="backToList()"
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      class="mb-3.5"
       data-testid="report-receipt-back"
-    ></app-button>
+      (click)="backToList()"
+    >
+      <app-icon name="arrow_back"></app-icon>
+      <span class="font-medium">{{ 'All receipts' | t }}</span>
+    </button>
 
     <div class="overflow-hidden rounded-xl border border-border">
       <div class="flex items-start gap-3.5 border-b border-border bg-muted px-5 py-[1.125rem]">
@@ -92,14 +95,23 @@
 
   <div class="mt-3.5 flex justify-end gap-2.5">
     @if (selected(); as receipt) {
-      <app-button
-        buttonType="raised"
-        icon="open_in_new"
-        [buttonText]="'Open full receipt' | t"
-        (clicked)="openFullReceipt(receipt)"
+      <button
+        hlmBtn
+        type="button"
         data-testid="report-receipt-open-full"
-      ></app-button>
+        (click)="openFullReceipt(receipt)"
+      >
+        <app-icon name="open_in_new"></app-icon>
+        <span class="font-medium">{{ 'Open full receipt' | t }}</span>
+      </button>
     }
-    <app-button buttonType="basic" [buttonText]="'Close' | t" (clicked)="close()"></app-button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      (click)="close()"
+    >
+      <span class="font-medium">{{ 'Close' | t }}</span>
+    </button>
   </div>
 </app-dialog>

@@ -43,11 +43,13 @@
     </ng-container>
   </div>
   <div class="w-1/2">
-    <app-button
-      color="accent"
-      [buttonText]="addButtonText()"
+    <button
+      hlmBtn
+      type="button"
       [disabled]="editingIndex !== -1 || disabled()"
-      (clicked)="onAddButtonClicked()"
-    ></app-button>
+      (click)="onAddButtonClicked()"
+    >
+      <span class="font-medium">{{ (addButtonText()) | t }}</span>
+    </button>
   </div>
 </div>

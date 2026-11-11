@@ -1,7 +1,7 @@
 import { Component, OnInit, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { Notification, NotificationsService } from "../../open-api";
-import { ButtonComponent } from "../../button/button/button.component";
 import { NgFor, NgIf } from "@angular/common";
 import { NotificationComponent } from "../notification/notification.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -11,7 +11,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     templateUrl: "./notifications-list.component.html",
     styleUrls: ["./notifications-list.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ButtonComponent, NgFor, NotificationComponent, NgIf, TranslatePipe]
+    imports: [ NgFor, NotificationComponent, NgIf, TranslatePipe, HlmButton]
 })
 export class NotificationsListComponent implements OnInit {
   public notifications = signal<Notification[]>([]);

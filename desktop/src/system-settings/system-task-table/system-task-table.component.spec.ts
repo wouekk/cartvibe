@@ -6,7 +6,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { ButtonComponent } from "../../button/index";
 import { FilterOperation } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { UserState } from "../../store";
@@ -31,7 +30,7 @@ describe("SystemTaskTableComponent", () => {
     imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
         NgxsModule.forRoot([SystemTaskTableState, UserState]),
-        TableModule, SystemTaskTableComponent, ButtonComponent],
+        TableModule, SystemTaskTableComponent],
     providers: [{
             provide: ActivatedRoute,
             useValue: {

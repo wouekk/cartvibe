@@ -165,15 +165,18 @@
                   mode !== formMode.edit || (showProgressBar() ?? false)
                 "
                 ></app-carousel>
-                <app-button
-                  class="absolute right-2 top-2 z-10 rounded-full border border-border bg-background/85 backdrop-blur-sm [&_button]:min-h-11 [&_button]:min-w-11"
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="absolute right-2 top-2 z-10 rounded-full border border-border bg-background/85 backdrop-blur-sm min-h-11 min-w-11"
                   data-testid="receipt-image-menu"
-                  buttonType="iconButton"
-                  icon="more_vert"
-                  color="accent"
-                  [tooltip]="'Image actions' | t"
                   [hlmDropdownMenuTrigger]="imageMenu"
-                ></app-button>
+                  [hlmTooltip]="'Image actions' | t"
+                >
+                  <app-icon name="more_vert"></app-icon>
+                </button>
               </div>
             </div>
           </app-form-section>
@@ -210,12 +213,16 @@
     <div class="w-full flex flex-wrap">
       <div class="flex flex-1 min-w-0">
         @if (queueIndex > 0) {
-          <app-button
-            buttonType="iconButton"
-            icon="arrow_back"
-            [tooltip]="'Previous (Left Arrow)' | t"
-            (clicked)="queuePrevious()"
-          ></app-button>
+          <button
+            hlmBtn
+            type="button"
+            variant="ghost"
+            size="icon"
+            [hlmTooltip]="'Previous (Left Arrow)' | t"
+            (click)="queuePrevious()"
+          >
+            <app-icon name="arrow_back"></app-icon>
+          </button>
         }
       </div>
       <div class="flex flex-1 min-w-0 items-center justify-end gap-2">
@@ -231,12 +238,16 @@
           [buttonText]="submitButtonText"
         ></app-submit-button>
         @if (queueIndex > -1 && queueIndex != queueIds.length - 1) {
-          <app-button
-            buttonType="iconButton"
-            icon="arrow_forward"
-            [tooltip]="'Next (Right Arrow)' | t"
-            (clicked)="queueNext()"
-          ></app-button>
+          <button
+            hlmBtn
+            type="button"
+            variant="ghost"
+            size="icon"
+            [hlmTooltip]="'Next (Right Arrow)' | t"
+            (click)="queueNext()"
+          >
+            <app-icon name="arrow_forward"></app-icon>
+          </button>
         }
       </div>
 
@@ -253,102 +264,127 @@
     <span class="me-6">
       {{ 'Receipt duplicated. Select Navigate to open the copy.' | t }}
     </span>
-    <app-button
-      [buttonText]="'Navigate' | t"
-      buttonType="basic"
-      color="secondary"
-      [buttonRouterLink]="['/receipts/' + duplicatedReceiptId() + '/view']"
-      (clicked)="closeSuccessDuplicateSnackbar()"
-    ></app-button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      [routerLink]="['/receipts/' + duplicatedReceiptId() + '/view']"
+      (click)="closeSuccessDuplicateSnackbar()"
+    >
+      <span class="font-medium">{{ 'Navigate' | t }}</span>
+    </button>
   </div>
 </ng-template>
 
 <ng-template #formHeaderButtons>
-  <app-button
+  <button
     *ngIf="mode | inputReadonly"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     class="ms-1"
-    color="accent"
-    buttonType="iconButton"
-    [tooltip]="'Edit' | t"
-    icon="edit"
     [disabled]="!canEditReceipt()"
-    [buttonRouterLink]="[editLink]"
-  ></app-button>
-  <app-button
+    [hlmTooltip]="'Edit' | t"
+    [routerLink]="[editLink]"
+  >
+    <app-icon name="edit"></app-icon>
+  </button>
+  <button
     *ngIf="mode | inputReadonly"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     class="ms-1"
     data-testid="receipt-duplicate"
-    color="accent"
-    buttonType="iconButton"
-    [tooltip]="'Duplicate' | t"
-    icon="file_copy"
     [disabled]="!canDuplicate()"
-    (clicked)="duplicateReceipt()"
-  ></app-button>
+    [hlmTooltip]="'Duplicate' | t"
+    (click)="duplicateReceipt()"
+  >
+    <app-icon name="file_copy"></app-icon>
+  </button>
 </ng-template>
 
 <ng-template #imagesSectionHeaderButtons>
-  <app-button
+  <button
     *ngIf="!(mode | inputReadonly)"
-    class="mb-6"
-    color="accent"
-    buttonType="iconButton"
-    icon="photo_library"
-    [tooltip]="'Upload Image(s)' | t"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
-    (clicked)="uploadImageButtonClicked()"
-  ></app-button>
+    [hlmTooltip]="'Upload Image(s)' | t"
+    (click)="uploadImageButtonClicked()"
+  >
+    <app-icon name="photo_library"></app-icon>
+  </button>
   @if (images() && (images().length > 0 || filesToUpload().length > 0)) {
     @if (this.mode != FormMode.add) {
-      <app-button
-        class="mb-6"
-        color="accent"
-        buttonType="iconButton"
-        icon="download"
-        [tooltip]="'Download Image' | t"
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         [disabled]="(showProgressBar() ?? false)"
-        (clicked)="downloadImage()"
-      ></app-button>
+        [hlmTooltip]="'Download Image' | t"
+        (click)="downloadImage()"
+      >
+        <app-icon name="download"></app-icon>
+      </button>
     }
-    <app-button
-      class="mb-6"
-      color="accent"
-      buttonType="iconButton"
-      [icon]="showImages ? 'visibility_off' : 'visibility'"
-      [tooltip]="showImages ? 'Hide Images' : 'Show Images'"
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       [disabled]="(showProgressBar() ?? false)"
-      (clicked)="toggleShowImages()"
-    ></app-button>
-    <app-button
-      buttonType="iconButton"
-      icon="zoom_in"
-      [tooltip]="'Zoom In' | t"
-      color="accent"
+      [hlmTooltip]="(showImages ? 'Hide Images' : 'Show Images') | t"
+      (click)="toggleShowImages()"
+    >
+      @if (showImages ? 'visibility_off' : 'visibility'; as icon) {
+        <app-icon [name]="icon"></app-icon>
+      }
+    </button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       [disabled]="(showProgressBar() ?? false)"
-      (clicked)="zoomImageIn()"
-    ></app-button>
-    <app-button
-      buttonType="iconButton"
-      icon="zoom_out"
-      [tooltip]="'Zoom Out' | t"
-      color="accent"
+      [hlmTooltip]="'Zoom In' | t"
+      (click)="zoomImageIn()"
+    >
+      <app-icon name="zoom_in"></app-icon>
+    </button>
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       [disabled]="(showProgressBar() ?? false)"
-      (clicked)="zoomImageOut()"
-    ></app-button>
+      [hlmTooltip]="'Zoom Out' | t"
+      (click)="zoomImageOut()"
+    >
+      <app-icon name="zoom_out"></app-icon>
+    </button>
   }
-  <app-button
+  <button
     *ngIf="
       !(mode | inputReadonly) &&
       (images().length > 0 || filesToUpload().length > 0) &&
       aiPoweredReceipts()
     "
-    buttonType="iconButton"
-    icon="receipt_long"
-    [tooltip]="'Magic fill' | t"
-    color="accent"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     [disabled]="!canMagicFill() || (showProgressBar() ?? false)"
-    (clicked)="magicFill()"
-  ></app-button>
+    [hlmTooltip]="'Magic fill' | t"
+    (click)="magicFill()"
+  >
+    <app-icon name="receipt_long"></app-icon>
+  </button>
 </ng-template>
 
 <!--
@@ -393,14 +429,18 @@
 
 <ng-template #expandedImageTemplate>
   <div class="cv-image-dialog">
-    <app-button
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       class="cv-image-dialog__close"
       data-testid="receipt-image-fullscreen-close"
-      buttonType="iconButton"
-      icon="close"
-      [tooltip]="'Close' | t"
-      (clicked)="closeExpandedImage()"
-    ></app-button>
+      [hlmTooltip]="'Close' | t"
+      (click)="closeExpandedImage()"
+    >
+      <app-icon name="close"></app-icon>
+    </button>
     <app-carousel
       class="cv-carousel--fill"
       [images]="images()"

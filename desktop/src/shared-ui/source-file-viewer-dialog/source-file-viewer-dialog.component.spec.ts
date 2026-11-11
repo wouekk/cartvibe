@@ -25,15 +25,6 @@ class ImageViewerStubComponent {
   @Input() public imageBase64?: string;
 }
 
-@Component({
-    selector: "app-button", template: "",
-    imports: [TranslatePipe]
-})
-class ButtonStubComponent {
-  @Input() public buttonText?: string;
-  @Input() public buttonType?: string;
-}
-
 describe("SourceFileViewerDialogComponent", () => {
   let component: SourceFileViewerDialogComponent;
   let fixture: ComponentFixture<SourceFileViewerDialogComponent>;
@@ -50,7 +41,7 @@ describe("SourceFileViewerDialogComponent", () => {
 });
     // The stand-ins take the place of the real children the component imports.
     TestBed.overrideComponent(SourceFileViewerDialogComponent, {
-      set: { imports: [TranslatePipe, DialogStubComponent, ImageViewerStubComponent, ButtonStubComponent] },
+      set: { imports: [TranslatePipe, DialogStubComponent, ImageViewerStubComponent] },
     });
     await TestBed.compileComponents();
 

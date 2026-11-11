@@ -46,24 +46,26 @@
       <!-- Form Actions -->
       <div class="flex flex-col gap-2">
         <div class="w-full">
-          <app-button
-            buttonClass="w-full"
-            buttonType="raised"
+          <button
+            hlmBtn
             type="submit"
+            class="w-full"
             data-testid="auth-submit"
-            [buttonText]="primaryButtonText"
-          ></app-button>
+          >
+            <span class="font-medium">{{ (primaryButtonText) | t }}</span>
+          </button>
         </div>
 
         <div class="w-full text-center" *appFeature="'enableLocalSignUp'">
-          <app-button
-            buttonClass="w-full"
-            buttonType="raised"
+          <button
+            hlmBtn
             type="button"
+            class="w-full"
             data-testid="auth-switch"
-            [buttonText]="secondaryButtonText"
             [routerLink]="secondaryButtonRouterLink"
-          ></app-button>
+          >
+            <span class="font-medium">{{ (secondaryButtonText) | t }}</span>
+          </button>
         </div>
       </div>
     </form>

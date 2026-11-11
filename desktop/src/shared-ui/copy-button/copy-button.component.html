@@ -1,8 +1,13 @@
-<app-button
-  buttonType="iconButton"
+<button
+  hlmBtn
   type="button"
-  [icon]="isCopied() ? successIcon() : icon()"
-  [tooltip]="isCopied() ? successTooltip() : tooltip()"
+  variant="ghost"
+  size="icon"
   [disabled]="disabled()"
-  (clicked)="copy()"
-></app-button>
+  [hlmTooltip]="(isCopied() ? successTooltip() : tooltip()) | t"
+  (click)="copy()"
+>
+  @if (isCopied() ? successIcon() : icon(); as icon) {
+    <app-icon [name]="icon"></app-icon>
+  }
+</button>

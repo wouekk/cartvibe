@@ -22,12 +22,13 @@ import { UserFormComponent } from "../user-form/user-form.component";
 import { UserTableService } from "./user-table.service";
 import { marker } from "../../i18n/marker";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
 import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
 import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
 import { NgIf } from "@angular/common";
-import { ButtonComponent } from "../../button/button/button.component";
 import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
 import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -46,7 +47,7 @@ import { RoleNamePipe } from "../../pipes/role-name.pipe";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, ButtonComponent, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe]
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe, HlmButton, AppIconComponent]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
   private readonly translation = inject(TranslationService);

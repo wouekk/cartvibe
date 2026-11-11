@@ -1,23 +1,26 @@
-<app-button
+<button
   *ngIf="onlyIcon()"
-  icon="done"
-  buttonType="iconButton"
-  [buttonText]="buttonText() ?? 'Save'"
+  hlmBtn
   [type]="type() || 'submit'"
-  [tooltip]="tooltip ?? 'Save'"
-  [buttonClass]="unsaved() ? 'cv-unsaved' : ''"
-  (clicked)="clicked.emit()"
+  variant="ghost"
+  size="icon"
+  [class]="unsaved() ? 'cv-unsaved' : ''"
   [disabled]="effectiveDisabled()"
-></app-button>
+  [hlmTooltip]="(tooltip ?? 'Save') | t"
+  (click)="clicked.emit()"
+>
+  <app-icon name="done"></app-icon>
+</button>
 
-<app-button
+<button
   *ngIf="!onlyIcon()"
-  buttonType="raised"
-  [color]="destructive() ? 'warn' : 'primary'"
-  [buttonText]="buttonText() ?? 'Save'"
+  hlmBtn
   [type]="type() || 'submit'"
-  [tooltip]="tooltip ?? ''"
-  [buttonClass]="unsaved() ? 'cv-unsaved' : ''"
-  (clicked)="clicked.emit()"
+  [variant]="destructive() ? 'destructive' : 'default'"
+  [class]="unsaved() ? 'cv-unsaved' : ''"
   [disabled]="effectiveDisabled()"
-></app-button>
+  [hlmTooltip]="(tooltip ?? '') | t"
+  (click)="clicked.emit()"
+>
+  <span class="font-medium">{{ (buttonText() ?? 'Save') | t }}</span>
+</button>

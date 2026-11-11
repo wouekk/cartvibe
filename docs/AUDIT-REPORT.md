@@ -206,9 +206,24 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     range now takes the row there, with its Operation under it.
     - F6, the split, in part: the receipts panel and the warranties panel are components of their own, beside
       the shopping panel that already was. The page's template went from 712 lines to 605.
-  - Still to do on the branch: C11's second half (one button idiom in the templates), and the rest of F6's
-    split: the tiles and the two chart panels, each of which has to move together with its state (the page's
-    class is still about 1,640 lines) and the specs that drive it.
+    - C11, the button: there is one idiom. The 86 uses of the `app-button` wrapper are plain `<button hlmBtn>`
+      now and the wrapper, its base class and its module are deleted, with two components nothing used (a
+      filtered menu and an export button). Checked by measuring every visible button on 28 screens of the demo
+      before and after (2,608 buttons, desktop day and night and phone): same place, size and colours, except
+      the image menu's round background, which sits on the button itself now. Two things changed on purpose:
+      three margins that had done nothing on the wrapper were removed, and a provider button in the delete
+      account dialog is as wide as its `w-full` class always said. A new trap check fails a template that uses
+      `hlmBtn`, `hlmTooltip` or `hlmBadge` without importing it, which no build reports.
+    - F6, the rest of the split: the two chart panels (spending by category, spending by month) and the Spent
+      tile are components that own their state: the donut's hover and focus, the bars with the goal line and the
+      export of a range over a year, the goal editor and its save. The page's class went from about 1,640 lines
+      to 1,130 and its template from 712 to 401. The range export and the goal editor's refusals had no spec
+      before; they have now. Seen working in the built demo (legend hover and focus, a category opening its
+      products, a goal saved from the tile, a bar opening its month).
+  - Decided differently from the audit, F6: the six small tiles (receipts, unhealthy, not on the list, to buy,
+    warranties, a tag) stay as markup in the page. Each is ten lines over figures the page already holds and has
+    no state of its own, so a component each would be a list of inputs. The overview is one request, so they
+    load and fail together either way. Say so if a component per tile is wanted anyway.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

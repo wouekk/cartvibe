@@ -128,11 +128,14 @@
 </ng-template>
 
 <ng-template #resetButton>
-  <app-button
-    buttonType="iconButton"
-    icon="restart_alt"
-    color="accent"
-    [tooltip]="'Reset filter' | t"
-    (clicked)="resetFilter()"
-  ></app-button>
+  <button
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
+    [hlmTooltip]="'Reset filter' | t"
+    (click)="resetFilter()"
+  >
+    <app-icon name="restart_alt"></app-icon>
+  </button>
 </ng-template>

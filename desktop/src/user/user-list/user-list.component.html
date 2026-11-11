@@ -6,13 +6,16 @@
   <app-management-tabs settingsTabs></app-management-tabs>
   <div settingsActions class="contents">
     <ng-container *hasAppPermission="Permission.AppUsersDelete">
-      <app-button
+      <button
         *ngIf="hasSelectedUsers"
-        [buttonText]="'Delete Selected' | t"
-        color="warn"
-        icon="delete"
-        (clicked)="bulkDeleteUsers()"
-      ></app-button>
+        hlmBtn
+        type="button"
+        variant="destructive"
+        (click)="bulkDeleteUsers()"
+      >
+        <app-icon name="delete"></app-icon>
+        <span class="font-medium">{{ 'Delete Selected' | t }}</span>
+      </button>
     </ng-container>
     <app-add-button
       *hasAppPermission="Permission.AppUsersCreate"

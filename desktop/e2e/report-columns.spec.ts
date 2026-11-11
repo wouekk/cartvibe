@@ -56,8 +56,7 @@ test.describe('Report Builder — columns', () => {
     await page.getByTestId('report-add-column').click();
     await page.getByTestId('picker-kind-formula').click();
 
-    // picker-save is an app-button; its disabled state lives on the inner <button>.
-    const save = page.getByTestId('picker-save').locator('button');
+    const save = page.getByTestId('picker-save');
     const exprText = page.locator('.picker__expr-text');
 
     // A label is required, so an unlabelled formula cannot be saved.

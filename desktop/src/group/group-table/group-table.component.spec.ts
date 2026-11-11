@@ -17,7 +17,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
-import { ButtonModule } from "../../button";
 import { ApiModule, Group, GroupsService, Permission } from "../../open-api";
 import { AuthState, GroupState, SetGroups } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -40,7 +39,6 @@ describe("GroupTableComponent", () => {
     imports: [TranslatePipe,
         RouterLink,
         ApiModule,
-        ButtonModule,
         AppDatePipe,
         NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
         SharedUiModule,

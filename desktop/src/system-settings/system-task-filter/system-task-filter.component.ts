@@ -12,11 +12,13 @@ import { SetSystemTaskFilter } from "src/store/system-task-table.state.actions";
 import { setupAutoOperationSelection } from "src/utils/filter-form";
 import { take, tap } from "rxjs";
 import { FormCommand } from "../../form/index";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { UserState } from "../../store";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
 import { FilterFieldComponent } from "../../shared-ui/filter-field/filter-field.component";
 import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
@@ -30,7 +32,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     templateUrl: "./system-task-filter.component.html",
     styleUrls: ["./system-task-filter.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [DialogComponent, FilterFieldComponent, DialogFooterComponent, ButtonComponent, TranslatePipe]
+    imports: [DialogComponent, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class SystemTaskFilterComponent implements OnInit {
   @Input() public headerText: string = "";

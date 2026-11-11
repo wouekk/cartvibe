@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
-import { ButtonModule } from "../../button";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ViewportService } from "../../services/viewport.service";
 import { AppIconComponent } from "../icon/icon.component";
 import { SharedUiModule } from "../shared-ui.module";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 
 /** One action of a list row. The functions take the row, so one stable array serves every row. */
 export interface RowAction<T = any> {
@@ -31,7 +31,7 @@ export interface RowAction<T = any> {
   selector: "app-row-actions",
   // Eager: the action functions may read plain fields of the list (a disabled Delete), not only signals.
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ButtonModule, SharedUiModule, HlmButton, ...HlmDropdownMenuImports, AppIconComponent, TranslatePipe],
+  imports: [ SharedUiModule, HlmButton, ...HlmDropdownMenuImports, AppIconComponent, TranslatePipe, HlmTooltip],
   host: { class: "inline-flex items-center" },
   template: `
     @if (shown().length > 0) {
@@ -73,15 +73,18 @@ export interface RowAction<T = any> {
                 (clicked)="run.emit(action.key)"
               ></app-delete-button>
             } @else {
-              <app-button
+              <button
+                hlmBtn
+                type="button"
+                variant="ghost"
+                size="icon"
                 [attr.data-testid]="action.testId"
-                buttonType="iconButton"
-                color="accent"
-                [icon]="action.icon"
-                [tooltip]="action.label | t"
                 [disabled]="isDisabled(action)"
-                (clicked)="run.emit(action.key)"
-              ></app-button>
+                [hlmTooltip]="action.label | t"
+                (click)="run.emit(action.key)"
+              >
+                <app-icon [name]="action.icon"></app-icon>
+              </button>
             }
           }
         </div>

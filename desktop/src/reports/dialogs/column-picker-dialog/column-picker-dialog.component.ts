@@ -20,13 +20,13 @@ import {
 import { ReportColumnValue } from "../../models/report-command.mapper";
 import { deriveColumnName, validateFormulaExpr } from "../../models/report-column.util";
 import { nextReportRowId } from "../../models/report-form.factory";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { marker } from "../../../i18n/marker";
 import { DialogComponent } from "../../../shared-ui/dialog/dialog.component";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
 import { SelectComponent } from "../../../select/select/select.component";
 import { InputComponent } from "../../../input/input/input.component";
 import { NgClass } from "@angular/common";
-import { ButtonComponent } from "../../../button/button/button.component";
 import { CancelButtonComponent } from "../../../shared-ui/cancel-button/cancel-button.component";
 import { TranslatePipe } from "../../../i18n/translate.pipe";
 import { FormGetPipe } from "../../../pipes/form-get.pipe";
@@ -84,11 +84,9 @@ const LOCKED_SUBTITLE = marker("The column this grouping level adds to the repor
         SelectComponent,
         InputComponent,
         NgClass,
-        ButtonComponent,
         CancelButtonComponent,
         TranslatePipe,
-        FormGetPipe,
-    ],
+        FormGetPipe, HlmButton],
 })
 export class ColumnPickerDialogComponent {
   private readonly formBuilder = inject(FormBuilder);

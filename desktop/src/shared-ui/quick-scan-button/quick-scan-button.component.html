@@ -1,7 +1,10 @@
-<app-button
-  icon="receipt_long"
-  buttonType="iconButton"
-  [tooltip]="'Quick Scan' | t"
-  color="accent"
-  (clicked)="showQuickScanDialog()"
-></app-button>
+<button
+  hlmBtn
+  type="button"
+  variant="ghost"
+  size="icon"
+  [hlmTooltip]="'Quick Scan' | t"
+  (click)="showQuickScanDialog()"
+>
+  <app-icon name="receipt_long"></app-icon>
+</button>

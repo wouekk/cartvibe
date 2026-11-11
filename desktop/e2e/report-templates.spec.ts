@@ -38,7 +38,7 @@ test.describe('Report Builder — save template', () => {
     await expect(page.getByTestId('report-receipt-count')).toBeVisible({ timeout: 20_000 });
 
     const save = page.getByTestId('report-save-template');
-    await expect(save.locator('button')).toBeEnabled();
+    await expect(save).toBeEnabled();
 
     // Clicking it POSTs the current configuration to /api/report/template (200).
     const [response] = await Promise.all([

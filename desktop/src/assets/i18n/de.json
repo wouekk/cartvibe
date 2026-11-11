@@ -428,7 +428,6 @@
     "Filter": "Filter",
     "Filter Receipts": "Belege filtern",
     "Filter System Tasks": "Systemaufgaben filtern",
-    "Filter options": "Filteroptionen",
     "Filters": "Filter",
     "Finished:": "Abgeschlossen:",
     "First page": "Erste Seite",
@@ -689,7 +688,6 @@
     "No grouping": "Keine Gruppierung",
     "No households yet.": "Noch keine Haushalte.",
     "No ingredients were found in that text. Put each ingredient on its own line, like “200 g flour”.": "In diesem Text wurden keine Zutaten gefunden. Schreibe jede Zutat in eine eigene Zeile, zum Beispiel „200 g Mehl“.",
-    "No items found": "Keine Einträge gefunden",
     "No matches": "Keine Treffer",
     "No models were listed for this key.": "Für diesen Schlüssel wurden keine Modelle geliefert.",
     "No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized.": "Noch keine Produkte. Füge sie unten hinzu, um diesen Beleg Kategorien zuzuordnen; bis dahin zählt alles als „Ohne Kategorie“.",
@@ -1805,6 +1803,10 @@
       "value": "Nach Monat filtern",
       "closest": "Month by month"
     },
+    "Filter options": {
+      "value": "Filteroptionen",
+      "closest": "Add filter…"
+    },
     "For example {model}": {
       "value": "Zum Beispiel {model}"
     },
@@ -1916,6 +1918,9 @@
     "No comments for this receipt yet": {
       "value": "Zu diesem Beleg gibt es noch keine Kommentare",
       "closest": "No models were listed for this key."
+    },
+    "No items found": {
+      "value": "Keine Einträge gefunden"
     },
     "No report templates yet": {
       "value": "Noch keine Berichtsvorlagen",

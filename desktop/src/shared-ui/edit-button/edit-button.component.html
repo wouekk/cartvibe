@@ -1,10 +1,13 @@
-<app-button
-  buttonType="iconButton"
-  icon="edit"
-  [color]="color"
-  [tooltip]="tooltip ? tooltip : 'Edit'"
+<button
+  hlmBtn
+  type="button"
+  size="icon"
+  [variant]="color === 'warn' ? 'destructive' : 'ghost'"
   [disabled]="disabled()"
-  [buttonRouterLink]="buttonRouterLink()"
-  [buttonQueryParams]="buttonQueryParams()"
-  (clicked)="clicked.emit()"
-></app-button>
+  [hlmTooltip]="(tooltip ? tooltip : 'Edit') | t"
+  [routerLink]="buttonRouterLink()"
+  [queryParams]="buttonQueryParams()"
+  (click)="clicked.emit()"
+>
+  <app-icon name="edit"></app-icon>
+</button>

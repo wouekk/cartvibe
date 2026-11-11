@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, inject } from "@angular/core";
 import { marker } from "../../i18n/marker";
 import { FormGroup } from "@angular/forms";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { TranslationService } from "../../i18n/translation.service";
 import { NgClass } from "@angular/common";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 interface FormatChip {
@@ -26,9 +26,7 @@ interface FormatChip {
     imports: [
         NgClass,
         AppIconComponent,
-        ButtonComponent,
-        TranslatePipe,
-    ],
+        TranslatePipe, HlmButton],
 })
 export class ReportGenerateBarComponent {
   private readonly translation = inject(TranslationService);

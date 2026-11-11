@@ -6,7 +6,6 @@ import { HlmBadge } from "@spartan-ng/helm/badge";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { AlertComponent } from "../alert/alert.component";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
-import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 
 import { InputModule } from "../input";
@@ -26,7 +25,6 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
 
 @NgModule({
     imports: [
-    ButtonModule,
     CommonModule,
     InputModule,
     ReactiveFormsModule,

@@ -41,8 +41,17 @@
       [options]="operationOptions(def.type)" [optionsDisplayArray]="operationDisplay(def.type)"
       [inputFormControl]="filterGroup | formGet: def.field + '.operation'"></app-select>
 
-    <app-button buttonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
-      (clicked)="removeFilter(def.field)" data-testid="report-filter-remove"></app-button>
+    <button
+      hlmBtn
+      type="button"
+      variant="destructive"
+      size="icon"
+      data-testid="report-filter-remove"
+      [hlmTooltip]="'Remove filter' | t"
+      (click)="removeFilter(def.field)"
+    >
+      <app-icon name="close"></app-icon>
+    </button>
   </div>
 }
 

@@ -33,12 +33,13 @@ import {
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
 import { marker } from "../../i18n/marker";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { TranslationService } from "../../i18n/translation.service";
 import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
 import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
 import { TableComponent } from "../../table/table/table.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.component";
 import { DeleteButtonComponent } from "../../shared-ui/delete-button/delete-button.component";
 import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
@@ -63,13 +64,11 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         TableComponent,
         AppIconComponent,
         RouterLink,
-        ButtonComponent,
         EditButtonComponent,
         DeleteButtonComponent,
         TranslatePipe,
         TranslateDataPipe,
-        AppDatePipe,
-    ],
+        AppDatePipe, HlmButton, HlmTooltip],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
   private readonly translation = inject(TranslationService);

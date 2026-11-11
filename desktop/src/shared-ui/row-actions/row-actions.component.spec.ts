@@ -45,7 +45,7 @@ describe("RowActionsComponent", () => {
   const byTestId = (id: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${id}"]`);
 
   it("shows inline icon buttons on a wider screen, the delete one red, and no menu", () => {
-    expect(byTestId("thing-edit")?.tagName).toBe("APP-BUTTON");
+    expect(byTestId("thing-edit")?.tagName).toBe("BUTTON");
     expect(byTestId("thing-delete")?.tagName).toBe("APP-DELETE-BUTTON");
     expect(byTestId("thing-menu")).toBeNull();
   });
@@ -63,7 +63,7 @@ describe("RowActionsComponent", () => {
     const run = vi.fn();
     fixture.componentInstance.run.subscribe(run);
 
-    (byTestId("thing-edit")!.querySelector("button") as HTMLButtonElement).click();
+    (byTestId("thing-edit") as HTMLButtonElement).click();
 
     expect(run).toHaveBeenCalledWith("edit");
   });

@@ -30,7 +30,7 @@ describe("HeaderComponent", () => {
     store.dispatch(new SetPermissions(["app.notifications.read"], {}));
 
   const bellRendered = (): boolean =>
-    !!fixture.nativeElement.querySelector('app-button[icon="notifications"]');
+    !!fixture.nativeElement.querySelector('[data-testid="header-notifications"]');
 
   beforeEach(async () => {
     // StoreModule persists auth (incl. permissions) to localStorage; clear it so

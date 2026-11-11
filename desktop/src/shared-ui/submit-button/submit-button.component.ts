@@ -13,9 +13,12 @@ import { FormGroupDirective } from '@angular/forms';
 import { Store } from '@ngxs/store';
 import { FormMode } from 'src/enums/form-mode.enum';
 import { LayoutState } from 'src/store/layout.state';
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormButtonComponent } from '../form-button/form-button.component';
 import { NgIf } from '@angular/common';
-import { ButtonComponent } from '../../button/button/button.component';
 
 /**
  * The app's Save button: the filled accent button, labelled. While an edit form
@@ -27,7 +30,7 @@ import { ButtonComponent } from '../../button/button/button.component';
     selector: 'app-submit-button',
     templateUrl: './submit-button.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, ButtonComponent]
+    imports: [NgIf, HlmButton, HlmTooltip, AppIconComponent, TranslatePipe]
 })
 export class SubmitButtonComponent extends FormButtonComponent implements OnInit {
   public readonly onlyIcon = input<boolean>(false);

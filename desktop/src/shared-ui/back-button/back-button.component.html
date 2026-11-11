@@ -1,10 +1,11 @@
-<app-button
-  buttonType="raised"
-  icon="arrow_back"
-  color="accent"
-  [buttonText]="'Back' | t"
-  [buttonRouterLink]="buttonRouterLink()"
+<button
+  hlmBtn
+  type="button"
   [disabled]="disabled()"
-  [tooltip]="tooltip ?? 'Back'"
-  (clicked)="clicked.emit()"
-></app-button>
+  [hlmTooltip]="(tooltip ?? 'Back') | t"
+  [routerLink]="buttonRouterLink()"
+  (click)="clicked.emit()"
+>
+  <app-icon name="arrow_back"></app-icon>
+  <span class="font-medium">{{ 'Back' | t }}</span>
+</button>

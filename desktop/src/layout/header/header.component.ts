@@ -7,13 +7,15 @@ import { LayoutState } from "src/store/layout.state";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { HlmBadge } from "@spartan-ng/helm/badge";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { shownHousehold } from "../../utils/shown-household";
 import { AvatarComponent } from "../../avatar/avatar/avatar.component";
 import { BrnButton } from "@spartan-ng/brain/button";
 import { HlmButton } from "../../ui/button/lib/hlm-button";
 import { HlmSidebarTrigger } from "../../ui/sidebar/lib/hlm-sidebar-trigger";
 import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
-import { ButtonComponent } from "../../button/button/button.component";
 import { NgTemplateOutlet } from "@angular/common";
 import { CartVibeLogoComponent } from "../../shared-ui/cartvibe-logo/cartvibe-logo.component";
 import { NotificationsListComponent } from "../../notifications/notifications-list/notifications-list.component";
@@ -26,7 +28,7 @@ export const HANDSET_LOGO_SCALE = 0.3;
     selector: "app-header",
     templateUrl: "./header.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, ButtonComponent, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe]
+    imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe, HlmTooltip, HlmBadge, AppIconComponent]
 })
 export class HeaderComponent {
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);

@@ -50,24 +50,26 @@
       <app-queue-start-menu
         class="me-2"
         [buttonText]="'Start Queue' | t"
-        color="accent"
         [receiptIds]="selectedReceiptIds()"
       ></app-queue-start-menu>
     }
 
-    <app-button
+    <button
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       data-testid="receipts-overflow-menu"
-      buttonType="iconButton"
-      icon="more_vert"
-      [tooltip]="'More actions' | t"
-      color="accent"
       [hlmDropdownMenuTrigger]="overflowMenu"
-    ></app-button>
+      [hlmTooltip]="'More actions' | t"
+    >
+      <app-icon name="more_vert"></app-icon>
+    </button>
 
     <!--
-      Every item here is a plain button: MatMenu collects its items with a
+      Every item here is a plain button: the menu collects its items with a
       content query, so a hlmDropdownMenuItem rendered inside a child component's
-      template (app-quick-scan-button, app-export-button) would be invisible to
+      template (app-quick-scan-button) would be invisible to
       the menu and skipped by keyboard navigation. The behaviour behind each one
       still lives in a shared place — QuickScanLauncher (which asks for an AI
       key when there is none) and ReceiptExportService.
@@ -147,28 +149,35 @@
 </div>
 
 <ng-template #filterButtons>
-  <app-button
-    class="relative inline-flex size-control flex-none items-center justify-center self-center [&_button]:size-control [&_button]:p-0"
+  <button
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
+    class="relative inline-flex size-control flex-none items-center justify-center self-center p-0"
     data-testid="receipts-filter"
-    icon="filter_alt"
-    buttonType="iconButton"
-    [tooltip]="'Filter Receipts' | t"
-    color="accent"
-    badgeColor="accent"
-    [badgeContent]="numFiltersApplied()"
-    (clicked)="filterButtonClicked()"
-  ></app-button>
-  <app-button
+    [hlmTooltip]="'Filter Receipts' | t"
+    (click)="filterButtonClicked()"
+  >
+    <app-icon name="filter_alt"></app-icon>
+    @if (numFiltersApplied(); as count) {
+      <span hlmBadge class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums" data-testid="button-badge">{{ count }}</span>
+    }
+  </button>
+  <button
     *ngIf="anyFilterApplied()"
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     animate.enter="animate-in fade-in-0 duration-200 motion-reduce:animate-none"
     animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
     data-testid="receipts-filter-reset"
-    icon="restart_alt"
-    buttonType="iconButton"
-    [tooltip]="'Reset filter' | t"
-    color="accent"
-    (clicked)="resetFilterButtonClicked()"
-  ></app-button>
+    [hlmTooltip]="'Reset filter' | t"
+    (click)="resetFilterButtonClicked()"
+  >
+    <app-icon name="restart_alt"></app-icon>
+  </button>
 </ng-template>
 
 
@@ -288,43 +297,55 @@
       [buttonRouterLink]="['/receipts/' + element.id + '/edit']"
     ></app-edit-button>
     @if (!isDone(element)) {
-      <app-button
+      <button
         *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="receipt-mark-done"
-        buttonType="iconButton"
-        icon="check"
-        [tooltip]="'Mark as settled' | t"
-        color="primary"
-        (clicked)="markDone(element)"
-      ></app-button>
+        [hlmTooltip]="'Mark as settled' | t"
+        (click)="markDone(element)"
+      >
+        <app-icon name="check"></app-icon>
+      </button>
     }
-    <app-button
+    <button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       data-testid="receipt-read-with-ai"
-      buttonType="iconButton"
-      icon="auto_awesome"
-      [tooltip]="'Read with AI' | t"
-      color="accent"
-      (clicked)="readWithAi(element)"
-    ></app-button>
-    <app-button
+      [hlmTooltip]="'Read with AI' | t"
+      (click)="readWithAi(element)"
+    >
+      <app-icon name="auto_awesome"></app-icon>
+    </button>
+    <button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsDuplicate }"
+      hlmBtn
+      type="button"
+      variant="ghost"
+      size="icon"
       data-testid="receipt-duplicate"
-      buttonType="iconButton"
-      icon="file_copy"
-      [tooltip]="'Duplicate' | t"
-      color="accent"
-      (clicked)="duplicateReceipt(element)"
-    ></app-button>
-    <app-button
+      [hlmTooltip]="'Duplicate' | t"
+      (click)="duplicateReceipt(element)"
+    >
+      <app-icon name="file_copy"></app-icon>
+    </button>
+    <button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsDelete }"
+      hlmBtn
+      type="button"
+      variant="destructive"
+      size="icon"
       data-testid="receipt-delete"
-      buttonType="iconButton"
-      icon="delete"
-      color="warn"
-      [tooltip]="'Delete' | t"
-      (clicked)="deleteReceipt(element)"
-    ></app-button>
+      [hlmTooltip]="'Delete' | t"
+      (click)="deleteReceipt(element)"
+    >
+      <app-icon name="delete"></app-icon>
+    </button>
   </div>
   }
 </ng-template>

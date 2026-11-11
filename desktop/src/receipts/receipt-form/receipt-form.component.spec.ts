@@ -16,7 +16,6 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, Permission, ReceiptImageService, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueueMode } from "../../services/receipt-queue.service";
-import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-menu/stateful-menu-item";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { UserAutocompleteModule } from "../../user-autocomplete/user-autocomplete.module";
 import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
@@ -855,10 +854,8 @@ describe("ReceiptFormComponent", () => {
 
     // The test above drives the method, so on its own it would still pass with
     // the (clicked) binding - or the whole button - deleted. This covers the
-    // wiring. app-button is an unknown element under CUSTOM_ELEMENTS_SCHEMA, so
-    // it renders no native button and Angular binds (clicked) as a plain DOM
-    // listener on the host; dispatching the event is what the real button's
-    // output does. The handler is mocked out because actually closing here runs
+    // wiring: the close button is a plain button, so a click is what reaches the
+    // handler. The handler is mocked out because actually closing here runs
     // a change-detection pass this block does not stub view children for.
     it("wires the close button to closeExpandedImage", () => {
       const close = vi
@@ -871,7 +868,7 @@ describe("ReceiptFormComponent", () => {
       );
 
       expect(button).toBeTruthy();
-      button!.dispatchEvent(new CustomEvent("clicked"));
+      (button as HTMLButtonElement).click();
 
       expect(close).toHaveBeenCalled();
     });

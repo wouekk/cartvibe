@@ -1,10 +1,16 @@
-<app-button
-  icon="add"
-  [buttonType]="buttonText() ? 'raised' : 'iconButton'"
-  [buttonText]="buttonText() ?? ''"
+<!-- With a text it is the filled button; without one, an icon button whose tooltip says what it adds. -->
+<button
+  hlmBtn
   type="button"
-  [tooltip]="tooltip ?? ''"
+  [variant]="buttonText() ? 'default' : 'ghost'"
+  [size]="buttonText() ? 'default' : 'icon'"
   [disabled]="disabled()"
+  [hlmTooltip]="(tooltip ?? '') | t"
   [routerLink]="buttonRouterLink()"
-  (clicked)="clicked.emit($event)"
-></app-button>
+  (click)="clicked.emit($event)"
+>
+  <app-icon name="add"></app-icon>
+  @if (buttonText(); as text) {
+    <span class="font-medium">{{ text | t }}</span>
+  }
+</button>

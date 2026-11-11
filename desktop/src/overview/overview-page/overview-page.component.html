@@ -34,42 +34,50 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         @if (canQuickScan()) {
-          <app-button
-            icon="receipt_long"
-            [buttonText]="'Quick Scan' | t"
-            [tooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-quick-scan"
-            (clicked)="openQuickScan()"
-          ></app-button>
+            [hlmTooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
+            (click)="openQuickScan()"
+          >
+            <app-icon name="receipt_long"></app-icon>
+            <span class="font-medium">{{ 'Quick Scan' | t }}</span>
+          </button>
         }
         @if (canCreateList()) {
-          <app-button
-            icon="playlist_add"
-            [buttonText]="'New list' | t"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-new-list"
-            [buttonRouterLink]="newListLink()"
-            [buttonQueryParams]="{ new: 'list' }"
-          ></app-button>
+            [routerLink]="newListLink()"
+            [queryParams]="{ new: 'list' }"
+          >
+            <app-icon name="playlist_add"></app-icon>
+            <span class="font-medium">{{ 'New list' | t }}</span>
+          </button>
         }
-        <app-button
-          icon="barcode_scanner"
-          [buttonText]="'Check product' | t"
-          [tooltip]="'Check a product barcode' | t"
-          buttonType="raised"
+        <button
+          hlmBtn
+          type="button"
           data-testid="overview-scan-product"
-          (clicked)="scanProduct()"
-        ></app-button>
+          [hlmTooltip]="'Check a product barcode' | t"
+          (click)="scanProduct()"
+        >
+          <app-icon name="barcode_scanner"></app-icon>
+          <span class="font-medium">{{ 'Check product' | t }}</span>
+        </button>
         @if (canCustomiseLayout()) {
-          <app-button
-            icon="tune"
-            [buttonText]="'Customize' | t"
-            [tooltip]="'Choose and arrange the dashboard panels' | t"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-customise"
-            [buttonRouterLink]="customiseLink()"
-          ></app-button>
+            [hlmTooltip]="'Choose and arrange the dashboard panels' | t"
+            [routerLink]="customiseLink()"
+          >
+            <app-icon name="tune"></app-icon>
+            <span class="font-medium">{{ 'Customize' | t }}</span>
+          </button>
         }
       </div>
     </div>
@@ -175,106 +183,17 @@
             <div class="@container flex min-w-0 flex-1 flex-col [&>*]:flex-1" [class.pointer-events-none]="customising()" [class.select-none]="customising()" [attr.inert]="customising() ? '' : null">
               @switch (panel.kind) {
                 @case ('spent') {
-                  <div class="cv-tile cv-tile-link relative" data-testid="overview-tile-spent">
-                    <div class="flex min-h-6 items-center justify-between gap-2">
-                      <!-- A stretched link: the whole tile opens the receipts of the period, the goal controls sit above it. -->
-                      <a
-                        class="text-xs font-medium text-muted-foreground no-underline after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-primary"
-                        data-testid="overview-tile-spent-link"
-                        [routerLink]="['/receipts/group', groupId()]"
-                        [queryParams]="receiptsQuery()"
-                      >{{ 'Spent' | t }}</a>
-                      @if (canEditGoal() && !editingGoal()) {
-                        @if (goal() > 0) {
-                          <button
-                            type="button"
-                            class="relative z-10 cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary inline-flex !p-0.5 !text-muted-foreground"
-                            data-testid="overview-goal-edit"
-                            [attr.aria-label]="'Edit the monthly spending goal' | t"
-                            [title]="'Edit the monthly spending goal' | t"
-                            (click)="startEditingGoal()"
-                          >
-                            <app-icon name="edit"></app-icon>
-                          </button>
-                        } @else {
-                          <button type="button" class="relative z-10 cursor-pointer rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-primary transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary" data-testid="overview-set-goal" (click)="startEditingGoal()">
-                            {{ '+ Set goal' | t }}
-                          </button>
-                        }
-                      }
-                    </div>
-                    <div class="flex flex-wrap items-baseline gap-x-1.5">
-                      <span class="text-3xl font-bold" [class.text-destructive]="(spentGoal()?.over ?? 0) > 0">
-                        @if (overview(); as overview) {
-                          <app-money [display]="true" [value]="overview.total"></app-money>
-                        } @else {
-                          –
-                        }
-                      </span>
-                      @if (editingGoal()) {
-                        <span class="relative z-10 inline-flex items-baseline gap-1 text-[0.9375rem] text-muted-foreground">
-                          /
-                          <input
-                            #goalInput
-                            type="text"
-                            inputmode="decimal"
-                            autocomplete="off"
-                            class="w-[6.5em] rounded-md border border-primary bg-card px-1.5 py-0.5 text-[0.9375rem] text-foreground"
-                            data-testid="overview-goal-input"
-                            [attr.aria-label]="'Monthly spending goal' | t"
-                            placeholder="0,00"
-                            [value]="goalDraft()"
-                            (input)="goalDraft.set($any($event.target).value)"
-                            (keydown.enter)="saveGoal()"
-                            (keydown.escape)="cancelEditingGoal()"
-                            (blur)="saveGoal()"
-                          />
-                        </span>
-                      } @else if (spentGoal(); as goal) {
-                        @if (canEditGoal()) {
-                          <button
-                            type="button"
-                            class="relative z-10 text-[0.9375rem] font-medium text-muted-foreground cursor-pointer rounded-sm hover:text-foreground hover:underline hover:decoration-dotted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                            data-testid="overview-spent-goal"
-                            [title]="'Edit the monthly spending goal' | t"
-                            (click)="startEditingGoal()"
-                          >
-                            / {{ goal.goal | displayCurrency }}
-                          </button>
-                        } @else {
-                          <span class="text-[0.9375rem] font-medium text-muted-foreground" data-testid="overview-spent-goal">/ {{ goal.goal | displayCurrency }}</span>
-                        }
-                      }
-                    </div>
-                    @if (spentGoal(); as goal) {
-                      <div
-                        class="h-1 overflow-hidden rounded-sm bg-border"
-                        role="progressbar"
-                        [attr.aria-label]="'Spending against the monthly goal' | t"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                        [attr.aria-valuenow]="goalProgress()"
-                        data-testid="overview-spent-progress"
-                      >
-                        <div
-                          class="h-full rounded-sm bg-primary transition-[width] duration-500"
-                          [class.tile__progress-fill--over]="goal.over > 0" [class.bg-destructive]="goal.over > 0"
-                          [style.width.%]="goal.over > 0 ? 100 : goalProgress()"
-                        ></div>
-                      </div>
-                      @if (goal.over > 0) {
-                        <span class="text-[0.8125rem] font-medium text-muted-foreground font-semibold text-destructive" data-testid="overview-spent-over">{{ '+{amount} over goal' | t: { amount: (goal.over | displayCurrency) } }}</span>
-                      } @else {
-                        <span class="text-[0.8125rem] font-medium text-muted-foreground " data-testid="overview-spent-remaining">{{ '{amount} left' | t: { amount: (goal.remaining | displayCurrency) } }}</span>
-                      }
-                    } @else if (change(); as change) {
-                      <span class="text-[0.8125rem] font-medium text-muted-foreground" [class.text-warning-text]="changeIsIncrease()" [class.text-success-text]="!changeIsIncrease()">
-                        {{ change }}
-                      </span>
-                    } @else {
-                      <span class="text-[0.8125rem] font-medium text-muted-foreground">{{ periodLabel() }}</span>
-                    }
-                  </div>
+                  <div
+                    app-overview-spent-tile
+                    [overview]="overview()"
+                    [period]="period()"
+                    [periodLabel]="periodLabel()"
+                    [goal]="goal()"
+                    [change]="change()"
+                    [changeIsIncrease]="changeIsIncrease()"
+                    [groupId]="groupId()"
+                    [receiptsQuery]="receiptsQuery()"
+                  ></div>
                 }
                 @case ('receipts') {
                   <a class="cv-tile cv-tile-link" data-testid="overview-tile-receipts" [routerLink]="['/receipts/group', groupId()]" [queryParams]="receiptsQuery()">
@@ -359,148 +278,25 @@
                   }
                 }
                 @case ('categories') {
-                  <section class="cv-panel" aria-labelledby="overview-categories-title">
-                    <div class="cv-panel-header">
-                      <div>
-                        <h2 id="overview-categories-title">{{ 'Spending by category' | t }}</h2>
-                        <p class="mt-0.5 text-xs text-muted-foreground">{{ periodLabel() }}</p>
-                      </div>
-                    </div>
-                    @if (segments().length > 0) {
-                      <div class="donut flex flex-wrap items-center gap-8">
-                        <div class="flex w-full flex-col items-center gap-4 @md:w-auto @md:flex-none">
-                          <app-chart
-                            class="donut__chart size-[13.75rem] flex-none"
-                            data-testid="overview-donut"
-                            [options]="donutOptions"
-                            [activeIndex]="activeSegmentIndex()"
-                            [label]="'Spending by category, {period}' | t: { period: periodLabel() }"
-                          ></app-chart>
-                        </div>
-                        <table class="donut__legend min-w-52 flex-1 text-sm">
-                          <thead hlmTHead>
-                            <tr>
-                              <th hlmTh scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">{{ 'Category' | t }}</th>
-                              <th hlmTh scope="col" class="pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @for (segment of segments(); track segment.name) {
-                              <tr
-                                class="cursor-pointer border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
-                                [class.opacity-45]="isDimmed(segment.name)"
-                                [attr.data-testid]="'overview-donut-row-' + segment.name"
-                                [attr.data-dimmed]="isDimmed(segment.name)"
-                                (mouseenter)="hoverSegment(segment.name)"
-                                (mouseleave)="hoverSegment(null)"
-                                (focusin)="hoverSegment(segment.name)"
-                                (focusout)="hoverSegment(null)"
-                                (click)="openCategory(segment)"
-                              >
-                                <td class="py-2.5">
-                                  <!-- Dot, share, name: the share leads so the name gets the room, and the dot stays beside a wrapping name. -->
-                                  <div class="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    class="inline-flex size-4 flex-none cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                    [attr.aria-pressed]="focusedSegment() === segment.name"
-                                    [attr.aria-label]="'Focus on: {name}' | t: { name: segment.name }"
-                                    [attr.data-testid]="'overview-donut-focus-' + segment.name"
-                                    (click)="toggleFocus(segment.name); $event.stopPropagation()"
-                                  >
-                                    <span class="size-2.5 rounded-full transition-transform" [class.scale-150]="focusedSegment() === segment.name" [style.background]="segment.color"></span>
-                                  </button>
-                                  <span class="w-12 flex-none whitespace-nowrap tabular-nums text-muted-foreground" data-testid="overview-donut-share">{{ segment.share }}</span>
-                                  <button
-                                    type="button"
-                                    class="link-button cursor-pointer border-0 bg-transparent p-0 text-left font-medium text-foreground underline-offset-4 hover:underline"
-                                    data-testid="overview-category-open"
-                                    (click)="openCategory(segment); $event.stopPropagation()"
-                                  >
-                                    {{ segment.name | tData }}
-                                  </button>
-                                  </div>
-                                </td>
-                                <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums"><app-money [value]="segment.total" [display]="true"></app-money></td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
-                    } @else {
-                      <p class="m-0 py-6 text-center text-muted-foreground">{{ 'No spending in {period} yet.' | t: { period: periodLabel() } }}</p>
-                    }
-                    <div class="cv-panel-footer">
-                      <span>{{ periodLabel() }}</span>
-                      <a routerLink="/reports" class="cv-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
-                    </div>
-                  </section>
+                  <section
+                    app-overview-categories-panel
+                    [categories]="overview()?.categories ?? []"
+                    [total]="overview()?.total ?? 0"
+                    [periodLabel]="periodLabel()"
+                    (open)="openCategory($event)"
+                  ></section>
                 }
                 @case ('trend') {
-                  <section class="cv-panel" aria-labelledby="overview-trend-title">
-                    <div class="cv-panel-header">
-                      <h2 id="overview-trend-title">{{ (isDailyTrend() ? 'Spending by day' : 'Spending by month') | t }}</h2>
-                      @if (chartBars().length > 0 && !rangeTooLongForChart()) {
-                        <span class="text-muted-foreground text-sm" data-testid="overview-trend-summary">{{ (isDailyTrend() ? 'Average {amount} a day' : 'Average {amount} a month') | t: { amount: (averageBar() | displayCurrency) } }}@if (goalMode()) { · {{ 'Goal {amount}' | t: { amount: (goal() | displayCurrency) } }}}</span>
-                      }
-                    </div>
-                    @if (!rangeTooLongForChart() && chartBars().length > 0) {
-                      <div class="flex flex-wrap items-center justify-between gap-2">
-                        <span class="text-3xl font-bold tracking-tight"><app-money [value]="overview()?.total ?? 0" [display]="true"></app-money></span>
-                        @if (change(); as change) {
-                          <span class="cv-pill" [class.cv-pill-up]="changeIsIncrease()" [class.cv-pill-down]="!changeIsIncrease()">
-                            <app-icon [name]="changeIsIncrease() ? 'arrow_upward' : 'arrow_downward'"></app-icon>{{ change }}
-                          </span>
-                        }
-                      </div>
-                    }
-                    @if (rangeTooLongForChart()) {
-                      <div class="flex flex-col gap-4 py-6" data-testid="overview-range-export">
-                        <p>{{ 'Ranges over 1 year are best viewed as a report.' | t }}</p>
-                        <div class="flex flex-wrap items-center gap-2">
-                          <button type="button" hlmBtn data-testid="overview-export-pdf" [disabled]="exporting()" (click)="exportPdf()">
-                            {{ 'Download Landscape PDF (1 yr/page)' | t }}
-                          </button>
-                          <button type="button" hlmBtn data-testid="overview-export-csv" [disabled]="exporting()" (click)="exportCsv()">
-                            {{ 'Export CSV' | t }}
-                          </button>
-                          <a routerLink="/reports">{{ 'Open reports' | t }}</a>
-                        </div>
-                      </div>
-                    } @else if (chartBars().length > 0) {
-                      @if (bars().length > chartBars().length) {
-                        <p class="mb-1 text-xs text-muted-foreground" data-testid="overview-chart-capped">{{ 'Showing the latest {count} months.' | t: { count: chartBars().length } }}</p>
-                      }
-                      <div class="min-h-[16.25rem] flex-1">
-                        <app-chart
-                          class="h-full"
-                          data-testid="overview-bars"
-                          [options]="barsOptions"
-                          [label]="(isDailyTrend() ? 'Daily spending, {period}' : 'Monthly spending, {period}') | t: { period: periodLabel() }"
-                        ></app-chart>
-                      </div>
-                      @if (goalMode() && (showGoalLine() || overGoalBars().length > 0)) {
-                        <ul class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                          @if (showGoalLine()) {
-                            <li class="flex items-center gap-1.5" data-testid="overview-goal-line">
-                              <span class="inline-block w-4 border-t border-dashed border-muted-foreground"></span>
-                              {{ 'Goal {amount}' | t: { amount: (goal() | displayCurrency) } }}
-                            </li>
-                          }
-                          @for (bar of overGoalBars(); track bar.key) {
-                            <li class="flex items-center gap-1.5" data-testid="overview-bar-over">
-                              <span class="inline-block size-2 rounded-full bg-destructive"></span>
-                              {{ bar.shortName }} <span class="text-destructive">+{{ (bar.overAmount ?? 0) | displayCurrency }}</span>
-                            </li>
-                          }
-                        </ul>
-                      }
-                    }
-                    <div class="cv-panel-footer">
-                      <span>{{ periodLabel() }}</span>
-                      <a routerLink="/reports" class="cv-link">{{ 'Open reports' | t }} <app-icon name="arrow_right_alt"></app-icon></a>
-                    </div>
-                  </section>
+                  <section
+                    app-overview-trend-panel
+                    [overview]="overview()"
+                    [period]="period()"
+                    [periodLabel]="periodLabel()"
+                    [goal]="goal()"
+                    [change]="change()"
+                    [changeIsIncrease]="changeIsIncrease()"
+                    [groupId]="groupId()"
+                  ></section>
                 }
                 @case ('recentReceipts') {
                   <section

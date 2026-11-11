@@ -14,7 +14,6 @@ import { HlmButton } from "../../ui/button/lib/hlm-button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { HlmCheckbox } from "../../ui/checkbox/lib/hlm-checkbox";
 import { NgTemplateOutlet } from "@angular/common";
-import { ButtonComponent } from "../../button/button/button.component";
 import { HlmTable, HlmTHead, HlmTr, HlmTh, HlmTBody, HlmTd } from "../../ui/table/lib/hlm-table";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { RowExpandablePipe } from "./row-expandable.pipe";
@@ -24,7 +23,7 @@ import { RowExpandablePipe } from "./row-expandable.pipe";
     host: { class: "block overflow-hidden rounded-xl border border-border bg-card" },
     templateUrl: "./table.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, BrnButton, HlmButton, AppIconComponent, HlmCheckbox, NgTemplateOutlet, ButtonComponent, HlmTable, HlmTHead, HlmTr, HlmTh, HlmTBody, HlmTd, TranslatePipe, RowExpandablePipe]
+    imports: [BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, BrnButton, HlmButton, AppIconComponent, HlmCheckbox, NgTemplateOutlet, HlmTable, HlmTHead, HlmTr, HlmTh, HlmTBody, HlmTd, TranslatePipe, RowExpandablePipe]
 })
 export class TableComponent implements OnChanges {
   public readonly columns = input<TableColumn[]>([]);
