@@ -1,9 +1,8 @@
 import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { SortDirection } from "../table/table-types";
-import { Store } from "@ngxs/store";
 import { Observable } from "rxjs";
-import { ReceiptTableState } from "src/store/receipt-table.state";
+import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { RECEIPT_DATE_FILTER_KEYS } from "../constants/receipt-filter-fields.constant";
 import { toDateWireFilter } from "../utils/date-wire-filter";
 import { PagedData, ReceiptPagedRequestCommand, ReceiptService } from "../open-api";
@@ -12,8 +11,9 @@ import { PagedData, ReceiptPagedRequestCommand, ReceiptService } from "../open-a
   providedIn: "root",
 })
 export class ReceiptFilterService {
+  private readonly receiptTableStore = inject(ReceiptTableStore);
+
   constructor(
-    private store: Store,
     private httpClient: HttpClient,
     private receiptService: ReceiptService,
   ) {}
@@ -52,7 +52,7 @@ export class ReceiptFilterService {
     if (pagedRequestCommand) {
       filterData = pagedRequestCommand;
     } else {
-      const filter = this.store.selectSnapshot(ReceiptTableState.filterData);
+      const filter = this.receiptTableStore.state();
       filterData = {
         page: page ?? filter.page,
         pageSize: pageSize ?? filter.pageSize,

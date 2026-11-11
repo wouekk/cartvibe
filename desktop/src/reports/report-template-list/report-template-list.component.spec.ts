@@ -1,5 +1,4 @@
 import { TranslateDataPipe, TranslatePipe } from "../../i18n/translate.pipe";
-import { ReportTemplateTableState } from "../../store/report-template-table.state";
 import { CommonModule } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
@@ -86,8 +85,6 @@ describe("ReportTemplateListComponent", () => {
       // signal.
       selectSignal: vi.fn((selector: unknown) => {
         if (selector === GroupState.groupsWithoutAll) return signal([]);
-        if (selector === ReportTemplateTableState.page) return signal(1);
-        if (selector === ReportTemplateTableState.pageSize) return signal(50);
         return canEnterBuilder;
       }),
       selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, computed, output, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, OnInit, computed, inject, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -8,9 +8,8 @@ import {
   SYSTEM_TASK_FILTER_FIELDS,
   SYSTEM_TASK_TYPE_OPTIONS
 } from "src/constants";
-import { SetSystemTaskFilter } from "src/store/system-task-table.state.actions";
+import { SystemTaskTableStore } from "src/store/system-task-table.store";
 import { setupAutoOperationSelection } from "src/utils/filter-form";
-import { take, tap } from "rxjs";
 import { FormCommand } from "../../form/index";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
@@ -35,6 +34,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [DialogComponent, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class SystemTaskFilterComponent implements OnInit {
+  private readonly systemTaskTableStore = inject(SystemTaskTableStore);
+
   @Input() public headerText: string = "";
 
   @Input() public parentForm: FormGroup = new FormGroup({});
@@ -86,15 +87,8 @@ export class SystemTaskFilterComponent implements OnInit {
       return;
     }
 
-    this.store
-      .dispatch(new SetSystemTaskFilter(this.parentForm.value))
-      .pipe(
-        take(1),
-        tap(() => {
-          this.dialogRef.close(true);
-        })
-      )
-      .subscribe();
+    this.systemTaskTableStore.setFilter(this.parentForm.value);
+    this.dialogRef.close(true);
   }
 
   public cancelButtonClicked(): void {

@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -11,7 +10,6 @@ import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { AuthState, GroupState, RemoveGroup } from "../../store";
-import { GroupTableState } from "../../store/group-table.state";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -26,7 +24,6 @@ import { HasAppPermissionDirective } from "../../directives/has-app-permission.d
 import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
 import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
 import { AvatarComponent } from "../../avatar/avatar/avatar.component";
-import { AsyncPipe } from "@angular/common";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 
@@ -41,11 +38,10 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, AsyncPipe, TranslatePipe, AppDatePipe]
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, TranslatePipe, AppDatePipe]
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly viewport = inject(ViewportService);
 
@@ -100,20 +96,11 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   }
 
   public ngOnInit(): void {
-    this.listenForFilterChanges();
+    this.getTableData();
   }
 
   public ngAfterViewInit(): void {
     this.initTable();
-  }
-
-  private listenForFilterChanges(): void {
-    this.store.select(GroupTableState.filter)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        tap(() => this.getTableData())
-      )
-      .subscribe();
   }
 
   private initTable(): void {

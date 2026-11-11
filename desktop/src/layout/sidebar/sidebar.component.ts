@@ -4,7 +4,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router, RouterLinkActive, RouterLink, RouterOutlet } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { catchError, filter, map, of, startWith, switchMap, take } from "rxjs";
-import { SetPage } from "src/store/receipt-table.actions";
+import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
@@ -189,6 +189,8 @@ interface ManageNavItem {
     ],
 })
 export class SidebarComponent {
+  private readonly receiptTableStore = inject(ReceiptTableStore);
+
   /** The Lucide icon for a nav item's Material icon name. */
   public lucide(material: string): string {
     return LUCIDE_ICONS[material] ?? "lucideSettings";
@@ -449,7 +451,7 @@ export class SidebarComponent {
 
   public groupClicked(groupId: number): void {
     this.store.dispatch(new SetSelectedGroupId(groupId.toString()));
-    this.store.dispatch(new SetPage(1));
+    this.receiptTableStore.setPage(1);
     this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)]);
   }
 

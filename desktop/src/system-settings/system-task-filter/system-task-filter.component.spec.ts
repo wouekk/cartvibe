@@ -5,10 +5,8 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { of } from "rxjs";
 import { SYSTEM_RAN_BY_OPTION_ID } from "src/constants";
-import { buildDefaultSystemTaskFilter } from "src/store/system-task-table.state";
-import { SetSystemTaskFilter } from "src/store/system-task-table.state.actions";
+import { buildDefaultSystemTaskFilter, SystemTaskTableStore } from "src/store/system-task-table.store";
 import { InputModule } from "../../input";
 import { FilterOperation } from "../../open-api";
 import { StoreModule } from "../../store/store.module";
@@ -107,14 +105,13 @@ describe("SystemTaskFilterComponent", () => {
     expect(component.parentForm.value).toEqual(buildDefaultSystemTaskFilter());
   });
 
-  it("dispatches the filter and closes with true on submit", () => {
-    const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of({}) as any);
+  it("stores the filter and closes with true on submit", () => {
     const closeSpy = vi.spyOn(TestBed.inject(AppDialogRef<SystemTaskFilterComponent>), "close");
 
     component.parentForm = buildSystemTaskFilterForm(filledFilter, destroyRef);
     component.submitButtonClicked();
 
-    expect(dispatchSpy).toHaveBeenCalledWith(new SetSystemTaskFilter(filledFilter as any));
+    expect(TestBed.inject(SystemTaskTableStore).filter()).toEqual(filledFilter);
     expect(closeSpy).toHaveBeenCalledWith(true);
   });
 

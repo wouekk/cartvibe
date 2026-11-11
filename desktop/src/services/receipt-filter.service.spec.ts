@@ -2,8 +2,8 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ApiModule, FilterOperation, ReceiptService } from "../open-api";
-import { buildDefaultReceiptFilter, ReceiptTableState } from "../store/receipt-table.state";
-import { SetReceiptFilterData } from "../store/receipt-table.actions";
+import { buildDefaultReceiptFilter } from "../store/receipt-table.store";
+import { ReceiptTableStore } from "../store/receipt-table.store";
 import { ReceiptFilterService } from "./receipt-filter.service";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -14,7 +14,7 @@ describe("ReceiptFilterService", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ApiModule, NgxsModule.forRoot([ReceiptTableState])],
+    imports: [ApiModule, NgxsModule.forRoot([])],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(ReceiptFilterService);
@@ -29,7 +29,7 @@ describe("ReceiptFilterService", () => {
   it("sends the search phrase with the table request", () => {
     const filter = buildDefaultReceiptFilter();
     filter.search = "choc noir";
-    store.dispatch(new SetReceiptFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any));
+    TestBed.inject(ReceiptTableStore).setFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any);
 
     expect((service.buildPagedRequestCommand() as any).filter.search).toBe("choc noir");
 
@@ -47,9 +47,7 @@ describe("ReceiptFilterService", () => {
       } as any;
       filter.date = { operation: FilterOperation.Equals, value: new Date(2026, 8, 15) } as any;
 
-      store.dispatch(
-        new SetReceiptFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any)
-      );
+      TestBed.inject(ReceiptTableStore).setFilterData({ page: 1, pageSize: 25, orderBy: "date", sortDirection: "desc", filter } as any);
     }
 
     it("sends date values as yyyy-MM-dd on the table request", () => {
@@ -59,7 +57,7 @@ describe("ReceiptFilterService", () => {
 
       expect(command.filter.createdAt.value).toEqual(["2026-09-01", "2026-09-30"]);
       expect(command.filter.date.value).toBe("2026-09-15");
-      expect((store.selectSnapshot(ReceiptTableState.filterData).filter as any).createdAt.value[0]).toEqual(
+      expect((TestBed.inject(ReceiptTableStore).state().filter as any).createdAt.value[0]).toEqual(
         new Date(2026, 8, 1)
       );
     });

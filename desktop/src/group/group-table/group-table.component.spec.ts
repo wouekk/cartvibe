@@ -20,7 +20,6 @@ import { TableModule } from "src/table/table.module";
 import { ApiModule, Group, GroupsService, Permission } from "../../open-api";
 import { AuthState, GroupState, SetGroups } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { GroupTableState } from "../../store/group-table.state";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 
@@ -40,7 +39,7 @@ describe("GroupTableComponent", () => {
         RouterLink,
         ApiModule,
         AppDatePipe,
-        NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
+        NgxsModule.forRoot([AuthState, GroupState, SystemSettingsState]),
         SharedUiModule,
         TableModule,
         HlmButton,

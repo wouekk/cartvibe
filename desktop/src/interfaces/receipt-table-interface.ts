@@ -12,7 +12,7 @@ export interface ReceiptTableInterface {
   /**
    * The date field the quick date control writes to. Optional because state
    * persisted before it existed deserializes without it — read it through
-   * `ReceiptTableState.quickDateField`, which supplies the fallback.
+   * `ReceiptTableStore.quickDateField`, which supplies the fallback.
    */
   quickDateField?: ReceiptDateFilterFieldKey;
   columnConfig?: ReceiptTableColumnConfig[];

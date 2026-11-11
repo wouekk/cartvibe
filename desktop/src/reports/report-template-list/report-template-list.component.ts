@@ -22,7 +22,7 @@ import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
-import { ReportTemplateTableState } from "../../store/report-template-table.state";
+import { ReportTemplateTableStore } from "../../store/report-template-table.store";
 import {
   columnCount,
   detailSummary,
@@ -71,6 +71,8 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         AppDatePipe, HlmButton, HlmTooltip],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
+  private readonly reportTemplateTableStore = inject(ReportTemplateTableStore);
+
   private readonly translation = inject(TranslationService);
 
   private readonly router = inject(Router);
@@ -112,9 +114,9 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
 
   private readonly groups = this.store.selectSignal(GroupState.groupsWithoutAll);
 
-  public readonly page = this.store.selectSignal(ReportTemplateTableState.page);
+  public readonly page = this.reportTemplateTableStore.page;
 
-  public readonly pageSize = this.store.selectSignal(ReportTemplateTableState.pageSize);
+  public readonly pageSize = this.reportTemplateTableStore.pageSize;
 
   constructor(public override baseTableService: BaseTableService) {
     super(baseTableService);

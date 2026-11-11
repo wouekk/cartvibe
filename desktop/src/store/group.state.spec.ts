@@ -4,7 +4,8 @@ import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { FilterOperation, Group } from "../open-api";
 import { GroupState } from "./group.state";
 import { RemoveGroup, SetSelectedGroupId } from "./group.state.actions";
-import { defaultReceiptFilter, ReceiptTableState } from "./receipt-table.state";
+import { seedStore } from "../testing/seed-store";
+import { defaultReceiptFilter, ReceiptTableStore } from "./receipt-table.store";
 
 describe("GroupState receipt-filter reset on group change", () => {
   let store: Store;
@@ -21,7 +22,7 @@ describe("GroupState receipt-filter reset on group change", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([GroupState, ReceiptTableState])],
+      imports: [NgxsModule.forRoot([GroupState])],
     }).compileComponents();
 
     store = TestBed.inject(Store);
@@ -34,14 +35,14 @@ describe("GroupState receipt-filter reset on group change", () => {
         selectedGroupId,
         selectedDashboardId: "",
       },
-      receiptTable: {
-        page: 3,
-        pageSize: 50,
-        orderBy: "created_at",
-        sortDirection: "desc",
-        filter: nonDefaultFilter,
-        columnConfig: DEFAULT_RECEIPT_TABLE_COLUMNS,
-      },
+    });
+    seedStore(TestBed.inject(ReceiptTableStore), {
+      page: 3,
+      pageSize: 50,
+      orderBy: "created_at",
+      sortDirection: "desc",
+      filter: nonDefaultFilter,
+      columnConfig: DEFAULT_RECEIPT_TABLE_COLUMNS,
     });
   }
 
@@ -50,10 +51,10 @@ describe("GroupState receipt-filter reset on group change", () => {
 
     store.dispatch(new SetSelectedGroupId("2"));
 
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       defaultReceiptFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
     expect(store.selectSnapshot(GroupState.selectedGroupId)).toEqual("2");
   });
 
@@ -62,10 +63,10 @@ describe("GroupState receipt-filter reset on group change", () => {
 
     store.dispatch(new SetSelectedGroupId("1"));
 
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       nonDefaultFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(3);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(3);
   });
 
   it("resets when an empty payload resolves to a different group than the current", () => {
@@ -75,10 +76,10 @@ describe("GroupState receipt-filter reset on group change", () => {
     store.dispatch(new SetSelectedGroupId(""));
 
     expect(store.selectSnapshot(GroupState.selectedGroupId)).toEqual("1");
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       defaultReceiptFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
   });
 
   it("resets the receipt filter and page when the active group is deleted", () => {
@@ -88,10 +89,10 @@ describe("GroupState receipt-filter reset on group change", () => {
     store.dispatch(new RemoveGroup("2"));
 
     expect(store.selectSnapshot(GroupState.selectedGroupId)).toEqual("1");
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       defaultReceiptFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
   });
 
   it("preserves the receipt filter and page when a non-active group is deleted", () => {
@@ -101,10 +102,10 @@ describe("GroupState receipt-filter reset on group change", () => {
     store.dispatch(new RemoveGroup("2"));
 
     expect(store.selectSnapshot(GroupState.selectedGroupId)).toEqual("1");
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       nonDefaultFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(3);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(3);
   });
 
   it("falls back to the first remaining group when the active group at index 0 is deleted", () => {
@@ -116,10 +117,10 @@ describe("GroupState receipt-filter reset on group change", () => {
     store.dispatch(new RemoveGroup("1"));
 
     expect(store.selectSnapshot(GroupState.selectedGroupId)).toEqual("2");
-    expect(store.selectSnapshot(ReceiptTableState.filterData).filter).toEqual(
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
       defaultReceiptFilter
     );
-    expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
   });
 });
 
@@ -128,7 +129,7 @@ describe("GroupState.soleGroupId", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([GroupState, ReceiptTableState])],
+      imports: [NgxsModule.forRoot([GroupState])],
     }).compileComponents();
 
     store = TestBed.inject(Store);
@@ -188,7 +189,7 @@ describe("GroupState.addTargetGroupId", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([GroupState, ReceiptTableState])],
+      imports: [NgxsModule.forRoot([GroupState])],
     }).compileComponents();
 
     store = TestBed.inject(Store);

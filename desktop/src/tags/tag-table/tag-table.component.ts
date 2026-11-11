@@ -7,13 +7,12 @@ import { Store } from "@ngxs/store";
 import { of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { TagTableState } from "src/store/tag-table.state";
+import { TagTableStore } from "src/store/tag-table.store";
 import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
 import { PagedDataDataInner, PagedRequestCommand, Permission, TagService, TagView } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AppInitService } from "../../services/app-init.service";
-import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/tag-table.state.actions";
 import { TagFormComponent } from "../tag-form/tag-form.component";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -32,6 +31,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
+  private readonly tagTableStore = inject(TagTableStore);
+
   private readonly translation = inject(TranslationService);
 
   private readonly appInitService = inject(AppInitService);
@@ -46,7 +47,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
 
   public readonly table = viewChild.required(TableComponent);
 
-  public tagTableState = this.store.selectSignal(TagTableState.state);
+  public tagTableState = this.tagTableStore.state;
 
   protected readonly Permission = Permission;
 
@@ -119,9 +120,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   }
 
   private getTags(): void {
-    const command: PagedRequestCommand = this.store.selectSnapshot(
-      TagTableState.state
-    );
+    const command: PagedRequestCommand = this.tagTableStore.state();
 
     this.tagService
       .getPagedTags(command)
@@ -139,15 +138,15 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   public updatePageData(pageEvent: PageEvent) {
     const newPage = pageEvent.pageIndex + 1;
 
-    this.store.dispatch(new SetPage(newPage));
-    this.store.dispatch(new SetPageSize(pageEvent.pageSize));
+    this.tagTableStore.setPage(newPage);
+    this.tagTableStore.setPageSize(pageEvent.pageSize);
 
     this.getTags();
   }
 
   public sorted(sortState: Sort): void {
-    this.store.dispatch(new SetOrderBy(sortState.active));
-    this.store.dispatch(new SetSortDirection(sortState.direction));
+    this.tagTableStore.setOrderBy(sortState.active);
+    this.tagTableStore.setSortDirection(sortState.direction);
 
     this.getTags();
   }
@@ -184,7 +183,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
       },
     ] as TableColumn[];
 
-    const state = this.store.selectSnapshot(TagTableState.state);
+    const state = this.tagTableStore.state();
     if (state.orderBy) {
       const column = columns.find((c) => c.columnDef === state.orderBy);
       if (column) {

@@ -8,15 +8,13 @@ import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
-import { SetColumnConfig, SetReceiptFilterData } from "src/store/receipt-table.actions";
-import { ReceiptTableState } from "src/store/receipt-table.state";
+import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups } from "../../store/group.state.actions";
-import { SetReceiptFilter } from "../../store/receipt-table.actions";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -31,7 +29,7 @@ describe("ReceiptsTableComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
+        NgxsModule.forRoot([AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
         ReceiptsTableComponent],
@@ -166,13 +164,13 @@ describe("ReceiptsTableComponent", () => {
       );
 
     it("offers a sortable Note column, hidden until it is switched on", () => {
-      store.dispatch(new SetColumnConfig(DEFAULT_RECEIPT_TABLE_COLUMNS));
+      TestBed.inject(ReceiptTableStore).setColumnConfig(DEFAULT_RECEIPT_TABLE_COLUMNS);
 
       (component as any).setColumns();
 
       expect(component.displayedColumns()).not.toContain("note");
 
-      store.dispatch(new SetColumnConfig(withNoteShown()));
+      TestBed.inject(ReceiptTableStore).setColumnConfig(withNoteShown());
 
       (component as any).setColumns();
 
@@ -187,7 +185,7 @@ describe("ReceiptsTableComponent", () => {
     });
 
     it("leaves the Note column out for a household that hides the note, whatever the saved layout says", () => {
-      store.dispatch(new SetColumnConfig(withNoteShown()));
+      TestBed.inject(ReceiptTableStore).setColumnConfig(withNoteShown());
       component.group = { id: 1, groupReceiptSettings: { hideNote: true } } as any;
 
       (component as any).setColumns();
@@ -195,18 +193,16 @@ describe("ReceiptsTableComponent", () => {
       expect(component.displayedColumns()).not.toContain("note");
       expect(component.columns().some((col) => col.columnDef === "note")).toBe(false);
       // The layout itself is kept: the column is back when the household shows the note again.
-      expect(store.selectSnapshot(ReceiptTableState.columnConfig).find((col) => col.columnDef === "note")?.visible).toBe(true);
+      expect(TestBed.inject(ReceiptTableStore).columnConfig().find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     // mat-table throws on a displayed id it has no definition for, and a config
     // naming a since-removed column is ordinary rather than exotic.
     it("never displays a column it could not resolve", () => {
-      store.dispatch(
-        new SetColumnConfig([
+      TestBed.inject(ReceiptTableStore).setColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
           { columnDef: "custom_99", visible: true, order: 9 },
-        ])
-      );
+        ]);
 
       (component as any).setColumns();
 
@@ -224,18 +220,15 @@ describe("ReceiptsTableComponent", () => {
 
   describe("reconcileColumnConfig", () => {
     it("drops a persisted column that no longer exists", () => {
-      store.dispatch(
-        new SetColumnConfig([
+      TestBed.inject(ReceiptTableStore).setColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
           { columnDef: "custom_99", visible: true, order: 9 },
-        ])
-      );
+        ]);
 
       (component as any).reconcileColumnConfig();
 
       expect(
-        store
-          .selectSnapshot(ReceiptTableState.columnConfig)
+        TestBed.inject(ReceiptTableStore).columnConfig()
           .map((col) => col.columnDef)
       ).not.toContain("custom_99");
     });
@@ -245,14 +238,12 @@ describe("ReceiptsTableComponent", () => {
     // can start up asking the API to order by a column that no longer exists -
     // which the API rejects outright, failing the very first load.
     it("resets a sort on a column that no longer exists", () => {
-      const filterData = store.selectSnapshot(ReceiptTableState.filterData);
-      store.dispatch(
-        new SetReceiptFilterData({ ...filterData, orderBy: "custom_99", sortDirection: "asc" })
-      );
+      const filterData = TestBed.inject(ReceiptTableStore).state();
+      TestBed.inject(ReceiptTableStore).setFilterData({ ...filterData, orderBy: "custom_99", sortDirection: "asc" });
 
       (component as any).reconcileColumnConfig();
 
-      expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual(
+      expect(TestBed.inject(ReceiptTableStore).state().orderBy).toEqual(
         "date"
       );
     });
@@ -260,37 +251,29 @@ describe("ReceiptsTableComponent", () => {
     // A browser that sorted by the Comment column, or showed it, keeps both under the column's new key:
     // the API still reads the old sort key, but the table would not find the column to mark as sorted.
     it("carries a sort and a layout on the Comment column over to the Note column", () => {
-      const filterData = store.selectSnapshot(ReceiptTableState.filterData);
-      store.dispatch(
-        new SetReceiptFilterData({ ...filterData, orderBy: "first_comment", sortDirection: "asc" })
-      );
-      store.dispatch(
-        new SetColumnConfig(
-          DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
+      const filterData = TestBed.inject(ReceiptTableStore).state();
+      TestBed.inject(ReceiptTableStore).setFilterData({ ...filterData, orderBy: "first_comment", sortDirection: "asc" });
+      TestBed.inject(ReceiptTableStore).setColumnConfig(DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
             column.columnDef === "note" ? { ...column, columnDef: "first_comment", visible: true } : column
-          )
-        )
-      );
+          ));
 
       (component as any).reconcileColumnConfig();
 
-      const sorted = store.selectSnapshot(ReceiptTableState.filterData);
+      const sorted = TestBed.inject(ReceiptTableStore).state();
       expect(sorted.orderBy).toEqual("note");
       expect(sorted.sortDirection).toEqual("asc");
-      const layout = store.selectSnapshot(ReceiptTableState.columnConfig);
+      const layout = TestBed.inject(ReceiptTableStore).columnConfig();
       expect(layout.some((col) => col.columnDef === "first_comment")).toBe(false);
       expect(layout.find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     it("keeps a sort on a column that still exists", () => {
-      const filterData = store.selectSnapshot(ReceiptTableState.filterData);
-      store.dispatch(
-        new SetReceiptFilterData({ ...filterData, orderBy: "amount", sortDirection: "asc" })
-      );
+      const filterData = TestBed.inject(ReceiptTableStore).state();
+      TestBed.inject(ReceiptTableStore).setFilterData({ ...filterData, orderBy: "amount", sortDirection: "asc" });
 
       (component as any).reconcileColumnConfig();
 
-      expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual("amount");
+      expect(TestBed.inject(ReceiptTableStore).state().orderBy).toEqual("amount");
     });
   });
 
@@ -322,7 +305,7 @@ describe("ReceiptsTableComponent", () => {
     let refetch: MockInstance;
 
     const setFilter = (filter: Record<string, unknown>) =>
-      store.dispatch(new SetReceiptFilter(filter as any));
+      TestBed.inject(ReceiptTableStore).setFilter(filter as any);
 
     beforeEach(() => {
       refetch = vi
@@ -435,11 +418,11 @@ describe("ReceiptsTableComponent", () => {
 
       component.filterChipCleared("status");
 
-      const filter = store.selectSnapshot(ReceiptTableState.filterData).filter as any;
+      const filter = TestBed.inject(ReceiptTableStore).state().filter as any;
       expect(filter.status).toEqual({ operation: null, value: [] });
       expect(filter.name).toEqual({ operation: FilterOperation.Contains, value: "whole" });
       expect(component.filterChips().map((chip) => chip.key)).toEqual(["name"]);
-      expect(store.selectSnapshot(ReceiptTableState.page)).toEqual(1);
+      expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
       expect(refetch).toHaveBeenCalled();
     });
   });
@@ -457,7 +440,7 @@ describe("ReceiptsTableComponent", () => {
 
     afterEach(() => vi.useRealTimers());
 
-    const storedSearch = () => store.selectSnapshot(ReceiptTableState.search);
+    const storedSearch = () => TestBed.inject(ReceiptTableStore).search();
 
     it("waits for a pause in typing, then applies the trimmed phrase once", () => {
       component.searchInput("c");

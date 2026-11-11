@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   Action,
   createSelector,
@@ -16,7 +16,7 @@ import {
   UpdateGroup,
 } from './group.state.actions';
 import { GroupMember } from '../open-api/model/groupMember';
-import { ResetReceiptFilter, SetPage } from './receipt-table.actions';
+import { ReceiptTableStore } from './receipt-table.store';
 
 export interface GroupStateInterface {
   groups: Group[];
@@ -34,6 +34,8 @@ export interface GroupStateInterface {
 })
 @Injectable()
 export class GroupState {
+  private readonly receiptTableStore = inject(ReceiptTableStore);
+
   @Selector()
   static groups(state: GroupStateInterface): Group[] {
     return state.groups;
@@ -157,7 +159,7 @@ export class GroupState {
 
   @Action(RemoveGroup)
   removeGroup(
-    { getState, patchState, dispatch }: StateContext<GroupStateInterface>,
+    { getState, patchState }: StateContext<GroupStateInterface>,
     payload: RemoveGroup
   ) {
     const state = getState();
@@ -184,12 +186,11 @@ export class GroupState {
         // group switch does (setSelectedGroupId) — otherwise the fallback group
         // inherits the deleted group's filter.
         if (removedSelectedGroup) {
-          return dispatch([new ResetReceiptFilter(), new SetPage(1)]);
+          this.receiptTableStore.resetFilter();
+          this.receiptTableStore.setPage(1);
         }
       }
     }
-
-    return undefined;
   }
 
   @Action(SetGroups)
@@ -232,7 +233,7 @@ export class GroupState {
 
   @Action(SetSelectedGroupId)
   setSelectedGroupId(
-    { getState, patchState, dispatch }: StateContext<GroupStateInterface>,
+    { getState, patchState }: StateContext<GroupStateInterface>,
     payload: SetSelectedGroupId
   ) {
     const previousGroupId = getState().selectedGroupId;
@@ -260,9 +261,8 @@ export class GroupState {
     // to a different group starts it with a clean filter and first page; columns,
     // page size and sort stay global. Same-group re-selection is a no-op.
     if (groupId !== previousGroupId) {
-      return dispatch([new ResetReceiptFilter(), new SetPage(1)]);
+      this.receiptTableStore.resetFilter();
+      this.receiptTableStore.setPage(1);
     }
-
-    return undefined;
   }
 }

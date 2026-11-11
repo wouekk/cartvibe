@@ -11,7 +11,6 @@ import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
 import { ApiModule, User, UserService } from "../../open-api";
 import { AuthState } from "../../store";
-import { UserTableState } from "../../store/user-table.state";
 import { UserListComponent } from "./user-list.component";
 
 describe("UserListComponent", () => {
@@ -22,7 +21,7 @@ describe("UserListComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, ApiModule,
-        NgxsModule.forRoot([AuthState, UserTableState]),
+        NgxsModule.forRoot([AuthState]),
         TableModule, UserListComponent],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();

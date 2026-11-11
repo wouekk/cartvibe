@@ -1,10 +1,9 @@
-import { Component, Input, OnInit, TemplateRef, input, output, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, OnInit, TemplateRef, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup, } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
-import { take, tap } from "rxjs";
 import { RECEIPT_FILTER_FIELDS, RECEIPT_STATUS_OPTIONS } from "src/constants";
-import { SetReceiptFilter } from "src/store/receipt-table.actions";
+import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { setupAutoOperationSelection } from "src/utils/filter-form";
 import { FormCommand } from "../../form/index";
 import { Category, Tag } from "../../open-api";
@@ -26,6 +25,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [NgIf, DialogComponent, NgTemplateOutlet, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class ReceiptFilterComponent implements OnInit {
+  private readonly receiptTableStore = inject(ReceiptTableStore);
+
   @Input() public headerText: string = "";
 
   public readonly footerTemplate = input<TemplateRef<any>>();
@@ -107,15 +108,8 @@ export class ReceiptFilterComponent implements OnInit {
     const filter = this.parentForm.value;
 
     if (this.parentForm.valid) {
-      this.store
-        .dispatch(new SetReceiptFilter(filter))
-        .pipe(
-          take(1),
-          tap(() => {
-            this.dialogRef.close(true);
-          })
-        )
-        .subscribe();
+      this.receiptTableStore.setFilter(filter);
+      this.dialogRef.close(true);
     } else {
       this.parentForm.markAllAsTouched();
     }

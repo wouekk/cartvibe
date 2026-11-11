@@ -1,18 +1,10 @@
 import { AboutState } from "./about.state";
 import { AuthState } from "./auth.state";
-import { CategoryTableState } from "./category-table.state";
 import { FeatureConfigState } from "./feature-config.state";
-import { GroupTableState } from "./group-table.state";
 import { GroupState } from "./group.state";
 import { LayoutState } from "./layout.state";
-import { ReceiptProcessingSettingsTaskTableState } from "./receipt-processing-settings-task-table.state";
-import { ReceiptTableState } from "./receipt-table.state";
-import { ReportTemplateTableState } from "./report-template-table.state";
 import { ShoppingListState } from "./shopping-list.state";
 import { SystemSettingsState } from "./system-settings.state";
-import { SystemTaskTableState } from "./system-task-table.state";
-import { TagTableState } from "./tag-table.state";
-import { UserTableState } from "./user-table.state";
 import { UserState } from "./user.state";
 
 /**
@@ -22,20 +14,12 @@ import { UserState } from "./user.state";
 export const ngxsStates = [
   AboutState,
   AuthState,
-  CategoryTableState,
   FeatureConfigState,
   GroupState,
-  GroupTableState,
   LayoutState,
-  ReceiptProcessingSettingsTaskTableState,
-  ReceiptTableState,
-  ReportTemplateTableState,
   // Not in ngxsStorageKeys: ShoppingListSyncService keeps its copy in IndexedDB (lists and waiting changes).
   ShoppingListState,
   SystemSettingsState,
-  SystemTaskTableState,
-  TagTableState,
-  UserTableState,
   UserState,
 ];
 
@@ -43,16 +27,8 @@ export const ngxsStates = [
 export const ngxsStorageKeys = [
   "about",
   "auth",
-  "categoryTable",
-  "groupTable",
   "groups",
   "layout",
-  "receiptProcessingSettingsTaskTable",
-  "receiptTable",
-  "reportTemplateTable",
   "systemSettings",
-  "systemTaskTable",
-  "tagTable",
-  "userTable",
   "users",
 ];

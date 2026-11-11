@@ -1,23 +1,42 @@
-import { Injectable } from "@angular/core";
-import { Sort } from "../table/table-types";
+import { Injectable, Signal } from "@angular/core";
 import { Observable } from "rxjs";
 import { PagedData, PagedRequestCommand, SortDirection } from "../open-api";
+import { PagedTable } from "../store/paged-table.store";
+import { Sort } from "../table/table-types";
 
+/** What a server-paged list needs: where its page and sort are kept, and how a page is fetched. */
 @Injectable()
 export abstract class BaseTableService {
-  abstract page$: Observable<number>;
-
-  abstract pageSize$: Observable<number>;
+  /** The store that keeps this list's page, page size and sort. */
+  protected abstract readonly tableStore: PagedTable;
 
   abstract getPagedData(): Observable<PagedData>;
 
-  abstract getPagedRequestCommand(): PagedRequestCommand;
+  public get page(): Signal<number> {
+    return this.tableStore.page;
+  }
 
-  abstract setPage(page: number): void;
+  public get pageSize(): Signal<number> {
+    return this.tableStore.pageSize;
+  }
 
-  abstract setPageSize(pageSize: number): void;
+  public getPagedRequestCommand(): PagedRequestCommand {
+    return this.tableStore.state();
+  }
 
-  abstract setOrderBy(orderBy: Sort): void;
+  public setPage(page: number): void {
+    this.tableStore.setPage(page);
+  }
 
-  abstract setSortDirection(sortDirection: SortDirection): void;
+  public setPageSize(pageSize: number): void {
+    this.tableStore.setPageSize(pageSize);
+  }
+
+  public setOrderBy(orderBy: Sort): void {
+    this.tableStore.setOrderBy(orderBy.active);
+  }
+
+  public setSortDirection(sortDirection: SortDirection): void {
+    this.tableStore.setSortDirection(sortDirection);
+  }
 }

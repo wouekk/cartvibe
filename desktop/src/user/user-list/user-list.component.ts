@@ -15,7 +15,7 @@ import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { AuthState, RemoveUser, RemoveUsers } from "../../store";
-import { UserTableState } from "../../store/user-table.state";
+import { UserTableStore } from "../../store/user-table.store";
 import { DummyUserConversionDialogComponent } from "../dummy-user-conversion-dialog/dummy-user-conversion-dialog.component";
 import { ResetPasswordComponent } from "../reset-password/reset-password.component";
 import { UserFormComponent } from "../user-form/user-form.component";
@@ -50,6 +50,8 @@ import { RoleNamePipe } from "../../pipes/role-name.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe, HlmButton, AppIconComponent]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
+  private readonly userTableStore = inject(UserTableStore);
+
   private readonly translation = inject(TranslationService);
 
   protected readonly Permission = Permission;
@@ -107,9 +109,9 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   // Signal-backed pagination state (per desktop guideline: selectSignal over | async).
-  public readonly page = this.store.selectSignal(UserTableState.page);
+  public readonly page = this.userTableStore.page;
 
-  public readonly pageSize = this.store.selectSignal(UserTableState.pageSize);
+  public readonly pageSize = this.userTableStore.pageSize;
 
   /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
   private readonly initialDataSource = this.dataSource();

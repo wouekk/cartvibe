@@ -6,7 +6,6 @@ import { provideRouter } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../../interfaces";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { ReceiptTableState } from "../../store/receipt-table.state";
 import { RECEIPT_COLUMN_DISPLAY_NAMES } from "../../utils";
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog.component";
 
@@ -38,7 +37,7 @@ describe("ColumnConfigurationDialogComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([ReceiptTableState]), ColumnConfigurationDialogComponent],
+    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([]), ColumnConfigurationDialogComponent],
     providers: [
         { provide: AppDialogRef, useValue: mockDialogRef },
         { provide: APP_DIALOG_DATA, useValue: mockDialogData },

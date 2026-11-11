@@ -6,7 +6,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { CategoryTableState } from "src/store/category-table.state";
+import { CategoryTableStore } from "src/store/category-table.store";
 import { ApiModule, CategoryService } from "../../open-api";
 import { CategoryForm } from "../category-form/category-form.component";
 import { CategoryTableComponent } from "./category-table.component";
@@ -21,7 +21,7 @@ describe("CategoriesListComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([CategoryTableState]), CategoryTableComponent],
+        NgxsModule.forRoot([]), CategoryTableComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(CategoryTableComponent);
@@ -75,7 +75,7 @@ describe("CategoriesListComponent", () => {
       direction: "asc",
     });
 
-    expect(store.selectSnapshot(CategoryTableState.state)).toEqual({
+    expect(TestBed.inject(CategoryTableStore).state()).toEqual({
       page: 1,
       pageSize: 50,
       orderBy: "numberOfProducts",
@@ -106,7 +106,7 @@ describe("CategoriesListComponent", () => {
       pageSize: 100,
     } as any);
 
-    expect(store.selectSnapshot(CategoryTableState.state)).toEqual({
+    expect(TestBed.inject(CategoryTableStore).state()).toEqual({
       page: 3,
       pageSize: 100,
       orderBy: "name",
