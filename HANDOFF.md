@@ -25,15 +25,16 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     run.
   - Sprint 9 (identity-provider screens, `feature/oidc-ui`) is in `preview` too: web app only, proved by component
     specs; no sign-in was made end to end, because the agent has no identity provider.
-  - **Sprint 10 is under way on `feature/app-cleanup`** (cut from `preview`, not merged yet; the worktree is
-    `.claude/worktrees/dependency-updates`). Done there, each with green CI up to the standalone commit: one note
-    per receipt, two statuses and a Quick Scan that asks for nothing (three one-way data migrations), the renames,
-    every component standalone, the Material-era names gone, the bundle budget, the pruned icon map and the
-    Dashboard's summary sentence. Left: one button idiom in the templates (86 `<app-button>` in 42 templates),
-    the Dashboard split into panel components, the receipt page's review with one "Looks right" button, dialogs
-    as bottom sheets on a phone. `docs/AUDIT-REPORT.md` (sprint 10) has the detail and one decision made
-    differently from the audit (icons stay on one map). When it is done: merge into `preview`, publish
-    `:preview`, and add the migrations to *Waiting on the owner*.
+  - **Sprint 10 (`feature/app-cleanup`, worktree `.claude/worktrees/dependency-updates`) is in `preview`** as far
+    as it has got (green CI on `6a0c7fd5`, 2026-11-11): one note per receipt, two statuses and a Quick Scan that
+    asks for nothing (three one-way data migrations), the renames, every component standalone, the Material-era
+    names gone, the bundle budget, the pruned icon map, the Dashboard's summary sentence, *Looks right* on a
+    to-check receipt, dialogs as sheets on a phone, two Dashboard panels as components. **Left on the branch:**
+    one button idiom in the templates (86 `<app-button>` in 42 templates) and the rest of the Dashboard split
+    (the tiles and the two chart panels move with their state and specs). `docs/AUDIT-REPORT.md` (sprint 10) has
+    the detail and one decision made differently from the audit, waiting for the owner's word: icons stay on one
+    map. The rewritten real-app specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column`
+    have never run.
   - After it, one branch each from `preview`: sprint 11 onward. The audit report lists what each holds.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
@@ -65,7 +66,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   it); that copy has never been seen on the NAS, so back up `sqlite/` by hand this once. **`:preview` now turns
   the roles into Admin and User (Owner and Member in a household) at its first start, and that cannot be taken
   back** except by restoring that backup. After it: every person still signs in, an admin is still Admin, and
-  the people and household pages show the two roles.
+  the people and household pages show the two roles. **Since sprint 10 the same first start also turns each
+  receipt's comments into its one note, makes every receipt To check or Settled, and deletes the header
+  shortcuts, one-way as well.**
 - After it: a photo scan, a HEIC and a PDF upload (also as an avatar), a report PDF and Excel, a household rename
   with receipt photos, a scan with a real AI key, day and night in an accent palette on phone and desktop.
 - Sprint 1: with the NAS stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows
@@ -88,6 +91,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   sign in with…* on `:preview`; the login page gets the button, signing in lands on the Dashboard, and *Connect*
   under User Settings → Sign-in methods ties it to an existing account. Without one, System Settings has one more
   tab and nothing else changes.
+- Sprint 10 (`:preview`): a receipt that had comments shows them as its note; Quick Scan asks for the photo only
+  (and for a note once *Ask for a note* is on under the household's Receipt Settings); with a monthly goal the
+  Dashboard opens with one sentence; a to-check receipt ends with *Looks right*; on a phone a dialog rises from
+  the bottom, and the keyboard does not hide its buttons (never seen on a real phone).
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
