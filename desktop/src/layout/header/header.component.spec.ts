@@ -10,7 +10,7 @@ import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
+import { GroupStore } from "../../store/group.store";
 import { StoreModule } from "../../store/store.module";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
@@ -95,8 +95,8 @@ describe("HeaderComponent", () => {
   });
 
   it("names the household on a phone, where the tab bar opens the sheet, and keeps the sidebar button elsewhere", async () => {
-    store.dispatch(new SetGroups([{ id: 3, name: "Home", isAllGroup: false } as Group, { id: 9, name: "All", isAllGroup: true } as Group]));
-    store.dispatch(new SetSelectedGroupId("9"));
+    TestBed.inject(GroupStore).setGroups([{ id: 3, name: "Home", isAllGroup: false } as Group, { id: 9, name: "All", isAllGroup: true } as Group]);
+    TestBed.inject(GroupStore).setSelectedGroupId("9");
     logIn();
     isHandset.set(true);
     await fixture.whenStable();

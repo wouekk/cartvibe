@@ -14,7 +14,7 @@ import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input";
 import { ApiModule, Group, GroupsService, GroupStatus, Permission } from "../../open-api";
-import { AddGroup, AuthState, UpdateGroup } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { AppInitService } from "../../services";
 import { GroupMemberFormComponent } from "../group-member-form/group-member-form.component";
@@ -224,7 +224,7 @@ describe("GroupFormComponent", () => {
       icon: "",
       color: "",
     } as any);
-    expect(storeSpy).toHaveBeenCalledWith(new AddGroup(returnValue));
+    expect(TestBed.inject(GroupStore).groups()).toContainEqual(returnValue);
     expect(routerSpy).toHaveBeenCalledWith(["/groups/1/details/view"], {
       queryParams: {
         tab: "details",
@@ -234,7 +234,7 @@ describe("GroupFormComponent", () => {
 
   it("should update group", () => {
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
+    const updateGroup = vi.spyOn(TestBed.inject(GroupStore), "updateGroup");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
     vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
@@ -317,7 +317,7 @@ describe("GroupFormComponent", () => {
         color: "",
       } as Group
     );
-    expect(storeSpy).toHaveBeenCalledWith(new UpdateGroup(returnValue));
+    expect(updateGroup).toHaveBeenCalledWith(returnValue);
     // The form stays where it is (always editable): it settles instead of navigating to a view page.
     expect(component.form.pristine).toBe(true);
   });

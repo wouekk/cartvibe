@@ -16,7 +16,7 @@ import {SortByDisplayName} from "src/utils/sort-by-displayname";
 import {Group, GroupMember, GroupsService, GroupStatus, Permission, PermissionScope, Role, RoleService} from "../../open-api";
 import {loadAssignableRoles} from "../../roles/role-loading.util";
 import {AppInitService, SnackbarService} from "../../services";
-import {AddGroup, AuthState, UpdateGroup} from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
@@ -47,6 +47,8 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [FormComponent, SettingsPageComponent, NgTemplateOutlet, AuditDetailSectionComponent, FormSectionComponent, InputComponent, SelectComponent, GroupLookPickerComponent, TableComponent, NgIf, RowActionsComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe, RoleNamePipe, UserPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
+  private readonly groupStore = inject(GroupStore);
+
   protected readonly PermissionScope = PermissionScope;
   private readonly destroyRef = inject(DestroyRef);
 
@@ -334,7 +336,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
           this.snackbarService.success("Group successfully created");
         }),
         switchMap((group: Group) => {
-          this.store.dispatch(new AddGroup(group));
+          this.groupStore.addGroup(group);
           // Reload app data so the group creator's permissions for the new
           // group load before navigating into the permission-gated group route.
           return this.appInitService.getAppData().pipe(map(() => group));
@@ -353,7 +355,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
         take(1),
         tap((group: Group) => {
           this.snackbarService.success("Group successfully updated");
-          this.store.dispatch(new UpdateGroup(group));
+          this.groupStore.updateGroup(group);
         }),
         switchMap((group: Group) =>
           // Reload app data so any membership/role changes affecting the current

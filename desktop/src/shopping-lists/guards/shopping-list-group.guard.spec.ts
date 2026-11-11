@@ -7,8 +7,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { Group, Permission } from "../../open-api";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { GroupState } from "../../store/group.state";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
+import { GroupStore } from "../../store/group.store";
 import { shoppingListGroupGuard } from "./shopping-list-group.guard";
 
 const group = (id: number, isAllGroup = false): Group => ({ id, name: `group-${id}`, isAllGroup }) as Group;
@@ -26,14 +25,14 @@ describe("shoppingListGroupGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
 
     store = TestBed.inject(Store);
     router = TestBed.inject(Router);
-    store.dispatch(new SetGroups([group(10, true), group(1), group(2)]));
-    store.dispatch(new SetSelectedGroupId("1"));
+    TestBed.inject(GroupStore).setGroups([group(10, true), group(1), group(2)]);
+    TestBed.inject(GroupStore).setSelectedGroupId("1");
   });
 
   it("allows a real group whose lists the user can read", () => {

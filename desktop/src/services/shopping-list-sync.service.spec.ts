@@ -11,7 +11,6 @@ import { ShoppingList, ShoppingListItem, ShoppingListService } from "../open-api
 import { PendingAdd, PendingChange, PendingToggle } from "../shopping-lists/shopping-list-pending";
 import { AuthState } from "../store/auth.state";
 import { Logout, SetAuthState } from "../store/auth.state.actions";
-import { GroupState } from "../store/group.state";
 import { CachedShoppingLists, shoppingListsCacheKey } from "../store/shopping-list.store";
 import { ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "./shopping-list-stream.service";
@@ -72,7 +71,7 @@ describe("ShoppingListSyncService", () => {
     streamStatus = signal<ShoppingListStreamStatus>("idle");
 
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

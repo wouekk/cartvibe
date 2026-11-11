@@ -31,7 +31,7 @@ import {
 import { SnackbarService } from "../../services";
 import { shakeInvalid } from "../../utils/shake";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
-import { AuthState, GroupState, FeatureConfigStore, UserStore } from "../../store";
+import { AuthState, FeatureConfigStore, UserStore, GroupStore } from "../../store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
 import { downloadFile } from "../../utils/file";
@@ -86,6 +86,8 @@ export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
     imports: [ReactiveFormsModule, FormHeaderComponent, FormSectionComponent, NgIf, AuditDetailSectionComponent, InputComponent, ReceiptCurrencyNoteComponent, DatepickerComponent, ReceiptWarrantyComponent, GroupAutocompleteComponent, UserAutocompleteComponent, SelectComponent, TextareaComponent, UploadImageComponent, AppIconComponent, HlmSpinner, CarouselComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, ReceiptProductsComponent, UploadProgressComponent, FormButtonBarComponent, CancelButtonComponent, SubmitButtonComponent, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, TranslatePipe, FormGetPipe, InputReadonlyPipe, HlmButton, HlmTooltip, RouterLink]
 })
 export class ReceiptFormComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly userStore = inject(UserStore);
 
   private readonly systemSettingsStore = inject(SystemSettingsStore);
@@ -112,9 +114,9 @@ export class ReceiptFormComponent implements OnInit {
 
   public readonly carouselComponent = viewChild(CarouselComponent);
 
-  public groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  public groups = this.groupStore.groupsWithoutAll;
 
-  public receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
+  public receiptListLink = this.groupStore.receiptListLink;
 
   public aiPoweredReceipts = this.featureConfigStore.aiPoweredReceipts;
 
@@ -175,7 +177,7 @@ export class ReceiptFormComponent implements OnInit {
   // checks an update against the group the receipt is moving into).
   private readonly currentGroupId = signal<number | string | null | undefined>(undefined);
 
-  private readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+  private readonly soleGroupId = this.groupStore.soleGroupId;
 
   // A member of one group has nothing to pick (Phase 3 C3); the picker still
   // shows when the receipt is somehow elsewhere, so it can be moved back.
@@ -309,9 +311,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private setCancelLink(): void {
-    const selectedGroupId = this.store.selectSnapshot(
-      GroupState.selectedGroupId
-    );
+    const selectedGroupId = this.groupStore.selectedGroupId();
     this.cancelLink = `/receipts/group/${selectedGroupId}`;
   }
 
@@ -328,8 +328,8 @@ export class ReceiptFormComponent implements OnInit {
     // hasGroupPermission would deny - rendering the whole add form read-only.
     const groupId =
       this.mode === FormMode.add
-        ? (this.store.selectSnapshot(GroupState.addTargetGroupId) ??
-          Number.parseInt(this.store.selectSnapshot(GroupState.selectedGroupId)))
+        ? (this.groupStore.addTargetGroupId() ??
+          Number.parseInt(this.groupStore.selectedGroupId()))
         : (this.originalReceipt?.groupId ?? 0);
     const editPermission =
       this.mode === FormMode.add
@@ -448,7 +448,7 @@ export class ReceiptFormComponent implements OnInit {
     // the value app-autocomplete filters its option list by, and "0" matches only
     // groups whose name contains a zero.
     const addTargetGroupId: number | string =
-      this.store.selectSnapshot(GroupState.addTargetGroupId) ?? "";
+      this.groupStore.addTargetGroupId() ?? "";
 
     // A family member never types a name or who paid (Phase 3 C1/C2): a new
     // receipt is "Receipt {today}" (magic fill replaces it with the store name)
@@ -531,9 +531,7 @@ export class ReceiptFormComponent implements OnInit {
           this.usersToOmit.set(users.map((u) => u.id.toString()));
           this.paidByAutocomplete()?.autocompleteComponent()?.clearFilter();
         } else {
-          const group = this.store.selectSnapshot(
-            GroupState.getGroupById(groupId)
-          );
+          const group = this.groupStore.getGroupById(groupId);
           const groupMembers = group?.groupMembers.map((u) =>
             u.userId.toString()
           );

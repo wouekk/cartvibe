@@ -25,7 +25,7 @@ import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, GroupState } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { ShoppingListEventType } from "../../store/shopping-list.store";
@@ -84,6 +84,8 @@ const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
     ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly shoppingListStore = inject(ShoppingListStore);
 
   private readonly systemSettingsStore = inject(SystemSettingsStore);
@@ -104,7 +106,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   /** False until this group's lists arrive, so a group switch never flashes the previous group's. */
   public readonly isLoaded = computed(() => this.loadedGroupId() === this.groupId());
 
-  private readonly groups = this.store.selectSignal(GroupState.groups);
+  private readonly groups = this.groupStore.groups;
 
   public readonly groupName = computed(
     () => this.groups().find((group) => group.id === this.groupId())?.name ?? ""

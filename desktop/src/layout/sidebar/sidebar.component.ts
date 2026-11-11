@@ -11,7 +11,7 @@ import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
+import { AuthState, Logout, GroupStore } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { shownHousehold } from "../../utils/shown-household";
 import { TabBarItem, TabBarComponent } from "../tab-bar/tab-bar.component";
@@ -189,6 +189,8 @@ interface ManageNavItem {
     ],
 })
 export class SidebarComponent {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly shoppingListStore = inject(ShoppingListStore);
 
   private readonly receiptTableStore = inject(ReceiptTableStore);
@@ -266,14 +268,14 @@ export class SidebarComponent {
     { initialValue: false },
   );
 
-  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
+  public selectedGroupId = this.groupStore.selectedGroupId;
 
   protected readonly selectedGroupIdNumber = computed(() => {
     const id = Number.parseInt(this.selectedGroupId() ?? "");
     return Number.isNaN(id) ? 0 : id;
   });
 
-  private allGroups = this.store.selectSignal(GroupState.groups);
+  private allGroups = this.groupStore.groups;
 
   public groups = computed(() =>
     this.allGroups().filter((g: Group) => g.status !== GroupStatus.Archived)
@@ -303,11 +305,11 @@ export class SidebarComponent {
     () => this.groupPermissions()?.[this.selectedGroupIdNumber()] ?? []
   );
 
-  private readonly receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
+  private readonly receiptListLink = this.groupStore.receiptListLink;
 
-  private readonly warrantiesLink = this.store.selectSignal(GroupState.warrantiesLink);
+  private readonly warrantiesLink = this.groupStore.warrantiesLink;
 
-  private readonly overviewLink = this.store.selectSignal(GroupState.overviewLink);
+  private readonly overviewLink = this.groupStore.overviewLink;
 
   private readonly shoppingListGroupId = this.shoppingListStore.targetGroupId;
 
@@ -365,7 +367,7 @@ export class SidebarComponent {
     })
   );
 
-  private readonly addTargetGroupId = this.store.selectSignal(GroupState.addTargetGroupId);
+  private readonly addTargetGroupId = this.groupStore.addTargetGroupId;
 
   /** Scan goes to the household being browsed (the only one while "All" is chosen), so it follows that one's permission. */
   public readonly canQuickScan = computed(() => {
@@ -452,9 +454,9 @@ export class SidebarComponent {
   }
 
   public groupClicked(groupId: number): void {
-    this.store.dispatch(new SetSelectedGroupId(groupId.toString()));
+    this.groupStore.setSelectedGroupId(groupId.toString());
     this.receiptTableStore.setPage(1);
-    this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)]);
+    this.router.navigate([this.groupStore.overviewLink()]);
   }
 
   public closeMobileSidebar(): void {

@@ -18,7 +18,7 @@ import { SnackbarService } from "../../services";
 import { QueueMode } from "../../services/receipt-queue.service";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { UserAutocompleteModule } from "../../user-autocomplete/user-autocomplete.module";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
+import { GroupStore } from "../../store/group.store";
 import { StoreModule } from "../../store/store.module";
 import { ReceiptFormComponent } from "./receipt-form.component";
 
@@ -702,7 +702,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     const openAddForm = (selectedGroupId: string): void => {
-      store.dispatch(new SetSelectedGroupId(selectedGroupId));
+      TestBed.inject(GroupStore).setSelectedGroupId(selectedGroupId);
       routeDataSubject.next({ mode: FormMode.add });
     };
 
@@ -713,7 +713,7 @@ describe("ReceiptFormComponent", () => {
     it("seeds the user's only group when the All group is the active one", () => {
       // The All group sorts first server-side, so it is what a fresh
       // single-group user lands on - and it is never a receipt target.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("1");
 
@@ -721,7 +721,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("leaves the group blank when the user belongs to more than one", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
 
       openAddForm("1");
 
@@ -735,7 +735,7 @@ describe("ReceiptFormComponent", () => {
       // selectedGroupId is persisted, so it outlives a group the user has left.
       // Number("404") is truthy, which used to skip the fallback and seed an id
       // the picker does not offer.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("404");
 
@@ -743,7 +743,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("still leaves it blank on a stale selection with several groups", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
 
       openAddForm("404");
 
@@ -755,7 +755,7 @@ describe("ReceiptFormComponent", () => {
       // The All group carries its own membership, which can be missing create
       // while the user's real group has it. The gate must follow the group the
       // receipt is actually going into.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
       store.dispatch(
         new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] })
       );
@@ -770,7 +770,7 @@ describe("ReceiptFormComponent", () => {
       // Multi-group user on the All group: no add target, so the gate must stay
       // on the All group exactly as before - resolving the blank seed instead
       // would deny and render the whole form read-only.
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
       store.dispatch(
         new SetPermissions([], { 1: [Permission.GroupReceiptsCreate] })
       );
@@ -782,7 +782,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("keeps the actively selected group over the sole-group fallback", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("7");
 
@@ -790,8 +790,8 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("keeps an existing receipt's own group in edit mode", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
-      store.dispatch(new SetSelectedGroupId("1"));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
+      TestBed.inject(GroupStore).setSelectedGroupId("1");
 
       routeDataSubject.next({
         mode: FormMode.edit,
@@ -1039,7 +1039,7 @@ describe("ReceiptFormComponent", () => {
       snackbarError = vi.spyOn(TestBed.inject(SnackbarService), "error");
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
-      store.dispatch(new SetGroups([group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(7), group(8)]);
       store.dispatch(
         new SetPermissions(
           [],
@@ -1055,7 +1055,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     const openAddForm = (): void => {
-      store.dispatch(new SetSelectedGroupId("7"));
+      TestBed.inject(GroupStore).setSelectedGroupId("7");
       routeDataSubject.next({ mode: FormMode.add });
     };
 

@@ -9,7 +9,7 @@ import { Group, GroupsService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
-import { AuthState, GroupState, RemoveGroup } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -41,11 +41,13 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, TranslatePipe, AppDatePipe]
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly translation = inject(TranslationService);
   private readonly router = inject(Router);
   private readonly viewport = inject(ViewportService);
 
-  public groups = this.store.selectSignal(GroupState.groups);
+  public groups = this.groupStore.groups;
 
   /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
   private readonly initialDataSource = this.dataSource();
@@ -215,7 +217,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
                 this.snackbarService.success("Group successfully deleted");
                 // Keeps the GroupState cache in sync; a no-op for a group the
                 // caller is not a member of (an app.groups.delete cleanup).
-                this.store.dispatch(new RemoveGroup(group.id.toString()));
+                this.groupStore.removeGroup(group.id.toString());
                 // Refetch rather than swapping in the caller's own groups: this
                 // table is server-paged and may be showing the all-groups filter.
                 this.getTableData();

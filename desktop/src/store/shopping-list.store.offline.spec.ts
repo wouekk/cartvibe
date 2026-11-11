@@ -7,7 +7,6 @@ import { ShoppingList, ShoppingListItem } from "../open-api";
 import { PendingAdd, PendingToggle } from "../shopping-lists/shopping-list-pending";
 import { AuthState } from "./auth.state";
 import { Logout } from "./auth.state.actions";
-import { GroupState } from "./group.state";
 import { CachedShoppingLists, ShoppingListEventType, shoppingListsCacheKey } from "./shopping-list.store";
 import {
   ShoppingListStore,
@@ -61,7 +60,7 @@ describe("ShoppingListStore without a connection", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);

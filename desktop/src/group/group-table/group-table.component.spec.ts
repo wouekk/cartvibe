@@ -18,7 +18,7 @@ import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { ApiModule, Group, GroupsService, Permission } from "../../open-api";
-import { AuthState, GroupState, SetGroups } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 
@@ -38,7 +38,7 @@ describe("GroupTableComponent", () => {
         RouterLink,
         ApiModule,
         AppDatePipe,
-        NgxsModule.forRoot([AuthState, GroupState]),
+        NgxsModule.forRoot([AuthState]),
         SharedUiModule,
         TableModule,
         HlmButton,
@@ -174,21 +174,21 @@ describe("GroupTableComponent", () => {
     // CALLER's own groups (including the virtual "All" group), so without the
     // permission escape a one-group admin is blocked from deleting anything.
     it("disables delete for a caller with a single group and no app permission", () => {
-      store.dispatch(new SetGroups([{ id: 1 } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
       store.dispatch(new SetPermissions([], {}));
 
       expect(component.deleteDisabled()).toBe(true);
     });
 
     it("does not disable delete for an app.groups.delete holder with a single group", () => {
-      store.dispatch(new SetGroups([{ id: 1 } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
       store.dispatch(new SetPermissions([Permission.AppGroupsDelete], {}));
 
       expect(component.deleteDisabled()).toBe(false);
     });
 
     it("does not disable delete for a caller with more than one group", () => {
-      store.dispatch(new SetGroups([{ id: 1 } as Group, { id: 2 } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group, { id: 2 } as Group]);
       store.dispatch(new SetPermissions([], {}));
 
       expect(component.deleteDisabled()).toBe(false);
@@ -209,7 +209,7 @@ describe("GroupTableComponent", () => {
         .spyOn(TestBed.inject(AppDialog), "open")
         .mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
 
-      store.dispatch(new SetGroups([{ id: 1 } as Group, { id: 2 } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group, { id: 2 } as Group]);
       component.dataSource.set(
         new TableDataSource([{ id: 5, name: "Abandoned Group" } as Group])
       );
@@ -224,7 +224,7 @@ describe("GroupTableComponent", () => {
       const deleteSpy = vi.spyOn(TestBed.inject(GroupsService), "deleteGroup");
       const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
 
-      store.dispatch(new SetGroups([{ id: 1 } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
       store.dispatch(new SetPermissions([], {}));
       component.dataSource.set(
         new TableDataSource([{ id: 1, name: "Only Group" } as Group])

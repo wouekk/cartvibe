@@ -1,7 +1,6 @@
 import { Component, Input, OnInit, TemplateRef, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup, } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { RECEIPT_FILTER_FIELDS, RECEIPT_STATUS_OPTIONS } from "src/constants";
 import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { setupAutoOperationSelection } from "src/utils/filter-form";
@@ -10,7 +9,7 @@ import { Category, Tag } from "../../open-api";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { AppIconComponent } from "../icon/icon.component";
-import { GroupState } from "../../store";
+import { GroupStore } from "../../store";
 import { NgIf, NgTemplateOutlet } from "@angular/common";
 import { DialogComponent } from "../dialog/dialog.component";
 import { FilterFieldComponent } from "../filter-field/filter-field.component";
@@ -25,6 +24,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [NgIf, DialogComponent, NgTemplateOutlet, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class ReceiptFilterComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly receiptTableStore = inject(ReceiptTableStore);
 
   @Input() public headerText: string = "";
@@ -63,10 +64,9 @@ export class ReceiptFilterComponent implements OnInit {
 
   // The user's own groups (minus the synthetic "All" group) — the selectable
   // set for the group filter.
-  public groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  public groups = this.groupStore.groupsWithoutAll;
 
   constructor(
-    private store: Store,
     private dialogRef: AppDialogRef<ReceiptFilterComponent>
   ) {}
 

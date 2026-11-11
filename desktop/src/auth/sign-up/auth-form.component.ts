@@ -2,12 +2,11 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, take, tap, } from "rxjs";
 import { AppData, AuthService, FeatureConfigService, OidcProviderSummary } from "src/open-api";
 import { SnackbarService } from "src/services";
 import { AppDataService } from "src/services/app-data.service";
-import { GroupState, FeatureConfigStore } from "../../store";
+import { FeatureConfigStore, GroupStore } from "../../store";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
@@ -31,6 +30,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [CartVibeLogoComponent, ReactiveFormsModule, NgIf, InputComponent, FeatureDirective, RouterLink, BrnButton, HlmButton, AppIconComponent, AsyncPipe, TranslatePipe, FormGetPipe]
 })
 export class AuthForm implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly featureConfigStore = inject(FeatureConfigStore);
 
   private readonly appData = inject(AppDataService);
@@ -61,7 +62,6 @@ export class AuthForm implements OnInit {
     protected formBuilder: FormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
-    protected store: Store,
     protected userValidators: UserValidators
   ) {
   }
@@ -224,7 +224,7 @@ export class AuthForm implements OnInit {
       .login(this.form.value)
       .pipe(
         tap((appData: AppData) => this.appData.set(appData)),
-        switchMap(() => this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)])),
+        switchMap(() => this.router.navigate([this.groupStore.overviewLink()])),
         catchError(() => EMPTY), // the HTTP interceptor surfaces the failure toast
         finalize(() => {
           this.isLoading.set(false);

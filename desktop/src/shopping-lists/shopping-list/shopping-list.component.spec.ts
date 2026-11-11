@@ -12,7 +12,6 @@ import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
-import { GroupState } from "../../store/group.state";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListComponent } from "./shopping-list.component";
 import { seedStore } from "../../testing/seed-store";
@@ -53,7 +52,7 @@ describe("ShoppingListComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState, GroupState]),
+        NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
         ShoppingListComponent,
     ],

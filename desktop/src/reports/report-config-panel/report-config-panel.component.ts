@@ -11,11 +11,10 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormControl, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { merge } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "src/constants";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
-import { GroupState } from "src/store";
+import { GroupStore } from "src/store";
 import { SystemSettingsStore } from "src/store/system-settings.store";
 import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { ReportColumn, ReportDetail, ReportPeriod } from "../../open-api";
@@ -144,6 +143,8 @@ const KIND_META: Record<
         FormGetPipe, HlmButton, HlmTooltip],
 })
 export class ReportConfigPanelComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly translation = inject(TranslationService);
@@ -152,10 +153,9 @@ export class ReportConfigPanelComponent implements OnInit {
 
   private readonly dialog = inject(AppDialog);
   private readonly formBuilder = inject(FormBuilder);
-  private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly allGroups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  private readonly allGroups = this.groupStore.groupsWithoutAll;
 
   /** The app time zone: the period hint resolves "today" in it and names it. */
   private readonly timeZone = this.systemSettingsStore.timeZone;

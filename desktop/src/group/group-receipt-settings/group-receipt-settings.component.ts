@@ -14,7 +14,7 @@ import {
   UpdateGroupReceiptSettingsCommand,
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
-import { AuthState, UpdateGroup } from "../../store/index";
+import { AuthState, GroupStore } from "../../store/index";
 import { marker } from "../../i18n/marker";
 import { FormComponent } from "../../shared-ui/form/form.component";
 import { AuditDetailSectionComponent } from "../../shared-ui/audit-detail-section/audit-detail-section.component";
@@ -39,6 +39,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [FormComponent, AuditDetailSectionComponent, FormSectionComponent, CheckboxComponent, SelectComponent, UserAutocompleteComponent, StatusSelectComponent, TranslatePipe, FormGetPipe]
 })
 export class GroupReceiptSettingsComponent extends BaseFormComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   public originalGroup!: Group;
 
   public editLink: string = "";
@@ -155,9 +157,9 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
       this.groupsService.updateGroupReceiptSettings(this.originalGroup.id, command)
         .pipe(
           take(1),
-          switchMap((updatedGroupReceiptSettings) => {
+          tap((updatedGroupReceiptSettings) => {
             this.originalGroup.groupReceiptSettings = updatedGroupReceiptSettings;
-            return this.store.dispatch(new UpdateGroup(this.originalGroup));
+            this.groupStore.updateGroup(this.originalGroup);
           }),
           tap(() => {
             this.snackbarService.success("Receipt settings updated successfully");

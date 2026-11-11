@@ -5,7 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../open-api";
 import { AuthState } from "../store/auth.state";
 import { SetPermissions } from "../store/auth.state.actions";
-import { GroupState } from "../store/group.state";
+import { GroupStore } from "../store/group.store";
 import { settingsLandingGuard } from "./settings-landing.guard";
 
 describe("settingsLandingGuard", () => {
@@ -16,7 +16,7 @@ describe("settingsLandingGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection()],
     });
 
@@ -41,7 +41,7 @@ describe("settingsLandingGuard", () => {
   it("redirects to the dashboard when no tab is readable", () => {
     store.dispatch(new SetPermissions([], {}));
 
-    const dashboard = store.selectSnapshot(GroupState.dashboardLink);
+    const dashboard = TestBed.inject(GroupStore).dashboardLink();
     expect(run().toString()).toBe(router.parseUrl(dashboard).toString());
   });
 });

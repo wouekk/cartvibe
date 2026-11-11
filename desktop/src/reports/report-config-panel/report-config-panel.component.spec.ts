@@ -12,6 +12,7 @@ import {
 } from "../../open-api";
 import { buildColumnGroup } from "../models/report-form.factory";
 import { ReportConfigPanelComponent } from "./report-config-panel.component";
+import { GroupStore } from "src/store/group.store";
 import { SystemSettingsStore } from "src/store/system-settings.store";
 
 import type { Mock } from "vitest";
@@ -72,6 +73,7 @@ describe("ReportConfigPanelComponent", () => {
       .compileComponents();
 
     TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
+    TestBed.inject(GroupStore).setGroups(GROUPS as any);
     formBuilder = TestBed.inject(FormBuilder);
     form = buildForm(formBuilder);
     fixture = TestBed.createComponent(ReportConfigPanelComponent);

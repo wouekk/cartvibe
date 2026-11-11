@@ -15,7 +15,7 @@ import {
   ReportTemplate,
 } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState, GroupState } from "../../store";
+import { AuthState } from "../../store";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateListComponent } from "./report-template-list.component";
 
@@ -79,14 +79,9 @@ describe("ReportTemplateListComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     const store = {
-      // The component makes two selectSignal calls: GroupState.groupsWithoutAll (the
-      // group list) and AuthState.hasAnyAppPermission([...]) (the builder-entry gate).
-      // Route the group one to an empty list and everything else to the canEnterBuilder
-      // signal.
-      selectSignal: vi.fn((selector: unknown) => {
-        if (selector === GroupState.groupsWithoutAll) return signal([]);
-        return canEnterBuilder;
-      }),
+      // The component's one NGXS read is AuthState.hasAnyAppPermission([...]) (the builder-entry gate);
+      // the households come from their own store, which starts empty.
+      selectSignal: vi.fn(() => canEnterBuilder),
       selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
       select: vi.fn(() => of(1)),
       dispatch: vi.fn(),

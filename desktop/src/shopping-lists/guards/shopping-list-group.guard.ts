@@ -1,7 +1,6 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
-import { GroupState } from "../../store";
+import { GroupStore } from "../../store";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 
 /**
@@ -12,7 +11,7 @@ import { ShoppingListStore } from "../../store/shopping-list.store";
  * as `/shopping-lists?recipeUrl=…` with no group, and the page reads it after the redirect.
  */
 export const shoppingListGroupGuard: CanActivateFn = (route) => {
-  const store = inject(Store);
+  const groupStore = inject(GroupStore);
   const lists = inject(ShoppingListStore);
   const router = inject(Router);
   const groupId = Number(route.params["groupId"]);
@@ -28,5 +27,5 @@ export const shoppingListGroupGuard: CanActivateFn = (route) => {
     return router.createUrlTree(["/shopping-lists/group", targetGroupId], { queryParams });
   }
 
-  return router.createUrlTree([store.selectSnapshot(GroupState.receiptListLink)]);
+  return router.createUrlTree([groupStore.receiptListLink()]);
 };

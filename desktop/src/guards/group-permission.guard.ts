@@ -1,8 +1,9 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { AuthState, GroupState } from "../store";
+import { AuthState } from "../store";
 import { redirectToLanding } from "./landing-redirect";
+import { GroupStore } from "../store/group.store";
 
 /**
  * Allows activation when the user holds the group-scoped permission declared on
@@ -12,19 +13,20 @@ import { redirectToLanding } from "./landing-redirect";
  *
  * Group id resolution: when `route.data['useRouteGroupId']` is set the id comes
  * from the `:id` route param (own or parent); when `route.data['useAddTargetGroupId']`
- * is set it comes from `GroupState.addTargetGroupId` (the group a new record
+ * is set it comes from `GroupStore.addTargetGroupId` (the group a new record
  * would be created in, which is not always the one being browsed - see the
- * selector); otherwise from the currently selected group in `GroupState`.
+ * selector); otherwise from the currently selected group in `GroupStore`.
  */
 export const groupPermissionGuard: CanActivateFn = (route, state) => {
   const store: Store = inject(Store);
+  const groupStore = inject(GroupStore);
   const router: Router = inject(Router);
 
   const permission = route.data["groupPermission"] as string;
   const orApp = (route.data["orAppPermissions"] as string[]) ?? [];
 
   const selectedGroupId = () =>
-    Number.parseInt(store.selectSnapshot(GroupState.selectedGroupId));
+    Number.parseInt(groupStore.selectedGroupId());
 
   let groupId: number;
   if (route.data["useRouteGroupId"]) {
@@ -37,7 +39,7 @@ export const groupPermissionGuard: CanActivateFn = (route, state) => {
     // browsing is the synthetic "All" one. Falls back to the selected group when
     // there is no single add target, which keeps multi-group users unchanged.
     groupId =
-      store.selectSnapshot(GroupState.addTargetGroupId) ?? selectedGroupId();
+      groupStore.addTargetGroupId() ?? selectedGroupId();
   } else {
     groupId = selectedGroupId();
   }
@@ -50,5 +52,5 @@ export const groupPermissionGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return redirectToLanding(router, store, state.url);
+  return redirectToLanding(router, groupStore.dashboardLink(), state.url);
 };

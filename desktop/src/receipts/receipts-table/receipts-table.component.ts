@@ -38,7 +38,7 @@ import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, GroupState, UserStore } from "../../store";
+import { AuthState, UserStore, GroupStore } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
@@ -98,6 +98,8 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly userStore = inject(UserStore);
 
   private readonly systemSettingsStore = inject(SystemSettingsStore);
@@ -159,14 +161,14 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public columnConfig = this.receiptTableStore.columnConfig;
 
-  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
+  public selectedGroupId = this.groupStore.selectedGroupId;
 
   private readonly refreshRequested = new Subject<void>();
 
   /** Set by the first refresh, which the period picker asks for when it mounts. */
   private refreshWasRequested = false;
 
-  private groups = this.store.selectSignal(GroupState.groups);
+  private groups = this.groupStore.groups;
 
   private users = this.userStore.users;
 
@@ -274,8 +276,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public ngOnInit(): void {
     const query = this.activatedRoute.snapshot.queryParamMap;
     this.initialPeriod = parseDayRange(query.get("from"), query.get("to"));
-    this.groupId = this.store
-      .selectSnapshot(GroupState.selectedGroupId)
+    this.groupId = this.groupStore.selectedGroupId()
       ?.toString();
     this.setGroup();
     this.setCanEdit();
@@ -348,7 +349,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private setGroup(): void {
-    this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId));
+    this.group = this.groupStore.getGroupById(this.groupId);
   }
 
   private setCanEdit(): void {
@@ -365,9 +366,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private setHeaderText(): void {
-    const group = this.store.selectSnapshot(
-      GroupState.getGroupById(this.groupId)
-    );
+    const group = this.groupStore.getGroupById(this.groupId);
     // Translatable titles (the header passes them through `t`): "<group> Receipts" could never be translated.
     if (group) {
       this.headerText = group.isAllGroup ? marker("All receipts") : marker("Receipts");

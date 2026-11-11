@@ -15,9 +15,8 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, GroupState, SetSelectedGroupId, FeatureConfigStore } from "../../store";
+import { AuthState, FeatureConfigStore, GroupStore } from "../../store";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
-import { SetGroups } from "../../store/group.state.actions";
 import { SidebarComponent } from "./sidebar.component";
 
 describe("SidebarComponent", () => {
@@ -47,7 +46,7 @@ describe("SidebarComponent", () => {
   };
 
   const selectGroupFive = (permissions: string[]) => {
-    store.dispatch(new SetSelectedGroupId("5"));
+    TestBed.inject(GroupStore).setSelectedGroupId("5");
     store.dispatch(new SetPermissions([], { 5: permissions }));
   };
 
@@ -56,7 +55,7 @@ describe("SidebarComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, GroupState]),
+    imports: [TranslatePipe, NgxsModule.forRoot([AuthState]),
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
@@ -101,12 +100,10 @@ describe("SidebarComponent", () => {
   describe("main navigation", () => {
     beforeEach(() => {
       login();
-      store.dispatch(
-        new SetGroups([
+      TestBed.inject(GroupStore).setGroups([
           { id: 10, name: "All", isAllGroup: true } as Group,
           { id: 5, name: "Home", isAllGroup: false } as Group,
-        ])
-      );
+        ]);
     });
 
     it("always offers Receipts", async () => {
@@ -127,7 +124,7 @@ describe("SidebarComponent", () => {
 
 
     it("offers Shopping Lists for a readable real group even while the All group is selected", async () => {
-      store.dispatch(new SetSelectedGroupId("10"));
+      TestBed.inject(GroupStore).setSelectedGroupId("10");
       store.dispatch(new SetPermissions([], { 10: [Permission.GroupShoppingListsRead] }));
       await fixture.whenStable();
       expect(queryTestId("nav-shopping-lists")).toBeFalsy();
@@ -231,13 +228,11 @@ describe("SidebarComponent", () => {
 
     it("lists only the administration pages the user may read, once expanded", async () => {
       login();
-      store.dispatch(
-        new SetGroups([
+      TestBed.inject(GroupStore).setGroups([
           { id: 10, name: "All", isAllGroup: true } as Group,
           { id: 5, name: "Home", isAllGroup: false } as Group,
           { id: 6, name: "Cabin", isAllGroup: false } as Group,
-        ])
-      );
+        ]);
       store.dispatch(
         new SetPermissions(
           ["app.categories.read", "app.tags.read", "app.groups.read"],
@@ -290,12 +285,10 @@ describe("SidebarComponent", () => {
 
     it("keeps Management but hides the group switcher while there is only one real group (Phase 3 M5)", async () => {
       login();
-      store.dispatch(
-        new SetGroups([
+      TestBed.inject(GroupStore).setGroups([
           { id: 10, name: "All", isAllGroup: true } as Group,
           { id: 5, name: "Household", isAllGroup: false } as Group,
-        ])
-      );
+        ]);
       store.dispatch(new SetPermissions(["app.categories.read", "app.groups.read"], {}));
       await fixture.whenStable();
 
@@ -389,7 +382,7 @@ describe("SidebarComponent", () => {
 
     it("offers Dashboard, Lists and Receipts, each only when the sidebar offers it", async () => {
       login();
-      store.dispatch(new SetGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]);
       selectGroupFive([Permission.GroupReceiptsRead, Permission.GroupShoppingListsRead]);
       await fixture.whenStable();
 
@@ -408,7 +401,7 @@ describe("SidebarComponent", () => {
 
     it("offers Scan with the quick-scan permission on the household being browsed", async () => {
       login();
-      store.dispatch(new SetGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]));
+      TestBed.inject(GroupStore).setGroups([{ id: 5, name: "Home", isAllGroup: false } as Group]);
       selectGroupFive([Permission.GroupReceiptsRead]);
       await fixture.whenStable();
       expect(component.canQuickScan()).toBe(false);

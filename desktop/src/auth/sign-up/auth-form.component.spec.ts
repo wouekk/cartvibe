@@ -20,7 +20,6 @@ import { CartVibeLogoComponent } from '../../shared-ui/cartvibe-logo/cartvibe-lo
 import { AppIconComponent } from '../../shared-ui/icon/icon.component';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { AuthState } from '../../store/auth.state';
-import { GroupState } from '../../store/group.state';
 import { AuthFormUtil } from './auth-form.util';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
@@ -36,7 +35,7 @@ describe('AuthForm', () => {
         AppIconComponent,
         CartVibeLogoComponent,
         InputModule,
-        NgxsModule.forRoot([AuthState, GroupState]),
+        NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
         ApiModule,
         RouterTestingModule, AuthForm, FeatureDirective],

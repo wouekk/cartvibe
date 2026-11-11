@@ -12,9 +12,8 @@ import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
-import { AuthState, GroupState } from "../../store";
+import { AuthState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { SetGroups } from "../../store/group.state.actions";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -29,7 +28,7 @@ describe("ReceiptsTableComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([AuthState, GroupState]),
+        NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
         ReceiptsTableComponent],

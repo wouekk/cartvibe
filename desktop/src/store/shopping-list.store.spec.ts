@@ -5,8 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { Group, Permission, ShoppingList, ShoppingListItem } from "../open-api";
 import { AuthState } from "./auth.state";
 import { SetPermissions } from "./auth.state.actions";
-import { GroupState } from "./group.state";
-import { SetGroups, SetSelectedGroupId } from "./group.state.actions";
+import { GroupStore } from "./group.store";
 import { applyEvent, ShoppingListEventType, ShoppingListStore } from "./shopping-list.store";
 
 const item = (id: number, overrides: Partial<ShoppingListItem> = {}): ShoppingListItem => ({
@@ -37,7 +36,7 @@ describe("ShoppingListStore", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);
@@ -178,7 +177,7 @@ describe("ShoppingListStore", () => {
 
   describe("targetGroupId", () => {
     beforeEach(() => {
-      store.dispatch(new SetGroups([group(10, true), group(1), group(2)]));
+      TestBed.inject(GroupStore).setGroups([group(10, true), group(1), group(2)]);
       store.dispatch(
         new SetPermissions([], {
           10: [Permission.GroupShoppingListsRead],
@@ -192,15 +191,15 @@ describe("ShoppingListStore", () => {
     });
 
     it("uses the selected group when its lists are readable", () => {
-      store.dispatch(new SetSelectedGroupId("2"));
+      TestBed.inject(GroupStore).setSelectedGroupId("2");
       expect(listStore.targetGroupId()).toBe(2);
     });
 
     it("falls back to the first readable group otherwise", () => {
-      store.dispatch(new SetSelectedGroupId("1"));
+      TestBed.inject(GroupStore).setSelectedGroupId("1");
       expect(listStore.targetGroupId()).toBe(2);
 
-      store.dispatch(new SetSelectedGroupId("10"));
+      TestBed.inject(GroupStore).setSelectedGroupId("10");
       expect(listStore.targetGroupId()).toBe(2);
     });
 

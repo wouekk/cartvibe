@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, EMPTY, finalize, switchMap, take, tap } from "rxjs";
 import { UserService } from "../../open-api";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
 import { CartVibeLoaderComponent } from "../../shared-ui/cartvibe-loader/cartvibe-loader.component";
-import { GroupState } from "../../store";
+import { GroupStore } from "../../store";
 import { AppDataService } from "../../services/app-data.service";
 
 /**
@@ -27,8 +26,9 @@ import { AppDataService } from "../../services/app-data.service";
   template: `<app-cartvibe-loader data-testid="oidc-callback"></app-cartvibe-loader>`,
 })
 export class OidcCallbackComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly router = inject(Router);
-  private readonly store = inject(Store);
   private readonly appData = inject(AppDataService);
   private readonly userService = inject(UserService);
   private readonly signInTransition = inject(SignInTransitionService);
@@ -40,7 +40,7 @@ export class OidcCallbackComponent implements OnInit {
       .pipe(
         take(1),
         tap((appData) => this.appData.set(appData)),
-        switchMap(() => this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)])),
+        switchMap(() => this.router.navigate([this.groupStore.overviewLink()])),
         catchError(() => {
           void this.router.navigate(["/auth/login"], { queryParams: { oidcError: "invalid_state" } });
           return EMPTY;

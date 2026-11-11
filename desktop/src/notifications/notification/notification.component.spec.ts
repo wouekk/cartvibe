@@ -5,13 +5,14 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, NotificationsService } from "../../open-api";
-import { GroupState } from "../../store";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { seedStore } from "../../testing/seed-store";
+import { GroupStore } from "../../store/group.store";
 
 describe("NotificationComponent", () => {
   let component: NotificationComponent;
@@ -25,7 +26,7 @@ describe("NotificationComponent", () => {
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
-        NgxsModule.forRoot([GroupState, AuthState]),
+        NgxsModule.forRoot([AuthState]),
         RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
@@ -57,15 +58,13 @@ describe("NotificationComponent", () => {
   });
 
   it("should parse body with link and parameterized text", () => {
-    store.reset({
-      groups: {
-        groups: [
-          {
-            id: 5,
-            name: "Best group ever",
-          },
-        ],
-      },
+    seedStore(TestBed.inject(GroupStore), {
+      groups: [
+        {
+          id: 5,
+          name: "Best group ever",
+        },
+      ],
     });
     fixture.componentRef.setInput("notification", {
       ...component.notification(),

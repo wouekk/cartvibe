@@ -21,7 +21,7 @@ import {
 import { hasAll } from "../utils/permission.utils";
 import { AuthState } from "./auth.state";
 import { Logout } from "./auth.state.actions";
-import { GroupState } from "./group.state";
+import { GroupStore } from "./group.store";
 import { StateStore } from "./state-store";
 
 /**
@@ -74,14 +74,12 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
 
   private readonly offlineStorage = inject(OfflineStorageService);
 
-  // The households and the session are still NGXS states; they move in the next steps.
+  private readonly groupStore = inject(GroupStore);
+
+  // The session is still an NGXS state; it moves in the next step.
   private readonly ngxs = inject(Store);
 
-  private readonly realGroups = this.ngxs.selectSignal(GroupState.groupsWithoutAll);
-
   private readonly groupPermissions = this.ngxs.selectSignal(AuthState.groupPermissions);
-
-  private readonly selectedGroupId = this.ngxs.selectSignal(GroupState.selectedGroupId);
 
   /** The group asked for last, so a device copy that arrives late for an earlier group is not shown. */
   private requestedGroupId?: number;
@@ -101,7 +99,7 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
    */
   public readonly readableGroups = computed((): Group[] => {
     const groupPermissions = this.groupPermissions();
-    return this.realGroups().filter((group) => hasAll(groupPermissions[group.id] ?? [], Permission.GroupShoppingListsRead));
+    return this.groupStore.groupsWithoutAll().filter((group) => hasAll(groupPermissions[group.id] ?? [], Permission.GroupShoppingListsRead));
   });
 
   /**
@@ -110,7 +108,7 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
    */
   public readonly targetGroupId = computed((): number | undefined => {
     const readableGroups = this.readableGroups();
-    const selected = readableGroups.find((group) => group.id.toString() === this.selectedGroupId());
+    const selected = readableGroups.find((group) => group.id.toString() === this.groupStore.selectedGroupId());
     return (selected ?? readableGroups[0])?.id;
   });
 

@@ -7,8 +7,7 @@ import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Group, Permission } from "../../../open-api";
 import { AuthState } from "../../../store/auth.state";
 import { SetPermissions } from "../../../store/auth.state.actions";
-import { GroupState } from "../../../store/group.state";
-import { SetGroups } from "../../../store/group.state.actions";
+import { GroupStore } from "../../../store/group.store";
 import { ReportsModule } from "../../reports.module";
 import { AddGroupDialogComponent, AddGroupDialogData } from "./add-group-dialog.component";
 
@@ -29,7 +28,7 @@ describe("AddGroupDialogComponent", () => {
   const open = async (data: AddGroupDialogData, reportGroups: number[] = [1, 2, 99]) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ReportsModule, NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [ReportsModule, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -38,7 +37,7 @@ describe("AddGroupDialogComponent", () => {
       ],
     }).compileComponents();
     const store = TestBed.inject(Store);
-    store.dispatch(new SetGroups(groups));
+    TestBed.inject(GroupStore).setGroups(groups);
     const groupPermissions: { [groupId: number]: string[] } = {};
     for (const id of reportGroups) {
       groupPermissions[id] = [Permission.GroupReportsRead];

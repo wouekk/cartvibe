@@ -4,7 +4,7 @@ import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { AuthState } from "../store/auth.state";
 import { SetPermissions } from "../store/auth.state.actions";
-import { GroupState } from "../store/group.state";
+import { GroupStore } from "../store/group.store";
 import { appPermissionGuard } from "./app-permission.guard";
 
 import type { MockInstance } from "vitest";
@@ -16,7 +16,7 @@ describe("appPermissionGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection()],
     });
 
@@ -45,7 +45,7 @@ describe("appPermissionGuard", () => {
 
     expect(result).toBe(false);
     expect(navigateSpy).toHaveBeenCalledWith([
-      store.selectSnapshot(GroupState.dashboardLink),
+      TestBed.inject(GroupStore).dashboardLink(),
     ]);
   });
 

@@ -1,8 +1,8 @@
-import { Component, OnInit, input, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnInit, input, ChangeDetectionStrategy, inject } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { Permission, Receipt } from "../../open-api/index";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
-import { AuthState, GroupState } from "../../store/index";
+import { AuthState, GroupStore } from "../../store/index";
 import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
 import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
 import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
@@ -21,6 +21,8 @@ import { AppIconComponent } from "../icon/icon.component";
     imports: [ CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class QueueStartMenuComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   public readonly buttonText = input<string>("");
 
   public readonly buttonIcon = input<string>("");
@@ -43,7 +45,7 @@ export class QueueStartMenuComponent implements OnInit {
   }
 
   private setCanEdit(): void {
-    const groupId = this.store.selectSnapshot(GroupState.selectedGroupId);
+    const groupId = this.groupStore.selectedGroupId();
     this.canEdit = this.store.selectSnapshot(
       AuthState.hasGroupPermission(Number.parseInt(groupId), Permission.GroupReceiptsUpdate)
     );

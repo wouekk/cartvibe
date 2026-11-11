@@ -21,7 +21,7 @@ import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, GroupState } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { ReportTemplateTableStore } from "../../store/report-template-table.store";
 import {
   columnCount,
@@ -71,6 +71,8 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         AppDatePipe, HlmButton, HlmTooltip],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly reportTemplateTableStore = inject(ReportTemplateTableStore);
 
   private readonly translation = inject(TranslationService);
@@ -112,7 +114,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   public readonly generatingId = signal<number | null>(null);
   public readonly duplicatingId = signal<number | null>(null);
 
-  private readonly groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  private readonly groups = this.groupStore.groupsWithoutAll;
 
   public readonly page = this.reportTemplateTableStore.page;
 

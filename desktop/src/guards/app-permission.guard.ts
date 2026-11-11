@@ -1,7 +1,7 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { AuthState } from "../store";
+import { AuthState, GroupStore } from "../store";
 import { redirectToLanding } from "./landing-redirect";
 
 /**
@@ -19,5 +19,5 @@ export const appPermissionGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return redirectToLanding(router, store, state.url);
+  return redirectToLanding(router, inject(GroupStore).dashboardLink(), state.url);
 };

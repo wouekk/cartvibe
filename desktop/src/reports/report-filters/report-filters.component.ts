@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants";
-import { AuthState, GroupState, UserStore } from "src/store";
+import { AuthState, UserStore, GroupStore } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -79,6 +79,8 @@ const FILTER_FIELDS: FilterFieldDef[] = [
         FormGetPipe, HlmButton, HlmTooltip, AppIconComponent],
 })
 export class ReportFiltersComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly userStore = inject(UserStore);
 
   public readonly form = input.required<FormGroup>();
@@ -131,7 +133,7 @@ export class ReportFiltersComponent implements OnInit {
     })),
   ]);
 
-  private readonly groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  private readonly groups = this.groupStore.groupsWithoutAll;
   public readonly categories = computed<Category[]>(() =>
     unionCatalog(this.groups(), (id) => this.store.selectSnapshot(AuthState.groupCategories(id)))
   );

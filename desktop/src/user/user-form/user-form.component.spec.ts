@@ -16,7 +16,7 @@ import {
   UserService,
 } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
-import { AuthState, GroupState, SetGroups, UserStore } from "../../store";
+import { AuthState, UserStore } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { UserFormComponent } from "./user-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -53,7 +53,7 @@ describe("UserFormComponent", () => {
     getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([AuthState, GroupState]),
+    imports: [NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
         ApiModule, UserFormComponent],
     providers: [

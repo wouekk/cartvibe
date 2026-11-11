@@ -9,7 +9,7 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { GroupReceiptSettings, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
-import { AuthState, GroupState } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { codePointMaxLengthValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { quickScanAsksForNote } from "./quick-scan-field-config";
@@ -48,6 +48,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [DialogComponent, ReactiveFormsModule, UploadImageComponent, AppIconComponent, HlmAttachment, HlmAttachmentMedia, HlmAttachmentContent, HlmAttachmentTitle, HlmAttachmentDescription, HlmAttachmentActions, BrnButton, HlmButton, HlmAttachmentAction, GroupAutocompleteComponent, TextareaComponent, UploadProgressComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class QuickScanDialogComponent implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
   public form: FormGroup = new FormGroup({});
@@ -72,7 +74,7 @@ export class QuickScanDialogComponent implements OnInit {
   protected readonly finePointer = finePointerSignal();
 
   // The group picker only shows when there is a choice to make.
-  public readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+  public readonly soleGroupId = this.groupStore.soleGroupId;
 
   private readonly queuedScans = inject(QueuedScanService);
 
@@ -109,7 +111,7 @@ export class QuickScanDialogComponent implements OnInit {
     // A member of exactly one household has no choice to make, so it is seeded and its picker hidden, ahead of
     // the person's default household, which could be stale.
     this.groupIds.push(new FormControl(
-      this.store.selectSnapshot(GroupState.soleGroupId)
+      this.groupStore.soleGroupId()
         ?? userPreferences?.quickScanDefaultGroupId
         ?? "",
       Validators.required
@@ -126,7 +128,7 @@ export class QuickScanDialogComponent implements OnInit {
       return undefined;
     }
 
-    return this.store.selectSnapshot(GroupState.getGroupById(groupId.toString()))?.groupReceiptSettings;
+    return this.groupStore.getGroupById(groupId.toString())?.groupReceiptSettings;
   }
 
   /**

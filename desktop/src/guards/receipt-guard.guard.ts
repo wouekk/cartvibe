@@ -1,15 +1,14 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, map, take, tap } from "rxjs";
 import { ReceiptService } from "../open-api";
 import { QueueMode } from "../services/receipt-queue.service";
-import { GroupState } from "../store";
+import { GroupStore } from "../store";
 
 export const receiptGuardGuard: CanActivateFn = (route, state) => {
   const receiptService: ReceiptService = inject(ReceiptService);
   const router: Router = inject(Router);
-  const store: Store = inject(Store);
+  const groupStore = inject(GroupStore);
 
   const receiptId: number = Number.parseInt(route.params["id"]);
   const permission = route.data["permission"];
@@ -28,7 +27,7 @@ export const receiptGuardGuard: CanActivateFn = (route, state) => {
           queryParams: { ...route.queryParams }
         });
       } else {
-        router.navigate([store.selectSnapshot(GroupState.dashboardLink)]);
+        router.navigate([groupStore.dashboardLink()]);
       }
       return err;
     }),

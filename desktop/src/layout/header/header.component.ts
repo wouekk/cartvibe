@@ -6,7 +6,7 @@ import { take, tap } from "rxjs";
 import { LayoutStore } from "src/store/layout.store";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
-import { AuthState, GroupState } from "../../store";
+import { AuthState, GroupStore } from "../../store";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { HlmBadge } from "@spartan-ng/helm/badge";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -31,11 +31,13 @@ export const HANDSET_LOGO_SCALE = 0.3;
     imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe, HlmTooltip, HlmBadge, AppIconComponent]
 })
 export class HeaderComponent {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly layoutStore = inject(LayoutStore);
 
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
-  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
+  public selectedGroupId = this.groupStore.selectedGroupId;
 
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
@@ -43,12 +45,12 @@ export class HeaderComponent {
 
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
-    return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
+    return [this.groupStore.settingsLinkBase() + "/view"];
   });
 
   public groupName = computed(() => {
     const groupId = this.selectedGroupId();
-    const group = this.store.selectSnapshot(GroupState.getGroupById(groupId));
+    const group = this.groupStore.getGroupById(groupId);
     return group?.name as string ?? "";
   });
 
@@ -67,7 +69,7 @@ export class HeaderComponent {
   /** A phone has no sidebar button here (the tab bar's More opens the sheet); it names the household instead. */
   public readonly isHandset = this.viewportService.isHandset;
 
-  private readonly groups = this.store.selectSignal(GroupState.groups);
+  private readonly groups = this.groupStore.groups;
 
   public readonly household = computed(() => shownHousehold(this.groups(), Number.parseInt(this.selectedGroupId() ?? "") || 0));
 

@@ -1,14 +1,13 @@
 import { Injectable, inject } from "@angular/core";
-import { Store } from "@ngxs/store";
-import { GroupState, UserStore } from "../store";
+import { UserStore, GroupStore } from "../store";
 
 @Injectable({
   providedIn: "root",
 })
 export class ParameterizedDataParser {
-  private readonly userStore = inject(UserStore);
+  private readonly groupStore = inject(GroupStore);
 
-  constructor(private store: Store) {}
+  private readonly userStore = inject(UserStore);
 
   public link?: string;
 
@@ -56,7 +55,7 @@ export class ParameterizedDataParser {
         }
         break;
       case "groupId":
-        const group = this.store.selectSnapshot(GroupState.getGroupById(id));
+        const group = this.groupStore.getGroupById(id);
         if (type === "link") {
           this.link = `/receipts/group/${id}`;
           return "";

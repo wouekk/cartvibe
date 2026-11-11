@@ -16,7 +16,7 @@ import {
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
-import { AuthState, GroupState, FeatureConfigStore } from "../../store";
+import { AuthState, FeatureConfigStore, GroupStore } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
@@ -187,6 +187,8 @@ const UNCATEGORIZED = marker("Uncategorized");
         PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
+  private readonly groupStore = inject(GroupStore);
+
   private readonly shoppingListStore = inject(ShoppingListStore);
 
   private readonly systemSettingsStore = inject(SystemSettingsStore);
@@ -258,7 +260,7 @@ export class OverviewPageComponent {
     return this.translation.t(marker("{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal."), params);
   });
 
-  private readonly groups = this.store.selectSignal(GroupState.groups);
+  private readonly groups = this.groupStore.groups;
 
   public readonly groupName = computed(
     () => this.groups().find((group) => group.id === this.groupId())?.name ?? ""

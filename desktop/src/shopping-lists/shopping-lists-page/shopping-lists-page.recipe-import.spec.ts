@@ -12,7 +12,6 @@ import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
-import { GroupState } from "../../store/group.state";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { RecipeImportDialogComponent } from "../recipe-import-dialog/recipe-import-dialog.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
@@ -42,7 +41,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
     service = { getShoppingListsForGroup: vi.fn().mockReturnValue(of(options.lists ?? lists())) };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([AuthState]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
