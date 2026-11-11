@@ -1,24 +1,10 @@
-import { CurrencyPipe } from "@angular/common";
 import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
-import type { ScriptableContext } from "chart.js";
-
-/** How far the active donut slice slides out of the ring, and how faint the other slices and legend rows go. */
-const DONUT_POP_OUT_OFFSET = 8;
-const DONUT_DIMMED_OPACITY = 0.45;
-
-/** The longest text the middle of the donut shows on one line. */
-const DONUT_CENTER_LABEL_MAX = 16;
-
-/** "rgb(r, g, b)" at a lower opacity; any other form is returned as it is. */
-function withAlpha(color: string, alpha: number): string {
-  return color.startsWith("rgb(") ? color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`) : color;
-}
-import { catchError, filter, firstValueFrom, map, of, switchMap, take, tap } from "rxjs";
+import { catchError, filter, map, of, switchMap, take } from "rxjs";
 import {
   FilterOperation,
   GroupOverview,
@@ -27,12 +13,10 @@ import {
   Receipt,
   ReceiptService,
   SortDirection,
-  UserPreferences,
-  UserPreferencesService,
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
-import { AuthState, FeatureConfigState, GroupState, SetUserPreferences } from "../../store";
+import { AuthState, FeatureConfigState, GroupState } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
@@ -40,16 +24,9 @@ import { SystemSettingsState } from "../../store/system-settings.state";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
-import { downloadFile } from "../../utils/file";
 import { finePointerSignal } from "../../utils/fine-pointer";
-import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { TranslationService } from "../../i18n/translation.service";
 import { DisplayCurrencyService } from "../../services/display-currency.service";
-import { centerTextPlugin, goalLinePlugin, pointerPlugin } from "../../shared-ui/chart/chart-plugins";
-import { ChartColors } from "../../shared-ui/chart/chart-colors";
-import { chartFontSize } from "../../shared-ui/chart/chart-scale";
-import { ChartSpec, ChartComponent } from "../../shared-ui/chart/chart.component";
-import { htmlTooltip, tooltipCard } from "../../shared-ui/chart/chart-tooltip";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import {
@@ -82,22 +59,8 @@ import {
 } from "../dashboard-layout/dashboard-layout";
 import { DashboardLayoutStore } from "../dashboard-layout/dashboard-layout.store";
 import {
-  buildMonthlyCsv,
-  buildPrintHtml,
-  exceedsOneYear,
-  MAX_CHART_MONTHS,
-  monthKeysBetween,
-  shortMonthName,
-  splitIntoYears,
-  PrintYear,
-} from "../overview-export";
-import {
-  buildDonutSegments,
-  buildTrendBars,
   describeChangeAgainst,
   DonutSegment,
-  goalLineFraction,
-  parseInlineGoalInput,
 } from "../overview-chart.utils";
 import {
   OverviewDetailDialogComponent,
@@ -105,7 +68,7 @@ import {
   OverviewDetailKind,
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
-import { barRange, isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
 import { monthSummary } from "../overview-summary";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
@@ -119,7 +82,9 @@ import { HlmSwitch } from "../../ui/switch/lib/hlm-switch";
 import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
 import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
-import { HlmTHead, HlmTh } from "../../ui/table/lib/hlm-table";
+import { OverviewCategoriesPanelComponent } from "../overview-categories-panel/overview-categories-panel.component";
+import { OverviewTrendPanelComponent } from "../overview-trend-panel/overview-trend-panel.component";
+import { OverviewSpentTileComponent } from "../overview-spent-tile/overview-spent-tile.component";
 import { OverviewReceiptsPanelComponent } from "../overview-receipts-panel/overview-receipts-panel.component";
 import { OverviewWarrantiesPanelComponent } from "../overview-warranties-panel/overview-warranties-panel.component";
 import { OverviewShoppingPanelComponent } from "../overview-shopping-panel/overview-shopping-panel.component";
@@ -127,8 +92,7 @@ import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
 import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
 import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
 import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
-import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
-import { TranslatePipe, TranslateDataPipe, PluralPipe } from "../../i18n/translate.pipe";
+import { TranslatePipe, PluralPipe } from "../../i18n/translate.pipe";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 
 /** Receipts listed per height step of the receipts panel. */
@@ -196,9 +160,7 @@ const UNCATEGORIZED = marker("Uncategorized");
 @Component({
     selector: "app-overview-page",
     templateUrl: "./overview-page.component.html",
-    // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
     changeDetection: ChangeDetectionStrategy.Eager,
-    providers: [CurrencyPipe, CustomCurrencyPipe],
     imports: [
         SettingsTabsComponent,
         BrnButton,
@@ -210,10 +172,10 @@ const UNCATEGORIZED = marker("Uncategorized");
         HlmDropdownMenuTrigger,
         RouterLink,
         MoneyComponent,
-        ChartComponent,
-        HlmTHead,
-        HlmTh,
+        OverviewCategoriesPanelComponent,
         OverviewReceiptsPanelComponent,
+        OverviewSpentTileComponent,
+        OverviewTrendPanelComponent,
         OverviewWarrantiesPanelComponent,
         OverviewShoppingPanelComponent,
         CdkMenu,
@@ -222,9 +184,7 @@ const UNCATEGORIZED = marker("Uncategorized");
         HlmDropdownMenuFocusOnHover,
         HlmDropdownMenuItem,
         HlmDropdownMenuSeparator,
-        DisplayCurrencyPipe,
         TranslatePipe,
-        TranslateDataPipe,
         PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
@@ -257,19 +217,6 @@ export class OverviewPageComponent {
   public readonly goal = computed(() => {
     const goal = Number(this.userPreferences()?.monthlySpendingGoal ?? 0);
     return goal > 0 ? goal : 0;
-  });
-
-  /** The Spent card compares with the goal only while one whole calendar month is shown. */
-  public readonly spentGoal = computed(() => {
-    const goal = this.goal();
-    const overview = this.overview();
-    const period = this.period();
-    if (!(goal > 0) || !overview || !isWholeCalendarMonth(period?.from, period?.to)) {
-      return undefined;
-    }
-
-    const spent = Number(overview.total);
-    return { goal, over: Math.max(0, spent - goal), remaining: Math.max(0, goal - spent) };
   });
 
   /**
@@ -305,78 +252,6 @@ export class OverviewPageComponent {
     }
     return this.translation.t(marker("{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal."), params);
   });
-
-  /** The month chart splits bars at the goal; it needs a goal and a month-by-month trend. */
-  public readonly goalMode = computed(() => this.goal() > 0 && this.overview()?.trendUnit === "MONTH");
-
-  public readonly goalFraction = computed(() =>
-    this.goalMode() ? goalLineFraction(this.chartBars().map((bar) => bar.total), this.goal()) : 0
-  );
-
-  /** The goal line is left out when the goal is higher than the tallest month: it would not fit the chart. */
-  public readonly showGoalLine = computed(() => this.goalFraction() > 0 && this.goalFraction() <= 1);
-
-  /** How full the Spent card's thin bar is: what was spent against the goal, at most all of it. */
-  public readonly goalProgress = computed(() => {
-    const goal = this.spentGoal();
-    if (!goal) {
-      return 0;
-    }
-
-    const spent = Number(this.overview()?.total ?? 0);
-    return Math.min(100, Math.max(0, (spent / goal.goal) * 100));
-  });
-
-  // The goal can be set straight from the Spent card (no trip to User Settings).
-  public readonly canEditGoal = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate));
-  public readonly editingGoal = signal(false);
-  public readonly goalDraft = signal("");
-  private readonly goalInput = viewChild<ElementRef<HTMLInputElement>>("goalInput");
-  private savingGoal = false;
-
-  public startEditingGoal(): void {
-    const goal = this.goal();
-    this.goalDraft.set(goal > 0 ? String(goal).replace(".", ",") : "");
-    this.editingGoal.set(true);
-  }
-
-  public cancelEditingGoal(): void {
-    this.editingGoal.set(false);
-  }
-
-  /** Saves the typed goal (Enter or leaving the field); empty or 0 removes it. */
-  public saveGoal(): void {
-    if (!this.editingGoal() || this.savingGoal) {
-      return;
-    }
-
-    const parsed = parseInlineGoalInput(this.goalDraft());
-    if (!parsed.ok) {
-      this.snackbarService.error(this.translation.t("The monthly spending goal must be an amount above 0, like 1500,00."));
-      return;
-    }
-
-    this.editingGoal.set(false);
-    const current = this.userPreferences();
-    if ((parsed.value ?? "") === (current?.monthlySpendingGoal ?? "") || (parsed.value === undefined && !(this.goal() > 0))) {
-      return;
-    }
-
-    // The update replaces the whole preferences object, so everything else is sent back unchanged.
-    const updated = { ...current, monthlySpendingGoal: parsed.value } as UserPreferences;
-    this.savingGoal = true;
-    this.userPreferencesService
-      .updateUserPreferences(updated)
-      .pipe(
-        take(1),
-        tap((saved) => {
-          this.store.dispatch(new SetUserPreferences(saved));
-          this.snackbarService.success(parsed.value ? marker("Monthly goal saved") : marker("Monthly goal removed"));
-        }),
-        catchError(() => of(undefined))
-      )
-      .subscribe({ complete: () => (this.savingGoal = false) });
-  }
 
   private readonly groups = this.store.selectSignal(GroupState.groups);
 
@@ -513,367 +388,6 @@ export class OverviewPageComponent {
 
   /** Unplanned tile (Phase 3 D1): what was bought that was not on the shopping list. */
   public readonly unplannedTotal = computed(() => Number(this.overview()?.unplannedTotal ?? 0));
-
-  public readonly segments = computed(() => buildDonutSegments(this.overview()?.categories ?? []));
-
-  /** The category the user focused (click a slice or a legend dot); it stays until clicked again. */
-  public readonly focusedSegment = signal<string | null>(null);
-
-  /** The category under the pointer (or keyboard focus), on the ring or in the legend. */
-  public readonly hoveredSegment = signal<string | null>(null);
-
-  /** What the ring and the legend emphasise: the hovered category, else the focused one. */
-  public readonly activeSegment = computed(() => this.hoveredSegment() ?? this.focusedSegment());
-
-  /** The ring's emphasised slice, for the chart: null when no category is hovered or focused. */
-  public readonly activeSegmentIndex = computed(() => {
-    const index = this.segments().findIndex((segment) => segment.name === this.activeSegment());
-    return index >= 0 ? index : null;
-  });
-
-  public isDimmed(name: string): boolean {
-    const active = this.activeSegment();
-    return active !== null && active !== name;
-  }
-
-  public toggleFocus(name: string): void {
-    this.focusedSegment.update((focused) => (focused === name ? null : name));
-  }
-
-  public hoverSegment(name: string | null): void {
-    this.hoveredSegment.set(name);
-  }
-
-  public readonly bars = computed(() => {
-    const overview = this.overview();
-    return overview
-      ? buildTrendBars(
-          overview.trend ?? [],
-          overview.trendUnit ?? "MONTH",
-          overview.from ?? "",
-          overview.to ?? "",
-          this.goalMode() ? this.goal() : 0
-        )
-      : [];
-  });
-
-  public readonly isDailyTrend = computed(() => this.overview()?.trendUnit === "DAY");
-
-  public readonly averageBar = computed(() => {
-    const bars = this.chartBars();
-    return bars.length > 0 ? bars.reduce((sum, bar) => sum + bar.total, 0) / bars.length : 0;
-  });
-
-  /** Up to a year of months is drawn; a longer custom range is offered as a report instead. */
-  public readonly rangeTooLongForChart = computed(() => {
-    const period = this.period();
-    return !!period && !this.isDailyTrend() && exceedsOneYear(period.from, period.to);
-  });
-
-  /** The bars drawn: at most the latest 12 months. */
-  public readonly chartBars = computed(() => {
-    const bars = this.bars();
-    return !this.isDailyTrend() && bars.length > MAX_CHART_MONTHS ? bars.slice(-MAX_CHART_MONTHS) : bars;
-  });
-
-  /** Seven or more columns get narrower bars and smaller labels so a year fits the card. */
-  public readonly denseChart = computed(() => this.chartBars().length > 6);
-
-  public readonly exporting = signal(false);
-
-  /** Months over the goal, for the legend under the chart (the red part of a bar). */
-  public readonly overGoalBars = computed(() =>
-    this.goalMode() ? this.chartBars().filter((bar) => (bar.overAmount ?? 0) > 0) : []
-  );
-
-  /**
-   * The category donut (Chart.js on the theme tokens); the total, or the active category, sits in its middle. Hover is
-   * not an input of this config: the middle, the fading and the slide-out read `activeSegment` when they paint, and the
-   * chart wrapper repaints on `activeIndex`, so hovering never rebuilds the chart.
-   */
-  public readonly donutOptions = (colors: ChartColors): ChartSpec => {
-    const segments = this.segments();
-    const color = (index: number) => colors.series[index % colors.series.length];
-    const fill = (context: ScriptableContext<"doughnut">) =>
-      this.isDimmed(segments[context.dataIndex]?.name ?? "") ? withAlpha(color(context.dataIndex), DONUT_DIMMED_OPACITY) : color(context.dataIndex);
-    return {
-      type: "doughnut",
-      data: {
-        labels: segments.map((segment) => this.translation.t(segment.name)),
-        datasets: [
-          {
-            data: segments.map((segment) => segment.total),
-            backgroundColor: fill,
-            hoverBackgroundColor: fill,
-            borderColor: colors.card,
-            hoverBorderColor: colors.card,
-            borderWidth: 3,
-            hoverBorderWidth: 3,
-            hoverOffset: DONUT_POP_OUT_OFFSET,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: "76%",
-        onHover: (event, elements) => this.setPointer(event, elements.length > 0),
-        // Chart.js 4.5 does not reserve the hover offset in the ring's size: the grown slice would be cut at the edge.
-        layout: { padding: DONUT_POP_OUT_OFFSET },
-        animation: { duration: 400 },
-        transitions: { active: { animation: { duration: 200 } }, emphasis: { animation: { duration: 200 } } },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            enabled: false,
-            external: htmlTooltip((tooltip) => {
-              const index = tooltip.dataPoints[0]?.dataIndex ?? -1;
-              const segment = segments[index];
-              if (!segment) {
-                return "";
-              }
-              return tooltipCard(this.translation.t(segment.name), [
-                { color: color(index), label: this.translation.t("Spent"), value: this.displayCurrencyService.format(segment.total) },
-                { color: color(index), label: this.translation.t("Share of total"), value: segment.share },
-              ]);
-            }),
-          },
-          cvCenterText: { text: () => this.centerText(this.activeSegment()), labelColor: colors.mutedForeground, valueColor: colors.foreground },
-          cvPointer: {
-            hover: (index) => this.hoverSegment(index === null ? null : this.segments()[index]?.name ?? null),
-            click: (index) => {
-              const segment = this.segments()[index];
-              if (segment) {
-                this.openCategory(segment);
-              }
-            },
-            active: () => this.activeSegmentIndex(),
-          },
-        },
-      },
-      plugins: [centerTextPlugin, pointerPlugin],
-    };
-  };
-
-  /** The ring's middle: the category's name and total, or the period and its total when none is given. */
-  private centerText(name: string | null): { label: string; value: string } {
-    const segment = this.segments().find((candidate) => candidate.name === name);
-    return {
-      label: this.fitCenterLabel(segment ? this.translation.t(segment.name) : this.periodLabel()),
-      value: this.displayCurrencyService.format(segment ? segment.total : this.overview()?.total ?? 0),
-    };
-  }
-
-  /** The ring's middle is about 130 px wide: a long date range reads "Total", a long category name is cut. */
-  private fitCenterLabel(text: string): string {
-    if (text.length <= DONUT_CENTER_LABEL_MAX) {
-      return text;
-    }
-    return text.includes(" – ") ? this.translation.t(marker("Total")) : `${text.slice(0, DONUT_CENTER_LABEL_MAX - 1)}…`;
-  }
-
-  /**
-   * The spending bars: black by day, white at night (the foreground token, so an accent palette never tints them), red
-   * above the goal. The selected month is marked by its label, bold in the foreground colour.
-   */
-  public readonly barsOptions = (colors: ChartColors): ChartSpec => {
-    const bars = this.chartBars();
-    const goalMode = this.goalMode();
-    const daily = this.isDailyTrend();
-    const money = (value: number) => this.displayCurrencyService.format(value);
-    const base = colors.foreground;
-    const isSelected = (index: number) => !!bars[index]?.isSelected;
-    const hasOver = (index: number) => goalMode && (bars[index]?.overAmount ?? 0) > 0;
-    // Only the top segment of a stack is rounded, at its top; the other segment and every bottom stay square.
-    const dataset = (label: string, data: number[], fill: string, isTop: (index: number) => boolean) => ({
-      label,
-      data,
-      backgroundColor: fill,
-      hoverBackgroundColor: fill,
-      borderWidth: 0,
-      borderRadius: (context: ScriptableContext<"bar">) => (isTop(context.dataIndex) ? { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 } : 0),
-      borderSkipped: false as const,
-      categoryPercentage: 1,
-      barPercentage: bars.length > 6 ? 0.55 : 0.38,
-    });
-    return {
-      type: "bar",
-      data: {
-        labels: bars.map((bar) => this.translation.months(bar.shortName)),
-        datasets: goalMode
-          ? [
-              dataset("Spent", bars.map((bar) => bar.baseAmount ?? 0), base, (index) => !hasOver(index)),
-              dataset("Over goal", bars.map((bar) => bar.overAmount ?? 0), colors.destructive, hasOver),
-            ]
-          : [dataset("Spent", bars.map((bar) => bar.total), base, () => true)],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 500 },
-        transitions: { active: { animation: { duration: 0 } } },
-        interaction: { mode: "index", intersect: false },
-        // A bar opens the receipts of its month (or day).
-        onHover: (event, elements) => this.setPointer(event, elements.length > 0),
-        onClick: (_event, elements) => {
-          if (elements.length > 0) {
-            this.openBar(elements[0].index);
-          }
-        },
-        layout: { padding: { left: 8, right: 8 } },
-        scales: {
-          x: {
-            stacked: true,
-            grid: { display: false },
-            border: { color: colors.border },
-            // Months are all labelled, slanted when they do not fit; the labels of up to 31 days are thinned out.
-            ticks: {
-              color: (context) => (isSelected(context.index) ? colors.foreground : colors.mutedForeground),
-              font: (context) => ({ size: chartFontSize(12), weight: isSelected(context.index) ? "bold" : "normal" }),
-              autoSkip: daily, autoSkipPadding: 6, maxRotation: daily ? 0 : 45 },
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            // Chart.js 4 takes the dash of the grid lines from the axis border.
-            border: { display: false, dash: [3, 3] },
-            grid: { color: colors.border, lineWidth: 1, drawTicks: false },
-            ticks: { color: colors.mutedForeground, font: { size: chartFontSize(11) }, maxTicksLimit: 6, padding: 6, callback: (value) => money(Number(value)) },
-          },
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            enabled: false,
-            external: htmlTooltip((tooltip) => {
-              const bar = bars[tooltip.dataPoints[0]?.dataIndex ?? -1];
-              if (!bar) {
-                return "";
-              }
-              const rows = [{ color: colors.foreground, label: this.translation.t("Spent"), value: money(bar.total) }];
-              if (goalMode && (bar.overAmount ?? 0) > 0) {
-                rows.push({ color: colors.destructive, label: this.translation.t("Over goal"), value: money(bar.overAmount ?? 0) });
-              }
-              return tooltipCard(this.barHeading(bar.key, bar.shortName), rows);
-            }),
-          },
-          cvGoalLine: { value: goalMode && this.showGoalLine() ? this.goal() : 0, color: colors.mutedForeground, label: this.translation.t(marker("Goal")) },
-        },
-      },
-      plugins: [goalLinePlugin],
-    };
-  };
-
-  /**
-   * "October 2026" for a month bar, "21 October 2026" for a day bar. A day is formatted by the browser in the
-   * language's locale, which puts the month in the right grammatical case ("21 października 2026").
-   */
-  private barHeading(key: string, fallback: string): string {
-    const [year, month, day] = key.split("-").map(Number);
-    if (!year || !month) {
-      return fallback;
-    }
-    if (day) {
-      return new Intl.DateTimeFormat(this.translation.locale(), { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
-        Date.UTC(year, month - 1, day)
-      );
-    }
-    const monthName = new Date(year, month - 1, 1).toLocaleString("en", { month: "long" });
-    return this.translation.months(`${monthName} ${year}`);
-  }
-
-  /** Month totals for the whole period, fetched a calendar year at a time. */
-  private async loadYears(): Promise<{ label: string; from: string; to: string; overview: GroupOverview }[]> {
-    const period = this.period();
-    if (!period) {
-      return [];
-    }
-
-    return Promise.all(
-      splitIntoYears(period.from, period.to).map(async (chunk) => ({
-        ...chunk,
-        overview: await firstValueFrom(this.overviewService.getGroupOverview(this.groupId(), undefined, chunk.from, chunk.to)),
-      }))
-    );
-  }
-
-  /** The months of one year chunk, every month listed (empty ones as 0). */
-  private monthTotals(chunk: { from: string; to: string; overview: GroupOverview }): { month: string; total: number }[] {
-    // A chunk under four weeks comes back as days; either way the totals are gathered by "yyyy-MM". Months
-    // at the edge of a range are whole months.
-    const totals = new Map<string, number>();
-    for (const point of chunk.overview.trend ?? []) {
-      const month = point.month.slice(0, 7);
-      totals.set(month, (totals.get(month) ?? 0) + Number(point.total));
-    }
-    return monthKeysBetween(chunk.from, chunk.to).map((month) => ({ month, total: totals.get(month) ?? 0 }));
-  }
-
-  /** "Month, Total Spent, Goal, Difference" for the whole range, straight to a file. */
-  public async exportCsv(): Promise<void> {
-    if (this.exporting()) {
-      return;
-    }
-
-    this.exporting.set(true);
-    try {
-      const years = await this.loadYears();
-      const rows = years.flatMap((year) => this.monthTotals(year));
-      downloadFile(
-        new Blob([buildMonthlyCsv(rows, this.goal())], { type: "text/csv;charset=utf-8" }),
-        `spending-${this.period()?.from}-${this.period()?.to}.csv`
-      );
-    } catch {
-      this.snackbarService.error("The export could not be made. Try again.");
-    } finally {
-      this.exporting.set(false);
-    }
-  }
-
-  /** A print view, one calendar year per landscape page; the browser's print dialog saves it as a PDF. */
-  public async exportPdf(): Promise<void> {
-    if (this.exporting()) {
-      return;
-    }
-
-    // Opened now, in the click, because a window opened after the requests finish is taken for a pop-up.
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      this.snackbarService.error("Allow pop-ups for this site to print the report.");
-      return;
-    }
-    printWindow.document.write("<p style=\"font-family:system-ui\">Preparing the report…</p>");
-
-    this.exporting.set(true);
-    try {
-      const years = await this.loadYears();
-      const printYears: PrintYear[] = years.map((year) => ({
-        label: year.label,
-        total: this.customCurrencyPipe.transform(year.overview.total),
-        months: this.monthTotals(year).map((month) => ({
-          name: shortMonthName(month.month),
-          total: month.total,
-          text: this.customCurrencyPipe.transform(month.total),
-        })),
-        categories: (year.overview.categories ?? []).map((category) => ({
-          name: category.name,
-          total: this.customCurrencyPipe.transform(category.total),
-        })),
-      }));
-
-      const html = buildPrintHtml(marker("Spending by year"), this.periodLabel(), printYears);
-      printWindow.document.open();
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    } catch {
-      printWindow.close();
-      this.snackbarService.error("The report could not be made. Try again.");
-    } finally {
-      this.exporting.set(false);
-    }
-  }
 
   /** What the previous* figures are compared with: "September 2026", "2025", "5 Oct 2026 – 11 Oct 2026". */
   private readonly translate = (text: string, params?: Record<string, string | number | null | undefined>) => this.translation.t(text, params);
@@ -1500,9 +1014,7 @@ export class OverviewPageComponent {
     private receiptService: ReceiptService,
     private store: Store,
     private dialog: AppDialog,
-    private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
-    private customCurrencyPipe: CustomCurrencyPipe,
     private productCheck: ProductCheckLauncher,
     public readonly displayCurrencyService: DisplayCurrencyService,
     public readonly translation: TranslationService,
@@ -1521,15 +1033,6 @@ export class OverviewPageComponent {
       observer.observe(grid);
       untracked(() => this.gridWidth.set(grid.getBoundingClientRect().width));
       onCleanup(() => observer.disconnect());
-    });
-
-    // Imperative side effect: a goal editor that just opened takes the keyboard, with its text selected.
-    effect(() => {
-      const input = this.goalInput()?.nativeElement;
-      if (input) {
-        input.focus();
-        input.select();
-      }
     });
 
     // Imperative side effect: keep the shopping list store on the group the card describes.
@@ -1584,22 +1087,6 @@ export class OverviewPageComponent {
   }
 
   /** Opens the receipts of one trend bar's month or day. */
-  public openBar(index: number): void {
-    const key = this.chartBars()[index]?.key;
-    const range = key ? barRange(key) : undefined;
-    if (range) {
-      void this.router.navigate(["/receipts/group", this.groupId()], { queryParams: range });
-    }
-  }
-
-  /** A pointer cursor over what a click opens; the canvas is the only element, so it is set on it. */
-  private setPointer(event: { native: Event | null }, over: boolean): void {
-    const target = event.native?.target;
-    if (target instanceof HTMLElement) {
-      target.style.cursor = over ? "pointer" : "default";
-    }
-  }
-
   /** Opens the product lines behind a tag tile. */
   public openTag(tile: { tagId: number; name: string }): void {
     this.openDetail("TAG", tile.name, { tagId: tile.tagId });

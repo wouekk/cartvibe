@@ -214,8 +214,16 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
       three margins that had done nothing on the wrapper were removed, and a provider button in the delete
       account dialog is as wide as its `w-full` class always said. A new trap check fails a template that uses
       `hlmBtn`, `hlmTooltip` or `hlmBadge` without importing it, which no build reports.
-  - Still to do on the branch: the rest of F6's split: the tiles and the two chart panels, each of which has to
-    move together with its state (the page's class is still about 1,640 lines) and the specs that drive it.
+    - F6, the rest of the split: the two chart panels (spending by category, spending by month) and the Spent
+      tile are components that own their state: the donut's hover and focus, the bars with the goal line and the
+      export of a range over a year, the goal editor and its save. The page's class went from about 1,640 lines
+      to 1,130 and its template from 712 to 401. The range export and the goal editor's refusals had no spec
+      before; they have now. Seen working in the built demo (legend hover and focus, a category opening its
+      products, a goal saved from the tile, a bar opening its month).
+  - Decided differently from the audit, F6: the six small tiles (receipts, unhealthy, not on the list, to buy,
+    warranties, a tag) stay as markup in the page. Each is ten lines over figures the page already holds and has
+    no state of its own, so a component each would be a list of inputs. The overview is one request, so they
+    load and fail together either way. Say so if a component per tile is wanted anyway.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

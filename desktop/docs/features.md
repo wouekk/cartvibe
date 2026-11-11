@@ -9,11 +9,21 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - `/overview/group/:groupId` is the landing page (`GroupState.overviewLink`); `overviewReadGuard`
   (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
 - **Panels as components.** A panel is a `section[app-overview-…-panel]` the page places in its grid, with the
-  `cv-panel` class and its `aria-labelledby` on the host: the shopping list (which also loads and writes for
-  itself), the receipts of the period and the warranties ending soon (both given their rows by the page, because a
-  tile counts the same data). Still inside the page's own template: the tiles and the two chart panels (categories,
-  trend). Their markup reads about twenty of the page's members (chart options, hover and focus, the goal, the
-  exports), so each moves together with its state and its specs, not as markup alone.
+  `cv-panel` class and its `aria-labelledby` on the host. The page loads the period once and hands each panel
+  what it shows; what only one panel reads lives in that panel:
+  - `overview-shopping-panel` loads and writes for itself;
+  - `overview-receipts-panel` and `overview-warranties-panel` are given their rows (a tile counts the same data);
+  - `overview-categories-panel` owns the donut: its chart options, what is hovered and what is focused; a click
+    on a slice or a name is its `open` output, and the page opens the products;
+  - `overview-trend-panel` owns the bars, the goal line, a bar's link to its receipts, and the PDF and CSV of a
+    range over a year (it fetches the years itself);
+  - `div[app-overview-spent-tile]` is the Spent tile with the goal editor and its save.
+
+  The goal, the period and the change against the period before stay on the page, because the sentence above the
+  panels and more than one panel read them. The six small tiles (receipts, unhealthy, not on the list, to buy,
+  warranties, a tag) stay as markup in the page: ten lines each over figures the page already holds, with no
+  state of their own. A page spec that needs a panel's state asks the panel
+  (`fixture.debugElement.query(By.directive(…)).componentInstance`); what a panel does alone is in its own spec.
 - **Receipt photos are files, not JSON.** The receipt page shows each image from `GET /receiptImage/{id}/file`
   (`utils/receipt-image-url.ts`): the browser fetches it with the session cookie and keeps it for good. The demo has
   no server to fetch from, so there `ReceiptFormComponent.getImageFiles` still reads base64 through the client
