@@ -682,7 +682,7 @@ export function createDemoDb(today: string): DemoDb {
       pdfDpi: 150,
       mcpEnabled: false,
       mcpPublicUrl: "",
-      serverPublicUrl: "",
+      serverPublicUrl: "https://receipts.example.com",
       refreshTokenValidForHours: 720,
       mcpRefreshTokenValidForHours: 720,
       tempFileRetentionHours: 24,

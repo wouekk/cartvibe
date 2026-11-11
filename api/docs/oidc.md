@@ -94,9 +94,17 @@ A passwordless account confirms self-delete by signing in at one of its provider
 
 ## Configuration
 
-- Providers live in `oidc_providers`, administered in System Settings. Redirect URI:
+- Providers live in `oidc_providers`, administered in System Settings → Sign-in providers. Redirect URI:
   `{serverPublicUrl}/api/oidc/{name}/callback`. `serverPublicUrl` is separate from `mcpPublicUrl` so an OIDC tweak cannot
-  invalidate MCP tokens.
+  invalidate MCP tokens. The web app shows that address before the provider is saved, so it builds it the same way
+  (`redirectUriFor`): change the two together.
+- The web app's side (login buttons, `/auth/callback`, User Settings → Sign-in methods, the provider form) is in
+  `../../desktop/docs/features.md`. It relies on the three fixed paths in `flow.go` (`/auth/callback`, `/auth/login`,
+  `/settings/user-profile/view`), on the query parameters `oidcError`, `oidcLinked`, `deleteConfirmation` and
+  `deleteError`, and on the error codes there, which it turns into text (`desktop/src/utils/oidc.ts`): a new code
+  needs a text.
+- The issuer is given to `oidc.NewProvider` as stored, and the provider's own `issuer` must equal it character for
+  character, a final slash included (Authentik has one, Keycloak has none).
 - The dependency is enforced both ways: `OidcProviderService.validateCrossSettingRules` refuses to enable a provider
   without it, `handlers.serverPublicUrlStillNeeded` refuses to clear it while one is enabled (otherwise
   `GetServerPublicUrl` falls back to localhost and the IdP rejects every login).

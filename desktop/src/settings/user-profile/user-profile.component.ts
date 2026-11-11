@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import {Component, computed, inject, OnInit, signal, ChangeDetectionStrategy} from "@angular/core";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
@@ -7,10 +8,21 @@ import {catchError, filter, Observable, of, switchMap, take, tap} from "rxjs";
 import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
 import {FormConfig} from "src/interfaces";
-import {AuthService, DeleteAccountCommand, OidcConnectionView, OidcService, Permission, User, UserService} from "../../open-api";
+import {
+  AuthService,
+  DeleteAccountCommand,
+  OidcConnectionView,
+  OidcProviderSummary,
+  OidcService,
+  Permission,
+  User,
+  UserService,
+} from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import {ClaimsService, SnackbarService, TokenRefreshService} from "../../services";
-import {AuthState, Logout, UpdateUser} from "../../store";
+import {AuthState, FeatureConfigState, Logout, UpdateUser} from "../../store";
+import { TranslationService } from "../../i18n/translation.service";
+import { buildOidcLinkUrl, oidcErrorMessage } from "../../utils/oidc";
 import {
   DeleteAccountDialogComponent,
   DeleteAccountDialogData,
@@ -55,10 +67,21 @@ export class UserProfileComponent implements OnInit {
   );
 
   /**
-   * The caller's linked identity providers, loaded on init. The page no longer shows them (the connect / disconnect UI
-   * was removed); they only decide how Delete Account confirms.
+   * The identity providers connected to this account, loaded on init: the Sign-in methods card lists them, and they
+   * decide how Delete Account confirms.
    */
   public readonly connections = signal<OidcConnectionView[]>([]);
+
+  /** The providers an admin switched on (the login page's buttons). */
+  private readonly providers = this.store.selectSignal(FeatureConfigState.oidcProviders);
+
+  /** Switched-on providers this account is not connected to yet. */
+  public readonly availableProviders = computed(() =>
+    this.providers().filter((provider) => !this.connections().some((c) => c.providerName === provider.name))
+  );
+
+  /** The card is for installs that use a provider: without one, and without a connection, there is nothing to say. */
+  public readonly showSignInMethods = computed(() => this.connections().length > 0 || this.providers().length > 0);
 
   /**
    * An account created by a provider has no password of its own, so it confirms
@@ -90,6 +113,79 @@ export class UserProfileComponent implements OnInit {
     this.initForm();
     this.loadConnections();
     this.completeDeleteConfirmation();
+    this.reportConnectResult();
+  }
+
+  /**
+   * The last connection of an account that a provider created cannot go: the account has no password, so nothing
+   * would be left to sign in with. The server refuses it too.
+   */
+  public canDisconnect(connection: OidcConnectionView): boolean {
+    return !(connection.provisionedUser && this.connections().length === 1);
+  }
+
+  /**
+   * Connects a provider to this account by opening the server's address as a page; the session proves who is
+   * asking, so nothing is matched by name. The provider sends the browser back here with the result.
+   */
+  public connectProvider(provider: OidcProviderSummary): void {
+    this.navigateToUrl(buildOidcLinkUrl(provider.name));
+  }
+
+  public disconnectProvider(connection: OidcConnectionView): void {
+    const ref = this.dialog.open(ConfirmationDialogComponent);
+    ref.componentInstance.headerText = marker("Disconnect the provider");
+    ref.componentInstance.dialogContent = this.translation.t(
+      "You will no longer be able to sign in with {name}. Your account and everything in it stay.",
+      { name: connection.providerDisplayName }
+    );
+    ref.componentInstance.confirmText = marker("Remove");
+
+    ref
+      .afterClosed()
+      .pipe(
+        take(1),
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.oidcService.deleteOidcConnection(connection.providerName)),
+      )
+      .subscribe({
+        next: () => {
+          this.snackbarService.success("Provider disconnected");
+          this.loadConnections();
+        },
+        error: (error: HttpErrorResponse) => {
+          // A refusal the server explains per field carries no errorMsg, so the interceptor stayed silent.
+          if (error.status === 400 && !error.error?.errorMsg) {
+            this.snackbarService.error("This provider is the only way into your account, so it cannot be disconnected.");
+          }
+        },
+      });
+  }
+
+  /**
+   * Says how a connect attempt ended (the server sends the browser back with `oidcLinked` or `oidcError`), then
+   * takes the parameter out of the address so a reload does not say it again.
+   */
+  private reportConnectResult(): void {
+    const params = this.route?.snapshot?.queryParams ?? {};
+    const linked = params["oidcLinked"];
+    const errorCode = params["oidcError"];
+    if (!linked && !errorCode) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { oidcLinked: null, oidcError: null },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
+
+    if (linked) {
+      this.snackbarService.success("Provider connected. You can sign in with it from now on.");
+    } else {
+      this.snackbarService.error(oidcErrorMessage(errorCode));
+    }
   }
 
   /** The avatar colour on file (a hex), as the form holds it. */
@@ -288,6 +384,10 @@ export class UserProfileComponent implements OnInit {
   }
 
   private readonly authService = inject(AuthService);
+
+  private readonly translation = inject(TranslationService);
+
+  private readonly dialog = inject(AppDialog);
 
   /** True from the confirmation until the server answered, so the button cannot fire twice. */
   public readonly signingOutEverywhere = signal(false);

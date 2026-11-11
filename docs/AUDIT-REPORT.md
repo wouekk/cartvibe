@@ -151,7 +151,19 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     needs the create permission; the privilege ceiling on roster changes; the read-only role preview.
   - Not verified: twelve Playwright specs whose subject is gone were deleted, and three were rewritten for the
     fixed roles without a run (`desktop/docs/e2e.md`); of the rewritten specs CI runs `shopping-list` only.
-- [ ] 9. Identity-provider screens: D15
+- [ ] 9. Identity-provider screens (`feature/oidc-ui`, cut from `preview` with sprint 8 in it): D15
+  - Done on the branch on 2026-11-11, in the web app only (the API and the contract are unchanged): a
+    *Sign-in providers* tab in System Settings on the five provider endpoints (list, add, change, delete, and the
+    redirect address shown before the provider is saved, worked out from the Server Public URL and the name); one
+    *Sign in with …* button per switched-on provider on the login page, with the server's error codes said in plain
+    words; `/auth/callback`, where the server sends a browser after a provider sign-in and the account is loaded;
+    a *Sign-in methods* card in User Settings to connect and disconnect a provider; a FAQ entry for Authentik,
+    Authelia and Keycloak. New people get the User role and join the household, as with every new account.
+  - Proved by the specs only: no identity provider is available to the agent, so no sign-in was made end to end
+    here and there is no Playwright spec for it. The API's own flow tests run against a fake provider
+    (`api/docs/oidc.md`).
+  - Found on the way and fixed: the tab strip threw when its tabs were taken away, which happened for a moment
+    after *Sign out everywhere*.
 - [ ] 10. App cleanup: C10, C11, C13, D6 to D11, F6, F8
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 

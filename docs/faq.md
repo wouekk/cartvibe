@@ -5,6 +5,7 @@ Short answers for running a [CartVibe](https://cartvibe.app/) household. Setup, 
 - [How do I rename a household?](#how-do-i-rename-a-household)
 - [How do I change a password?](#how-do-i-change-a-password)
 - [I lost my phone. How do I sign it out?](#i-lost-my-phone-how-do-i-sign-it-out)
+- [How do I sign in with Authentik, Authelia or Keycloak?](#how-do-i-sign-in-with-authentik-authelia-or-keycloak)
 - [How do I add AI API keys?](#how-do-i-add-ai-api-keys)
 - [How do I add a Logo.dev API key?](#how-do-i-add-a-logodev-api-key)
 - [How do I use CartVibe as an app on my phone?](#how-do-i-use-cartvibe-as-an-app-on-my-phone)
@@ -43,6 +44,67 @@ That ends your session on every phone and computer, the one you are holding incl
 assistant you connected. If CartVibe happened to be open on the lost phone, it keeps working for at most 20 minutes
 and then asks for the password. Sign in again where you still want to use it, and have an admin set you a new
 password (above) if someone could know the old one. Nobody else in the household is signed out.
+
+## How do I sign in with Authentik, Authelia or Keycloak?
+
+If you already run an identity provider at home, people can sign in to CartVibe with the account they have there
+instead of a CartVibe password. Any provider that speaks OpenID Connect works; the three below are the ones
+self-hosters ask about most. Signing in with a username and password keeps working beside it.
+
+CartVibe needs a fixed address first, because the provider sends people back to it, and most providers insist on
+an `https://` one (see [the phone app answer](#1-put-cartvibe-behind-https)).
+
+### 1. Tell CartVibe its own address
+
+Sign in as an admin, open **System Settings → Auth & Security**, type the address people use to reach CartVibe into
+**Server Public URL** (for example `https://receipts.example.com`, with nothing after the host) and save.
+
+### 2. Get the redirect address
+
+Open **System Settings → Sign-in providers** and press **Add provider**. Type a **Display Name** (what the button on
+the login page will say, for example `Authentik`); the **Name in the address** fills itself in. The box below shows
+the **Redirect address**, such as `https://receipts.example.com/api/oidc/authentik/callback`. Copy it and leave the
+dialog open.
+
+### 3. Create a client at the provider
+
+Every provider calls this something else, but it always asks for the redirect address from step 2 and gives you a
+client ID and a client secret. Ask for the scopes `openid profile email`.
+
+* **Authentik:** under **Applications → Providers** create an **OAuth2/OpenID Provider**: client type
+  *Confidential*, and the redirect address as a *strict* redirect URI. Then create an **Application** that uses
+  this provider. The issuer is shown on the provider's page as *OpenID Configuration Issuer*, and looks like
+  `https://auth.example.com/application/o/cartvibe/` (the final slash is part of it).
+* **Authelia:** add a client under `identity_providers.oidc.clients` in its configuration: a `client_id`, a
+  `client_secret` (Authelia stores it hashed; its documentation has the command that makes the hash), the redirect
+  address under `redirect_uris`, and `scopes` with `openid`, `profile` and `email`. Restart Authelia. The issuer is
+  Authelia's own address, for example `https://auth.example.com`.
+* **Keycloak:** in your realm, under **Clients**, create a client of the type *OpenID Connect* with *Client
+  authentication* switched on and the *Standard flow* ticked, and put the redirect address under *Valid redirect
+  URIs*. The secret is on the client's **Credentials** tab. The issuer is `https://keycloak.example.com/realms/` followed
+  by the realm's name.
+
+### 4. Finish in CartVibe
+
+Back in the dialog, fill in the **Issuer URL** exactly as the provider shows it (with or without a final slash, as
+it is there), the **Client ID** and the **Client Secret**, and save. With **Show on the login page** ticked, the
+login page now has a **Sign in with …** button.
+
+### 5. Decide who gets in
+
+* **People who already have a CartVibe account** connect the provider themselves: **Settings → User Settings →
+  Sign-in methods → Connect**. From then on the button on the login page opens their account. This is the safe way,
+  because they are signed in when they do it.
+* **People without an account** are refused unless you tick **Create an account at the first sign-in** on the
+  provider. Then whoever your provider lets in gets an account with the role User and joins the household. Such an
+  account has no password: it can only sign in through the provider, until an admin sets a password for it.
+* Leave **Match an existing account by username** off unless you run the provider yourself and decide who gets
+  which username there. It gives a first-time visitor the CartVibe account with the same username.
+
+If the button brings you back to the login page with a message, the provider could not be reached or refused the
+request: check the Issuer URL and that the redirect address at the provider is exactly the one from step 2. The
+server's log (**System Settings → Logs**) has the details. Deleting a provider, or unticking **Show on the login
+page**, stops everyone signing in with it; people who have a password are not affected.
 
 ## How do I add AI API keys?
 

@@ -186,6 +186,10 @@ feature.
   into `allTabs` and the landing guard order. Embedded tables sit outside the `<form>`.
 - **Roles are fixed:** Admin and User, in the app and in a household; nothing edits one and nothing narrows what a
   household member sees. `RoleNamePipe` matches on id **and** scope (app and group ids collide).
+- **Sign-in with an identity provider:** the three server addresses (`src/utils/oidc.ts` and the profile's delete
+  confirmation) are opened as pages, never through `HttpClient`; the result comes back in the address
+  (`oidcError`, `oidcLinked`) and is taken out of it once said. `/auth/callback` must stay under `/auth` (the auth
+  guard lets a browser without a stored session through there). The issuer address is sent as typed.
 
 ## E2E (setup and per-spec notes: `docs/e2e.md`)
 
@@ -204,7 +208,7 @@ feature.
 ## Removed (do not resurrect without asking)
 
 The Flutter app; Angular Material, Bootstrap and ngx-bootstrap; login QR; the role editor (`/roles`), the grant picker
-(category and tag access per member), the "Isolate members" switch and role-required receipt fields; OIDC admin UI and
-login buttons; custom fields, the receipt summary, stored prompts, config import, system emails; items, shares and bill
+(category and tag access per member), the "Isolate members" switch and role-required receipt fields; custom fields,
+the receipt summary, stored prompts, config import, system emails; items, shares and bill
 splitting; per-group widget dashboards; the month stepper as a date control and the header search box; the
 `showLargeImagePreviews` preference and the old image viewer.

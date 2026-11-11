@@ -1,0 +1,113 @@
+<app-dialog [headerText]="(editing ? 'Edit sign-in provider' : 'Add sign-in provider') | t">
+  <form [formGroup]="form" data-testid="oidc-provider-form" (ngSubmit)="submit()">
+    <div class="flex flex-col gap-3">
+      <app-input
+        [label]="'Display Name' | t"
+        hint="What the login page calls it: Sign in with …"
+        data-testid="oidc-provider-display-name"
+        [inputFormControl]="form | formGet : 'displayName'"
+      ></app-input>
+      <app-input
+        [label]="'Name in the address' | t"
+        [hint]="nameHint"
+        data-testid="oidc-provider-name"
+        [readonly]="editing"
+        [inputFormControl]="form | formGet : 'name'"
+      ></app-input>
+
+      <!-- The one text the admin carries to the provider. Shown while adding too: the provider wants it before it
+           hands out the client ID and secret asked for below. -->
+      @if (redirectUri()) {
+        <div class="cv-inset flex flex-col gap-1.5" data-testid="oidc-provider-redirect">
+          <span class="cv-section__title">{{ 'Redirect address' | t }}</span>
+          <div class="flex min-w-0 items-center gap-2">
+            <code class="min-w-0 flex-1 text-xs break-all" data-testid="oidc-provider-redirect-uri">{{ redirectUri() }}</code>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              type="button"
+              class="shrink-0"
+              data-testid="oidc-provider-copy-redirect-uri"
+              [attr.aria-label]="'Copy the redirect address' | t"
+              (click)="copyRedirectUri()"
+            >
+              <app-icon name="content_copy"></app-icon>
+            </button>
+          </div>
+          <p class="m-0 text-xs text-muted-foreground">
+            {{ 'Register exactly this address at the provider as the redirect (callback) URL.' | t }}
+          </p>
+        </div>
+      } @else if (!editing) {
+        <p class="cv-inset m-0 text-xs text-muted-foreground" data-testid="oidc-provider-redirect-missing">
+          {{ 'The redirect address to register at the provider appears here once the Server Public URL is set under Auth & Security and the provider has a name.' | t }}
+        </p>
+      }
+
+      <app-input
+        [label]="'Issuer URL' | t"
+        hint="The provider's address for this app, where it publishes /.well-known/openid-configuration"
+        placeholder="https://auth.example.com"
+        data-testid="oidc-provider-issuer-url"
+        [inputFormControl]="form | formGet : 'issuerUrl'"
+      ></app-input>
+      <app-input
+        [label]="'Client ID' | t"
+        data-testid="oidc-provider-client-id"
+        [inputFormControl]="form | formGet : 'clientId'"
+      ></app-input>
+      <app-input
+        [label]="'Client Secret' | t"
+        type="password"
+        [hint]="secretHint"
+        [showVisibilityEye]="true"
+        data-testid="oidc-provider-client-secret"
+        [inputFormControl]="form | formGet : 'clientSecret'"
+      ></app-input>
+      <app-input
+        [label]="'Scopes' | t"
+        hint="Separated by spaces. openid is required; profile and email give the account its name."
+        data-testid="oidc-provider-scope"
+        [inputFormControl]="form | formGet : 'scope'"
+      ></app-input>
+
+      <div class="flex flex-col gap-1">
+        <app-checkbox
+          [label]="'Show on the login page' | t"
+          data-testid="oidc-provider-enabled"
+          [inputFormControl]="form | formGet : 'enabled'"
+        ></app-checkbox>
+        <p class="m-0 text-xs text-muted-foreground">
+          {{ 'Switched off, nobody can sign in with this provider and its button is hidden.' | t }}
+        </p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <app-checkbox
+          [label]="'Create an account at the first sign-in' | t"
+          data-testid="oidc-provider-allow-provisioning"
+          [inputFormControl]="form | formGet : 'allowProvisioning'"
+        ></app-checkbox>
+        <p class="m-0 text-xs text-muted-foreground">
+          {{ 'Someone the provider lets in, and who has no account here yet, gets one as a User and joins the household. Switched off, only people who connected the provider under User Settings can sign in with it.' | t }}
+        </p>
+      </div>
+      <div class="flex flex-col gap-1">
+        <app-checkbox
+          [label]="'Match an existing account by username' | t"
+          data-testid="oidc-provider-link-by-username"
+          [inputFormControl]="form | formGet : 'linkByUsername'"
+        ></app-checkbox>
+        <p class="m-0 text-xs text-muted-foreground">
+          {{ 'Only for a provider you run yourself. At a first sign-in the person gets the account whose username equals theirs at the provider, so on a provider where people pick their own username, anyone could take the name of an admin. Connecting under User Settings is always safe.' | t }}
+        </p>
+      </div>
+    </div>
+
+    <app-dialog-footer
+      [editing]="editing"
+      [submitDisabled]="saving()"
+      (cancelClicked)="closeDialog()"
+    ></app-dialog-footer>
+  </form>
+</app-dialog>

@@ -48,6 +48,15 @@ const routes: Routes = [
       { path: "integrations", redirectTo: "general", pathMatch: "full" },
       { path: "system-tasks", redirectTo: "tasks", pathMatch: "full" },
       {
+        path: "providers",
+        loadComponent: () =>
+          import("./oidc-providers/oidc-provider-list.component").then((m) => m.OidcProviderListComponent),
+        canActivate: [appPermissionGuard],
+        data: {
+          appPermissions: [Permission.AppOidcProvidersRead],
+        },
+      },
+      {
         path: "export-import",
         component: ExportImportPageComponent,
         canActivate: [appPermissionGuard],

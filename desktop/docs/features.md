@@ -439,6 +439,32 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     the interceptor (the server's `errorMsg`). The demo refuses the upload with a toast.
   - Logs (`src/system-settings/logs/`): the newest 300 app-log lines, the first place to look for a reported error.
   - System Tasks: `system-tasks.md`.
+  - Sign-in providers (`src/system-settings/oidc-providers/`, only with `app.oidc-providers.read`): see the next point.
+- **Signing in with an identity provider (OIDC).** The server runs the whole exchange (`../../api/docs/oidc.md`);
+  the web app only opens three server addresses **as pages** (`window.location`, never `HttpClient`: the browser
+  must follow the redirects to the provider) and reads what comes back in the address.
+  - The providers an admin switched on are `FeatureConfigState.oidcProviders` (name and display name only). The
+    login page draws one *Sign in with …* button each (`buildOidcLoginUrl`); nothing is drawn without a provider,
+    or on the sign-up page.
+  - A sign-in that worked lands on `/auth/callback` (`OidcCallbackComponent`): the cookies are set, but a browser
+    that never signed in has an empty store, so the page loads `getAppData` under the sign-in splash and opens the
+    Dashboard. One that failed lands on `/auth/login?oidcError=<code>`; `oidcErrorMessage` (`src/utils/oidc.ts`)
+    turns the server's fixed codes into text, an unknown code into a general one, and the page takes the parameter
+    out of the address.
+  - **User Settings → Sign-in methods** lists the account's connections and the switched-on providers it is not
+    connected to. Connect opens `buildOidcLinkUrl` (the session proves who asks); the server returns to the profile
+    with `oidcLinked` or `oidcError`. Disconnect asks first; the last connection of an account a provider created
+    has no button (it has no password), and the server refuses it too. The card is not drawn on an install with
+    no provider for an account with no connection.
+  - **System Settings → Sign-in providers** reads the whole list in one request (`pageSize: -1`; the paged type
+    does not name a provider, hence the one cast) and draws rows by hand, not `app-table`. The form
+    (`OidcProviderFormComponent`, dialog data) shows the **redirect address before the provider exists**, built
+    like the server builds it from the Server Public URL and the name (`redirectUriFor`), because the provider
+    wants it before it hands out the client ID and secret; the name follows the display name until it is typed
+    and is locked afterwards; an empty secret on a change is left out of the request (the server keeps the stored
+    one). The server's own refusals (name taken, switched on without a Server Public URL) come without `errorMsg`,
+    so the form says them. After a change the feature config is read again, so the login page and User Settings
+    follow at once. The issuer address goes to the server as typed: a final slash is part of it.
 - **AI page** (`/ai`, every member): `app-ai-provider-fields` is the one provider block (main card and
   `app-ai-fallback-card`); cloud providers get a model list from the API. A saved key shows as
   `SAVED_KEY_PLACEHOLDER`; Test connection works on the form as typed. Saving refreshes the feature config so Quick
@@ -455,7 +481,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **Manage Categories / Tags** refresh AppData after each change (`refreshAfterChange`) so pickers see new names; the
   category form provides `DuplicateValidator` itself (root-injector dialogs).
 - **Delete account** for a passwordless (provider-provisioned) account confirms through the provider instead of a
-  password; that is why the profile still loads OIDC connections.
+  password, read from the same connections the Sign-in methods card lists.
 
 ## Conventions in detail
 

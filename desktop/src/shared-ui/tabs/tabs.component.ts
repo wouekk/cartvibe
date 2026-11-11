@@ -39,8 +39,10 @@ export class TabsComponent implements OnInit, OnChanges {
   private setActiveTab(): void {
     const activeTabName = this.activatedRoute.snapshot.queryParams["tab"];
 
+    // No tab at all is possible for a moment: signing out takes the permissions (and with them the tabs) away
+    // while the page is still on screen.
     const tabs = this.tabs();
-    this.activeName.set(tabs.find(t => t.name === activeTabName)?.name || tabs[0].name);
+    this.activeName.set(tabs.find(t => t.name === activeTabName)?.name || tabs[0]?.name || "");
   }
 
   private listenToRouteChanges(): void {

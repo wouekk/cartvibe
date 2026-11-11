@@ -124,6 +124,7 @@ export function registerAdmin(router: DemoRouter): void {
   router.put("/oidcProvider/:id", () => badRequest(NOT_IN_DEMO));
   router.delete("/oidcProvider/:id", () => ok());
   router.get("/oidc/connections", () => []);
+  router.delete("/oidc/connections/:name", () => notFound("Not connected"));
   router.get("/shopLogo/status", () => ({ running: false, downloaded: 0, total: 0, lastError: "" }));
   router.post("/shopLogo/sync", () => badRequest(NOT_IN_DEMO));
   router.delete("/shopLogo", () => ({ running: false, downloaded: 0, total: 0, lastError: "" }));

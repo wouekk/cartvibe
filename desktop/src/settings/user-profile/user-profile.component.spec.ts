@@ -1,19 +1,20 @@
 import { GROUP_COLORS } from "../../constants/group-look";
 import { ColorSwatchesComponent } from "../../shared-ui/color-swatches/color-swatches.component";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { of, throwError } from "rxjs";
+import { firstValueFrom, of, throwError } from "rxjs";
 import { PipesModule } from "src/pipes/pipes.module";
 import { DirectivesModule } from "../../directives";
 import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AuthState, FeatureConfigState, Logout, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
+import { SetFeatureConfig } from "../../store/feature-config.state.actions";
 import { buildOidcDeleteConfirmationUrl, UserProfileComponent } from "./user-profile.component";
 import { DeleteAccountDialogComponent } from "../delete-account-dialog/delete-account-dialog.component";
 
@@ -460,6 +461,144 @@ describe("UserProfileComponent", () => {
       initWithQueryParams({ tab: "user-profile" });
 
       expect(router.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("sign-in methods", () => {
+    const section = () => fixture.nativeElement.querySelector("[data-testid=sign-in-methods]") as HTMLElement | null;
+
+    async function open(connections: OidcConnectionView[], providerNames: string[], permissions = [Permission.AppAccountUpdate]) {
+      const store = TestBed.inject(Store);
+      store.dispatch(new SetPermissions(permissions, {}));
+      await firstValueFrom(
+        store.dispatch(
+          new SetFeatureConfig({
+            enableLocalSignUp: false,
+            aiPoweredReceipts: false,
+            oidcProviders: providerNames.map((name) => ({ name, displayName: name.toUpperCase() })),
+          })
+        )
+      );
+      vi.spyOn(TestBed.inject(OidcService), "getOidcConnections").mockReturnValue(of(connections) as any);
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+
+    it("is not shown on an install without a provider, for an account without a connection", async () => {
+      await open([], []);
+
+      expect(section()).toBeNull();
+    });
+
+    it("lists the connections, then the switched-on providers that are not connected yet", async () => {
+      await open([connection({ provisionedUser: false, email: "alex@example.com" })], ["google", "authentik"]);
+
+      const text = (testId: string) =>
+        Array.from(section()!.querySelectorAll(`[data-testid=${testId}]`)).map((row) => row.textContent?.replace(/\s+/g, " ").trim());
+      expect(text("oidc-connection").length).toBe(1);
+      expect(text("oidc-connection")[0]).toMatch(/^Google\s*alex@example\.com\s*Disconnect$/);
+      expect(text("oidc-available").length).toBe(1);
+      expect(text("oidc-available")[0]).toMatch(/^AUTHENTIK\s*Not connected\s*Connect$/);
+    });
+
+    it("connects a provider by opening the server's address as a page", async () => {
+      await open([], ["key cloak"]);
+      const navigate = vi.spyOn(component as any, "navigateToUrl").mockImplementation(() => undefined);
+
+      (section()!.querySelector("[data-testid='oidc-connect-key cloak']") as HTMLButtonElement).click();
+
+      expect(navigate).toHaveBeenCalledWith("/api/oidc/link/key%20cloak");
+    });
+
+    it("offers no way to drop the only connection of an account without a password, and says why", async () => {
+      await open([connection()], ["google"]);
+
+      expect(section()!.querySelector("[data-testid=oidc-disconnect-google]")).toBeNull();
+      expect(section()!.querySelector("[data-testid=oidc-connection-required]")?.textContent).toContain("no password");
+    });
+
+    it("lets a passwordless account drop one of two connections", async () => {
+      await open([connection(), connection({ providerName: "authentik", providerDisplayName: "Authentik" })], []);
+
+      expect(section()!.querySelector("[data-testid=oidc-disconnect-google]")).not.toBeNull();
+      expect(section()!.querySelector("[data-testid=oidc-disconnect-authentik]")).not.toBeNull();
+    });
+
+    it("is read-only without app.account.update", async () => {
+      await open([connection({ provisionedUser: false })], ["google", "authentik"], []);
+
+      expect(section()!.querySelectorAll("button").length).toBe(0);
+    });
+
+    it("disconnects after a confirmation and reads the list again", async () => {
+      await open([connection({ provisionedUser: false })], ["google"]);
+      const confirmation = { afterClosed: () => of(true), componentInstance: {} as Record<string, string> };
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue(confirmation as any);
+      const disconnect = vi.spyOn(TestBed.inject(OidcService), "deleteOidcConnection").mockReturnValue(of(undefined) as any);
+      const reload = vi.spyOn(TestBed.inject(OidcService), "getOidcConnections").mockReturnValue(of([]) as any);
+      const success = vi.spyOn(TestBed.inject(SnackbarService), "success").mockImplementation(() => undefined as any);
+
+      (section()!.querySelector("[data-testid=oidc-disconnect-google]") as HTMLButtonElement).click();
+      await fixture.whenStable();
+
+      expect(confirmation.componentInstance["confirmText"]).toBe("Remove");
+      expect(disconnect).toHaveBeenCalledWith("google");
+      expect(reload).toHaveBeenCalled();
+      expect(success).toHaveBeenCalledWith("Provider disconnected");
+      expect(component.connections()).toEqual([]);
+    });
+
+    it("leaves the connection alone when the confirmation is dismissed", async () => {
+      await open([connection({ provisionedUser: false })], ["google"]);
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => of(false), componentInstance: {} } as any);
+      const disconnect = vi.spyOn(TestBed.inject(OidcService), "deleteOidcConnection");
+
+      component.disconnectProvider(component.connections()[0]);
+
+      expect(disconnect).not.toHaveBeenCalled();
+    });
+
+    it("says so itself when the server refuses the last connection (a refusal without errorMsg)", async () => {
+      await open([connection({ provisionedUser: false })], ["google"]);
+      vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => of(true), componentInstance: {} } as any);
+      vi.spyOn(TestBed.inject(OidcService), "deleteOidcConnection").mockReturnValue(
+        throwError(() => new HttpErrorResponse({ status: 400, error: { name: "cannot disconnect" } }))
+      );
+      const error = vi.spyOn(TestBed.inject(SnackbarService), "error").mockImplementation(() => undefined as any);
+
+      component.disconnectProvider(component.connections()[0]);
+
+      expect(error).toHaveBeenCalledTimes(1);
+      expect(error.mock.calls[0][0]).toContain("only way into your account");
+    });
+
+    it("says a connect worked when the provider sent the browser back, and clears the address", () => {
+      const router = TestBed.inject(Router);
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot.queryParams = { tab: "user-profile", oidcLinked: "google" };
+      vi.spyOn(TestBed.inject(OidcService), "getOidcConnections").mockReturnValue(of([]) as any);
+      const success = vi.spyOn(TestBed.inject(SnackbarService), "success").mockImplementation(() => undefined as any);
+
+      component.ngOnInit();
+
+      expect(success).toHaveBeenCalledWith("Provider connected. You can sign in with it from now on.");
+      expect(router.navigate).toHaveBeenCalledWith([], {
+        relativeTo: route,
+        queryParams: { oidcLinked: null, oidcError: null },
+        queryParamsHandling: "merge",
+        replaceUrl: true,
+      });
+    });
+
+    it("says why a connect failed", () => {
+      const route = TestBed.inject(ActivatedRoute) as any;
+      route.snapshot.queryParams = { tab: "user-profile", oidcError: "already_linked" };
+      vi.spyOn(TestBed.inject(OidcService), "getOidcConnections").mockReturnValue(of([]) as any);
+      const error = vi.spyOn(TestBed.inject(SnackbarService), "error").mockImplementation(() => undefined as any);
+
+      component.ngOnInit();
+
+      expect(error).toHaveBeenCalledWith("That identity is already connected to another account.");
     });
   });
 
