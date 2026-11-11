@@ -27,7 +27,8 @@ func ledgerCount(t *testing.T, name string) int64 {
 }
 
 func TestDataMigrationRegistryHoldsTheKnownMigrations(t *testing.T) {
-	if len(dataMigrations) != 9 ||
+	if len(dataMigrations) != 10 ||
+		dataMigrations[9].name != moneyMinorUnitsMigration ||
 		dataMigrations[6].name != twoReceiptStatusesMigration ||
 		dataMigrations[7].name != commentsToNoteMigration ||
 		dataMigrations[8].name != idFilePathsMigration ||
@@ -37,7 +38,7 @@ func TestDataMigrationRegistryHoldsTheKnownMigrations(t *testing.T) {
 		dataMigrations[3].name != sessionLifetimeMigration ||
 		dataMigrations[4].name != fixedRolesMigration ||
 		dataMigrations[5].name != removeUserShortcutsMigration {
-		utils.PrintTestError(t, len(dataMigrations), 9)
+		utils.PrintTestError(t, len(dataMigrations), 10)
 	}
 }
 

@@ -87,7 +87,7 @@ func (repository ReceiptRepository) GetProductSearchMatches(receiptIds []uint, q
 
 		products := []models.ReceiptProduct{}
 		err := db.
-			Select("id", "receipt_id", "name", "display_name", "amount", "position").
+			Select("id", "receipt_id", "name", "display_name", "amount_minor", "position").
 			Where("receipt_id IN ?", receiptIds[start:end]).
 			Order("receipt_id, position, id").
 			Find(&products).Error

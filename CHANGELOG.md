@@ -192,6 +192,12 @@ it is doing.
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
   release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
   Go 1.26 still works.
+- **Amounts are stored as whole cents.** A receipt's amount, its amount in another currency, a product line's
+  amount and the monthly goal were kept as decimal numbers, which the database holds as floating point; they
+  are whole hundredths now, so adding, comparing and sorting them is exact wherever it happens. Nothing you see
+  changes: every amount reads as it did. The first start of this version converts the stored amounts once (the
+  container's log says how many, and how many had more than two decimals and were rounded, which should be
+  none), after the usual copy of the database into `sqlite/backups`. The old columns are left in place.
 - **Receipt photos are stored by number (HH-01).** A photo used to be kept in a folder named after its household
   and under the name it was uploaded with, so renaming a household moved a folder on your disk and could be
   refused when that failed. Now each file is `data/<household number>/<file number>`, a rename touches nothing

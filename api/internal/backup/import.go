@@ -868,7 +868,7 @@ func (run *importRun) writePersonalSettings() error {
 			"quick_scan_default_paid_by_id": run.users.ptr(preferences.QuickScanDefaultPaidById),
 			"quick_scan_default_status":     string(preferences.QuickScanDefaultStatus),
 			"close_chip_select_on_select":   preferences.CloseChipSelectOnSelect,
-			"monthly_spending_goal":         preferences.MonthlySpendingGoal,
+			"monthly_spending_goal_minor":   models.ToMinorUnitsPtr(preferences.MonthlySpendingGoal),
 			"language":                      preferences.Language,
 			"ai_language":                   preferences.AiLanguage,
 			"region":                        preferences.Region,
