@@ -62,7 +62,8 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
   Chromium pieces) is named in the Dockerfile and proved by `docker/checks/runtime-check.sh` at build time. A new
   tool or font the API relies on gets a package name there and a check in the script, never `Recommends` switched back on.
 - **Built by GitHub, not the NAS:** `publish-image.yml` pushes `ghcr.io/wouekk/cartvibe:latest` and `:sha-<commit>` from
-  green `main` (amd64), `:vX.Y.Z` and `:X.Y` from a `v*` tag pushed on `main`, or `:preview` from a manual run on
+  green `main`, each tag for amd64 and arm64 (built, checked and scanned on a runner of its own kind; the smoke
+  suite tests amd64 only, and a failed arm64 build publishes the tags with amd64 alone), `:vX.Y.Z` and `:X.Y` from a `v*` tag pushed on `main`, or `:preview` from a manual run on
   another branch. `:latest` follows `main`, not the newest release (the owner's decision of 2026-11-10: the NAS
   deploys from it). The release tag is the only version number; `package.json` and `swagger.yml` stay at `0.0.0`.
 - **The NAS** (Synology, Dockhand) runs the root `docker-compose.yml`: the app image and nothing else (since

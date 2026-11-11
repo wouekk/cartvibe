@@ -15,6 +15,12 @@
 #
 # The image is scanned before it is pushed: a critical vulnerability that already has a fix stops the publish. A
 # build that used the layer cache is first rebuilt without it, since the fix is usually a newer Debian package.
+#
+# Two platforms, one name: amd64 (the Synology, most servers) and arm64 (a Raspberry Pi, an ARM NAS or VPS). Each is
+# built, checked and scanned on a runner of its own kind, so nothing is emulated and the image's own runtime check
+# (docker/checks/runtime-check.sh) runs for real on both. Each pushes its image by digest only; the last job puts
+# both under every tag, and Docker on the server picks its own. amd64 is what the smoke suite tests and what must
+# publish: when the arm64 build fails, the tags are published with amd64 alone and the run says so.
 name: Publish image
 
 on:
@@ -130,10 +136,20 @@ jobs:
             fi
           fi
 
-  publish:
+  build:
     needs: gate
     if: needs.gate.outputs.publish == 'true'
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    # arm64 may fail without stopping the publish (the tag job below then has amd64 alone).
+    continue-on-error: ${{ matrix.arch == 'arm64' }}
     permissions:
       contents: read
       packages: write
@@ -153,12 +169,7 @@ jobs:
         run: |
           image="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/cartvibe"
           sha=$(git rev-parse --short HEAD)
-          names=""
-          for tag in $TAGS; do
-            [ "$tag" = "sha" ] && tag="sha-$sha"
-            names="$names $image:$tag"
-          done
-          echo "names=${names# }" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
           echo "label=$(echo "$TAGS" | tr ' ' '-')-$sha" >> "$GITHUB_OUTPUT"
           # What the About page shows: the release, or the commit for a rolling build.
           echo "version=${RELEASE:-sha-$sha}" >> "$GITHUB_OUTPUT"
@@ -174,12 +185,12 @@ jobs:
             exit 1
           fi
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - name: Build (amd64)
+      - name: Build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./docker/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           # Into the runner's own Docker, not the registry: nothing is published before the scan below.
           load: true
           tags: ${{ env.CANDIDATE }}
@@ -188,8 +199,8 @@ jobs:
             BUILD_DATE=${{ steps.meta.outputs.date }}
           # Reuse the dependency layers between builds (see the note at the top of the Dockerfile).
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=image-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=image-${{ matrix.arch }}
           # Always fetch the newest base images; the weekly run also rebuilds every layer.
           pull: true
           no-cache: ${{ github.event_name == 'schedule' || inputs.no-cache == true }}
@@ -212,14 +223,14 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           load: true
           tags: ${{ env.CANDIDATE }}
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
             BUILD_DATE=${{ steps.meta.outputs.date }}
           labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,scope=image-${{ matrix.arch }}
           pull: true
           no-cache: true
       # Still there after a rebuild from nothing: the publish stops here, and what the registry holds stays.
@@ -247,19 +258,91 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push
+      # The scanned image goes to the registry under its digest only, with no tag yet: the build is the one above
+      # again, taken whole from this builder's cache. The tags are set by the next job, over both platforms.
+      - name: Push by digest
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            BUILD_DATE=${{ steps.meta.outputs.date }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha,scope=image-${{ matrix.arch }}
+          outputs: type=image,name=${{ steps.meta.outputs.image }},push-by-digest=true,name-canonical=true,push=true
+      - name: Keep the digest for the tag job
         env:
-          NAMES: ${{ steps.meta.outputs.names }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+          ARCH: ${{ matrix.arch }}
         run: |
-          for name in $NAMES; do
-            docker tag "$CANDIDATE" "$name"
-            docker push "$name"
-          done
+          test -n "$DIGEST"
+          mkdir -p digests
+          echo "$DIGEST" > "digests/$ARCH"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: digest-${{ matrix.arch }}
+          path: digests/${{ matrix.arch }}
+          retention-days: 1
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: grype-report-${{ steps.meta.outputs.label }}
+          name: grype-report-${{ steps.meta.outputs.label }}-${{ matrix.arch }}
           path: |
             grype-report.txt
             grype-critical-fixable.txt
           if-no-files-found: ignore
+
+  # Puts the platforms that were built under every tag. amd64 must be among them.
+  tag:
+    needs: [gate, build]
+    if: needs.gate.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.gate.outputs.ref }}
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: digest-*
+          path: digests
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tag
+        env:
+          OWNER: ${{ github.repository_owner }}
+          TAGS: ${{ needs.gate.outputs.tags }}
+        run: |
+          image="ghcr.io/$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')/cartvibe"
+          sha=$(git rev-parse --short HEAD)
+          if [ ! -s digests/amd64 ]; then
+            echo "::error::The amd64 image was not built: nothing is tagged, and what the registry holds stays."
+            exit 1
+          fi
+          sources="$image@$(cat digests/amd64)"
+          if [ -s digests/arm64 ]; then
+            sources="$sources $image@$(cat digests/arm64)"
+          else
+            echo "::warning::The arm64 image was not built: the tags are published with amd64 alone."
+          fi
+          names=""
+          for tag in $TAGS; do
+            [ "$tag" = "sha" ] && tag="sha-$sha"
+            names="$names -t $image:$tag"
+          done
+          docker buildx imagetools create $names $sources
+          for tag in $TAGS; do
+            [ "$tag" = "sha" ] && tag="sha-$sha"
+            docker buildx imagetools inspect "$image:$tag" | grep -E "Name:|Platform:"
+          done

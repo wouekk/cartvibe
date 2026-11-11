@@ -36,7 +36,8 @@
 
 All you need is [Docker](https://docs.docker.com/get-docker/) with Docker Compose, or a NAS stack manager such as
 Dockhand or Synology's Container Manager. There is nothing to build: GitHub publishes a ready-made image at
-`ghcr.io/wouekk/cartvibe`. `:latest` is the newest version that passed its tests, and `:preview` the one being tried.
+`ghcr.io/wouekk/cartvibe`, for Intel and AMD machines (most NAS models and servers) and for ARM ones (a Raspberry Pi 4
+or 5 with a 64-bit system, an ARM NAS or server); Docker picks the right one by itself. `:latest` is the newest version that passed its tests, and `:preview` the one being tried.
 From 0.19 on each release has tags of its own too: `:v0.19.0` never changes, and `:0.19` follows the fixes of that
 release line, which is the one to use if you would rather choose when a new version arrives.
 
