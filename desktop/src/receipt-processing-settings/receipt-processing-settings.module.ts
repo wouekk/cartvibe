@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { RouterLink } from "@angular/router";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
-import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 
 import { InputModule } from "../input";
@@ -35,7 +34,6 @@ import {
     OcrEnginePipe,
     UrlLabelPipe,
     UrlHintPipe,
-    ButtonModule,
     ...HlmTooltipImports,
     CheckboxModule,
     ReceiptProcessingSettingsChildSystemTaskAccordionComponent

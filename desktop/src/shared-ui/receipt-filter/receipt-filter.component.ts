@@ -8,12 +8,14 @@ import { SetReceiptFilter } from "src/store/receipt-table.actions";
 import { setupAutoOperationSelection } from "src/utils/filter-form";
 import { FormCommand } from "../../form/index";
 import { Category, Tag } from "../../open-api";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../icon/icon.component";
 import { GroupState } from "../../store";
 import { NgIf, NgTemplateOutlet } from "@angular/common";
 import { DialogComponent } from "../dialog/dialog.component";
 import { FilterFieldComponent } from "../filter-field/filter-field.component";
 import { DialogFooterComponent } from "../dialog-footer/dialog-footer.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
@@ -21,7 +23,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     templateUrl: "./receipt-filter.component.html",
     styleUrls: ["./receipt-filter.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgIf, DialogComponent, NgTemplateOutlet, FilterFieldComponent, DialogFooterComponent, ButtonComponent, TranslatePipe]
+    imports: [NgIf, DialogComponent, NgTemplateOutlet, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class ReceiptFilterComponent implements OnInit {
   @Input() public headerText: string = "";

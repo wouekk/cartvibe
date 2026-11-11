@@ -22,7 +22,8 @@ feature.
 - `npm run check:traps` (CI, before the specs; `tools/check-traps.cjs` lists the traps and why): no import of
   `environment.development`, no `[attr.aria-label]` glued with `+`, no `standalone: false` (the count is 0 and
   only goes down), the count of Material-era names only goes down (`tools/trap-baseline.json`; after lowering it
-  run the check with `--update`), and
+  run the check with `--update`), a template that uses `hlmBtn`, `hlmTooltip` or `hlmBadge` imports the
+  directive (the compiler does not report a missing one: the button is just unstyled), and
   `package.json` / `swagger.yml` stay at version `0.0.0`. `test:ci` fails under the coverage floor in
   `angular.json` (set two points under the figures of 2026-11-10).
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
@@ -50,7 +51,13 @@ feature.
   are replaced, never mutated. Prefer `computed` / `linkedSignal` over an `effect` that copies state.
 - **HTTP:** `provideHttpClient(withXhr(), …)`; XHR is kept because upload progress needs it. In templates `?.` yields
   `undefined`; the few places that relied on `null` read `$safeNavigationMigration(…)`.
-- **Spartan wrappers keep the app's API:** `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
+- **A button is `<button hlmBtn>`**, with `variant` (none for the filled one, `ghost`, `outline`,
+  `destructive`), `size="icon"` for an icon alone, `<app-icon>` and a `<span class="font-medium">` inside, and
+  `[hlmTooltip]` for its hint. There is no `app-button` any more (2026-11-11). The named buttons stay:
+  `app-submit-button`, `app-cancel-button`, `app-add-button`, `app-edit-button`, `app-delete-button`,
+  `app-back-button`, `app-copy-button`; their test id is on the host, the native button inside it. A vertical
+  margin class works on a button (it did nothing on the old wrapper's inline host).
+- **Spartan wrappers keep the app's API:** `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
   `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomplete`,
   `app-table` (types in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`. Add a helm part only
   with `node tools/spartan-add.cjs <name>`: it re-applies the local patches listed at its end.

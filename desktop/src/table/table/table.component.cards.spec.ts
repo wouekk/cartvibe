@@ -177,7 +177,7 @@ describe("TableComponent as cards on a phone", () => {
     expect(cards()[0].querySelector("hlm-checkbox")).not.toBeNull();
     expect(byTestId("row-details")).toBeNull();
 
-    (cards()[0].querySelector("app-button button") as HTMLButtonElement).click();
+    (cards()[0].querySelector("[data-testid=row-expand]") as HTMLButtonElement).click();
     await fixture.whenStable();
 
     expect(cards()[0].querySelector("[data-testid=row-details]")?.textContent).toContain("Details of Lidl");

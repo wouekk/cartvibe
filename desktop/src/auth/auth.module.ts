@@ -2,7 +2,6 @@ import { CommonModule, NgOptimizedImage } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
-import { ButtonModule } from "../button/button.module";
 
 import { InputModule } from "../input/input.module";
 
@@ -16,7 +15,6 @@ import { AuthForm } from "./sign-up/auth-form.component";
 @NgModule({
     imports: [
     AuthRoutingModule,
-    ButtonModule,
     CommonModule,
     InputModule,
     ReactiveFormsModule,

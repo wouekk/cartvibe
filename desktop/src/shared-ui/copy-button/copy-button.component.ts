@@ -1,11 +1,14 @@
 import { Component, DestroyRef, inject, input, OnDestroy, output, signal, ChangeDetectionStrategy } from "@angular/core";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { marker } from "../../i18n/marker";
-import { ButtonComponent } from "../../button/button/button.component";
 
+import { AppIconComponent } from "../icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 /**
  * Generic copy-to-clipboard icon button.
  *
- * Wraps `<app-button>` with an internal "copied" state that flips the icon
+ * An icon button with an internal "copied" state that flips the icon
  * and tooltip for a brief window after a successful copy. Intended to be
  * reusable anywhere we want a compact clipboard action — dialogs, table
  * cells, read-only detail views, etc.
@@ -19,7 +22,7 @@ import { ButtonComponent } from "../../button/button/button.component";
     templateUrl: "./copy-button.component.html",
     styleUrl: "./copy-button.component.scss",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ButtonComponent],
+    imports: [ HlmButton, HlmTooltip, AppIconComponent, TranslatePipe],
 })
 export class CopyButtonComponent implements OnDestroy {
   public readonly text = input.required<string>();

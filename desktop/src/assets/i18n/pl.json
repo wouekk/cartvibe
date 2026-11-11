@@ -428,7 +428,6 @@
     "Filter": "Filtr",
     "Filter Receipts": "Filtruj paragony",
     "Filter System Tasks": "Filtruj zadania systemowe",
-    "Filter options": "Opcje filtrowania",
     "Filters": "Filtry",
     "Finished:": "Zakończona:",
     "First page": "Pierwsza strona",
@@ -689,7 +688,6 @@
     "No grouping": "Bez grupowania",
     "No households yet.": "Nie ma jeszcze gospodarstw.",
     "No ingredients were found in that text. Put each ingredient on its own line, like “200 g flour”.": "W tym tekście nie znaleziono składników. Wpisz każdy składnik w osobnej linii, na przykład „200 g mąki”.",
-    "No items found": "Nie znaleziono pozycji",
     "No matches": "Brak dopasowań",
     "No models were listed for this key.": "Dla tego klucza nie zwrócono żadnych modeli.",
     "No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized.": "Brak produktów. Dodaj je poniżej, aby przypisać paragon do kategorii; do tego czasu cała kwota liczy się jako Bez kategorii.",
@@ -1837,6 +1835,10 @@
       "value": "Filtruj według miesiąca",
       "closest": "Month by month"
     },
+    "Filter options": {
+      "value": "Opcje filtrowania",
+      "closest": "Add filter…"
+    },
     "For example {model}": {
       "value": "Na przykład {model}"
     },
@@ -1948,6 +1950,9 @@
     "No comments for this receipt yet": {
       "value": "Ten paragon nie ma jeszcze komentarzy",
       "closest": "No models were listed for this key."
+    },
+    "No items found": {
+      "value": "Nie znaleziono pozycji"
     },
     "No report templates yet": {
       "value": "Brak szablonów raportów",

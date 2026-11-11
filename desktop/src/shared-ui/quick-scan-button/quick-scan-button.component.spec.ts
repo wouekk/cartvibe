@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { ButtonModule } from "../../button";
 import { StoreModule } from "../../store/store.module";
 
 import { QuickScanButtonComponent } from "./quick-scan-button.component";
@@ -14,7 +13,7 @@ describe("QuickScanButtonComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ButtonModule, StoreModule, QuickScanButtonComponent],
+    imports: [StoreModule, QuickScanButtonComponent],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),

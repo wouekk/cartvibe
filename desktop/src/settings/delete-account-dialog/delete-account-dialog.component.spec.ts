@@ -7,7 +7,6 @@ import {
   DeleteAccountDialogComponent,
   DeleteAccountDialogData,
 } from "./delete-account-dialog.component";
-import { ButtonModule } from "src/button";
 import { CancelButtonComponent } from "src/shared-ui/cancel-button/cancel-button.component";
 
 import type { Mocked } from "vitest";
@@ -22,7 +21,7 @@ describe("DeleteAccountDialogComponent", () => {
       close: vi.fn(),
     } as any;
 
-    // app-button carries a routerLink, so the real buttons need a router.
+    // The dialog's buttons are real ones, and the cancel button's component uses the router.
     const providers: any[] = [
       provideRouter([]),
       { provide: AppDialogRef, useValue: dialogRefSpy },
@@ -35,7 +34,7 @@ describe("DeleteAccountDialogComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [StoreModule, ButtonModule, ReactiveFormsModule, CancelButtonComponent, DeleteAccountDialogComponent],
+    imports: [StoreModule, ReactiveFormsModule, CancelButtonComponent, DeleteAccountDialogComponent],
     providers,
 }).compileComponents();
 
@@ -109,7 +108,7 @@ describe("DeleteAccountDialogComponent", () => {
 
     it("closes with the provider's name when its button is clicked", () => {
       fixture.nativeElement
-        .querySelector("[data-testid='delete-confirm-keycloak'] button")
+        .querySelector("[data-testid='delete-confirm-keycloak']")
         .click();
 
       expect(dialogRefSpy.close).toHaveBeenCalledWith({ providerName: "keycloak" });

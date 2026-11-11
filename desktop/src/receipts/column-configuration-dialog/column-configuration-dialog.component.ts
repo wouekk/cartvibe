@@ -2,6 +2,8 @@ import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle } fro
 import { Component, Inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from '../../interfaces';
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { columnDisplayName, reconcileColumns } from '../../utils';
 import { DialogComponent } from '../../shared-ui/dialog/dialog.component';
 import { NgFor } from '@angular/common';
@@ -9,7 +11,6 @@ import { AppIconComponent } from '../../shared-ui/icon/icon.component';
 import { BrnFieldControlDescribedBy } from '@spartan-ng/brain/field';
 import { HlmCheckbox } from '../../ui/checkbox/lib/hlm-checkbox';
 import { DialogFooterComponent } from '../../shared-ui/dialog-footer/dialog-footer.component';
-import { ButtonComponent } from '../../button/button/button.component';
 import { TranslatePipe } from '../../i18n/translate.pipe';
 
 interface ColumnConfigItem extends ReceiptTableColumnConfig {
@@ -21,7 +22,7 @@ interface ColumnConfigItem extends ReceiptTableColumnConfig {
     templateUrl: './column-configuration-dialog.component.html',
     styleUrls: ['./column-configuration-dialog.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [DialogComponent, CdkDropList, NgFor, CdkDrag, CdkDragHandle, AppIconComponent, BrnFieldControlDescribedBy, HlmCheckbox, DialogFooterComponent, ButtonComponent, TranslatePipe]
+    imports: [DialogComponent, CdkDropList, NgFor, CdkDrag, CdkDragHandle, AppIconComponent, BrnFieldControlDescribedBy, HlmCheckbox, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip]
 })
 export class ColumnConfigurationDialogComponent implements OnInit {
   public columns: ColumnConfigItem[] = [];

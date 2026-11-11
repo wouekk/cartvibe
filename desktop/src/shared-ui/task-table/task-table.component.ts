@@ -14,10 +14,12 @@ import { downloadFile, filenameFromContentDisposition } from "../../utils/file";
 import { DescriptionViewerDialogComponent, DescriptionViewerDialogData } from "../description-viewer-dialog/description-viewer-dialog.component";
 import { ReceiptUpdateDiffDialogComponent, ReceiptUpdateDiffDialogData } from "../receipt-update-diff-dialog/receipt-update-diff-dialog.component";
 import { SourceFileViewerDialogComponent, SourceFileViewerDialogData } from "../source-file-viewer-dialog/source-file-viewer-dialog.component";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../icon/icon.component";
 import { marker } from "../../i18n/marker";
 import { TableComponent } from "../../table/table/table.component";
 import { StatusIconComponent } from "../status-icon/status-icon.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { NgIf, AsyncPipe } from "@angular/common";
 import { PrettyJsonComponent } from "../pretty-json/pretty-json.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -34,7 +36,7 @@ interface ReceiptUpdateRow {
     selector: "app-task-table",
     templateUrl: "./task-table.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [TableComponent, StatusIconComponent, ButtonComponent, NgIf, PrettyJsonComponent, TranslatePipe, AsyncPipe, AppDatePipe, UserPipe, SystemTaskTypePipe]
+    imports: [TableComponent, StatusIconComponent, NgIf, PrettyJsonComponent, TranslatePipe, AsyncPipe, AppDatePipe, UserPipe, SystemTaskTypePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {
   public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");

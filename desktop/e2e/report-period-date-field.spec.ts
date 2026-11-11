@@ -147,7 +147,7 @@ test.describe.serial('Report Builder — period date field', () => {
     await page.getByLabel('Report name').fill(templateName);
 
     const save = page.getByTestId('report-save-template');
-    await expect(save.locator('button')).toBeEnabled();
+    await expect(save).toBeEnabled();
     const [response] = await Promise.all([
       page.waitForResponse((r) => r.url().includes('/api/report/template') && r.request().method() === 'POST'),
       save.click(),

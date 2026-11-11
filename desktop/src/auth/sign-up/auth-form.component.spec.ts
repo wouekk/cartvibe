@@ -10,7 +10,6 @@ import { firstValueFrom, of } from 'rxjs';
 import { ApiModule } from '../../open-api';
 import { SetFeatureConfig } from '../../store/feature-config.state.actions';
 
-import { ButtonModule } from '../../button';
 import { FeatureDirective } from '../../directives/feature.directive';
 import { InputModule } from '../../input';
 import { AppInitService } from '../../services/app-init.service';
@@ -34,8 +33,7 @@ describe('AuthForm', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ButtonModule,
-        HlmButton,
+    imports: [HlmButton,
         AppIconComponent,
         CartVibeLogoComponent,
         InputModule,

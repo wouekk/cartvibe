@@ -16,12 +16,14 @@ import {
 import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dialog.component";
 import { SnackbarService, TokenRefreshService } from "../../services";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { AddUser, AuthState, UpdateUser } from "../../store";
 import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
 import { InputComponent } from "../../input/input/input.component";
 import { NgIf } from "@angular/common";
 import { SelectComponent } from "../../select/select/select.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
 import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
 import { SubmitButtonComponent } from "../../shared-ui/submit-button/submit-button.component";
@@ -34,7 +36,7 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     templateUrl: "./user-form.component.html",
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, ButtonComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe]
+    imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class UserFormComponent implements OnInit {
   @Input() public user?: User;

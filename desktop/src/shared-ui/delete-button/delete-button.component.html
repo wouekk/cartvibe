@@ -1,9 +1,12 @@
-<app-button
-  buttonType="iconButton"
-  icon="delete"
+<!-- Red unless a caller asks for another colour. -->
+<button
+  hlmBtn
   type="button"
-  [color]="color || 'warn'"
+  size="icon"
+  [variant]="(color || 'warn') === 'warn' ? 'destructive' : 'ghost'"
   [disabled]="disabled()"
-  [tooltip]="tooltip ?? 'Delete'"
-  (clicked)="clicked.emit()"
-></app-button>
+  [hlmTooltip]="(tooltip ?? 'Delete') | t"
+  (click)="clicked.emit()"
+>
+  <app-icon name="delete"></app-icon>
+</button>

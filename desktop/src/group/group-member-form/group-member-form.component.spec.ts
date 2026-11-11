@@ -22,6 +22,9 @@ import { AuthState } from "../../store";
 import { GroupMemberFormComponent } from "./group-member-form.component";
 
 import type { Mock } from "vitest";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { renderShallow } from "../../testing/render-shallow";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
@@ -88,7 +91,7 @@ describe("GroupMemberFormComponent", () => {
     getGroupByIdMock = vi.fn().mockReturnValue(of({ id: 5, groupMembers: [] } as unknown as Group));
     updateGrantsMock = vi.fn().mockReturnValue(of({}));
     // The children are left out: this spec mocks what they would read.
-    renderShallow(GroupMemberFormComponent, [ReactiveFormsModule, TranslatePipe, FormGetPipe]);
+    renderShallow(GroupMemberFormComponent, [ReactiveFormsModule, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]);
     await TestBed.configureTestingModule({
     imports: [
         NgxsModule.forRoot([AuthState]),

@@ -1,7 +1,9 @@
 import { Component, inject, output, ChangeDetectionStrategy } from "@angular/core";
 import { take, tap } from "rxjs";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../icon/icon.component";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
@@ -9,7 +11,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     templateUrl: "./quick-scan-button.component.html",
     styleUrls: ["./quick-scan-button.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ButtonComponent, TranslatePipe]
+    imports: [ TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class QuickScanButtonComponent {
   public readonly afterClosed = output<void>();

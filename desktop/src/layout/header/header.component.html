@@ -23,13 +23,21 @@
         cdkOverlayOrigin
         #notificationsOrigin="cdkOverlayOrigin"
       >
-        <app-button
-          buttonType="iconButton"
-          icon="notifications"
-          [tooltip]="'Notifications' | t"
-          [badgeContent]="notificationCount()"
-          (clicked)="notificationsOpen.set(!notificationsOpen())"
-        ></app-button>
+        <button
+          hlmBtn
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="relative"
+          data-testid="header-notifications"
+          [hlmTooltip]="'Notifications' | t"
+          (click)="notificationsOpen.set(!notificationsOpen())"
+        >
+          <app-icon name="notifications"></app-icon>
+          @if (notificationCount(); as count) {
+            <span hlmBadge class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums" data-testid="button-badge">{{ count }}</span>
+          }
+        </button>
         <ng-template
           cdkConnectedOverlay
           [cdkConnectedOverlayOrigin]="notificationsOrigin"

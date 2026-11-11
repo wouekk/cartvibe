@@ -1,8 +1,8 @@
 import { Component, Inject, ChangeDetectionStrategy } from "@angular/core";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { DialogComponent } from "../dialog/dialog.component";
 import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 export interface SourceFileViewerDialogData {
@@ -23,9 +23,7 @@ export interface SourceFileViewerDialogData {
     imports: [
         DialogComponent,
         ImageViewerComponent,
-        ButtonComponent,
-        TranslatePipe,
-    ],
+        TranslatePipe, HlmButton],
 })
 export class SourceFileViewerDialogComponent {
   constructor(

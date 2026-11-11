@@ -1,13 +1,12 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA, input, output } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxsModule } from "@ngxs/store";
-import { ButtonModule } from "../../button";
 import { DialogFooterComponent } from "./dialog-footer.component";
 
 // Stubs: the real buttons take an "onlyIcon" input, which Angular refuses to bind on an unknown element.
 @Component({
     selector: "app-submit-button", template: "",
-    imports: [ButtonModule]
+    imports: []
 })
 class SubmitButtonStub {
   public readonly onlyIcon = input(true);
@@ -21,7 +20,7 @@ class SubmitButtonStub {
 
 @Component({
     selector: "app-cancel-button", template: "",
-    imports: [ButtonModule]
+    imports: []
 })
 class CancelButtonStub {
   public readonly disabled = input(false);
@@ -34,7 +33,7 @@ describe("DialogFooterComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ButtonModule, NgxsModule.forRoot([]), DialogFooterComponent, SubmitButtonStub, CancelButtonStub],
+    imports: [NgxsModule.forRoot([]), DialogFooterComponent, SubmitButtonStub, CancelButtonStub],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
 

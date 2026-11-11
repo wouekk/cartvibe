@@ -6,13 +6,15 @@ import { RECEIPT_STATUS_OPTIONS } from "src/constants";
 import { AuthState, GroupState, UserState } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { marker } from "../../i18n/marker";
 import { NgIf } from "@angular/common";
 import { InputComponent } from "../../input/input/input.component";
 import { DatepickerComponent } from "../../datepicker/datepicker/datepicker.component";
 import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocomplete.component";
 import { SelectComponent } from "../../select/select/select.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
 
@@ -73,10 +75,8 @@ const FILTER_FIELDS: FilterFieldDef[] = [
         DatepickerComponent,
         AutocompleteComponent,
         SelectComponent,
-        ButtonComponent,
         TranslatePipe,
-        FormGetPipe,
-    ],
+        FormGetPipe, HlmButton, HlmTooltip, AppIconComponent],
 })
 export class ReportFiltersComponent implements OnInit {
   public readonly form = input.required<FormGroup>();

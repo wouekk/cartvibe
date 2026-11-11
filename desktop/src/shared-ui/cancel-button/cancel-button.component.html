@@ -1,9 +1,11 @@
-<app-button
-  icon="close"
-  buttonType="basic"
-  [buttonText]="'Cancel'"
-  [tooltip]="'Cancel' | t"
-  color="outline"
+<button
+  hlmBtn
+  type="button"
+  variant="outline"
   [disabled]="mode() === formMode.view || disabled()"
-  (clicked)="clicked.emit()"
-></app-button>
+  [hlmTooltip]="'Cancel' | t"
+  (click)="clicked.emit()"
+>
+  <app-icon name="close"></app-icon>
+  <span class="font-medium">{{ ('Cancel') | t }}</span>
+</button>

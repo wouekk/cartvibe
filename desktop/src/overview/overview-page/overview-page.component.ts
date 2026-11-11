@@ -114,7 +114,6 @@ import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.co
 import { BrnButton } from "@spartan-ng/brain/button";
 import { HlmButton } from "../../ui/button/lib/hlm-button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { PeriodPickerComponent } from "../period-picker/period-picker.component";
 import { HlmSwitch } from "../../ui/switch/lib/hlm-switch";
 import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
@@ -130,6 +129,7 @@ import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-men
 import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
 import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { TranslatePipe, TranslateDataPipe, PluralPipe } from "../../i18n/translate.pipe";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -204,7 +204,6 @@ const UNCATEGORIZED = marker("Uncategorized");
         BrnButton,
         HlmButton,
         AppIconComponent,
-        ButtonComponent,
         PeriodPickerComponent,
         HlmSwitch,
         CdkMenuTrigger,
@@ -226,8 +225,7 @@ const UNCATEGORIZED = marker("Uncategorized");
         DisplayCurrencyPipe,
         TranslatePipe,
         TranslateDataPipe,
-        PluralPipe,
-    ],
+        PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
   public readonly groupId = toSignal(
@@ -959,7 +957,7 @@ export class OverviewPageComponent {
     );
   });
 
-  /** Where "New list" goes, as the string segments app-button takes. */
+  /** Where "New list" goes, as the segments a routerLink takes. */
   public readonly newListLink = computed(() => ["/shopping-lists/group", String(this.shoppingListGroupId())]);
 
   private readonly shoppingLists = this.store.selectSignal(ShoppingListState.lists);

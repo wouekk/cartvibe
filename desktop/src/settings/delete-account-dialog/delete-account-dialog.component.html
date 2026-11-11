@@ -8,14 +8,16 @@
     </p>
     <div class="flex flex-col gap-2 mb-4">
       @for (provider of providers; track provider.name) {
-        <app-button
-          buttonClass="w-full"
-          color="warn"
+        <button
+          hlmBtn
           type="button"
+          variant="destructive"
+          class="w-full"
           [attr.data-testid]="'delete-confirm-' + provider.name"
-          [buttonText]="'Confirm with {name}' | t: { name: provider.displayName }"
-          (clicked)="providerButtonClicked(provider.name)"
-        ></app-button>
+          (click)="providerButtonClicked(provider.name)"
+        >
+          <span class="font-medium">{{ 'Confirm with {name}' | t: { name: provider.displayName } }}</span>
+        </button>
       }
     </div>
     <div class="flex justify-end items-center">

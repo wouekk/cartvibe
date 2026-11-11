@@ -30,8 +30,8 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     asks for nothing (three one-way data migrations), the renames, every component standalone, the Material-era
     names gone, the bundle budget, the pruned icon map, the Dashboard's summary sentence, *Looks right* on a
     to-check receipt, dialogs as sheets on a phone, two Dashboard panels as components. **Left on the branch:**
-    one button idiom in the templates (86 `<app-button>` in 42 templates) and the rest of the Dashboard split
-    (the tiles and the two chart panels move with their state and specs). `docs/AUDIT-REPORT.md` (sprint 10) has
+    the rest of the Dashboard split (the tiles and the two chart panels move with their state and specs); the
+    button wrapper is gone (not in `preview` yet). `docs/AUDIT-REPORT.md` (sprint 10) has
     the detail and one decision made differently from the audit, waiting for the owner's word: icons stay on one
     map. The rewritten real-app specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column`
     have never run.
@@ -41,7 +41,7 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac
   needs Node 26 before work there**); the Parked list below stays parked.
 - **Last release v0.18.0 (2026-11-05)**, not seen on the NAS yet. Avatars and the household look are not in the
-  export. Skipped on purpose: `app-button`'s `color="warn"` API.
+  export.
 - **Dependabot:** all nine pull requests of 2026-11-10 are dealt with in `preview`. They close when it reaches
   `main` (#21 and #22 were redone by hand, so Dependabot closes those at its next run).
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.

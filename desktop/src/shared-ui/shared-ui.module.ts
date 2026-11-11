@@ -17,7 +17,6 @@ import { DatepickerModule } from "src/datepicker/datepicker.module";
 
 import { SelectModule } from "src/select/select.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
-import { ButtonModule } from "../button";
 
 import { InputModule } from "../input";
 import { TableModule } from "../table/table.module";
@@ -79,7 +78,6 @@ import { ManagementTabsComponent } from './management-tabs/management-tabs.compo
     ...HlmTabsImports,
     TranslatePipe,
     AutocompleteModule,
-    ButtonModule,
     CommonModule,
     DatepickerModule,
     DragDropModule,

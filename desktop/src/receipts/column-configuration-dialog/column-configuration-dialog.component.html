@@ -37,12 +37,15 @@
 </app-dialog>
 
 <ng-template #resetButton>
-  <app-button
+  <button
+    hlmBtn
+    type="button"
+    variant="ghost"
+    size="icon"
     data-testid="reset-columns"
-    buttonType="iconButton"
-    icon="restart_alt"
-    color="accent"
-    [tooltip]="'Reset column configuration' | t"
-    (clicked)="resetToDefaults()"
-  ></app-button>
+    [hlmTooltip]="'Reset column configuration' | t"
+    (click)="resetToDefaults()"
+  >
+    <app-icon name="restart_alt"></app-icon>
+  </button>
 </ng-template>

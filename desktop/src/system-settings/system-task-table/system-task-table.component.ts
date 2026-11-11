@@ -23,9 +23,10 @@ import {
 import { applyFormCommand } from "../../utils/form.utils";
 import { buildSystemTaskFilterChips, SystemTaskFilterChip } from "../../utils/system-task-filter-chips";
 import { buildSystemTaskFilterForm } from "../../utils/system-task-filter";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { SystemTaskFilterComponent } from "../system-task-filter/system-task-filter.component";
 import { SettingsSectionComponent } from "../../shared-ui/settings/settings-section.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { HlmBadge } from "../../ui/badge/lib/hlm-badge";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ReceiptProcessingSettingsChildSystemTaskAccordionComponent } from "../../receipt-processing-settings/receipt-processing-settings-child-system-task-accordion/receipt-processing-settings-child-system-task-accordion.component";
@@ -42,7 +43,7 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
         DatePipe,
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [SettingsSectionComponent, ButtonComponent, NgIf, HlmBadge, AppIconComponent, TaskTableComponent, ReceiptProcessingSettingsChildSystemTaskAccordionComponent, TranslatePipe]
+    imports: [SettingsSectionComponent, NgIf, HlmBadge, AppIconComponent, TaskTableComponent, ReceiptProcessingSettingsChildSystemTaskAccordionComponent, TranslatePipe, HlmButton, HlmTooltip]
 })
 export class SystemTaskTableComponent implements OnInit {
   public readonly expandedRowTemplate = viewChild.required<TemplateRef<any>>("expandedRowTemplate");

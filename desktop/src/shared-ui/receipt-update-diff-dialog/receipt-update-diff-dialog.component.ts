@@ -11,10 +11,10 @@ import {
 } from "../../utils/receipt-update-description";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
 import { marker } from "../../i18n/marker";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { TranslationService } from "../../i18n/translation.service";
 import { DialogComponent } from "../dialog/dialog.component";
 import { NgClass, NgTemplateOutlet } from "@angular/common";
-import { ButtonComponent } from "../../button/button/button.component";
 import { FilterBarComponent } from "../filter-bar/filter-bar.component";
 import { CopyButtonComponent } from "../copy-button/copy-button.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -51,12 +51,10 @@ export interface ReceiptDiffRow {
         DialogComponent,
         NgClass,
         NgTemplateOutlet,
-        ButtonComponent,
         FilterBarComponent,
         CopyButtonComponent,
         TranslatePipe,
-        AppDatePipe,
-    ],
+        AppDatePipe, HlmButton],
 })
 export class ReceiptUpdateDiffDialogComponent {
   private readonly translation = inject(TranslationService);

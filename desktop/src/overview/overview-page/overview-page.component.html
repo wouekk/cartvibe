@@ -34,42 +34,50 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         @if (canQuickScan()) {
-          <app-button
-            icon="receipt_long"
-            [buttonText]="'Quick Scan' | t"
-            [tooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-quick-scan"
-            (clicked)="openQuickScan()"
-          ></app-button>
+            [hlmTooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
+            (click)="openQuickScan()"
+          >
+            <app-icon name="receipt_long"></app-icon>
+            <span class="font-medium">{{ 'Quick Scan' | t }}</span>
+          </button>
         }
         @if (canCreateList()) {
-          <app-button
-            icon="playlist_add"
-            [buttonText]="'New list' | t"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-new-list"
-            [buttonRouterLink]="newListLink()"
-            [buttonQueryParams]="{ new: 'list' }"
-          ></app-button>
+            [routerLink]="newListLink()"
+            [queryParams]="{ new: 'list' }"
+          >
+            <app-icon name="playlist_add"></app-icon>
+            <span class="font-medium">{{ 'New list' | t }}</span>
+          </button>
         }
-        <app-button
-          icon="barcode_scanner"
-          [buttonText]="'Check product' | t"
-          [tooltip]="'Check a product barcode' | t"
-          buttonType="raised"
+        <button
+          hlmBtn
+          type="button"
           data-testid="overview-scan-product"
-          (clicked)="scanProduct()"
-        ></app-button>
+          [hlmTooltip]="'Check a product barcode' | t"
+          (click)="scanProduct()"
+        >
+          <app-icon name="barcode_scanner"></app-icon>
+          <span class="font-medium">{{ 'Check product' | t }}</span>
+        </button>
         @if (canCustomiseLayout()) {
-          <app-button
-            icon="tune"
-            [buttonText]="'Customize' | t"
-            [tooltip]="'Choose and arrange the dashboard panels' | t"
-            buttonType="raised"
+          <button
+            hlmBtn
+            type="button"
             data-testid="overview-customise"
-            [buttonRouterLink]="customiseLink()"
-          ></app-button>
+            [hlmTooltip]="'Choose and arrange the dashboard panels' | t"
+            [routerLink]="customiseLink()"
+          >
+            <app-icon name="tune"></app-icon>
+            <span class="font-medium">{{ 'Customize' | t }}</span>
+          </button>
         }
       </div>
     </div>

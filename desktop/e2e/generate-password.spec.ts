@@ -10,8 +10,7 @@ import { stubTokenRefresh } from './helpers/auth';
 const GENERATED_PASSWORD_LENGTH = 20;
 const COPIED_MESSAGE = 'Password generated and copied to clipboard';
 
-// Both suffix controls put their test ID on the native button, so neither needs
-// the .locator('button') hop the app-button-wrapped test IDs do.
+// Both suffix controls put their test ID on the native button.
 function generateButton(scope: Page | Locator): Locator {
   return scope.getByTestId('password-generate');
 }

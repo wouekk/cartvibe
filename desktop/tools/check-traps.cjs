@@ -12,6 +12,10 @@
 //    `matColumnDef`, ...) that outlived Material. tools/trap-baseline.json holds the counts; a lower count has to be
 //    written there in the same change, so the number in the file is always the real one.
 // 4. One version number: the release tag. package.json and the API contract stay at 0.0.0 so they cannot drift.
+// 5. A template that uses `hlmBtn`, `hlmTooltip` or `hlmBadge` has the directive in its component's `imports`.
+//    They are attributes on a plain element, so the compiler says nothing when the import is missing: the button
+//    is simply unstyled, the tooltip never shows. A component, a pipe or a property binding without its import
+//    is a build error; these three are not.
 const fs = require("node:fs");
 const path = require("node:path");
 
@@ -47,6 +51,32 @@ for (const file of files) {
       failures.push(`${file.name}:${index + 1}: an aria-label glued with "+" is never translated; use | t with a {placeholder}`);
     }
   });
+}
+
+// 5. The helm attribute directives a template uses, against the component's own imports.
+const HELM_ATTRIBUTES = [
+  { used: /(?<![\w-])hlmBtn(?![\w-])/, directive: "HlmButton", bundle: "HlmButtonImports" },
+  { used: /(?<![\w-])\[?hlmTooltip\]?(?=[\s=>])/, directive: "HlmTooltip", bundle: "HlmTooltipImports" },
+  { used: /(?<![\w-])hlmBadge(?![\w-])/, directive: "HlmBadge", bundle: "HlmBadgeImports" },
+];
+
+for (const file of files.filter((candidate) => candidate.name.endsWith(".ts") && /@Component\(/.test(candidate.text))) {
+  const url = /templateUrl:\s*["']([^"']+)["']/.exec(file.text);
+  const templatePath = url ? path.join(root, path.dirname(file.name), url[1]) : undefined;
+  const template = templatePath
+    ? fs.existsSync(templatePath)
+      ? fs.readFileSync(templatePath, "utf8")
+      : ""
+    : (/template:\s*`([\s\S]*?)`/.exec(file.text)?.[1] ?? "");
+  // Comments describe markup without being markup.
+  const markup = template.replace(/<!--[\s\S]*?-->/g, "");
+  const imports = /@Component\(\{[\s\S]*?\bimports:\s*\[([\s\S]*?)\]/.exec(file.text)?.[1] ?? "";
+  for (const { used, directive, bundle } of HELM_ATTRIBUTES) {
+    const imported = new RegExp(`(^|[\\s,.\\[])(${directive}|${bundle})\\b`).test(imports);
+    if (used.test(markup) && !imported) {
+      failures.push(`${file.name}: its template uses ${directive}'s attribute but the component does not import ${directive}; nothing else reports this`);
+    }
+  }
 }
 
 const count = (pattern) => files.reduce((total, file) => total + (file.text.match(pattern) ?? []).length, 0);

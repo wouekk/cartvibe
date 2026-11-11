@@ -44,13 +44,17 @@
           {{ 'No changes' | t }}
         }
       </div>
-      <app-button
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="receipt-update-diff-open"
-        icon="open_in_new"
-        buttonType="iconButton"
-        [tooltip]="'View changes' | t"
-        (clicked)="openReceiptUpdateDialog(receiptUpdate.snapshots)"
-      ></app-button>
+        [hlmTooltip]="'View changes' | t"
+        (click)="openReceiptUpdateDialog(receiptUpdate.snapshots)"
+      >
+        <app-icon name="open_in_new"></app-icon>
+      </button>
     </div>
   } @else {
     <div class="flex items-center gap-2">
@@ -65,14 +69,18 @@
           [verticalJson]="false"
         ></app-pretty-json>
       </div>
-      <app-button
+      <button
         *ngIf="(element.resultDescription?.length || 0) > descriptionInlineMaxLength"
-        icon="open_in_new"
-        buttonType="iconButton"
-        [tooltip]="'View full description' | t"
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="system-task-description-open"
-        (clicked)="openDescriptionDialog(element)"
-      ></app-button>
+        [hlmTooltip]="'View full description' | t"
+        (click)="openDescriptionDialog(element)"
+      >
+        <app-icon name="open_in_new"></app-icon>
+      </button>
     </div>
   }
 </ng-template>
@@ -82,20 +90,28 @@
 <ng-template let-element="element" #sourceFileCell>
   @if (element.hasSourceFile) {
     <div class="flex items-center gap-1">
-      <app-button
-        icon="visibility"
-        buttonType="iconButton"
-        [tooltip]="'Preview source file' | t"
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="system-task-source-file-preview"
-        (clicked)="openSourceFileDialog(element)"
-      ></app-button>
-      <app-button
-        icon="download"
-        buttonType="iconButton"
-        [tooltip]="'Download source file' | t"
+        [hlmTooltip]="'Preview source file' | t"
+        (click)="openSourceFileDialog(element)"
+      >
+        <app-icon name="visibility"></app-icon>
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="system-task-source-file-download"
-        (clicked)="downloadSourceFile(element)"
-      ></app-button>
+        [hlmTooltip]="'Download source file' | t"
+        (click)="downloadSourceFile(element)"
+      >
+        <app-icon name="download"></app-icon>
+      </button>
     </div>
   }
 </ng-template>

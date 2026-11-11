@@ -428,7 +428,6 @@
     "Filter": "Filtrar",
     "Filter Receipts": "Filtrar recibos",
     "Filter System Tasks": "Filtrar tareas del sistema",
-    "Filter options": "Opciones de filtro",
     "Filters": "Filtros",
     "Finished:": "Terminada:",
     "First page": "Primera página",
@@ -689,7 +688,6 @@
     "No grouping": "Sin agrupación",
     "No households yet.": "Aún no hay hogares.",
     "No ingredients were found in that text. Put each ingredient on its own line, like “200 g flour”.": "No se encontraron ingredientes en ese texto. Escribe cada ingrediente en su propia línea, por ejemplo «200 g de harina».",
-    "No items found": "No se encontraron elementos",
     "No matches": "Sin coincidencias",
     "No models were listed for this key.": "No se devolvió ningún modelo para esta clave.",
     "No products yet. Add them below to sort this receipt into categories; until then all of it counts as Uncategorized.": "Todavía no hay productos. Añádelos abajo para repartir este recibo por categorías; hasta entonces, todo cuenta como «Sin categoría».",
@@ -1821,6 +1819,10 @@
       "value": "Filtrar por mes",
       "closest": "Month by month"
     },
+    "Filter options": {
+      "value": "Opciones de filtro",
+      "closest": "Add filter…"
+    },
     "For example {model}": {
       "value": "Por ejemplo {model}"
     },
@@ -1932,6 +1934,9 @@
     "No comments for this receipt yet": {
       "value": "Este recibo aún no tiene comentarios",
       "closest": "No models were listed for this key."
+    },
+    "No items found": {
+      "value": "No se encontraron elementos"
     },
     "No report templates yet": {
       "value": "Aún no hay plantillas de informe",

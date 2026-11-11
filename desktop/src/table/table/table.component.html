@@ -72,13 +72,19 @@
             </div>
           }
           @if (displayedColumns().includes("expand") && (element | isRowExpandable : rowExpandable())) {
-            <app-button
+            <button
+              hlmBtn
+              type="button"
+              variant="ghost"
+              size="icon"
               class="-my-1.5 -mr-2 shrink-0"
-              buttonType="iconButton"
-              color="accent"
-              [icon]="expandedElement === element ? 'expand_less' : 'expand_more'"
-              (clicked)="expanderClicked($event, element)"
-            ></app-button>
+              data-testid="row-expand"
+              (click)="expanderClicked($event, element)"
+            >
+              @if (expandedElement === element ? 'expand_less' : 'expand_more'; as icon) {
+                <app-icon [name]="icon"></app-icon>
+              }
+            </button>
           }
         </div>
         @if (layout.meta.length > 0) {
@@ -163,12 +169,18 @@
             } @else if (id === "expand") {
               <td hlmTd class="w-10">
                 @if (element | isRowExpandable : rowExpandable()) {
-                  <app-button
-                    buttonType="iconButton"
-                    color="accent"
-                    [icon]="expandedElement === element ? 'expand_less' : 'expand_more'"
-                    (clicked)="expanderClicked($event, element)"
-                  ></app-button>
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    data-testid="row-expand"
+                    (click)="expanderClicked($event, element)"
+                  >
+                    @if (expandedElement === element ? 'expand_less' : 'expand_more'; as icon) {
+                      <app-icon [name]="icon"></app-icon>
+                    }
+                  </button>
                 }
               </td>
             } @else if (columnFor(id); as column) {

@@ -3,10 +3,10 @@ import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from "@ang
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { RouterLink } from "@angular/router";
 import { catchError, forkJoin, map, Observable, of, take } from "rxjs";
-import { ButtonModule } from "../../button";
 import { GroupOverviewProduct, OverviewService } from "../../open-api";
 
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
+import { HlmButton } from "@spartan-ng/helm/button";
 import { DonutMember } from "../overview-chart.utils";
 import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
@@ -53,7 +53,7 @@ const UNCATEGORIZED = "Uncategorized";
   selector: "app-overview-detail-dialog",
   templateUrl: "./overview-detail-dialog.component.html",
   standalone: true,
-  imports: [ButtonModule, CommonModule, TranslatePipe, TranslateDataPipe, AppDatePipe, RouterLink, SharedUiModule],
+  imports: [ CommonModule, TranslatePipe, TranslateDataPipe, AppDatePipe, RouterLink, SharedUiModule, HlmButton],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],

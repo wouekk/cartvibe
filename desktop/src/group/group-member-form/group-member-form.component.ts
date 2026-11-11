@@ -17,17 +17,19 @@ import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
 import { UserAutocompleteComponent } from "../../user-autocomplete/user-autocomplete/user-autocomplete.component";
 import { SelectComponent } from "../../select/select/select.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { HlmButton } from "@spartan-ng/helm/button";
+import { HlmTooltip } from "@spartan-ng/helm/tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 
 @Component({
     selector: "app-group-member-form",
     host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./group-member-form.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [DialogComponent, ReactiveFormsModule, UserAutocompleteComponent, SelectComponent, ButtonComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
+    imports: [DialogComponent, ReactiveFormsModule, UserAutocompleteComponent, SelectComponent, DialogFooterComponent, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class GroupMemberFormComponent implements OnInit {
   public userId = this.store.selectSignal(AuthState.userId);

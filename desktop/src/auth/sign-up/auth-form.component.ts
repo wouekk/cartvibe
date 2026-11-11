@@ -16,7 +16,6 @@ import { buildOidcLoginUrl, oidcErrorMessage } from "../../utils/oidc";
 import { CartVibeLogoComponent } from "../../shared-ui/cartvibe-logo/cartvibe-logo.component";
 import { NgIf, AsyncPipe } from "@angular/common";
 import { InputComponent } from "../../input/input/input.component";
-import { ButtonComponent } from "../../button/button/button.component";
 import { FeatureDirective } from "../../directives/feature.directive";
 import { BrnButton } from "@spartan-ng/brain/button";
 import { HlmButton } from "../../ui/button/lib/hlm-button";
@@ -30,7 +29,7 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     host: { class: "cv-auth-bg relative isolate flex min-h-dvh items-center justify-center bg-background p-6 max-sm:p-3" },
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [CartVibeLogoComponent, ReactiveFormsModule, NgIf, InputComponent, ButtonComponent, FeatureDirective, RouterLink, BrnButton, HlmButton, AppIconComponent, AsyncPipe, TranslatePipe, FormGetPipe]
+    imports: [CartVibeLogoComponent, ReactiveFormsModule, NgIf, InputComponent, FeatureDirective, RouterLink, BrnButton, HlmButton, AppIconComponent, AsyncPipe, TranslatePipe, FormGetPipe]
 })
 export class AuthForm implements OnInit {
   public form: FormGroup = new FormGroup({});

@@ -64,35 +64,46 @@
 <ng-template #buttonControls let-i="i">
   @if (!hideButtonControls()) {
     <div class="flex flex-wrap justify-center">
-      <app-button
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         class="flex-none"
-        buttonType="iconButton"
-        icon="zoom_in"
         data-testid="carousel-zoom-in"
-        [tooltip]="'Zoom In' | t"
         [disabled]="disabled()"
-        (clicked)="zoomIn()"
-      ></app-button>
-      <app-button
+        [hlmTooltip]="'Zoom In' | t"
+        (click)="zoomIn()"
+      >
+        <app-icon name="zoom_in"></app-icon>
+      </button>
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         class="flex-none"
-        buttonType="iconButton"
-        icon="zoom_out"
         data-testid="carousel-zoom-out"
-        [tooltip]="'Zoom Out' | t"
         [disabled]="disabled()"
-        (clicked)="zoomOut()"
-      ></app-button>
+        [hlmTooltip]="'Zoom Out' | t"
+        (click)="zoomOut()"
+      >
+        <app-icon name="zoom_out"></app-icon>
+      </button>
       @if (!(mode() | inputReadonly)) {
-        <app-button
+        <button
+          hlmBtn
+          type="button"
+          variant="destructive"
+          size="icon"
           class="flex-none"
-          buttonType="iconButton"
-          icon="delete"
           data-testid="carousel-image-remove"
-          [tooltip]="'Remove Image' | t"
-          color="warn"
           [disabled]="disabled()"
-          (clicked)="emitRemoveButtonClicked(i)"
-        ></app-button>
+          [hlmTooltip]="'Remove Image' | t"
+          (click)="emitRemoveButtonClicked(i)"
+        >
+          <app-icon name="delete"></app-icon>
+        </button>
       }
     </div>
   }

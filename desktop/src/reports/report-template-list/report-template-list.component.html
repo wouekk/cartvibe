@@ -87,15 +87,18 @@
       (that would wrongly hide a button from an "*All"-only holder lacking the base).
     -->
     @if (element.allowedActions?.includes("generate")) {
-      <app-button
-        buttonType="iconButton"
-        color="accent"
-        icon="play_arrow"
-        [tooltip]="'Generate report' | t"
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="report-template-generate"
         [disabled]="generatingId() !== null"
-        (clicked)="generate(element)"
-      ></app-button>
+        [hlmTooltip]="'Generate report' | t"
+        (click)="generate(element)"
+      >
+        <app-icon name="play_arrow"></app-icon>
+      </button>
     }
     @if (element.allowedActions?.includes("update")) {
       <app-edit-button
@@ -106,15 +109,18 @@
       ></app-edit-button>
     }
     @if (element.allowedActions?.includes("duplicate")) {
-      <app-button
-        buttonType="iconButton"
-        color="accent"
-        icon="content_copy"
-        [tooltip]="'Duplicate' | t"
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="report-template-duplicate"
         [disabled]="duplicatingId() !== null"
-        (clicked)="duplicate(element)"
-      ></app-button>
+        [hlmTooltip]="'Duplicate' | t"
+        (click)="duplicate(element)"
+      >
+        <app-icon name="content_copy"></app-icon>
+      </button>
     }
     @if (element.allowedActions?.includes("delete")) {
       <app-delete-button

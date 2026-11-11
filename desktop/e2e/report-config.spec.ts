@@ -119,8 +119,7 @@ test.describe('Report Builder — configuration', () => {
 
   test('format selection determines the generated file', async ({ page }) => {
     await expect(page.getByTestId('report-receipt-count')).toBeVisible({ timeout: 20_000 });
-    // report-generate is an app-button; its disabled state is on the inner <button>.
-    const generate = page.getByTestId('report-generate').locator('button');
+    const generate = page.getByTestId('report-generate');
 
     // Removing the only default format (PDF) disables generation.
     await page.getByTestId('report-format-pdf').click();

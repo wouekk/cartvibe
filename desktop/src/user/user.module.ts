@@ -8,7 +8,6 @@ import { SelectModule } from "src/select/select.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 import { TableModule } from "src/table/table.module";
-import { ButtonModule } from "../button";
 
 import { InputModule } from "../input";
 import { DummyUserConversionDialogComponent } from "./dummy-user-conversion-dialog/dummy-user-conversion-dialog.component";
@@ -19,7 +18,6 @@ import { UserRoutingModule } from "./user-routing.module";
 
 @NgModule({
     imports: [
-    ButtonModule,
     CheckboxModule,
     CommonModule,
     InputModule,

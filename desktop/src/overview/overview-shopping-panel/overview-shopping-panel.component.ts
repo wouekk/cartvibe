@@ -4,7 +4,6 @@ import { RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { take } from "rxjs";
-import { ButtonModule } from "../../button";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -48,7 +47,7 @@ export interface PendingUndo {
 @Component({
   selector: "section[app-overview-shopping-panel]",
   standalone: true,
-  imports: [AppIconComponent, ButtonModule, HlmButton, RouterLink, TranslatePipe],
+  imports: [AppIconComponent, HlmButton, RouterLink, TranslatePipe],
   templateUrl: "./overview-shopping-panel.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   host: { class: "cv-panel", "aria-labelledby": "overview-lists-title" },
@@ -64,7 +63,7 @@ export class OverviewShoppingPanelComponent {
 
   public readonly canCreateList = input<boolean>(false);
 
-  /** Where "New list" goes, as the string segments app-button takes. */
+  /** Where "New list" goes, as the segments a routerLink takes. */
   public readonly newListLink = input<string[]>();
 
   public readonly pending = signal<PendingUndo[]>([]);

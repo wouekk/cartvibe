@@ -15,15 +15,18 @@
         [options]="groupRoleOptions()"
         [inputFormControl]="form | formGet : 'groupRoleId'"
       ></app-select>
-      <app-button
+      <button
+        hlmBtn
+        type="button"
+        variant="ghost"
+        size="icon"
         data-testid="role-preview"
-        buttonType="iconButton"
-        icon="visibility"
-        color="accent"
-        [tooltip]="'Preview role' | t"
         [disabled]="!selectedRole()"
-        (clicked)="previewRole()"
-      ></app-button>
+        [hlmTooltip]="'Preview role' | t"
+        (click)="previewRole()"
+      >
+        <app-icon name="visibility"></app-icon>
+      </button>
     </div>
 
     <app-dialog-footer [editing]="!!groupMember" (cancelClicked)="closeModal()"></app-dialog-footer>

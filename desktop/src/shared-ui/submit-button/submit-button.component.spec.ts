@@ -5,7 +5,6 @@ import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
 import { LayoutState } from "src/store/layout.state";
-import { ButtonModule } from "../../button";
 import { SubmitButtonComponent } from "./submit-button.component";
 
 @Component({
@@ -15,7 +14,7 @@ import { SubmitButtonComponent } from "./submit-button.component";
       <app-submit-button [mode]="mode()" [highlightUnsaved]="highlight()"></app-submit-button>
     </form>
   `,
-    imports: [ButtonModule, ReactiveFormsModule, SubmitButtonComponent],
+    imports: [ReactiveFormsModule, SubmitButtonComponent],
 })
 class HostComponent {
   public readonly form = new FormGroup({ name: new FormControl("Milk") });
@@ -29,7 +28,7 @@ describe("SubmitButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ButtonModule, ReactiveFormsModule, NgxsModule.forRoot([LayoutState]), SubmitButtonComponent, HostComponent],
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([LayoutState]), SubmitButtonComponent, HostComponent],
     providers: [
         provideZonelessChangeDetection(),
         {

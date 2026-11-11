@@ -12,7 +12,6 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { CheckboxModule } from "../../checkbox/checkbox.module";
-import { ButtonModule } from "../../button";
 import { InputModule } from "../../input";
 import { ApiModule, Group, GroupsService, GroupStatus, Permission } from "../../open-api";
 import { AddGroup, AuthState, UpdateGroup } from "../../store";
@@ -30,7 +29,6 @@ describe("GroupFormComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     imports: [ApiModule,
-        ButtonModule,
         CheckboxModule,
         InputModule,
         NgxsModule.forRoot([AuthState]),
