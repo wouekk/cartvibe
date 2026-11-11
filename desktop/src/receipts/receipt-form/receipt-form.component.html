@@ -192,7 +192,9 @@
               [groupId]="receipt!.groupId"
               [receiptAmount]="receipt!.amount"
               [receiptConverted]="!!receipt!.originalCurrency"
+              [canSettle]="(mode | inputReadonly) && canEditReceipt() && !receiptDone()"
               (setTotal)="setTotal($event)"
+              (settle)="markDone()"
             ></app-receipt-products>
           }
         </app-form-section>
@@ -272,17 +274,6 @@
     [disabled]="!canEditReceipt()"
     [buttonRouterLink]="[editLink]"
   ></app-button>
-  @if ((mode | inputReadonly) && canEditReceipt() && !receiptDone()) {
-    <app-button
-      class="ms-1"
-      data-testid="receipt-mark-done"
-      color="primary"
-      buttonType="iconButton"
-      [tooltip]="'Mark as settled' | t"
-      icon="check"
-      (clicked)="markDone()"
-    ></app-button>
-  }
   <app-button
     *ngIf="mode | inputReadonly"
     class="ms-1"

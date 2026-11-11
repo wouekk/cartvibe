@@ -575,6 +575,7 @@
     "Licence texts:": "Teksty licencji:",
     "Lighting": "Oświetlenie",
     "Lime": "Limonka",
+    "Lines without an amount: {count}. They are listed first.": "Pozycje bez kwoty: {count}. Są pokazane na początku.",
     "List actions": "Akcje listy",
     "List copied to the clipboard.": "Skopiowano listę do schowka.",
     "List items": "Pozycje list",
@@ -592,6 +593,7 @@
     "Logos next to your receipts": "Logo przy paragonach",
     "Logout": "Wyloguj",
     "Logs": "Dzienniki",
+    "Looks right": "Wygląda dobrze",
     "Lost track of the import. Reload the page to see how it ended.": "Utracono kontakt z importem. Odśwież stronę, aby zobaczyć, jak się zakończył.",
     "Lowercase letters, numbers and dashes. It is part of the redirect address and cannot be changed later.": "Małe litery, cyfry i myślniki. Jest częścią adresu przekierowania i nie da się jej później zmienić.",
     "Magic Fill": "Magiczne wypełnianie",
@@ -609,7 +611,7 @@
     "Mark as complete": "Oznacz jako zakończoną",
     "Mark as settled": "Oznacz jako rozliczone",
     "Mark {name} as done": "Oznacz „{name}” jako kupione",
-    "Marked as done": "Oznaczono jako rozliczone",
+    "Marked as settled": "Oznaczono jako rozliczone",
     "Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.": "Oznacza każdy plik cookie jako Secure, więc przeglądarki wysyłają je tylko przez HTTPS. Zalecane dla każdej instalacji obsługiwanej przez HTTPS. Pozostaw wyłączone, jeśli CartVibe jest dostępny przez zwykły HTTP, np. w sieci lokalnej lub pod samym adresem IP: przeglądarki odrzucają tam pliki cookie Secure, więc nikt nie mógłby się zalogować.",
     "Match an existing account by username": "Dopasuj istniejące konto po nazwie użytkownika",
     "Matched:": "Pasuje:",
@@ -1251,6 +1253,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Tę stronę wczytano przez HTTP. Jeśli zapiszesz z włączonymi bezpiecznymi plikami cookie, przeglądarki odrzucą pliki cookie logowania w połączeniach HTTP: zostaniesz wylogowany, a nikt łączący się przez HTTP nie zaloguje się ponownie, dopóki nie wyłączysz tej opcji.",
     "This part of CartVibe is not part of the demo.": "Ta część CartVibe nie jest dostępna w demo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Ten dostawca jest jedynym sposobem logowania na Twoje konto, więc nie można go rozłączyć.",
+    "This receipt is to check. Settle it once it matches the paper one.": "Ten paragon jest do sprawdzenia. Rozlicz go, gdy zgadza się z papierowym.",
     "This role grants no permissions.": "Ta rola nie nadaje żadnych uprawnień.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Na tym serwerze są już paragony lub listy zakupów. Plik można zaimportować tylko do pustego gospodarstwa.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Ta strona nie ustawia plików cookie i nie uruchamia analityki ani skryptów stron trzecich.",
@@ -1918,6 +1921,10 @@
     },
     "Manage users & keys": {
       "value": "Zarządzanie użytkownikami i kluczami"
+    },
+    "Marked as done": {
+      "value": "Oznaczono jako rozliczone",
+      "closest": "Marked as settled"
     },
     "My API Keys": {
       "value": "Moje klucze API"

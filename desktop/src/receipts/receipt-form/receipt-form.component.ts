@@ -339,7 +339,7 @@ export class ReceiptFormComponent implements OnInit {
     );
   }
 
-  /** The "V" on the view screen: sets the receipt to Done without opening the edit form. */
+  /** "Looks right" under the lines on the view screen: settles the receipt without opening the edit form. */
   public markDone(): void {
     const receiptId = this.originalReceipt?.id;
     if (!receiptId) {
@@ -355,7 +355,7 @@ export class ReceiptFormComponent implements OnInit {
           this.originalReceipt.status = ReceiptStatus.Resolved;
         }
         this.receiptDone.set(true);
-        this.snackbarService.success("Marked as done");
+        this.snackbarService.success("Marked as settled");
       });
   }
 

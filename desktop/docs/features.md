@@ -99,6 +99,11 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Statuses** (`src/utils/receipt-status.ts`): there are two, OPEN ("To check") and RESOLVED ("Settled"); the API
   turns the three older ones into these wherever it reads one. `app-status-chip` maps them onto `open` /
   `resolved` classes and theme tokens; `customStatusColor` drives it for system-task status.
+- **The review of a to-check receipt** (`receipt-products`): the page passes `canSettle` (view mode, may edit,
+  not settled) and the card then ends with `receipt-review`: a hint (`linesWithoutAmount`) and *Looks right*
+  (`receipt-looks-right`), whose `settle` output runs the page's `markDone()` (a status change through the bulk
+  update, no edit form). While `canSettle`, `orderedProducts` lists the lines without an amount first; the rest,
+  and every line of a settled receipt, keep the order they were read in. Hidden while the AI is reading.
 - **The note:** one text field of the receipt (`receipt-note`, up to `RECEIPT_NOTE_MAX_LENGTH` characters counted
   with `codePointMaxLengthValidator`, like the server), saved with the receipt and cleared by saving it empty. A
   household's *Hide the note* takes the field off the form and the column off the list; the stored note is kept and

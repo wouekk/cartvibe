@@ -194,9 +194,13 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     Registering icons per component would move about 100 kB out of the first load, but a missed registration
     draws nothing and no build or spec reports it; with one map an unknown name draws a circle and a spec proves
     every name draws. Say so if the per-component version is wanted anyway.
-  - Still to do on the branch: C11's second half (one button idiom in the templates), F6, and the two things
-    sprint 4 left for here (the receipt page's review with one "Looks right" button, dialogs as bottom sheets on
-    a phone).
+    - F6, the sentence: with a monthly goal set, the Dashboard opens with what was spent of it, the days left and
+      what a day may cost (DASH-12).
+    - F4, the review: a receipt that is to check ends with one *Looks right* button under its products, and its
+      lines without an amount are listed first (RCPT-07). The photo is not pinned beside the lines: the lines
+      table needs the page's full width, so that part needs a layout of its own.
+  - Still to do on the branch: C11's second half (one button idiom in the templates), F6's split of the Dashboard
+    into panel components, and dialogs as bottom sheets on a phone (F9).
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

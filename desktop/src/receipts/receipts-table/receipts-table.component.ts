@@ -844,7 +844,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
             }
           });
           this.dataSource.set(new TableDataSource(newReceipts));
-          this.snackbarService.success("Marked as done");
+          this.snackbarService.success("Marked as settled");
         })
       )
       .subscribe();

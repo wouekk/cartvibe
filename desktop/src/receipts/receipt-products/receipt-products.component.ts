@@ -78,6 +78,12 @@ export class ReceiptProductsComponent {
   /** Asks the page to set the receipt's total to this sum of the lines. */
   public readonly setTotal = output<string>();
 
+  /** True while the receipt is to check and the person may settle it: the review then ends with "Looks right". */
+  public readonly canSettle = input(false);
+
+  /** The person looked the lines over and found them right: the page settles the receipt. */
+  public readonly settle = output<void>();
+
   public readonly view = signal<ReceiptProductsView | undefined>(undefined);
 
   public readonly loadFailed = signal(false);
@@ -128,6 +134,22 @@ export class ReceiptProductsComponent {
   });
 
   public readonly isInProgress = computed(() => ["PENDING", "RUNNING"].includes(this.view()?.status ?? ""));
+
+  /**
+   * The lines in the order they are shown. While the receipt is to check, a line without an amount comes first:
+   * it is what the review is for. The others, and a settled receipt's lines, keep the order they were read in.
+   */
+  public readonly orderedProducts = computed(() => {
+    const products = this.view()?.products ?? [];
+    if (!this.canSettle()) {
+      return products;
+    }
+
+    return [...products.filter((product) => !product.amount), ...products.filter((product) => !!product.amount)];
+  });
+
+  /** How many lines have no amount: what the review asks about before "Looks right". */
+  public readonly linesWithoutAmount = computed(() => (this.view()?.products ?? []).filter((product) => !product.amount).length);
 
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
 

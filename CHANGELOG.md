@@ -109,6 +109,9 @@ it is doing.
   things: *Ask for a note* (a note field under each photo, which may stay empty), who paid when a scan does not say,
   and the status a new scan starts with. The switches that showed or required a field per photo had not been
   followed by the app for some time and are gone *(SCAN-14, SCAN-01)*.
+- **A receipt that is to check ends with *Looks right*.** Under the products of such a receipt there is one named
+  button that settles it, in place of the small tick in the page's header. Until then the lines without an amount
+  are listed first, and the page says how many there are *(RCPT-07)*.
 - **Receipt photos open faster and are kept by the browser.** A photo used to travel as text inside the page's
   data, a third larger than the file, on every visit, and a HEIC or PDF was converted each time. The server now
   keeps a ready copy and the browser keeps it too, so opening a receipt again shows its photo at once *(RCPT-02)*.

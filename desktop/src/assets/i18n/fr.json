@@ -575,6 +575,7 @@
     "Licence texts:": "Textes des licences :",
     "Lighting": "Éclairage",
     "Lime": "Citron vert",
+    "Lines without an amount: {count}. They are listed first.": "Lignes sans montant : {count}. Elles sont affichées en premier.",
     "List actions": "Actions sur la liste",
     "List copied to the clipboard.": "Liste copiée dans le presse-papiers.",
     "List items": "Articles des listes",
@@ -592,6 +593,7 @@
     "Logos next to your receipts": "Des logos à côté de vos tickets",
     "Logout": "Déconnexion",
     "Logs": "Journaux",
+    "Looks right": "Tout est correct",
     "Lost track of the import. Reload the page to see how it ended.": "Le suivi de l'import a été perdu. Rechargez la page pour voir comment il s'est terminé.",
     "Lowercase letters, numbers and dashes. It is part of the redirect address and cannot be changed later.": "Lettres minuscules, chiffres et tirets. Il fait partie de l’adresse de redirection et ne peut plus être modifié ensuite.",
     "Magic Fill": "Remplissage automatique",
@@ -609,7 +611,7 @@
     "Mark as complete": "Marquer comme terminée",
     "Mark as settled": "Marquer comme réglé",
     "Mark {name} as done": "Cocher {name}",
-    "Marked as done": "Marqué comme réglé",
+    "Marked as settled": "Marqué comme réglé",
     "Marks every cookie as Secure, so browsers only send them over HTTPS. Recommended for any install served over HTTPS. Leave this off if CartVibe is reached over plain HTTP, such as a LAN or bare IP address: browsers refuse Secure cookies there, so nobody would be able to log in.": "Marque chaque cookie comme Secure, pour que les navigateurs ne les envoient qu’en HTTPS. Recommandé pour toute installation servie en HTTPS. Laissez désactivé si CartVibe est accessible en HTTP simple, par exemple sur un réseau local ou par une adresse IP : les navigateurs y refusent les cookies Secure, et personne ne pourrait se connecter.",
     "Match an existing account by username": "Associer un compte existant par son nom d’utilisateur",
     "Matched:": "Correspondance :",
@@ -1251,6 +1253,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Cette page a été chargée en HTTP. Si vous enregistrez avec les cookies sécurisés activés, les navigateurs abandonneront les cookies de connexion en HTTP : vous serez déconnecté, et personne accédant à CartVibe en HTTP ne pourra se reconnecter tant que l’option ne sera pas désactivée.",
     "This part of CartVibe is not part of the demo.": "Cette partie de CartVibe ne fait pas partie de la démo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Ce fournisseur est le seul moyen d’accéder à votre compte ; il ne peut donc pas être délié.",
+    "This receipt is to check. Settle it once it matches the paper one.": "Ce ticket est à vérifier. Réglez-le une fois qu'il correspond au ticket papier.",
     "This role grants no permissions.": "Ce rôle n’accorde aucun droit.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Ce serveur a déjà des tickets ou des listes de courses. Un fichier ne peut être importé que dans un foyer vide.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Ce site ne dépose aucun cookie et n’exécute ni analyse ni script tiers.",
@@ -1902,6 +1905,10 @@
     },
     "Manage users & keys": {
       "value": "Gérer les utilisateurs et les clés"
+    },
+    "Marked as done": {
+      "value": "Marqué comme réglé",
+      "closest": "Marked as settled"
     },
     "My API Keys": {
       "value": "Mes clés API"

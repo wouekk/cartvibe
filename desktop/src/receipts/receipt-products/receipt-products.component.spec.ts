@@ -313,4 +313,81 @@ describe("ReceiptProductsComponent", () => {
       expect(element("receipt-product-tags")?.textContent).toContain("Party");
     });
   });
+
+  // A receipt that is to check is reviewed against the paper one, and the review ends with one button.
+  describe("the review of a receipt that is to check", () => {
+    const lines = [
+      { id: 1, receiptId: 7, name: "MILK", quantity: "1", position: 0, amount: "1.09" },
+      { id: 2, receiptId: 7, name: "SMUDGED LINE", quantity: "", position: 1, amount: "" },
+      { id: 3, receiptId: 7, name: "BREAD", quantity: "1", position: 2, amount: "2.49" },
+      { id: 4, receiptId: 7, name: "TORN OFF", quantity: "", position: 3 },
+    ];
+
+    const names = () => fixture.componentInstance.orderedProducts().map((product) => product.name);
+
+    const renderToCheck = async (products: unknown[] = lines, canSettle = true) => {
+      service.getReceiptProducts.mockReturnValue(of(view({ products: products as never })));
+      TestBed.inject(Store).dispatch(new SetPermissions([], { 3: [] }));
+      fixture = TestBed.createComponent(ReceiptProductsComponent);
+      fixture.componentRef.setInput("receiptId", 7);
+      fixture.componentRef.setInput("groupId", 3);
+      fixture.componentRef.setInput("canSettle", canSettle);
+      await fixture.whenStable();
+    };
+
+    it("lists the lines without an amount first, and the rest as they were read", async () => {
+      await renderToCheck();
+
+      expect(names()).toEqual(["SMUDGED LINE", "TORN OFF", "MILK", "BREAD"]);
+      const rows = [...fixture.nativeElement.querySelectorAll("[data-testid=receipt-products-table] tbody tr")] as HTMLElement[];
+      expect(rows[0].textContent).toContain("SMUDGED LINE");
+    });
+
+    it("says how many lines have no amount, beside the button", async () => {
+      await renderToCheck();
+
+      expect(element("receipt-review-hint")?.textContent).toContain("Lines without an amount: 2.");
+      expect(element("receipt-looks-right")?.textContent).toContain("Looks right");
+    });
+
+    it("asks only to compare with the paper receipt when every line has an amount", async () => {
+      await renderToCheck([lines[0], lines[2]]);
+
+      expect(element("receipt-review-hint")?.textContent).toContain("Settle it once it matches the paper one.");
+    });
+
+    it("tells the page to settle the receipt, once per press", async () => {
+      await renderToCheck();
+      const settled = vi.fn();
+      fixture.componentInstance.settle.subscribe(settled);
+
+      element("receipt-looks-right")?.click();
+
+      expect(settled).toHaveBeenCalledTimes(1);
+    });
+
+    it("is there for a receipt without lines too: one typed in by hand is settled the same way", async () => {
+      await renderToCheck([]);
+
+      expect(element("receipt-looks-right")).not.toBeNull();
+    });
+
+    it("waits while the AI is still reading", async () => {
+      service.getReceiptProducts.mockReturnValue(of(view({ status: "RUNNING" as never })));
+      fixture = TestBed.createComponent(ReceiptProductsComponent);
+      fixture.componentRef.setInput("receiptId", 7);
+      fixture.componentRef.setInput("groupId", 3);
+      fixture.componentRef.setInput("canSettle", true);
+      await fixture.whenStable();
+
+      expect(element("receipt-review")).toBeNull();
+    });
+
+    it("leaves a settled receipt alone: no button, and the lines in the order they were read", async () => {
+      await renderToCheck(lines, false);
+
+      expect(element("receipt-review")).toBeNull();
+      expect(names()).toEqual(["MILK", "SMUDGED LINE", "BREAD", "TORN OFF"]);
+    });
+  });
 });
