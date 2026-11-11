@@ -12,7 +12,12 @@ const (
 	FormatName = "cartvibe-backup"
 	// FormatVersion changes only for a breaking change. An additive column keeps the version: readers
 	// match columns by name and ignore the ones they do not know.
-	FormatVersion = 1
+	//
+	// 2 (2026-11): a receipt's comments are one note (receipts.note; comments.csv is gone), the statuses are two,
+	// and the household's settings name the note where they named the comments. A reader of version 1 would
+	// ignore the note and import receipts without it, so it has to refuse the file; this reader takes both
+	// (parse.go reads the older names and joins comments.csv into the note).
+	FormatVersion = 2
 
 	ManifestName = "manifest.json"
 

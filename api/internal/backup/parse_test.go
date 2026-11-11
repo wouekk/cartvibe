@@ -271,7 +271,10 @@ func TestParseReadsAnExportFromBeforeTheNoteAndTheTwoStatuses(t *testing.T) {
 			// Home never touched its settings; Cabin hid the comments, asked for one in Quick Scan and set a default.
 			"3,false,true,true,true,true,,false,false\r\n" +
 			"4,true,true,false,true,true,DECLINED,true,true\r\n",
-	}, nil)
+	}, func(manifest *Manifest) {
+		// What such a file says of itself.
+		manifest.FormatVersion = 1
+	})
 
 	household, err := Parse(archive)
 	if err != nil {

@@ -101,6 +101,9 @@ it is doing.
   emptied by saving it empty; the comment thread under a receipt is gone, and what was in it is in the note. The
   receipts list's optional *Comment* column is now *Note*, and stays where you had it. Search reads the note as it
   read the comments. A household can hide the note under its Receipt Settings *(RCPT-09, RCPT-10, RCPT-11)*.
+  A household export made from now on carries the note, and an older CartVibe refuses to import it ("update
+  CartVibe first") rather than import receipts without their notes; an export made by an older version still
+  imports, comments included *(ADM-11, ADM-12)*.
 - **A receipt is To check or Settled, and nothing else.** The three older statuses that the app already showed as
   one of these two are gone from the data as well, so a filter, a report and an export all say the same thing
   *(RCPT-07)*.
