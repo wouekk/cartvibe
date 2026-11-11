@@ -94,7 +94,21 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   `ShoppingListHub.Close`), then the background work (`jobs.Stop`, 10 s: a job cut short goes back on the queue
   without losing a try), then the database (`repositories.CloseDB`: a truncating checkpoint, so `app.db` alone holds
   everything, and the pool is closed). A timeout is logged, never `FATAL`. In `prod` the API
-  listens on `127.0.0.1:8081` only (nginx is in the same container); elsewhere on every interface for the dev proxy.
+  listens on port 80 (`LISTEN_ADDRESS` moves it) and is its own front door; elsewhere on `:8081` for the dev proxy.
+- **The edge** (`internal/edge`, around the router in `prod` only; `main.go` `buildHandler`) is what nginx was
+  until 2026-11-11: the web app's files (`WEB_ROOT`, default `/app/cartvibe-web`) with their cache rules, the
+  single-page fallback and the Content-Security-Policy, whose script hash is computed from the page served;
+  the request limits per visitor (`routes.go` names each zone and its paths: **a new public or costly route
+  gets its zone there**, spelled as the router spells it); the largest body per route (a handler may be
+  stricter, never looser); the security headers; compression. Traps:
+  - A refusal for asking too often is a 429 **without** `errorMsg`: the web app sends such a request again. A
+    429 the API writes itself must carry `errorMsg`.
+  - The visitor's address is the connection's unless that is a private network, whose `X-Forwarded-For` is then
+    believed (`ClientIP`). Nothing else may read that header.
+  - A middleware that wraps the `ResponseWriter` must pass `Flush` and `Unwrap` through, or the live stream
+    stops flushing and cannot lift its write deadline. Streams, the MCP endpoint and the ZIP export skip
+    compression (`route.streams`).
+  - `REQUEST_LIMIT_FACTOR` multiplies every limit and is for test runs only (CI's smoke job, `run-docker.sh`).
 
 ## 3. Security invariants
 

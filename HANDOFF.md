@@ -35,10 +35,13 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column` have never run.
   - **Sprint 11 onward, one branch each from `preview`.** In `preview` (green CI on `11972ce3`, 2026-11-11):
     `feature/no-cgo` (B9, step one): ImageMagick and Tesseract run as programs and the server has no C code.
-    **Next, in this order:** Go serves the app and nginx goes (`feature/go-serves-app`, B9 step two; scoped,
-    not started: `docker/default.conf` is the list of what Go must take over, and the app must bind port 80 as
-    uid 10001); arm64 images; id-only file paths; money as integers; a generated contract; aisle order per
-    shop; signal stores. The working worktree is `.claude/worktrees/dependency-updates`.
+    **On `feature/go-serves-app`, not in `preview` until its CI is green** (B9, step two): the API serves the
+    web app and answers on port 80, nginx is gone from the image (`api/internal/edge`). **Next, in this order:**
+    arm64 images; id-only file paths; money as integers; a generated contract; aisle order per shop; signal
+    stores. The working worktree is `.claude/worktrees/dependency-updates`.
+  - Since cgo and nginx went, the PC can run the real server in production mode with the built app
+    (`api.exe --env prod` with `WEB_ROOT=desktop/dist/cartvibe/browser`, `LISTEN_ADDRESS`, `DB_ENGINE=sqlite`,
+    `SECRET_KEY`, `ENCRYPTION_KEY` and `BASE_PATH` set to a scratch folder): a real-app check no longer needs Docker.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac

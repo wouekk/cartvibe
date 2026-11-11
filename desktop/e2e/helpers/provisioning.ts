@@ -120,7 +120,7 @@ export async function createGroupWithMember(
 // `/api`; the admin login cookie is stored on the context for later DELETEs.
 
 /**
- * POST /api/login, retried with backoff while nginx's login limit answers 429 (30 a minute; parallel workers can
+ * POST /api/login, retried with backoff while the sign-in limit answers 429 (30 a minute; parallel workers can
  * hit it). Any other status is returned at once, so a wrong password still fails fast.
  */
 export async function loginWithRetry(
@@ -146,7 +146,7 @@ const sessionCache = new Map<string, { state: Awaited<ReturnType<APIRequestConte
 const RETRY_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete', 'fetch']);
 
 /**
- * nginx allows 10 requests a second with a burst of 20 for the whole run (every worker shares one address) and answers
+ * The server allows 10 requests a second with a burst of 20 for the whole run (every worker shares one address) and answers
  * 429 beyond that (503 before 2026-11). A provisioning call that hits it is repeated after a short wait, so a burst of setup calls never
  * fails a spec.
  */
@@ -186,7 +186,7 @@ export async function withApiAsCreds<T>(
   fn: (api: APIRequestContext) => Promise<T>,
 ): Promise<T> {
   // The login is cached per account for a few minutes (the access token lives 20): provisioning helpers log in
-  // several times per spec, and nginx limits /api/login to 30 a minute for the whole run.
+  // several times per spec, and the server limits /api/login to 30 a minute for the whole run.
   const key = `${username}\u0000${password}`;
   const cached = sessionCache.get(key);
   if (cached && Date.now() - cached.at < SESSION_CACHE_MS) {

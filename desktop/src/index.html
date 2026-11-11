@@ -20,7 +20,7 @@
       same keys and keeps them in step afterwards: cartvibe.themeMode is "system", "light" (day) or "dark" (night), and
       cartvibe.themePalette the palette's key, so this needs no copy of the palette list (an unknown key just shows zinc),
       and cartvibe.interfaceSize the root font size as a percentage (125, 150 or 200; anything else leaves the browser's).
-      Changing this script changes its hash: update the script-src hash in docker/default.conf.
+      The Content-Security-Policy allows this script by its hash, which the server computes from this page.
     -->
     <script>
       (function () {

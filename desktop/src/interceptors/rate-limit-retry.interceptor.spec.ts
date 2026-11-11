@@ -14,7 +14,7 @@ describe("rateLimitRetryInterceptor", () => {
   let httpClient: HttpClient;
   let errorSpy: MockInstance;
 
-  /** What nginx answers over its limit: a page, not the API's JSON. */
+  /** What the server answers over its request limit: plain text, not the API's JSON. */
   const refuse = (url: string): void =>
     httpTestingController.expectOne(url).flush("<html>429 Too Many Requests</html>", { status: 429, statusText: "Too Many Requests" });
 

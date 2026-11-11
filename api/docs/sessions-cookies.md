@@ -69,8 +69,9 @@ breaks login. `dev` forces it on (it uses `SameSite=None`, which requires `Secur
 - `services.UseSecureCookies()` is the only resolver, read live with no cache; every cookie builder asks it
   (`BuildTokenCookies`, `GetEmptyAccessTokenCookie`, `GetEmptyRefreshTokenCookie`, `oidc.buildBindingCookie`,
   `clearBindingCookie`). A new cookie must too.
-- CodeQL `go/insecure-cookie` alerts on the default are accepted. Auto-detecting from `X-Forwarded-Proto` was rejected:
-  behind a second TLS proxy the container's nginx reports `http`.
+- CodeQL `go/insecure-cookie` alerts on the default are accepted. Auto-detecting from `X-Forwarded-Proto` was rejected
+  when nginx sat in the container and reported `http` behind a second TLS proxy. The API now sees the proxy's own
+  header (it decides HSTS, nothing else), and the setting stays the one resolver.
 - Turning it on over plain http locks the web app out, admin included (the desktop warns first). Recovery with an admin
   credential: sign in with the tokens in the body (no cookie is set) and send the JWT as a bearer token:
 

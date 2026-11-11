@@ -192,6 +192,13 @@ it is doing.
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
   release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
   Go 1.26 still works.
+- **One process in the container.** The image no longer carries nginx: the server answers on port 80 itself
+  and serves the web app, with the same request limits (ten requests a second per visitor, thirty sign-ins a
+  minute and the rest), upload sizes, security headers, compression and cache rules as before. Your compose file
+  and your reverse proxy stay as they are. Two things to know: a container started by a Docker older than 20.10,
+  or on the host's network, needs the `NET_BIND_SERVICE` capability for port 80, which both compose files already
+  keep; and a server run from the binary alone, without Docker, now serves the app too (`WEB_ROOT` names the
+  built app's folder, `LISTEN_ADDRESS` the port).
 - **The server has no C code any more.** ImageMagick and Tesseract used to be linked into the server; now it
   starts them as programs, the same ones the image already carried. Nothing changes in what a photo, a HEIC or a
   PDF becomes, or in how a receipt is read. A file that crashes a decoder now ends a helper program instead of the

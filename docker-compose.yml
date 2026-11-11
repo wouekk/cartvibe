@@ -13,8 +13,9 @@ services:
     # Time to finish the requests in hand and stop the background jobs before Docker kills the container (the default is 10 s).
     stop_grace_period: 30s
     # Nothing in the container can gain more rights than it starts with, and it keeps only the capabilities its start
-    # needs: handing the folders to the API's user and dropping to it, nginx on port 80 with its own workers, and
-    # stopping both. CI starts the image with exactly these (ci.yml, "Start the app").
+    # needs: handing the folders to the API's user and dropping to it, port 80 for that user where the Docker in
+    # use still reserves low ports, and stopping the API. CI starts the image with exactly these (ci.yml,
+    # "Start the app").
     security_opt:
       - no-new-privileges:true
     cap_drop:

@@ -34,7 +34,7 @@ var cspReportsSeen = struct {
 
 // CspReport receives the browser's Content-Security-Policy violation reports (the policy's report-uri) and writes
 // each new one to the log, which is what decides when the policy can move from Report-Only to enforced. It needs no
-// sign-in (the browser sends it on its own), stores nothing and always answers 204; nginx limits how often it is
+// sign-in (the browser sends it on its own), stores nothing and always answers 204; the edge limits how often it is
 // called and how large a body may be.
 func CspReport(w http.ResponseWriter, r *http.Request) {
 	defer w.WriteHeader(http.StatusNoContent)

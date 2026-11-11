@@ -70,7 +70,7 @@ func BuildRootRouter() *chi.Mux {
 	rootRouter.Mount("/api/group", groupRouter)
 
 	// Feature Config Router
-	// Content-Security-Policy reports from the browser (no sign-in; nginx limits them).
+	// Content-Security-Policy reports from the browser (no sign-in; the edge limits them: internal/edge/routes.go).
 	rootRouter.Post("/api/cspReport", handlers.CspReport)
 
 	featureConfigRouter := BuildFeatureConfigRouter()

@@ -245,7 +245,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 |---|---|
 | `api/` | Go backend (Chi router, GORM on SQLite, with its own job queue and timers for the background work) |
 | `desktop/` | Angular web app, installable as a PWA and built for phones first |
-| `docker/` | One production image: nginx serves the app and proxies the Go API |
+| `docker/` | One production image: the Go server answers the API and serves the app |
 | `docs/` | The [FAQ](docs/faq.md), the [feature registry](docs/FEATURES.md), developer setup, the AI prompts, themes, and these screenshots |
 | `site/` | The project page (static Astro site, see [docs/site.md](docs/site.md)) |
 

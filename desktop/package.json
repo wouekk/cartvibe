@@ -5,7 +5,6 @@
     "ng": "ng",
     "start": "ng serve --proxy-config ./proxy.conf.json --host 0.0.0.0",
     "build": "ng build",
-    "check:csp": "node tools/check-csp-hash.cjs",
     "check:demo": "node tools/check-demo-bundle.cjs",
     "check:traps": "node tools/check-traps.cjs",
     "build:demo": "ng build --configuration demo",

@@ -43,8 +43,8 @@ security options, a folder that refuses that user stops the start with exit code
 with exit code 0 inside the grace period, and a second container started on the same volumes under another `VERSION`
 leaves an `app-upgrade-*.db` snapshot in `sqlite/backups`.
 
-**The specs run with nginx's request limit raised** (`e2e/relax-rate-limits.sh`, called by the job and by
-`run-docker.sh up`). Until 2026-11-10 the job ran them under the production limit, and a spec or two needed a second
+**The specs run with the request limits raised** (`REQUEST_LIMIT_FACTOR=100` on the container, set by the job and
+by `run-docker.sh up`; until 2026-11-11 a script edited nginx's config in the running container). Until 2026-11-10 the job ran them under the production limit, and a spec or two needed a second
 try in most runs ("create a basic receipt" most often, sometimes all three tries). The cause, measured in the job:
 the limit refused a handful of the specs' requests per run (seven in the run that was counted: a receipt read, the
 app data, a group update, a template save), because every spec comes from the runner's one address and provisions
@@ -63,7 +63,7 @@ when the page under it changes, and a finger does not. The case now polls the pi
 taps or clicks a point on a canvas must do the same.
 
 What was wrong, by cause (fixed unless marked open):
-- **Rate limit and expiry (environment).** nginx allows 10 requests a second (burst 20) and 30 logins a minute for the whole
+- **Rate limit and expiry (environment).** The server allows 10 requests a second (burst 20) and 30 logins a minute for the whole
   run, answering 429 beyond that (503 before 2026-11-10); the access token lives 20 minutes. Provisioning calls retry both and reuse a login for
   five minutes (`helpers/provisioning.ts`); run with 2 workers, and in batches if a run could pass 20 minutes (the `setup`
   project logs in again on every invocation).
@@ -81,7 +81,7 @@ What was wrong, by cause (fixed unless marked open):
 - **Receipt form:** no Group, Paid By, shares or items; the Name is pre-filled and Amount is the only other required field.
 
 Round 3 changes in how the suite is run and written:
-- **`run-docker.sh up` relaxes nginx's request rates** (same config, `10r/s` and `30r/m` raised) because the app does not retry a 429
+- **`run-docker.sh up` raises the request limits** (`REQUEST_LIMIT_FACTOR=100`; everything else is as on the NAS) because the app does not retry a 429
   and the limits made tables and forms come up empty at random. CI's `e2e-smoke` does the same since 2026-11-10 (above).
 - **Global-settings specs are their own projects** (`playwright.config.ts`: `app-time-zone`, `session-lifetime`,
   `temp-file-retention` run after the main project, one after another). A settings save sends the whole payload, so two of them at
@@ -148,7 +148,7 @@ Needs Docker Desktop only. From `desktop/` in Git Bash (the script sets `MSYS_NO
 2. `e2e/run-docker.sh up` starts the app and a Playwright 1.64.1 runner (Node 24) that shares the app's network, runs
    `npm ci`, and seeds the accounts (`seed-accounts.mjs`). Every `up` is a fresh database, which the specs assume.
 3. `e2e/run-docker.sh run [playwright args]`, e.g. `run "--reporter=list"` or `run "report-config --reporter=list"`
-   (`E2E_WORKERS` defaults to 2: more workers trip nginx's rate limit). The specs are bind-mounted, so edits apply at once.
+   (`E2E_WORKERS` defaults to 2: more workers trip the request limit). The specs are bind-mounted, so edits apply at once.
 4. `e2e/run-docker.sh down` removes the containers.
 
 ## Running locally

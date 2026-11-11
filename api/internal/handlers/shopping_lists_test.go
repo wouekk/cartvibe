@@ -716,7 +716,7 @@ func assertStreamHeaders(t *testing.T, response *http.Response) {
 		t.Errorf("unexpected content type %q", response.Header.Get("Content-Type"))
 	}
 	if response.Header.Get("X-Accel-Buffering") != "no" {
-		t.Error("expected X-Accel-Buffering: no, or nginx would buffer the stream")
+		t.Error("expected X-Accel-Buffering: no, or a reverse proxy in front (the Synology one is nginx) would buffer the stream")
 	}
 }
 

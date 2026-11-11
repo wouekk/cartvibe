@@ -1,7 +1,7 @@
 # Four stages: the desktop build (Node), the API build (Go, no C code), a throwaway stage that makes a test file
 # for the runtime checks, and a slim Debian runtime that receives only what runs: the API binary and the desktop's
-# static files. The Go toolchain and the API's source stay behind in the build stages. .dockerignore keeps local
-# build output and data out of the build context.
+# static files, which the API serves itself (there is no nginx: api/internal/edge). The Go toolchain and the API's
+# source stay behind in the build stages. .dockerignore keeps local build output and data out of the build context.
 #
 # Layer order matters for build time: each stage installs its dependencies from the few files that declare them
 # BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages; Go modules).
@@ -18,10 +18,6 @@ RUN npm ci --no-audit --no-fund
 
 COPY desktop/ ./
 RUN npm run build
-
-# The inline theme script in the built index.html must be allowed by the CSP in default.conf (a wrong hash blocks it).
-COPY docker/default.conf /tmp/default.conf
-RUN node tools/check-csp-hash.cjs dist/cartvibe/browser/index.html /tmp/default.conf
 
 # ---- API: Go modules, then the source
 FROM golang:1.27-trixie AS api-build
@@ -59,7 +55,7 @@ FROM debian:trixie-slim
 ENV ENV="prod"
 ENV BASE_PATH="/app/cartvibe-api"
 
-# What the API runs at run time: nginx, and the programs the API starts: ImageMagick (`magick`, with HEIC and PDF
+# What the API runs at run time, the programs it starts: ImageMagick (`magick`, with HEIC and PDF
 # support), Tesseract (`tesseract`, with its data for the five languages the app ships in) and Chromium (report
 # PDFs); certificates for HTTPS calls and time zone data for the app time zone.
 # Recommended packages are off: Tesseract, ghostscript (PDF to image) and the fonts (Helvetica for ImageMagick,
@@ -69,11 +65,11 @@ ENV BASE_PATH="/app/cartvibe-api"
 # The upgrade takes Debian's security fixes released since the base image was built.
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends ca-certificates tzdata nginx \
+    && apt-get install -y --no-install-recommends ca-certificates tzdata \
     && apt-get install -y --no-install-recommends imagemagick-7.q16 libheif1 libde265-0 tesseract-ocr tesseract-ocr-eng tesseract-ocr-pol tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa ghostscript fonts-urw-base35 fonts-liberation chromium \
-    && rm -rf /var/lib/apt/lists/* /etc/nginx/sites-enabled/* /etc/nginx/sites-available/*
+    && rm -rf /var/lib/apt/lists/*
 
-# The API runs as this user (entrypoint.sh drops to it); nginx keeps its own www-data workers.
+# The API runs as this user (entrypoint.sh drops to it).
 RUN useradd --system --uid 10001 --user-group --create-home --home-dir /home/cartvibe --shell /usr/sbin/nologin cartvibe
 
 # ImageMagick picks a decoder from a file's content, not its name, so an upload could reach any library it links.
@@ -103,22 +99,21 @@ VOLUME /app/cartvibe-api/data
 VOLUME /app/cartvibe-api/sqlite
 VOLUME /app/cartvibe-api/logs
 
-# nginx and the entrypoint
+# The entrypoint: drops root and starts the API, the container's one process.
 COPY docker/entrypoint.sh /app/entrypoint.sh
 RUN chmod 755 /app/entrypoint.sh
-COPY docker/default.conf /etc/nginx/conf.d/default.conf
-RUN nginx -t
 
 # The desktop's static files
-COPY --from=node /app/cartvibe-desktop/dist/cartvibe/browser /usr/share/nginx/html
+# The API serves them from here (WEB_ROOT's default in api/main.go), read-only: they belong to root.
+COPY --from=node /app/cartvibe-desktop/dist/cartvibe/browser /app/cartvibe-web
 # The notice file the Angular build writes next to the app (About links to it).
-COPY --from=node /app/cartvibe-desktop/dist/cartvibe/3rdpartylicenses.txt /usr/share/nginx/html/3rdpartylicenses.txt
+COPY --from=node /app/cartvibe-desktop/dist/cartvibe/3rdpartylicenses.txt /app/cartvibe-web/3rdpartylicenses.txt
 
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]
 EXPOSE 80
 
-# Healthy when nginx answers and the API behind it serves the public feature config (no login needed). The image has
+# Healthy when the API answers on port 80 with the public feature config (no login needed). The image has
 # no curl or wget, so bash's /dev/tcp sends the request (runtime-check.sh proves bash can). Metadata only: it adds no
 # layer, so it sits at the end.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

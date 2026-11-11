@@ -18,9 +18,9 @@ import (
 
 // Variables rather than constants so tests can shorten them.
 var (
-	// shoppingListStreamHeartbeat must stay under nginx's default 60s proxy_read_timeout. Each beat
-	// also re-checks the caller's permission, so a member removed from the group stops receiving
-	// within one interval.
+	// shoppingListStreamHeartbeat must stay under the 60 s after which a reverse proxy in front gives up on a
+	// silent stream (nginx's default proxy_read_timeout; the Synology proxy is nginx). Each beat also re-checks
+	// the caller's permission, so a member removed from the group stops receiving within one interval.
 	shoppingListStreamHeartbeat = 25 * time.Second
 
 	// shoppingListStreamMaxLifetime bounds how long one connection can outlive the credential that
@@ -83,7 +83,7 @@ func streamShoppingListEvents(w http.ResponseWriter, r *http.Request, groupId ui
 	header := w.Header()
 	header.Set("Content-Type", "text/event-stream")
 	header.Set("Cache-Control", "no-cache")
-	// Tells nginx — ours, and a Synology DSM reverse proxy in front of it — not to buffer the stream.
+	// Tells a reverse proxy in front (the Synology DSM one is nginx) not to buffer the stream.
 	header.Set("X-Accel-Buffering", "no")
 	w.WriteHeader(http.StatusOK)
 

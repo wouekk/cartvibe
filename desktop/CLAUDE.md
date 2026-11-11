@@ -159,7 +159,8 @@ feature.
   no connection, 5xx, 429 and 408 as "try again" (`isWorthRetrying`): any other answer is the server's and is final.
 - **Never read the clock in an NGXS `@Selector`:** its answer is remembered until the slice changes. Time-dependent
   checks are plain functions over a selector's value (`AuthState.isAccessTokenExpired(store)`).
-- **A 429 without an `errorMsg` is nginx's request limit,** which refused the request before the API saw it:
+- **A 429 without an `errorMsg` is the server's request limit** (`api/internal/edge`), which refused the request
+  before any handler saw it:
   `rateLimitRetryInterceptor` sends it again after 1 s and 2 s (a write too, it never arrived), and only then does
   `httpInterceptor` toast. A 429 the API writes itself carries `errorMsg` and is final. `QUIET_ERRORS` requests are
   skipped (they have their own retry).
@@ -193,9 +194,9 @@ feature.
   carry each language's value over. The language is never taken from the browser.
 - **Service worker:** `serviceWorkerBypassInterceptor` stays first in `withInterceptors` (an upload through the worker
   cut its multipart body short). The worker has no `dataGroups`; a bad worker means a stuck app, so check
-  `dist/cartvibe/browser/ngsw.json` after a build. `index.html`'s inline script hash is in `docker/default.conf`:
-  recompute it when that script changes (`npm run check:csp` after a build; CI and the image build run it, and
-  `.gitattributes` keeps `index.html` LF because the hash is over LF text). `app.config.ts` sets NGXS
+  `dist/cartvibe/browser/ngsw.json` after a build. The Content-Security-Policy allows `index.html`'s inline script by a
+  hash the server computes from the page it serves (`api/internal/edge`), so changing that script needs no other
+  change. `app.config.ts` sets NGXS
   `strictContentSecurityPolicy` (no `new Function`): never add `'unsafe-eval'` to the policy.
 - **Photo inputs** are native `<label>`s around hidden file inputs, never a button calling `input.click()` (mobile
   browsers ignore a click made after an `await`).

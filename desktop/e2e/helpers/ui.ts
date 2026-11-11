@@ -9,7 +9,7 @@ export function comboboxNamed(scope: Page | Locator, name: string | RegExp): Loc
 }
 
 /**
- * Waits for [target] and reloads the page while it is missing. nginx answers 429 beyond its request limit (10 a
+ * Waits for [target] and reloads the page while it is missing. The server answers 429 beyond its request limit (10 a
  * second, burst 20) and the app does not retry, which leaves a table or form empty for good; a reload re-fetches.
  */
 export async function reloadUntilVisible(page: Page, target: Locator): Promise<void> {

@@ -66,8 +66,6 @@ jobs:
               - 'docker-compose.vps.yml'
             desktop:
               - 'desktop/**'
-              # check:csp compares the built index.html with the script-src hash in the nginx config.
-              - 'docker/default.conf'
               # i18n:check reads the Go texts the API translates (and the error messages the desktop shows),
               # so a Go-only change still runs it.
               - 'api/internal/**/*.go'
@@ -178,10 +176,6 @@ jobs:
             exit 1
           fi
         working-directory: ./desktop
-      # The inline theme script in the built index.html must be allowed by docker/default.conf, or the CSP blocks it.
-      - name: Check CSP script hash
-        run: npm run check:csp
-        working-directory: ./desktop
       # The demo (desktop/docs/demo.md) builds from the same sources; none of it may reach the production bundle above.
       - name: Build the demo
         run: npm run build:demo
@@ -197,7 +191,7 @@ jobs:
           output: both
           badge: true
 
-  # The image as it ships (nginx, the Go API, the built app), on its own as on the NAS, driven by the Playwright specs that
+  # The image as it ships (the Go server with the built app), on its own as on the NAS, driven by the Playwright specs that
   # are known to pass (`e2e:smoke`, see desktop/docs/e2e.md). The rest of the suite is not run here: many specs predate
   # the family rework. The job also proves what only a running container can show: compression and cache headers, a
   # clean stop, and the database snapshot a new version takes before it migrates.
@@ -232,12 +226,17 @@ jobs:
           tags: cartvibe:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      # One container and nothing else: the job queue lives in the app's own database.
+      # One container with one process and nothing else: the API serves the web app and answers on port 80 itself,
+      # and the job queue lives in the app's own database.
+      # REQUEST_LIMIT_FACTOR: every spec shares this runner's address, and a spec provisions its data through the
+      # API before it opens a page, so together they pass the production limits (10 requests a second, 30 sign-ins
+      # a minute; one person's page load is 2 to 11 requests). The app the specs run against gets the limits a
+      # hundred times over; the limits as written are proved on a container of their own, below.
       - name: Start the app
         run: |
           docker network create e2e
           # The database folder is a named volume, so the restore drill below can mount it beside the app.
-          docker run -d --name cartvibe --network e2e -p 8091:80 -v cartvibe-sqlite:/app/cartvibe-api/sqlite $APP_SECURITY $APP_ENV cartvibe:ci
+          docker run -d --name cartvibe --network e2e -p 8091:80 -v cartvibe-sqlite:/app/cartvibe-api/sqlite $APP_SECURITY $APP_ENV -e REQUEST_LIMIT_FACTOR=100 cartvibe:ci
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8091/api/featureConfig > /dev/null; then exit 0; fi
             sleep 2
@@ -276,24 +275,71 @@ jobs:
           done
           docker inspect --format '{{json .State.Health}}' cartvibe
           exit 1
-      # docker/default.conf: scripts travel compressed, and a file with a content hash in its name is cached for good.
-      # A GET, not a HEAD: nginx does not compress (or say it would) when only the headers are asked for.
-      - name: The app's scripts are compressed and cached
+      # api/internal/edge: the web app is served by the API. Its page is never taken from a cache and carries the
+      # Content-Security-Policy built from the page itself; scripts travel compressed, and a file with a content
+      # hash in its name is cached for good; a page opened by its address is the app; a dotfile is not served.
+      - name: The app is served, compressed and cached
         run: |
-          main=$(curl -fsS http://localhost:8091/ | grep -oE 'main-[A-Za-z0-9_-]{8}\.js' | head -1)
+          page=$(curl -fsS -D - http://localhost:8091/)
+          echo "$page" | grep -qi '^cache-control: no-cache'
+          echo "$page" | grep -qi "^content-security-policy-report-only:.*script-src 'self' 'sha256-"
+          echo "$page" | grep -qi '^x-content-type-options: nosniff'
+          echo "$page" | grep -qi '^x-frame-options: SAMEORIGIN'
+          # (An "if", because a command negated with "!" never stops a script that runs with -e.)
+          if echo "$page" | grep -qi '^server:'; then echo "the answer names its server"; exit 1; fi
+          main=$(echo "$page" | grep -oE 'main-[A-Za-z0-9_-]{8}\.js' | head -1)
           test -n "$main"
           headers=$(curl -fsS -H 'Accept-Encoding: gzip' -D - -o /dev/null "http://localhost:8091/$main")
           echo "$headers"
           echo "$headers" | grep -qi '^content-encoding: gzip'
           echo "$headers" | grep -qi '^cache-control:.*immutable'
-      # docker/default.conf: 10 requests a second from one address, 20 more at once, and a 429 past that. Proved
-      # here because the specs below run with the limit raised.
+          curl -fsS http://localhost:8091/receipts/group/1 | grep -q '<app-root'
+          [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8091/.env)" = "404" ]
+          [ "$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8091/$main.map")" = "404" ]
+          [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8091/main-00000000.js)" = "404" ]
+      # api/internal/edge: 10 requests a second from one address, 20 more at once, and a 429 past that, said in the
+      # log. On a container of its own, with the limits as written: the one the specs use has them raised.
       - name: The request limit answers 429
         run: |
-          codes=$(seq 1 120 | xargs -P 16 -I{} curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8091/api/featureConfig | sort | uniq -c)
+          docker run -d --name cartvibe-limits -p 8093:80 $APP_SECURITY $APP_ENV cartvibe:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8093/api/featureConfig > /dev/null; then break; fi
+            sleep 2
+          done
+          codes=$(seq 1 120 | xargs -P 16 -I{} curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8093/api/featureConfig | sort | uniq -c)
           echo "$codes"
           echo "$codes" | grep -q ' 200$'
           echo "$codes" | grep -q ' 429$'
+          docker logs cartvibe-limits 2>&1 | grep 'request limit "api": refused'
+          docker rm -f cartvibe-limits > /dev/null
+      # docker/entrypoint.sh: Docker 20.10 and newer let any user in a container bind port 80. Where the kernel
+      # does not (an older Docker, the host's network: forced here with the sysctl), the entrypoint hands the API
+      # the right to, which the compose files keep (NET_BIND_SERVICE), and the API is still not root. Without
+      # either, the API says why it cannot listen and the container ends.
+      - name: Port 80 without root, with and without the kernel's help
+        run: |
+          api_uid() {
+            docker exec "$1" sh -c 'for p in /proc/[0-9]*; do [ "$(cat "$p/comm" 2> /dev/null)" = api ] && awk "/^Uid:/ {print \$2}" "$p/status"; done'
+          }
+          low_ports_need_a_right="--sysctl net.ipv4.ip_unprivileged_port_start=1024"
+          docker run -d --name cartvibe-port -p 8094:80 $low_ports_need_a_right $APP_SECURITY $APP_ENV cartvibe:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8094/api/featureConfig > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8094/api/featureConfig > /dev/null || { docker logs cartvibe-port --tail 50; exit 1; }
+          [ "$(api_uid cartvibe-port)" = "10001" ]
+          # The same options without the right. It is taken out of the list, not dropped after it: a capability
+          # named in both --cap-add and --cap-drop stays added. The wait is bounded, so an API that could listen
+          # after all fails this step instead of holding the job.
+          without_the_right=${APP_SECURITY/--cap-add NET_BIND_SERVICE /}
+          [ "$without_the_right" != "$APP_SECURITY" ]
+          docker run -d --name cartvibe-no-port $low_ports_need_a_right $without_the_right $APP_ENV cartvibe:ci
+          code=$(timeout 90 docker wait cartvibe-no-port) || { docker logs cartvibe-no-port --tail 20; echo "the API is still running: it could listen without the right"; exit 1; }
+          docker logs cartvibe-no-port 2>&1 | tail -3
+          [ "$code" != "0" ]
+          docker logs cartvibe-no-port 2>&1 | grep -q 'cannot listen on :80'
+          docker rm -f cartvibe-port cartvibe-no-port > /dev/null
       - uses: actions/setup-node@v7
         with:
           node-version: "26.13.0"
@@ -304,13 +350,6 @@ jobs:
       - name: Install the browsers
         run: npx playwright install --with-deps chromium webkit
         working-directory: ./desktop
-      # Every spec shares this runner's address and the app does not retry a 429, so under the production limit a
-      # run lost a handful of requests and a spec or two needed a second try (desktop/docs/e2e.md). The access log's
-      # length is kept so the step after the specs counts only what they sent.
-      - name: Raise the request limit for the specs
-        run: |
-          bash desktop/e2e/relax-rate-limits.sh cartvibe
-          echo "ACCESS_LOG_LINES=$(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log')" >> "$GITHUB_ENV"
       # A fresh database only has admin / admin; the specs sign in as these two.
       - name: Create the e2e accounts
         run: node e2e/seed-accounts.mjs
@@ -318,16 +357,17 @@ jobs:
       - name: Run the smoke specs
         run: npm run e2e:smoke
         working-directory: ./desktop
-      # No request of the specs may have been refused: one that was means a spec was starved, not wrong.
+      # No request of the specs may have been refused: one that was means a spec was starved, not wrong. The API
+      # says each zone's refusals in its log (api/internal/edge/limits.go).
       - name: No request of the specs was refused
-        if: ${{ !cancelled() && env.ACCESS_LOG_LINES != '' }}
+        if: ${{ !cancelled() }}
         run: |
-          refused=$(docker exec cartvibe sh -c "tail -n +$((ACCESS_LOG_LINES + 1)) /var/log/nginx/access.log | awk '\$9 == 429 {print \$6, \$7}'")
+          refused=$(docker logs cartvibe 2>&1 | grep 'request limit "' || true)
           if [ -n "$refused" ]; then
-            echo "$refused" | sed -E 's/[0-9]+/N/g' | sort | uniq -c | sort -rn | head -20
+            echo "$refused"
             exit 1
           fi
-          echo "none of $(docker exec cartvibe sh -c 'wc -l < /var/log/nginx/access.log') requests was refused"
+          echo "no request was refused"
       # docker-compose.vps.yml: Litestream copies the live database to a bucket (here a throwaway S3 server), with
       # the image and the configuration that file ships. Started while the app runs (a snapshot, then a change made
       # after it), checked after the app has stopped.
@@ -336,7 +376,7 @@ jobs:
         env:
           DRILL_NETWORK: e2e
           DRILL_VOLUME: cartvibe-sqlite
-      # docker/entrypoint.sh waits for the API and nginx to finish, so a stop ends with exit code 0, well inside the
+      # docker/entrypoint.sh waits for the API to finish, so a stop ends with exit code 0, well inside the
       # 30 seconds the compose files allow (a killed container reports 137).
       - name: A stop is clean
         run: |
