@@ -37,8 +37,8 @@ describe("BulkStatusUpdateComponent", () => {
   it("should init form correctly", () => {
     component.ngOnInit();
 
+    // The status and nothing else: a receipt has one note, and a bulk change does not write to it.
     expect(component.form.value).toEqual({
-      comment: "",
       status: ReceiptStatus.Resolved,
     });
   });
@@ -53,14 +53,12 @@ describe("BulkStatusUpdateComponent", () => {
   it("should close dialog with form value", () => {
     const spy = vi.spyOn(component.matDialogRef, "close");
     component.form.patchValue({
-      comment: "resolved",
-      status: ReceiptStatus.NeedsAttention,
+      status: ReceiptStatus.Open,
     });
     component.submitButtonClicked();
 
     expect(spy).toHaveBeenCalledWith({
-      comment: "resolved",
-      status: ReceiptStatus.NeedsAttention,
+      status: ReceiptStatus.Open,
     });
   });
 });

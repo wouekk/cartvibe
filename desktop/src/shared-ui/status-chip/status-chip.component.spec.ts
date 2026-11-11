@@ -31,14 +31,11 @@ describe('StatusChipComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  // The status -> class map is the entire color layer: every status reads as "To check"
-  // (yellow) or "Settled" (green).
+  // The status -> class map is the entire color layer: a receipt is "To check" (yellow) or
+  // "Settled" (green).
   const statusCases: { status: ReceiptStatus; expected: string; label: string }[] = [
     { status: ReceiptStatus.Open, expected: 'open', label: 'To check' },
-    { status: ReceiptStatus.NeedsAttention, expected: 'open', label: 'To check' },
-    { status: ReceiptStatus.Draft, expected: 'open', label: 'To check' },
     { status: ReceiptStatus.Resolved, expected: 'resolved', label: 'Settled' },
-    { status: ReceiptStatus.Declined, expected: 'resolved', label: 'Settled' },
   ];
 
   statusCases.forEach(({ status, expected, label }) => {

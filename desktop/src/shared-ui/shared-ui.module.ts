@@ -63,8 +63,6 @@ import { TabsComponent } from "./tabs/tabs.component";
 import { PrettyJsonPipe } from "./task-table/pretty-json.pipe";
 import { SystemTaskTypePipe } from "./task-table/system-task-type.pipe";
 import { TaskTableComponent } from "./task-table/task-table.component";
-import { EditableListComponent } from './editable-list/editable-list.component';
-import { IconAutocompleteComponent } from './icon-autocomplete/icon-autocomplete.component';
 import { CartVibeLogoComponent } from './cartvibe-logo/cartvibe-logo.component';
 import { BadgeComponent } from './badge/badge.component';
 import { ImageCanvasComponent } from './image-canvas/image-canvas.component';
@@ -119,8 +117,6 @@ import { ManagementTabsComponent } from './management-tabs/management-tabs.compo
     ImageViewerComponent,
     SourceFileViewerDialogComponent,
     QueueStartMenuComponent,
-    EditableListComponent,
-    IconAutocompleteComponent,
     SettingsPageComponent,
     SettingsSectionComponent,
     SettingsEntityListComponent,
@@ -197,8 +193,6 @@ import { ManagementTabsComponent } from './management-tabs/management-tabs.compo
     ImageViewerComponent,
     SourceFileViewerDialogComponent,
     QueueStartMenuComponent,
-    EditableListComponent,
-    IconAutocompleteComponent,
     SettingsPageComponent,
     SettingsSectionComponent,
     SettingsEntityListComponent,

@@ -1,8 +1,8 @@
 import { Component, Input, input, ChangeDetectionStrategy } from "@angular/core";
-import { DONE_STATUSES, receiptStatusLabel, TO_CHECK_STATUSES } from "../../utils/receipt-status";
+import { isSettled, isToCheck, receiptStatusLabel } from "../../utils/receipt-status";
 
 /**
- * A receipt's status as a family reads it: "To check" in yellow, "Done" in green. A
+ * A receipt's status as a family reads it: "To check" in yellow, "Settled" in green. A
  * status this build does not know shows as it came, uncoloured.
  */
 @Component({
@@ -23,10 +23,10 @@ export class StatusChipComponent {
   }
 
   public isToCheck(): boolean {
-    return TO_CHECK_STATUSES.includes(this.status);
+    return isToCheck(this.status);
   }
 
   public isDone(): boolean {
-    return DONE_STATUSES.includes(this.status);
+    return isSettled(this.status);
   }
 }

@@ -61,7 +61,7 @@
         <li class="flex flex-col gap-2" data-testid="quick-scan-attachment">
           <div hlmAttachment class="w-full" size="default">
             <div hlmAttachmentMedia variant="image" class="w-14 rounded-md">
-              <img [alt]="'quick scan image' | t" [src]="preview.encodedImage || preview.url ?? ''" />
+              <img [alt]="'quick scan image' | t" [src]="(preview.encodedImage || preview.url) ?? ''" />
             </div>
             <div hlmAttachmentContent class="min-w-0 flex-1">
               <span hlmAttachmentTitle class="truncate font-medium">{{ preview.file.name }}</span>
@@ -84,41 +84,13 @@
               [inputFormControl]="form | formGet : 'groupIds.' + i"
             ></app-group-autocomplete>
           }
-          @if (showPaidBy(i)) {
-            <app-user-autocomplete
-              class="w-full"
-              [label]="'Paid By' | t"
-              [inputFormControl]="form | formGet : 'paidByUserIds.' + i"
-              [groupId]="$safeNavigationMigration(form.get('groupIds.' + i)?.value)"
-              [selectGroupMembersOnly]="true"
-            ></app-user-autocomplete>
-          }
-          @if (showStatus(i)) {
-            <app-status-select
-              [label]="'Status' | t"
-              [inputFormControl]="form | formGet : 'statuses.' + i"
-            ></app-status-select>
-          }
-          @if (showCategories(i)) {
-            <app-category-autocomplete
-              [inputFormControl]="form | formGet : 'categories.' + i"
-              [categories]="categoriesForIndex(i)"
-              [creatable]="false"
-            ></app-category-autocomplete>
-          }
-          @if (showTags(i)) {
-            <app-tag-autocomplete
-              [inputFormControl]="form | formGet : 'tags.' + i"
-              [tags]="tagsForIndex(i)"
-              [creatable]="false"
-            ></app-tag-autocomplete>
-          }
-          @if (showComment(i)) {
+          <!-- The one extra field a household can ask for (Receipt Settings); it is never required. -->
+          @if (showNote(i)) {
             <app-textarea
-              [label]="'Comment' | t"
-              data-testid="quick-scan-comment"
-              [inputFormControl]="form | formGet : 'comments.' + i"
-              [additionalErrorMessages]="commentErrorMessages"
+              [label]="'Note' | t"
+              data-testid="quick-scan-note"
+              [inputFormControl]="form | formGet : 'notes.' + i"
+              [additionalErrorMessages]="noteErrorMessages"
             ></app-textarea>
           }
         </li>

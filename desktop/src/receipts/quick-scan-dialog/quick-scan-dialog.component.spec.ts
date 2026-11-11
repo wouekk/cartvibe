@@ -4,28 +4,31 @@ import { HttpResponse } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed, } from "@angular/core/testing";
-import { FormArray, FormControl, ReactiveFormsModule } from "@angular/forms";
+import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { LayoutState } from "src/store/layout.state";
+import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
 import { PipesModule } from "../../pipes";
 import { SnackbarService } from "../../services";
 import { QueuedScanService } from "../../services/queued-scan.service";
 import { AuthState, GroupState } from "../../store";
-import { QUICK_SCAN_COMMENT_MAX_LENGTH, QuickScanDialogComponent } from "./quick-scan-dialog.component";
+import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
 describe("QuickScanDialogComponent", () => {
   let component: QuickScanDialogComponent;
   let fixture: ComponentFixture<QuickScanDialogComponent>;
   let store: Store;
+  const originalCreateObjectURL = URL.createObjectURL;
 
   beforeEach(() => {
+    URL.createObjectURL = vi.fn().mockReturnValue("blob");
     TestBed.configureTestingModule({
     declarations: [QuickScanDialogComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -59,31 +62,53 @@ describe("QuickScanDialogComponent", () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    URL.createObjectURL = originalCreateObjectURL;
+  });
+
+  /** One household, id 2, with the given receipt settings; `auth` is the signed-in person's slice. */
+  const seedHousehold = (settings: Record<string, unknown> = {}, auth: Record<string, unknown> = {}) => {
+    store.reset({
+      // The dialog's footer reads the layout slice, so a reset keeps it.
+      ...store.snapshot(),
+      auth,
+      groups: { groups: [{ id: 2, name: "Home", isAllGroup: false, groupReceiptSettings: settings }], selectedGroupId: "", selectedDashboardId: "" },
+    });
+  };
+
+  const twoHouseholds = (auth: Record<string, unknown> = {}, secondSettings: Record<string, unknown> = {}) => {
+    store.reset({
+      ...store.snapshot(),
+      auth,
+      groups: {
+        groups: [
+          { id: 7, name: "My Receipts", isAllGroup: false, groupReceiptSettings: { quickScanNoteEnabled: true } },
+          { id: 8, name: "Household", isAllGroup: false, groupReceiptSettings: secondSettings },
+        ],
+        selectedGroupId: "",
+        selectedDashboardId: "",
+      },
+    });
+  };
+
+  const spyOnScan = () =>
+    vi.spyOn(TestBed.inject(ReceiptService), "quickScanReceipt").mockReturnValue(of(new HttpResponse({ body: {} })) as any);
+
   it("should create", () => {
     expect(component).toBeTruthy();
   });
 
-  it("should init form correctly", () => {
+  it("starts with a household and a note per photo, and nothing else to fill in", () => {
     component.ngOnInit();
 
-    expect(component.form.value).toEqual({
-      paidByUserIds: [],
-      statuses: [],
-      groupIds: [],
-      categories: [],
-      tags: [],
-      comments: [],
-    });
+    expect(component.form.value).toEqual({ groupIds: [], notes: [] });
   });
 
   it("should push fileData into images when loaded", () => {
-    const originalCreateObjectURL = URL.createObjectURL;
-    URL.createObjectURL = vi.fn().mockReturnValue("awesome");
     const fileData = {} as ReceiptFileUploadCommand;
     component.fileLoaded(fileData);
 
     expect(component.images).toEqual([fileData]);
-    URL.createObjectURL = originalCreateObjectURL;
   });
 
   it("should close the dialog", () => {
@@ -104,312 +129,171 @@ describe("QuickScanDialogComponent", () => {
     );
   });
 
-  it("should push new image when there are no user preferences", () => {
-    component.fileLoaded({} as any);
+  describe("the household of a photo", () => {
+    it("is blank for someone with no household in the store and no default", () => {
+      component.fileLoaded({} as any);
 
-    expect(component.form.value).toEqual({
-      paidByUserIds: [""],
-      statuses: [""],
-      groupIds: [""],
-      categories: [[]],
-      tags: [[]],
-      comments: [""],
+      expect(component.form.value).toEqual({ groupIds: [""], notes: [""] });
     });
-    expect(component.images).toEqual([{} as any]);
-  });
 
-  it("should push new image when there user preferences", () => {
-    store.reset({
-      auth: {
-        userPreferences: {
-          quickScanDefaultPaidById: 1,
-          quickScanDefaultStatus: ReceiptStatus.Open,
-          quickScanDefaultGroupId: 1,
+    it("is the person's default household when they are in several", () => {
+      twoHouseholds({ userPreferences: { quickScanDefaultGroupId: 8 } });
+
+      component.fileLoaded({} as any);
+
+      expect(component.groupIds.value).toEqual([8]);
+    });
+
+    it("is the person's only household, without the All group counting as a second", () => {
+      store.reset({
+        auth: {},
+        groups: {
+          groups: [
+            { id: 1, name: "All Groups", isAllGroup: true },
+            { id: 7, name: "My Receipts", isAllGroup: false },
+          ],
+          selectedGroupId: "",
+          selectedDashboardId: "",
         },
-      },
-      groups: { groups: [], selectedGroupId: "", selectedDashboardId: "" },
+      });
+
+      component.fileLoaded({} as any);
+
+      expect(component.groupIds.value).toEqual([7]);
     });
 
-    component.fileLoaded({} as any);
+    it("is the person's only household even when their default names another, which could be stale", () => {
+      seedHousehold({}, { userPreferences: { quickScanDefaultGroupId: 3 } });
 
-    expect(component.form.value).toEqual({
-      paidByUserIds: [1],
-      // Status is never asked (Phase 3 C3/C6), so once a group is picked it goes out blank and the
-      // server applies the group's default, then OPEN.
-      statuses: [""],
-      groupIds: [1],
-      categories: [[]],
-      tags: [[]],
-      comments: [""],
+      component.fileLoaded({} as any);
+
+      expect(component.groupIds.value).toEqual([2]);
     });
-    expect(component.images).toEqual([{} as any]);
+
+    it("is left to pick for someone in several households, and the scan waits for it", () => {
+      twoHouseholds();
+
+      component.fileLoaded({} as any);
+
+      expect(component.groupIds.value).toEqual([""]);
+      expect(component.groupIds.at(0).valid).toBe(false);
+      expect(component.form.invalid).toBe(true);
+      // No household, no settings to follow: nothing but the picker shows.
+      expect(component.showNote(0)).toBe(false);
+    });
+
+    it("refuses to send while a photo has no household", () => {
+      twoHouseholds();
+      const scan = spyOnScan();
+      const snackbarSpy = vi.spyOn(TestBed.inject(SnackbarService), "error");
+
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.submitButtonClicked();
+
+      expect(scan).not.toHaveBeenCalled();
+      expect(snackbarSpy).toHaveBeenCalledWith("Please fill in all required fields. Some images are missing required fields.");
+    });
   });
 
-  it("makes the scanner the payer and never asks, whatever the group requires (Phase 3 C1)", () => {
-    store.reset({
-      auth: { userId: "5", userPreferences: { quickScanDefaultPaidById: 1 } },
-      groups: {
-        groups: [
-          {
-            id: 8,
-            name: "Household",
-            isAllGroup: false,
-            groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanPaidByRequired: true },
-          },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
+  describe("what a scan sends", () => {
+    it("sends the photo, its household and the person scanning as the payer, and asks for nothing else", () => {
+      seedHousehold({}, { userId: "5", userPreferences: { quickScanDefaultPaidById: 1 } });
+      const scan = spyOnScan();
+      const fileData = { file: { name: "a" } } as any;
+
+      component.fileLoaded(fileData);
+      component.submitButtonClicked();
+
+      // Paid by is the scanner, not their stored default payer; the empty status lets the server apply the
+      // household's default; categories and tags come from the product lines, so one empty entry each.
+      expect(scan).toHaveBeenCalledWith([fileData.file], [2], [5], [""], [""], [""], [""], "events", true);
     });
 
-    component.fileLoaded({} as any);
-    component.groupIds.at(0).setValue(8);
+    it("falls back on the person's default payer only when who is scanning is unknown", () => {
+      seedHousehold({}, { userPreferences: { quickScanDefaultPaidById: 1 } });
+      const scan = spyOnScan();
 
-    expect(component.showPaidBy(0)).toBe(false);
-    // Not cleared for the group's own default: the scanner paid.
-    expect(component.paidByUserIds.at(0).value).toEqual(5);
-    expect(component.paidByUserIds.at(0).valid).toBe(true);
-  });
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.submitButtonClicked();
 
-  it("seeds the user's only group when they have no default group preference", () => {
-    // The All group ships alongside every real group and is never a quick-scan
-    // target, so a single-group user still has two entries in state.
-    store.reset({
-      auth: {},
-      groups: {
-        groups: [
-          { id: 1, name: "All Groups", isAllGroup: true },
-          { id: 7, name: "My Receipts", isAllGroup: false },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
+      expect(scan.mock.calls[0][2]).toEqual([1]);
     });
 
-    component.fileLoaded({} as any);
+    it("sends the person's own default status", () => {
+      seedHousehold({}, { userId: "5", userPreferences: { quickScanDefaultStatus: ReceiptStatus.Resolved } });
+      const scan = spyOnScan();
 
-    expect(component.groupIds.value).toEqual([7]);
-  });
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.submitButtonClicked();
 
-  it("prefers the user's only group over a quick-scan default group, which could be stale (Phase 3 C3)", () => {
-    store.reset({
-      auth: { userPreferences: { quickScanDefaultGroupId: 3 } },
-      groups: {
-        groups: [{ id: 7, name: "My Receipts", isAllGroup: false }],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
+      expect(scan.mock.calls[0][3]).toEqual([ReceiptStatus.Resolved]);
     });
 
-    component.fileLoaded({} as any);
+    it("sends one entry per photo, in the order of the photos", () => {
+      seedHousehold({ quickScanNoteEnabled: true }, { userId: "5" });
+      const scan = spyOnScan();
+      const first = { file: { name: "a" } } as any;
+      const second = { file: { name: "b" } } as any;
 
-    expect(component.groupIds.value).toEqual([7]);
-  });
+      component.fileLoaded(first);
+      component.fileLoaded(second);
+      component.notes.at(1).setValue("second");
+      component.submitButtonClicked();
 
-  it("leaves the group blank when the user belongs to more than one", () => {
-    store.reset({
-      auth: {},
-      groups: {
-        groups: [
-          { id: 7, name: "My Receipts", isAllGroup: false },
-          { id: 8, name: "Household", isAllGroup: false },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
+      expect(scan).toHaveBeenCalledWith(
+        [first.file, second.file], [2, 2], [5, 5], ["", ""], ["", ""], ["", ""], ["", "second"], "events", true
+      );
     });
 
-    component.fileLoaded({} as any);
+    it("closes and says the receipts were uploaded", () => {
+      seedHousehold();
+      spyOnScan();
+      const close = vi.spyOn(TestBed.inject(AppDialogRef), "close");
+      const success = vi.spyOn(TestBed.inject(SnackbarService), "success");
 
-    expect(component.groupIds.value).toEqual([""]);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.submitButtonClicked();
 
-    // With no group picked there is no config to honour, so only the Group field renders.
-    expect(component.showPaidBy(0)).toBe(false);
-    expect(component.showStatus(0)).toBe(false);
-    expect(component.showCategories(0)).toBe(false);
-    expect(component.showTags(0)).toBe(false);
-    expect(component.showComment(0)).toBe(false);
-  });
-
-  it("requires only the group while none is selected", () => {
-    store.reset({
-      auth: {},
-      groups: {
-        groups: [
-          { id: 7, name: "My Receipts", isAllGroup: false },
-          { id: 8, name: "Household", isAllGroup: false },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
+      expect(close).toHaveBeenCalled();
+      expect(success).toHaveBeenCalledWith("Receipts uploaded. You will get a notification once the AI has read them, or if it fails.");
     });
-
-    component.fileLoaded({} as any);
-
-    // A hidden field is never required, so nothing but Group can block the submit.
-    expect(component.paidByUserIds.at(0).valid).toBe(true);
-    expect(component.statuses.at(0).valid).toBe(true);
-    expect(component.categories.at(0).valid).toBe(true);
-    expect(component.tags.at(0).valid).toBe(true);
-    expect(component.comments.at(0).valid).toBe(true);
-    expect(component.groupIds.at(0).valid).toBe(false);
-    expect(component.form.invalid).toBe(true);
-  });
-
-  it("keeps the paid-by and status prefills while no group is selected", () => {
-    // The regression guard for the prefill wipe. configureImages() clears any field it considers
-    // hidden, and every FormArray.push in fileLoaded() emits valueChanges -- so it runs while the
-    // group is still blank. Clearing there would destroy the caller's quickScanDefault* prefills
-    // and never put them back. Two groups so soleGroupId cannot seed one.
-    store.reset({
-      auth: {
-        userPreferences: {
-          quickScanDefaultPaidById: 1,
-          quickScanDefaultStatus: ReceiptStatus.Open,
-        },
-      },
-      groups: {
-        groups: [
-          { id: 7, name: "My Receipts", isAllGroup: false },
-          { id: 8, name: "Household", isAllGroup: false },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
-    });
-
-    component.fileLoaded({} as any);
-
-    expect(component.paidByUserIds.at(0).value).toEqual(1);
-    expect(component.statuses.at(0).value).toEqual(ReceiptStatus.Open);
-    expect(component.groupIds.at(0).value).toEqual("");
-  });
-
-  it("clears a field the selected group hides, but not one hidden only because no group is picked", () => {
-    // Both halves of the clear-gate in one case: the prefill survives a blank group, then the same
-    // prefill is cleared once a group whose config hides paid-by is chosen (so the server backfills
-    // its configured default rather than receiving a stale value).
-    store.reset({
-      auth: {
-        userPreferences: {
-          quickScanDefaultPaidById: 1,
-          quickScanDefaultStatus: ReceiptStatus.Open,
-        },
-      },
-      groups: {
-        groups: [
-          { id: 7, name: "My Receipts", isAllGroup: false },
-          {
-            id: 8,
-            name: "Household",
-            isAllGroup: false,
-            groupReceiptSettings: { quickScanPaidByEnabled: false },
-          },
-        ],
-        selectedGroupId: "",
-        selectedDashboardId: "",
-      },
-    });
-
-    component.fileLoaded({} as any);
-    expect(component.paidByUserIds.at(0).value).toEqual(1);
-
-    component.groupIds.at(0).setValue(8);
-
-    expect(component.showPaidBy(0)).toBe(false);
-    expect(component.paidByUserIds.at(0).value).toEqual("");
-  });
-
-  it("should drive field visibility from the selected group's settings, requiring nothing (Phase 3 C3)", () => {
-    const group = {
-      id: 2,
-      groupReceiptSettings: {
-        quickScanPaidByEnabled: false,
-        quickScanPaidByRequired: false,
-        quickScanStatusEnabled: true,
-        quickScanStatusRequired: true,
-        quickScanCategoriesEnabled: true,
-        quickScanCategoriesRequired: true,
-        quickScanTagsEnabled: false,
-        quickScanTagsRequired: false,
-      },
-    };
-    store.reset({
-      auth: {},
-      groups: { groups: [group], selectedGroupId: "", selectedDashboardId: "" },
-    });
-
-    component.fileLoaded({} as any);
-    component.groupIds.at(0).setValue(2);
-
-    expect(component.showPaidBy(0)).toBe(false);
-    // A scan starts as "To check", so status is never asked.
-    expect(component.showStatus(0)).toBe(false);
-    // Categories and tags belong to the product lines now, so a scan never asks for them.
-    expect(component.showCategories(0)).toBe(false);
-    expect(component.showTags(0)).toBe(false);
-
-    // The group's required flags no longer block a scan; the server falls back to defaults.
-    expect(component.categories.at(0).valid).toBe(true);
-    expect(component.statuses.at(0).valid).toBe(true);
-    // Hidden paid-by is not required.
-    expect(component.paidByUserIds.at(0).valid).toBe(true);
   });
 
   it("shows the upload progress while sending, ignores a second click, and clears it on a failure", () => {
-    const originalCreateObjectURL = URL.createObjectURL;
-    try {
-      URL.createObjectURL = vi.fn().mockReturnValue("blob");
-      store.reset({
-        auth: { groupCategories: {}, groupTags: {} },
-        groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
-      });
-      const events = new Subject<HttpEvent<any>>();
-      const receiptService = TestBed.inject(ReceiptService);
-      const serviceSpy = vi.spyOn(receiptService, "quickScanReceipt").mockReturnValue(events as any);
+    seedHousehold();
+    const events = new Subject<HttpEvent<any>>();
+    const receiptService = TestBed.inject(ReceiptService);
+    const serviceSpy = vi.spyOn(receiptService, "quickScanReceipt").mockReturnValue(events as any);
 
-      component.fileLoaded({ file: { name: "a" } } as any);
-      component.groupIds.at(0).setValue(2);
-      component.submitButtonClicked();
-      expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 0 });
+    component.fileLoaded({ file: { name: "a" } } as any);
+    component.submitButtonClicked();
+    expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 0 });
 
-      events.next({ type: HttpEventType.UploadProgress, loaded: 40, total: 100 });
-      expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 40 });
+    events.next({ type: HttpEventType.UploadProgress, loaded: 40, total: 100 });
+    expect(component.uploadStage()).toEqual({ stage: "uploading", percent: 40 });
 
-      component.submitButtonClicked();
-      expect(serviceSpy).toHaveBeenCalledTimes(1);
+    component.submitButtonClicked();
+    expect(serviceSpy).toHaveBeenCalledTimes(1);
 
-      events.error(new Error("offline"));
-      expect(component.uploadStage()).toBeNull();
-    } finally {
-      URL.createObjectURL = originalCreateObjectURL;
-    }
+    events.error(new Error("offline"));
+    expect(component.uploadStage()).toBeNull();
   });
 
   describe("without a connection", () => {
-    const originalCreateObjectURL = URL.createObjectURL;
     let events: Subject<HttpEvent<any>>;
     let queue: ReturnType<typeof vi.spyOn>;
     let close: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
-      URL.createObjectURL = vi.fn().mockReturnValue("blob");
-      store.reset({
-        auth: { groupCategories: {}, groupTags: {} },
-        groups: { groups: [{ id: 2, groupReceiptSettings: { quickScanPaidByEnabled: false, quickScanStatusEnabled: false } }], selectedGroupId: "", selectedDashboardId: "" },
-      });
+      seedHousehold({ quickScanNoteEnabled: true }, { userId: "5" });
       events = new Subject<HttpEvent<any>>();
       vi.spyOn(TestBed.inject(ReceiptService), "quickScanReceipt").mockReturnValue(events as any);
       queue = vi.spyOn(TestBed.inject(QueuedScanService), "queue").mockResolvedValue(undefined);
       close = vi.spyOn(TestBed.inject(AppDialogRef), "close");
 
       component.fileLoaded({ file: { name: "a" } } as any);
-      component.groupIds.at(0).setValue(2);
+      component.notes.at(0).setValue("from the till");
       component.submitButtonClicked();
-    });
-
-    afterEach(() => {
-      URL.createObjectURL = originalCreateObjectURL;
     });
 
     it("keeps the scan on the device, exactly as it was being sent, and closes", async () => {
@@ -418,9 +302,15 @@ describe("QuickScanDialogComponent", () => {
       await Promise.resolve();
 
       expect(queue).toHaveBeenCalledTimes(1);
-      expect(queue.mock.calls[0][0]).toEqual(
-        expect.objectContaining({ files: [{ name: "a" }], groupIds: [2], categoryIds: [""], tagIds: [""] })
-      );
+      expect(queue.mock.calls[0][0]).toEqual({
+        files: [{ name: "a" }],
+        groupIds: [2],
+        paidByUserIds: [5],
+        statuses: [""],
+        categoryIds: [""],
+        tagIds: [""],
+        notes: ["from the till"],
+      });
       expect(close).toHaveBeenCalled();
       expect(component.uploadStage()).toBeNull();
     });
@@ -435,31 +325,29 @@ describe("QuickScanDialogComponent", () => {
 
   describe("photo rows and drop zone", () => {
     it("lists each photo as its own attachment row and removes only that one", () => {
-      const originalCreateObjectURL = URL.createObjectURL;
-      try {
-        URL.createObjectURL = vi.fn().mockReturnValue("blob");
-        component.fileLoaded({ file: { name: "a.jpg", size: 2048 } } as any);
-        component.fileLoaded({ file: { name: "b.jpg", size: 3 * 1024 * 1024 } } as any);
-        fixture.changeDetectorRef.markForCheck();
-        fixture.detectChanges();
+      seedHousehold({ quickScanNoteEnabled: true });
+      component.fileLoaded({ file: { name: "a.jpg", size: 2048 } } as any);
+      component.fileLoaded({ file: { name: "b.jpg", size: 3 * 1024 * 1024 } } as any);
+      component.notes.at(1).setValue("the second photo's note");
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
 
-        const rows = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
-        expect(rows.length).toBe(2);
-        expect(rows[0].textContent).toContain("a.jpg");
-        expect(rows[0].textContent).toContain("2 KB");
-        expect(rows[1].textContent).toContain("3.0 MB");
+      const rows = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
+      expect(rows.length).toBe(2);
+      expect(rows[0].textContent).toContain("a.jpg");
+      expect(rows[0].textContent).toContain("2 KB");
+      expect(rows[1].textContent).toContain("3.0 MB");
 
-        component.removeImage(0);
-        fixture.changeDetectorRef.markForCheck();
-        fixture.detectChanges();
+      component.removeImage(0);
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
 
-        const left = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
-        expect(left.length).toBe(1);
-        expect(left[0].textContent).toContain("b.jpg");
-        expect(component.groupIds.length).toBe(1);
-      } finally {
-        URL.createObjectURL = originalCreateObjectURL;
-      }
+      const left = fixture.nativeElement.querySelectorAll('[data-testid="quick-scan-attachment"]');
+      expect(left.length).toBe(1);
+      expect(left[0].textContent).toContain("b.jpg");
+      expect(component.groupIds.length).toBe(1);
+      // The note moves up with its photo.
+      expect(component.notes.value).toEqual(["the second photo's note"]);
     });
 
     it("hands dropped files to the uploader and shows the drop state while dragging", () => {
@@ -483,267 +371,105 @@ describe("QuickScanDialogComponent", () => {
     });
   });
 
-  it("should send category and tag ids per image on submit", () => {
-    const originalCreateObjectURL = URL.createObjectURL;
-    try {
-      URL.createObjectURL = vi.fn().mockReturnValue("blob");
+  describe("the note", () => {
+    const noteField = () => fixture.nativeElement.querySelector('[data-testid="quick-scan-note"]');
 
-      const group = {
-        id: 2,
-        groupReceiptSettings: {
-          quickScanPaidByEnabled: false,
-          quickScanPaidByRequired: false,
-          quickScanStatusEnabled: true,
-          quickScanStatusRequired: false,
-          quickScanCategoriesEnabled: true,
-          quickScanCategoriesRequired: true,
-          quickScanTagsEnabled: true,
-          quickScanTagsRequired: false,
-        },
-      };
-      store.reset({
-        auth: {
-          groupCategories: { 2: [{ id: 10, name: "c" }] },
-          groupTags: { 2: [{ id: 20, name: "t" }] },
-        },
-        groups: { groups: [group], selectedGroupId: "", selectedDashboardId: "" },
-      });
-
-      const receiptService = TestBed.inject(ReceiptService);
-      const serviceSpy = vi
-        .spyOn(receiptService, "quickScanReceipt")
-        .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
-
-      const fileData = { file: { name: "a" } } as any;
-      component.fileLoaded(fileData);
-      component.groupIds.at(0).setValue(2);
-      // Categories/tags are per-image FormArrays; selections are pushed onto them
-      // (as the autocomplete does), not set wholesale.
-      (component.categories.at(0) as FormArray).push(new FormControl({ id: 10, name: "c" }));
-      (component.tags.at(0) as FormArray).push(new FormControl({ id: 20, name: "t" }));
-
-      component.submitButtonClicked();
-
-      expect(serviceSpy).toHaveBeenCalledWith(
-        [fileData.file],
-        [2],
-        [""],
-        [""],
-        ["10"],
-        ["20"],
-        [""],
-        "events",
-        true
-      );
-    } finally {
-      URL.createObjectURL = originalCreateObjectURL;
-    }
-  });
-  describe("comment field", () => {
-    // The comment field needs the group config AND group.comments.create, so every case seeds both.
-    const seedStore = (
-      settings: Record<string, boolean>,
-      groupPermissions: Record<number, string[]> = { 2: ["group.comments.create"] },
-    ) => {
-      store.reset({
-        auth: { groupPermissions },
-        groups: {
-          groups: [{ id: 2, groupReceiptSettings: settings }],
-          selectedGroupId: "",
-          selectedDashboardId: "",
-        },
-      });
+    const render = () => {
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
     };
 
-    it("should show and require the comment per the group config", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: true });
+    it("is not asked for unless the household switched it on", () => {
+      seedHousehold();
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      render();
 
-      expect(component.showComment(0)).toBe(true);
-      // Required and empty.
-      expect(component.comments.at(0).valid).toBe(false);
-
-      component.comments.at(0).setValue("A note");
-      expect(component.comments.at(0).valid).toBe(true);
+      expect(component.showNote(0)).toBe(false);
+      expect(noteField()).toBeNull();
     });
 
-    it("should show an optional comment without requiring it", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: false });
+    it("shows under the photo when the household asks for one, and can stay empty", () => {
+      seedHousehold({ quickScanNoteEnabled: true });
+      const scan = spyOnScan();
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      render();
 
-      expect(component.showComment(0)).toBe(true);
-      expect(component.comments.at(0).valid).toBe(true);
+      expect(component.showNote(0)).toBe(true);
+      expect(noteField()).not.toBeNull();
+      expect(component.notes.at(0).valid).toBe(true);
+
+      component.submitButtonClicked();
+      expect(scan).toHaveBeenCalled();
     });
 
-    it("should hide the comment by default", () => {
-      seedStore({});
+    it("stays away while the household hides the note", () => {
+      seedHousehold({ quickScanNoteEnabled: true, hideNote: true });
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      render();
 
-      expect(component.showComment(0)).toBe(false);
+      expect(component.showNote(0)).toBe(false);
+      expect(noteField()).toBeNull();
     });
 
-    it("should hide the comment when the group hides comments", () => {
-      seedStore({ hideComments: true, quickScanCommentEnabled: true, quickScanCommentRequired: true });
+    it("travels with its photo", () => {
+      seedHousehold({ quickScanNoteEnabled: true }, { userId: "5" });
+      const scan = spyOnScan();
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.notes.at(0).setValue("Birthday dinner");
+      component.submitButtonClicked();
 
-      expect(component.showComment(0)).toBe(false);
-      // Not required either - otherwise the hidden field would block every submit.
-      expect(component.comments.at(0).valid).toBe(true);
+      expect(scan.mock.calls[0][6]).toEqual(["Birthday dinner"]);
     });
 
-    it("should hide the comment without group.comments.create", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: true }, { 2: [] });
+    it("follows the photo's household: one typed for a household that asks is not sent to one that does not", () => {
+      twoHouseholds({ userId: "5" });
+      const scan = spyOnScan();
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
+      component.groupIds.at(0).setValue(7);
+      expect(component.showNote(0)).toBe(true);
+      component.notes.at(0).setValue("typed for the first household");
 
-      expect(component.showComment(0)).toBe(false);
-      expect(component.comments.at(0).valid).toBe(true);
+      component.groupIds.at(0).setValue(8);
+      expect(component.showNote(0)).toBe(false);
+      component.submitButtonClicked();
+
+      expect(scan.mock.calls[0][1]).toEqual([8]);
+      expect(scan.mock.calls[0][6]).toEqual([""]);
     });
 
-    it("should accept a comment at the maximum length and reject one over it", () => {
-      seedStore({ quickScanCommentEnabled: true });
+    it("takes a note of the greatest length and refuses a longer one", () => {
+      seedHousehold({ quickScanNoteEnabled: true });
+      const scan = spyOnScan();
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
 
-      component.comments.at(0).setValue("a".repeat(QUICK_SCAN_COMMENT_MAX_LENGTH));
-      expect(component.comments.at(0).valid).toBe(true);
+      component.notes.at(0).setValue("a".repeat(RECEIPT_NOTE_MAX_LENGTH));
+      expect(component.notes.at(0).valid).toBe(true);
 
-      component.comments.at(0).setValue("a".repeat(QUICK_SCAN_COMMENT_MAX_LENGTH + 1));
-      expect(component.comments.at(0).valid).toBe(false);
-      expect(component.comments.at(0).hasError("maxlength")).toBe(true);
+      component.notes.at(0).setValue("a".repeat(RECEIPT_NOTE_MAX_LENGTH + 1));
+      expect(component.notes.at(0).hasError("maxlength")).toBe(true);
+
+      component.submitButtonClicked();
+      expect(scan).not.toHaveBeenCalled();
     });
 
-    // The backend counts runes, so the cap must count code points too - Validators.maxLength
-    // counts UTF-16 code units and would reject 500 emoji the API accepts.
-    it("should count the comment length in code points, not UTF-16 units", () => {
-      seedStore({ quickScanCommentEnabled: true });
+    // The server counts characters (runes); Validators.maxLength counts UTF-16 units and would refuse a note
+    // of emoji the server takes.
+    it("counts the length in characters, not UTF-16 units", () => {
+      seedHousehold({ quickScanNoteEnabled: true });
 
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
+      component.fileLoaded({ file: { name: "a" } } as any);
 
-      // 500 supplementary characters = 1000 UTF-16 units but 500 code points.
-      component.comments.at(0).setValue("😀".repeat(QUICK_SCAN_COMMENT_MAX_LENGTH));
-      expect(component.comments.at(0).valid).toBe(true);
+      component.notes.at(0).setValue("😀".repeat(RECEIPT_NOTE_MAX_LENGTH));
+      expect(component.notes.at(0).valid).toBe(true);
 
-      component.comments.at(0).setValue("😀".repeat(QUICK_SCAN_COMMENT_MAX_LENGTH + 1));
-      expect(component.comments.at(0).hasError("maxlength")).toBe(true);
-    });
-
-    // QuickScanCommand trims each comment on parse, so whitespace-only arrives empty and the
-    // group's required check 400s - the form has to refuse it first.
-    it("should reject a whitespace-only comment when one is required", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: true });
-
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
-
-      component.comments.at(0).setValue("   \n\t ");
-      expect(component.comments.at(0).valid).toBe(false);
-      expect(component.comments.at(0).hasError("required")).toBe(true);
-
-      component.comments.at(0).setValue("  A real note  ");
-      expect(component.comments.at(0).valid).toBe(true);
-    });
-
-    it("should allow a whitespace-only comment when one is not required", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: false });
-
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
-
-      component.comments.at(0).setValue("   ");
-      expect(component.comments.at(0).valid).toBe(true);
-    });
-
-    // setRequired removes by reference, so a recompute that turns required off must actually
-    // drop the trim-aware validator rather than leaving the field permanently required.
-    it("should drop the required check when the group stops requiring a comment", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: true });
-
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
-      component.comments.at(0).setValue("   ");
-      expect(component.comments.at(0).valid).toBe(false);
-
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: false });
-      component.groupIds.at(0).setValue(2);
-      expect(component.comments.at(0).valid).toBe(true);
-    });
-
-    // setRequired composes validators additively, so a show/require recompute must not drop the
-    // length cap that was attached when the control was created.
-    it("should keep the length cap after the group config is re-applied", () => {
-      seedStore({ quickScanCommentEnabled: true, quickScanCommentRequired: true });
-
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
-      component.groupIds.at(0).setValue(2);
-
-      component.comments.at(0).setValue("a".repeat(QUICK_SCAN_COMMENT_MAX_LENGTH + 1));
-      expect(component.comments.at(0).hasError("maxlength")).toBe(true);
-    });
-
-    it("should clear a hidden comment so nothing stale is submitted", () => {
-      seedStore({ quickScanCommentEnabled: true });
-
-      component.fileLoaded({} as any);
-      component.groupIds.at(0).setValue(2);
-      component.comments.at(0).setValue("typed before the group hid the field");
-
-      seedStore({ quickScanCommentEnabled: false });
-      component.groupIds.at(0).setValue(2);
-
-      expect(component.showComment(0)).toBe(false);
-      expect(component.comments.at(0).value).toBe("");
-    });
-
-    it("should send the comment per image on submit", () => {
-      const originalCreateObjectURL = URL.createObjectURL;
-      try {
-        URL.createObjectURL = vi.fn().mockReturnValue("blob");
-        seedStore({
-          quickScanPaidByEnabled: false,
-          quickScanStatusEnabled: false,
-          quickScanCommentEnabled: true,
-          quickScanCommentRequired: true,
-        });
-
-        const receiptService = TestBed.inject(ReceiptService);
-        const serviceSpy = vi
-          .spyOn(receiptService, "quickScanReceipt")
-          .mockReturnValue(of(new HttpResponse({ body: {} })) as any);
-
-        const fileData = { file: { name: "a" } } as any;
-        component.fileLoaded(fileData);
-        component.groupIds.at(0).setValue(2);
-        component.comments.at(0).setValue("Client dinner");
-
-        component.submitButtonClicked();
-
-        expect(serviceSpy).toHaveBeenCalledWith(
-          [fileData.file],
-          [2],
-          [""],
-          [""],
-          [""],
-          [""],
-          ["Client dinner"],
-          "events",
-          true
-        );
-      } finally {
-        URL.createObjectURL = originalCreateObjectURL;
-      }
+      component.notes.at(0).setValue("😀".repeat(RECEIPT_NOTE_MAX_LENGTH + 1));
+      expect(component.notes.at(0).hasError("maxlength")).toBe(true);
     });
   });
 });

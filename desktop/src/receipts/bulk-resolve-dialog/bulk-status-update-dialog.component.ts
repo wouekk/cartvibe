@@ -28,7 +28,6 @@ export class BulkStatusUpdateComponent implements OnInit {
   private initForm(): void {
     this.form = this.formBuilder.group({
       status: [ReceiptStatus.Resolved, Validators.required],
-      comment: "",
     });
   }
 

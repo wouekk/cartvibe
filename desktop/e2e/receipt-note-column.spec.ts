@@ -1,7 +1,6 @@
 import { expect, Page, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
-  apiCreateComment,
   midMonthIso,
   apiCreateGroup,
   apiCreateReceipt,
@@ -20,26 +19,25 @@ test.use({ storageState: 'e2e/.auth/admin.json' });
 test.describe.configure({ mode: 'serial' });
 
 /**
- * The receipts table's Comment column: each receipt's FIRST comment, sortable.
+ * The receipts table's Note column: each receipt's note, sortable.
  *
  * The unit specs build columns against a mocked store, so they prove nothing
- * about the wire. What only an e2e can show: the paged list actually carrying
- * `firstComment`, the earliest comment winning over a later one, and the
- * `first_comment` sort key round-tripping to the API instead of being rejected.
+ * about the wire. What only an e2e can show: a receipt created with a note
+ * carrying it in the paged list, and the `note` sort key round-tripping to the
+ * API instead of being rejected.
  *
  * It seeds its own group so the rows are exactly these, in a known order.
  */
-test.describe('Receipts table — Comment column', () => {
-  const groupName = uniqueName('comment-col-grp');
+test.describe('Receipts table — Note column', () => {
+  const groupName = uniqueName('note-col-grp');
   let groupId: number;
 
-  // `later` is written second and sorts FIRST alphabetically, so a column that
-  // showed - or sorted by - the lowest or the latest comment would be visibly
-  // wrong on this receipt.
+  // Created out of alphabetical order, so a list that came back in creation
+  // order would be visibly unsorted.
   const receipts = [
-    { name: 'comment-col-bravo', comments: ['bravo note'] },
-    { name: 'comment-col-zulu', comments: ['zulu note', 'aaa later note'] },
-    { name: 'comment-col-alpha', comments: ['alpha note'] },
+    { name: 'note-col-bravo', note: 'bravo note' },
+    { name: 'note-col-zulu', note: 'zulu note' },
+    { name: 'note-col-alpha', note: 'alpha note' },
   ];
 
   test.beforeAll(async () => {
@@ -48,18 +46,14 @@ test.describe('Receipts table — Comment column', () => {
       groupId = (await apiCreateGroup(api, groupName)).id;
 
       for (const receipt of receipts) {
-        const receiptId = await apiCreateReceipt(api, {
+        await apiCreateReceipt(api, {
           groupId,
           paidByUserId: adminId,
           name: receipt.name,
+          note: receipt.note,
           // The table opens on "this month": dated mid-month so the rows are in it whatever today is.
           date: midMonthIso(),
         });
-        // Sequential on purpose: "first" is the earliest, and the id breaks a
-        // created_at tie in insertion order.
-        for (const comment of receipt.comments) {
-          await apiCreateComment(api, { receiptId, comment });
-        }
       }
     });
   });
@@ -93,21 +87,21 @@ test.describe('Receipts table — Comment column', () => {
     return dialog;
   }
 
-  async function showCommentColumn(page: Page): Promise<void> {
+  async function showNoteColumn(page: Page): Promise<void> {
     const dialog = await openConfigureColumns(page);
     // The checkbox button sits inside its label: click the label text (check() can toggle twice).
-    await dialog.getByText('Comment', { exact: true }).click();
-    await expect(dialog.getByRole('checkbox', { name: 'Comment', exact: true })).toBeChecked();
+    await dialog.getByText('Note', { exact: true }).click();
+    await expect(dialog.getByRole('checkbox', { name: 'Note', exact: true })).toBeChecked();
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(dialog).toBeHidden();
-    await expect(page.getByRole('columnheader', { name: 'Comment' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Note' })).toBeVisible();
   }
 
   /** The rendered row order, which is what every sort assertion compares. */
   async function receiptNames(page: Page): Promise<string[]> {
     const names = await page.locator('td a[href^="/receipts/"]').allTextContents();
     // The date cell is a link too; keep this spec's receipts by name.
-    return names.map((name) => name.trim()).filter((name) => name.startsWith('comment-col-'));
+    return names.map((name) => name.trim()).filter((name) => name.startsWith('note-col-'));
   }
 
   function rowFor(page: Page, receiptName: string) {
@@ -118,47 +112,36 @@ test.describe('Receipts table — Comment column', () => {
     await gotoTable(page);
 
     const dialog = await openConfigureColumns(page);
-    const checkbox = dialog.getByRole('checkbox', { name: 'Comment', exact: true });
+    const checkbox = dialog.getByRole('checkbox', { name: 'Note', exact: true });
     await expect(checkbox).toBeVisible();
     await expect(checkbox).not.toBeChecked();
 
-    // It is a built-in column, not a custom field.
-    await expect(
-      dialog.locator('.column-item').filter({ hasText: 'Comment' }).getByTestId('column-config-custom'),
-    ).toHaveCount(0);
-
-    await expect(page.getByRole('columnheader', { name: 'Comment' })).toHaveCount(0);
+    await expect(page.getByRole('columnheader', { name: 'Note' })).toHaveCount(0);
   });
 
-  test("shows each receipt's first comment", async ({ page }) => {
+  test("shows each receipt's note", async ({ page }) => {
     await gotoTable(page);
-    await showCommentColumn(page);
+    await showNoteColumn(page);
 
-    await expect(rowFor(page, 'comment-col-zulu').getByTestId('receipt-first-comment')).toHaveText(
-      'zulu note',
-    );
-    await expect(rowFor(page, 'comment-col-alpha').getByTestId('receipt-first-comment')).toHaveText(
-      'alpha note',
-    );
-    await expect(page.getByText('aaa later note')).toHaveCount(0);
+    await expect(rowFor(page, 'note-col-zulu').getByTestId('receipt-note')).toHaveText('zulu note');
+    await expect(rowFor(page, 'note-col-alpha').getByTestId('receipt-note')).toHaveText('alpha note');
   });
 
-  test('sorts by the first comment in both directions', async ({ page }) => {
+  test('sorts by the note in both directions', async ({ page }) => {
     await gotoTable(page);
-    await showCommentColumn(page);
+    await showNoteColumn(page);
 
-    const header = page.getByRole('columnheader', { name: 'Comment' });
+    const header = page.getByRole('columnheader', { name: 'Note' });
 
-    // A 500 here would mean the API rejected first_comment as an untrusted
-    // orderBy. The zulu receipt sorts by "zulu note", never by its later "aaa".
+    // A 500 here would mean the API rejected note as an untrusted orderBy.
     await header.click();
     await expect
       .poll(() => receiptNames(page))
-      .toEqual(['comment-col-alpha', 'comment-col-bravo', 'comment-col-zulu']);
+      .toEqual(['note-col-alpha', 'note-col-bravo', 'note-col-zulu']);
 
     await header.click();
     await expect
       .poll(() => receiptNames(page))
-      .toEqual(['comment-col-zulu', 'comment-col-bravo', 'comment-col-alpha']);
+      .toEqual(['note-col-zulu', 'note-col-bravo', 'note-col-alpha']);
   });
 });

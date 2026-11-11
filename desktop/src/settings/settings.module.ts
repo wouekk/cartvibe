@@ -21,7 +21,6 @@ import { SettingsRoutingModule } from "./settings-routing.module";
 import { SettingsComponent } from "./settings/settings.component";
 import { UserPreferencesComponent } from "./user-preferences/user-preferences.component";
 import { UserProfileComponent } from "./user-profile/user-profile.component";
-import { UserShortcutComponent } from './user-shortcut/user-shortcut.component';
 import { AvatarPhotoComponent } from "./avatar-photo/avatar-photo.component";
 
 @NgModule({
@@ -30,7 +29,6 @@ import { AvatarPhotoComponent } from "./avatar-photo/avatar-photo.component";
     SettingsComponent,
     UserProfileComponent,
     UserPreferencesComponent,
-    UserShortcutComponent,
   ],
   imports: [
     AutocompleteModule,

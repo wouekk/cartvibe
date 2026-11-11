@@ -7,11 +7,6 @@
       optionValueKey="value"
       optionDisplayKey="displayValue"
     ></app-select>
-    <app-textarea
-      [label]="'Comment' | t"
-      [placeholder]="'e.g. Paid by card…' | t"
-      [inputFormControl]="form | formGet : 'comment'"
-    ></app-textarea>
     <app-dialog-footer
       (submitClicked)="submitButtonClicked()"
       (cancelClicked)="cancelButtonClicked()"

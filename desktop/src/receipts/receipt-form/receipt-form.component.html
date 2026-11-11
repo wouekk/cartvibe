@@ -101,6 +101,17 @@
               [readonly]="mode | inputReadonly"
               [options]="receiptStatusOptions"
             ></app-select>
+            <!-- The household's own words about the receipt. Saved with the receipt, by the Save button. -->
+            @if (!selectedGroup()?.groupReceiptSettings?.hideNote) {
+              <app-textarea
+                class="w-full sm:col-span-2"
+                [label]="'Note' | t"
+                data-testid="receipt-note"
+                [inputFormControl]="form | formGet : 'note'"
+                [readonly]="mode | inputReadonly"
+                [additionalErrorMessages]="noteErrorMessages"
+              ></app-textarea>
+            }
           </div>
         </app-form-section>
         @if (!selectedGroup()?.groupReceiptSettings?.hideImages) {
@@ -174,7 +185,7 @@
           [headerText]="'Products' | t"
           [indent]="false"
         >
-          <!-- Keyed on the receipt id, like the comments below: the queue re-uses this form. -->
+          <!-- Keyed on the receipt id: the queue re-uses this form for the next receipt. -->
           @for (receipt of [originalReceipt]; track receipt?.id) {
             <app-receipt-products
               [receiptId]="receipt!.id"
@@ -230,26 +241,6 @@
     </div>
   </app-form-button-bar>
 </form>
-
-<!-- Below the Save bar and outside the form: a comment is committed with its own Comment button,
-     never by saving the receipt. -->
-@if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
-  <section class="mb-6 w-full">
-    <!-- Keyed on the receipt id: the queue re-uses this form for the next
-         receipt, and the comments child only reads its inputs on init, so
-         without a fresh instance it would keep the previous receipt's
-         comments. -->
-    @for (receipt of [originalReceipt]; track receipt?.id) {
-      <app-receipt-comments
-        [receiptId]="$safeNavigationMigration(receipt?.id)"
-        [groupId]="$safeNavigationMigration(receipt?.groupId)"
-        [comments]="receipt?.comments ?? []"
-        [mode]="mode"
-        (commentsUpdated)="updateComments($event)"
-      ></app-receipt-comments>
-    }
-  </section>
-}
 
 <ng-template #groupOptionTemplate let-option="option"
 >{{ option.name }}

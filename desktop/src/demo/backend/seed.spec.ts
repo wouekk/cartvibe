@@ -68,7 +68,7 @@ describe("the sample household", () => {
     for (const receipt of db.receipts) {
       expect(Array.isArray(receipt.tags)).toBe(true);
       expect(Array.isArray(receipt.categories)).toBe(true);
-      expect(Array.isArray(receipt.comments)).toBe(true);
+      expect(typeof receipt.note).toBe("string");
     }
     for (const product of db.products) {
       expect(Array.isArray(product.tags)).toBe(true);

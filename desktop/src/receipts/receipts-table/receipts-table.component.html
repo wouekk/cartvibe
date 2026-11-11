@@ -6,7 +6,7 @@
   subtitle="Everything the household bought, to check and look back on."
 >
   <div class="flex max-w-full flex-wrap items-center justify-end gap-x-2 gap-y-1 max-md:contents">
-    <!-- Searches the shop, name, comments and product lines, tolerating typos and receipt abbreviations. The phrase rides
+    <!-- Searches the shop, name, note and product lines, tolerating typos and receipt abbreviations. The phrase rides
          the receipts filter, so the totals below follow it. -->
     <div class="me-2 flex w-full items-center gap-2 md:w-64 max-md:order-last max-md:me-0" data-testid="receipts-search-row">
     <div hlmInputGroup class="min-w-0 flex-1" data-testid="receipts-search-box">
@@ -260,13 +260,13 @@
   {{ element.resolvedDate | appDate : "medium" }}
 </ng-template>
 
-<ng-template #firstCommentCell let-element="element">
+<ng-template #noteCell let-element="element">
   <span
     class="block max-w-80 truncate"
-    data-testid="receipt-first-comment"
-    [hlmTooltip]="element.firstComment"
+    data-testid="receipt-note"
+    [hlmTooltip]="element.note"
   >
-    {{ element.firstComment }}
+    {{ element.note }}
   </span>
 </ng-template>
 

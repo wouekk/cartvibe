@@ -1,6 +1,5 @@
 import { ConnectedPosition } from "@angular/cdk/overlay";
 import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
-import { Location } from "@angular/common";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -27,8 +26,6 @@ export class HeaderComponent {
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
   public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
-
-  public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
@@ -69,21 +66,9 @@ export class HeaderComponent {
     private notificationsService: NotificationsService,
     private router: Router,
     private store: Store,
-    private viewportService: ViewportService,
-    private location: Location
+    private viewportService: ViewportService
   ) {
     this.listenForLoggedInUser();
-  }
-
-  /**
-   * An in-app shortcut ("/receipts") goes through the location strategy, so it keeps the base href and the hash
-   * (the demo lives under /demo/#/); the app itself is unchanged. Other addresses are left alone.
-   */
-  public shortcutHref(url: string | undefined): string {
-    if (!url) {
-      return "";
-    }
-    return url.startsWith("/") && !url.startsWith("//") ? this.location.prepareExternalUrl(url) : url;
   }
 
   private listenForLoggedInUser(): void {

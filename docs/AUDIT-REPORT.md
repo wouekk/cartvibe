@@ -164,7 +164,20 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     (`api/docs/oidc.md`).
   - Found on the way and fixed: the tab strip threw when its tabs were taken away, which happened for a moment
     after *Sign out everywhere*.
-- [ ] 10. App cleanup: C10, C11, C13, D6 to D11, F6, F8
+- [ ] 10. App cleanup (`feature/app-cleanup`, cut from `preview`): C10, C11, C13, D6 to D11, F6, F8
+  - Done on the branch on 2026-11-11, D6 to D9: two receipt statuses, *To check* and *Settled* (the three others
+    are rewritten once and read as one of the two wherever they still arrive); one note per receipt in place of the
+    comment thread (each thread is joined into the note once, a single comment as written, several as "Name: text"
+    lines); a Quick Scan that asks for the photo and its household only, with *Ask for a note* and the two
+    defaults as a household's whole receipt settings; the header shortcuts a person could add are gone. The three
+    data migrations are one-way.
+  - Kept from D6 on purpose: the bulk status change (without its comment) and the next/previous queue on the
+    receipt page; both are still used with two statuses.
+  - Proved by unit specs, the production and demo builds and the demo's Playwright suite. The rewritten real-app
+    specs (`quick-scan-config`, `quick-scan-dialog-behavior`, `receipt-note-column`) have not run; CI's smoke set
+    runs `quick-scan-dialog.spec` and `receipts.spec`.
+  - Still to do on the branch: D10, D11, C13, C11, C10, F6, F8, and the two things sprint 4 left for here (the
+    receipt page's review with one "Looks right" button, dialogs as bottom sheets on a phone).
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

@@ -215,8 +215,8 @@ function overviewFor(db: DemoDb, groupId: number, period: Period): GroupOverview
     if (daily) {
       dayTotals.set(day, (dayTotals.get(day) ?? 0) + cents);
     }
-    // Everything a household reads as "To check".
-    if (["OPEN", "NEEDS_ATTENTION", "DRAFT"].includes(receipt.status)) {
+    // What a household reads as "To check".
+    if (receipt.status === "OPEN") {
       openReceiptCount++;
     }
   }

@@ -174,10 +174,12 @@ feature.
   browsers ignore a click made after an `await`).
 - **Receipt filter:** the dialog authors its own row labels, so a rename touches both `RECEIPT_FILTER_FIELDS` and
   `receipt-filter.component.html`.
-- **Quick Scan:** resolve field config per image index on each call (removing an image shifts indexes); the comment
-  validators are module-level singletons because `removeValidators` matches by reference.
-- **Magic Fill:** Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the patch; comments go through
-  `ReceiptCommentsComponent.addMagicFilledComments()` (a receipt update does not persist comments).
+- **Quick Scan** asks for the photo and its household, plus a note where the household switched that on
+  (`quickScanAsksForNote`). Resolve it per photo index on each call (removing a photo shifts indexes), and send a
+  note only where it is asked for.
+- **A receipt has one note** (`note`, a field of the receipt, sent with it; `""` clears it) and two statuses, OPEN
+  ("To check") and RESOLVED ("Settled"). Magic Fill never writes the note; its Paid by needs
+  `AutocomleteComponent.syncSingleDisplay()` after the patch.
 - **Preferences saves send the whole object** (`PUT /userPreferences` replaces it); the Dashboard layout is its own
   endpoint for that reason.
 - **Product checker:** no name search on purpose (Open Food Facts answers cross-site search with 503 and no CORS; a
@@ -211,4 +213,6 @@ The Flutter app; Angular Material, Bootstrap and ngx-bootstrap; login QR; the ro
 (category and tag access per member), the "Isolate members" switch and role-required receipt fields; custom fields,
 the receipt summary, stored prompts, config import, system emails; items, shares and bill
 splitting; per-group widget dashboards; the month stepper as a date control and the header search box; the
-`showLargeImagePreviews` preference and the old image viewer.
+`showLargeImagePreviews` preference and the old image viewer; receipt comments as a thread (one note now), the
+statuses Needs Attention, Draft and Declined, the header shortcuts a person could add, and Quick Scan's switches
+that showed or required a field per photo.

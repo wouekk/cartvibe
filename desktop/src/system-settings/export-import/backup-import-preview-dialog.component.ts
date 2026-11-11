@@ -12,7 +12,6 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 export const IMPORT_PREVIEW_ROWS = [
   { name: "receipts", label: marker("Receipts") },
   { name: "receipt_products", label: marker("Products on receipts") },
-  { name: "comments", label: marker("Comments") },
   { name: "shopping_lists", label: marker("Shopping lists") },
   { name: "shopping_list_items", label: marker("List items") },
   { name: "report_templates", label: marker("Report templates") },

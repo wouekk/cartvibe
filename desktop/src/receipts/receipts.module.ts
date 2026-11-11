@@ -40,7 +40,6 @@ import { BulkStatusUpdateComponent } from "./bulk-resolve-dialog/bulk-status-upd
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog/column-configuration-dialog.component";
 
 import { QuickScanDialogComponent } from "./quick-scan-dialog/quick-scan-dialog.component";
-import { ReceiptCommentsComponent } from "./receipt-comments/receipt-comments.component";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
 import { ReceiptWarrantyComponent } from "./receipt-warranty/receipt-warranty.component";
 import { RenameReceiptDialogComponent } from "./rename-receipt-dialog/rename-receipt-dialog.component";
@@ -54,7 +53,6 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     BulkStatusUpdateComponent,
     ColumnConfigurationDialogComponent,
     RenameReceiptDialogComponent,
-    ReceiptCommentsComponent,
     ReceiptFormComponent,
     ReceiptsTableComponent,
     UploadImageComponent,

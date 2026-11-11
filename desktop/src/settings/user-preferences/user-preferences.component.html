@@ -7,7 +7,7 @@
   [editButtonQueryParams]="{tab: 'user-preferences'}"
   [settingsCard]="true"
   settingsTitle="User Preferences"
-  [submitButtonDisabled]="form.pristine || (userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
+  [submitButtonDisabled]="form.pristine"
   (submitted)="submit()"
 ></app-form>
 
@@ -92,28 +92,4 @@
         [readonly]="formConfig.mode | inputReadonly"
       ></app-checkbox>
     </app-form-section>
-    <app-form-section
-      [panel]="true"
-      [headerText]="'Shortcuts' | t"
-      [headerButtonsTemplate]="shortcutHeaderButtons"
-    >
-      <app-user-shortcut
-        [parentForm]="form"
-        [formConfig]="formConfig"
-        [originalUserShortcuts]="originalUserShortcuts()"
-        (shortcutDoneClicked)="shortcutDoneClicked()"
-        (shortcutCancelClicked)="shortcutCancelClicked()"
-        (formCommand)="handleFormCommand($event)"
-      ></app-user-shortcut>
-    </app-form-section>
-</ng-template>
-
-<ng-template #shortcutHeaderButtons>
-  @if (formConfig.mode === FormMode.edit) {
-    <app-add-button
-      [tooltip]="'Add shortcut' | t"
-      [disabled]="(userShortcutComponent()?.editableListComponent()?.getCurrentRowOpen() ?? -1) >= 0"
-      (clicked)="addNewShortcut()"
-    ></app-add-button>
-  }
 </ng-template>

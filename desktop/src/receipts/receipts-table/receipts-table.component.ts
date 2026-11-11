@@ -6,7 +6,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { DONE_STATUSES } from "../../utils/receipt-status";
+import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
@@ -43,6 +43,7 @@ import { AuthState, GroupState, UserState } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
+  currentColumnKey,
   reconcileColumns,
   RECEIPT_COLUMN_DISPLAY_NAMES,
 } from "../../utils/index";
@@ -99,7 +100,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   readonly resolvedDateCell = viewChild.required<TemplateRef<any>>("resolvedDateCell");
 
-  readonly firstCommentCell = viewChild.required<TemplateRef<any>>("firstCommentCell");
+  readonly noteCell = viewChild.required<TemplateRef<any>>("noteCell");
 
   readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
@@ -294,8 +295,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     }
 
     const filterData = this.store.selectSnapshot(ReceiptTableState.filterData);
+    // A sort kept from before a column changed its key follows it (the Note column was first_comment).
+    const orderBy = currentColumnKey(filterData.orderBy ?? "");
     const isKnownColumn = reconciled.some(
-      (column) => column.matColumnDef === filterData.orderBy
+      (column) => column.matColumnDef === orderBy
     );
 
     if (!isKnownColumn) {
@@ -306,6 +309,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
           sortDirection: DEFAULT_RECEIPT_SORT_DIRECTION,
         })
       );
+    } else if (orderBy !== filterData.orderBy) {
+      this.store.dispatch(new SetReceiptFilterData({ ...filterData, orderBy }));
     }
   }
 
@@ -414,19 +419,20 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         sortable: true,
       },
       {
-        // The receipt's first comment, which the API both returns
-        // (firstComment) and sorts on under this same key.
-        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["first_comment"],
-        matColumnDef: "first_comment",
-        template: this.firstCommentCell(),
+        // The receipt's note, which the API returns and sorts on under this same key.
+        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["note"],
+        matColumnDef: "note",
+        template: this.noteCell(),
         sortable: true,
       },
     ] as TableColumn[];
 
 
     // Filter and order columns based on configuration
+    // A household that hides the note hides its column too, whatever the saved layout says.
+    const noteHidden = !!this.group?.groupReceiptSettings?.hideNote;
     const visibleColumnConfigs = currentColumnConfig
-      .filter(config => config.visible)
+      .filter(config => config.visible && !(noteHidden && config.matColumnDef === "note"))
       .sort((a, b) => a.order - b.order);
 
     const columns = visibleColumnConfigs
@@ -786,7 +792,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   /** A receipt that reads as "Done" needs no check mark (Phase 3 2e). */
   public isDone(row: Receipt): boolean {
-    return DONE_STATUSES.includes(row.status);
+    return isSettled(row.status);
   }
 
   /** The "V" on a row: sets the receipt to Done (RESOLVED) in one tap, without opening it. */
@@ -867,23 +873,15 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap(
-          (
-            commentForm:
-              | {
-              comment: string;
-              status: ReceiptStatus;
-            }
-              | undefined
-          ) => {
+          (picked: { status: ReceiptStatus } | undefined) => {
             const table = this.table();
-            if (table.selection.hasValue() && commentForm) {
+            if (table.selection.hasValue() && picked) {
               const receiptIds = (
                 table.selection.selected as Receipt[]
               ).map((r) => r.id as number);
 
               const bulkResolve: BulkStatusUpdateCommand = {
-                comment: commentForm?.comment ?? "",
-                status: commentForm?.status,
+                status: picked.status,
                 receiptIds: receiptIds,
               };
               this.receiptService

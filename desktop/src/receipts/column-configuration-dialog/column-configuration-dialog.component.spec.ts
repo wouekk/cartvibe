@@ -70,7 +70,7 @@ describe("ColumnConfigurationDialogComponent", () => {
         "tags": "Tags",
         "status": "Status",
         "resolved_date": "Settled on",
-        "first_comment": "Comment"
+        "note": "Note"
       };
 
       expect(RECEIPT_COLUMN_DISPLAY_NAMES).toEqual(expectedMapping);

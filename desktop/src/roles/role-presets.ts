@@ -26,7 +26,6 @@ const RESOURCE_ICONS: Record<string, string> = {
   "app.system-tasks": "task_alt",
   group: "workspaces",
   "group.receipts": "receipt_long",
-  "group.comments": "chat_bubble",
   "group.activities": "history",
 };
 

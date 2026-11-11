@@ -20,7 +20,24 @@ export interface QueuedScan {
   statuses: ReceiptStatus[];
   categoryIds: string[];
   tagIds: string[];
-  comments: string[];
+  notes: string[];
+}
+
+/**
+ * A scan as an earlier version of the app kept it on the device: the note was a comment then, and the status
+ * could be one of three that no longer exist. Such a scan may still be waiting when the app is updated.
+ */
+type StoredScan = Omit<QueuedScan, "notes" | "statuses"> & { notes?: string[]; comments?: string[]; statuses: string[] };
+
+/** A removed status as what the app showed it as, so an old queued scan is not refused. */
+function currentStatus(status: string): ReceiptStatus {
+  if (status === "NEEDS_ATTENTION" || status === "DRAFT") {
+    return ReceiptStatus.Open;
+  }
+  if (status === "DECLINED") {
+    return ReceiptStatus.Resolved;
+  }
+  return status as ReceiptStatus;
 }
 
 /**
@@ -76,7 +93,7 @@ export class QueuedScanService implements OnDestroy {
     this.waiting.set(keys.length);
 
     for (const key of keys) {
-      const scan = await this.storage.get<QueuedScan>(key);
+      const scan = await this.storage.get<StoredScan>(key);
       if (!scan || !Array.isArray(scan.files) || scan.files.length === 0) {
         await this.storage.remove(key);
         this.waiting.update((count) => Math.max(0, count - 1));
@@ -93,10 +110,10 @@ export class QueuedScanService implements OnDestroy {
             scan.files,
             scan.groupIds,
             scan.paidByUserIds,
-            scan.statuses,
+            (scan.statuses ?? []).map(currentStatus),
             scan.categoryIds,
             scan.tagIds,
-            scan.comments,
+            scan.notes ?? scan.comments,
             "body",
             false,
             { context: new HttpContext().set(QUIET_ERRORS, true) }

@@ -1,7 +1,7 @@
 import { Component, DestroyRef, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
@@ -11,11 +11,17 @@ import {
   GroupsService,
   Permission,
   QuickScanDefaultPaidByType,
+  UpdateGroupReceiptSettingsCommand,
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
 import { AuthState, UpdateGroup } from "../../store/index";
 import { marker } from "../../i18n/marker";
 
+/**
+ * A household's receipt settings: what the receipt form leaves out, whether Quick Scan asks for a note, and the
+ * two defaults a scan falls back on. A Quick Scan is otherwise a photo and nothing else, so there is no switch
+ * per field any more.
+ */
 @Component({
     selector: "app-group-receipt-settings",
     templateUrl: "./group-receipt-settings.component.html",
@@ -30,12 +36,11 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
 
   public canEdit = false;
 
-
+  /** Who paid, when a scan does not say. The empty type is the person scanning, like Uploader. */
   public readonly paidByTypeOptions = [
-    { value: QuickScanDefaultPaidByType.Uploader, display: "Uploader" },
-    { value: QuickScanDefaultPaidByType.User, display: marker("Specific user") },
+    { value: QuickScanDefaultPaidByType.Uploader, display: marker("The person scanning") },
+    { value: QuickScanDefaultPaidByType.User, display: marker("Always the same person") },
   ];
-
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -43,37 +48,20 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
     private groupsService: GroupsService,
-    private router: Router,
     private snackbarService: SnackbarService,
     private store: Store,
   ) {
     super();
   }
 
-  // The quick-scan default for paid-by/status is only needed when the field is not both shown and
-  // required (otherwise the user always supplies it). These getters drive both conditional display
-  // and the required validators, mirroring the backend rule.
-  public get showPaidByDefault(): boolean {
-    return !(
-      this.form?.get("quickScanPaidByEnabled")?.value &&
-      this.form?.get("quickScanPaidByRequired")?.value
-    );
+  /** The member picker shows only for "Always the same person". */
+  public get showPaidByUser(): boolean {
+    return this.form?.get("quickScanDefaultPaidByType")?.value === QuickScanDefaultPaidByType.User;
   }
 
-  public get showPaidByUserDefault(): boolean {
-    return (
-      this.showPaidByDefault &&
-      this.form?.get("quickScanDefaultPaidByType")?.value === QuickScanDefaultPaidByType.User
-    );
-  }
-
-
-
-  public get showStatusDefault(): boolean {
-    return !(
-      this.form?.get("quickScanStatusEnabled")?.value &&
-      this.form?.get("quickScanStatusRequired")?.value
-    );
+  /** Asking for a note in Quick Scan means nothing while the note is hidden for the household. */
+  public get noteHidden(): boolean {
+    return !!this.form?.get("hideNote")?.value;
   }
 
   public ngOnInit(): void {
@@ -95,69 +83,44 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
       hideImages: [receiptSettings.hideImages ?? false],
       hideReceiptCategories: [receiptSettings.hideReceiptCategories ?? false],
       hideReceiptTags: [receiptSettings.hideReceiptTags ?? false],
-      hideComments: [receiptSettings.hideComments ?? false],
-      quickScanPaidByEnabled: [receiptSettings.quickScanPaidByEnabled ?? true],
-      quickScanPaidByRequired: [receiptSettings.quickScanPaidByRequired ?? true],
-      quickScanDefaultPaidByType: [receiptSettings.quickScanDefaultPaidByType ?? QuickScanDefaultPaidByType.Empty],
+      hideNote: [receiptSettings.hideNote ?? false],
+      quickScanNoteEnabled: [receiptSettings.quickScanNoteEnabled ?? false],
+      // A household that never chose has the empty type, which means the person scanning.
+      quickScanDefaultPaidByType: [receiptSettings.quickScanDefaultPaidByType || QuickScanDefaultPaidByType.Uploader],
       quickScanDefaultPaidById: [receiptSettings.quickScanDefaultPaidById ?? null],
-      quickScanStatusEnabled: [receiptSettings.quickScanStatusEnabled ?? true],
-      quickScanStatusRequired: [receiptSettings.quickScanStatusRequired ?? true],
       quickScanDefaultStatus: [receiptSettings.quickScanDefaultStatus ?? ""],
-      quickScanCategoriesEnabled: [receiptSettings.quickScanCategoriesEnabled ?? false],
-      quickScanCategoriesRequired: [receiptSettings.quickScanCategoriesRequired ?? false],
-      quickScanTagsEnabled: [receiptSettings.quickScanTagsEnabled ?? false],
-      quickScanTagsRequired: [receiptSettings.quickScanTagsRequired ?? false],
-      quickScanCommentEnabled: [receiptSettings.quickScanCommentEnabled ?? false],
-      quickScanCommentRequired: [receiptSettings.quickScanCommentRequired ?? false],
     });
 
-
-    this.applyQuickScanDerivedState();
+    this.applyDerivedState();
     this.form.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.applyQuickScanDerivedState());
+      .subscribe(() => this.applyDerivedState());
 
     if (this.formConfig.mode != FormMode.edit) {
       this.form.disable();
     }
   }
 
-  // Keeps the controls that depend on other toggles in sync: the default-value controls' required
-  // validators, and the comment toggles' enabled state. Runs on init and on every value change.
-  private applyQuickScanDerivedState(): void {
-    const paidByType = this.form.get("quickScanDefaultPaidByType")?.value;
-    setRequired(this.form.get("quickScanDefaultPaidByType"), this.showPaidByDefault);
-    setRequired(
-      this.form.get("quickScanDefaultPaidById"),
-      this.showPaidByDefault && paidByType === QuickScanDefaultPaidByType.User
-    );
-    setRequired(this.form.get("quickScanDefaultStatus"), this.showStatusDefault);
-    this.applyQuickScanCommentEnablement();
-  }
+  /**
+   * Keeps what depends on another control in step: the member is required only for "Always the same person", and
+   * the Quick Scan note switch is greyed out, not cleared, while the note is hidden, so the choice comes back
+   * when the note does. Runs on init and on every change.
+   */
+  private applyDerivedState(): void {
+    setRequired(this.form.get("quickScanDefaultPaidById"), this.showPaidByUser);
 
-  // Hiding comments for the group hides the quick-scan comment field too, so its toggles are greyed
-  // out rather than cleared - the configured values stay put and come back when Hide Comments is
-  // turned off again. submit() reads getRawValue() so a disabled toggle is still sent.
-  private applyQuickScanCommentEnablement(): void {
     // In view mode the whole form is disabled (see initForm); never re-enable a control there.
     if (this.formConfig.mode !== FormMode.edit) {
       return;
     }
 
-    const commentsHidden = !!this.form.get("hideComments")?.value;
-    for (const controlName of ["quickScanCommentEnabled", "quickScanCommentRequired"]) {
-      const control = this.form.get(controlName);
-      if (!control) {
-        continue;
-      }
-
-      // emitEvent: false - this runs inside the valueChanges subscription, and enable()/disable()
-      // emit valueChanges by default, which would recurse forever.
-      if (commentsHidden) {
-        control.disable({ emitEvent: false });
-      } else {
-        control.enable({ emitEvent: false });
-      }
+    // emitEvent: false, because this runs inside the valueChanges subscription and enable()/disable() would
+    // otherwise emit again, forever.
+    const noteSwitch = this.form.get("quickScanNoteEnabled");
+    if (this.noteHidden) {
+      noteSwitch?.disable({ emitEvent: false });
+    } else {
+      noteSwitch?.enable({ emitEvent: false });
     }
   }
 
@@ -168,15 +131,14 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
 
   public submit(): void {
     if (this.form.valid) {
-      // getRawValue, not value: a disabled control is omitted from form.value, so the comment
-      // toggles disabled by Hide Comments would be sent as undefined, unmarshal as false, and wipe
-      // the admin's stored configuration.
+      // getRawValue, not value: a disabled control is left out of form.value, so the Quick Scan note switch
+      // greyed out by "Hide the note" would be sent as nothing and wipe the stored choice.
       const value = this.form.getRawValue();
-      const command = {
+      const namesAMember = value.quickScanDefaultPaidByType === QuickScanDefaultPaidByType.User;
+      const command: UpdateGroupReceiptSettingsCommand = {
         ...value,
-        // An empty user autocomplete yields "" / null; send undefined so the nullable id is omitted
-        // rather than sent as a non-numeric value.
-        quickScanDefaultPaidById: value.quickScanDefaultPaidById
+        // The member only counts for "Always the same person"; an empty picker yields "" or null.
+        quickScanDefaultPaidById: namesAMember && value.quickScanDefaultPaidById
           ? Number(value.quickScanDefaultPaidById)
           : undefined,
       };

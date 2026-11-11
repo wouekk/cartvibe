@@ -293,6 +293,8 @@ export async function apiCreateReceipt(
     /** Existing categories / tags to attach, as returned by apiCreateCategory / apiCreateTag. */
     categories?: { id: number; name: string }[];
     tags?: { id: number; name: string }[];
+    /** The receipt's note. Left out, the receipt has none. */
+    note?: string;
   },
 ): Promise<number> {
   api = retryOn503(api);
@@ -306,6 +308,7 @@ export async function apiCreateReceipt(
       status: opts.status ?? 'OPEN',
       ...(opts.categories ? { categories: opts.categories } : {}),
       ...(opts.tags ? { tags: opts.tags } : {}),
+      ...(opts.note !== undefined ? { note: opts.note } : {}),
     },
   });
   if (!res.ok()) {
@@ -315,27 +318,6 @@ export async function apiCreateReceipt(
   }
   const receipt = (await res.json()) as { id: number };
   return receipt.id;
-}
-
-/**
- * Creates a comment on [receiptId] and returns its id. The comment is owned by
- * whoever the [api] context is authenticated as (the per-comment delete control
- * only renders for the logged-in user's own comments).
- */
-export async function apiCreateComment(
-  api: APIRequestContext,
-  opts: { receiptId: number; comment: string },
-): Promise<number> {
-  const res = await api.post('/api/comment/', {
-    data: { comment: opts.comment, receiptId: opts.receiptId },
-  });
-  if (!res.ok()) {
-    throw new Error(
-      `create comment failed: HTTP ${res.status()} ${await res.text()}`,
-    );
-  }
-  const comment = (await res.json()) as { id: number };
-  return comment.id;
 }
 
 /**
@@ -558,78 +540,6 @@ export async function apiDeleteTagById(
   await warnOnFailedDelete(api, `/api/tag/${id}`, `tag ${id}`);
 }
 
-// --- Group receipt settings ---------------------------------------------------
-
-/**
- * Reads [groupId]'s current receipt settings and returns them as a PUT body.
- *
- * `PUT /group/{id}/groupReceiptSettings` is an UPSERT over the whole settings
- * object, so a partial body resets every non-pointer flag to false. This echoes
- * the boolean flags back unchanged; a caller spreads its own overrides on top.
- *
- * Only the booleans are echoed: the enum defaults (`quickScanDefaultPaidByType` /
- * `...Status`) are omitted because the backend keeps its stored value and rejects
- * an empty enum, which is also why paid-by and status stay shown+required here
- * (making either optional would need a configured default).
- *
- * pointer keys are deliberately absent: omitting a pointer key means
- * "leave unchanged", so a caller that does not set one cannot clobber it.
- *
- * Shared by every settings setter below so the key list exists once. A new
- * non-pointer flag added to the command has to be added here or it is silently
- * zeroed by every one of them.
- */
-async function groupReceiptSettingsEcho(
-  api: APIRequestContext,
-  groupId: number | string,
-  what: string,
-): Promise<Record<string, unknown>> {
-  const groupsRes = await api.get('/api/group/');
-  if (!groupsRes.ok()) {
-    throw new Error(
-      `${what}: GET /api/group/ failed: HTTP ${groupsRes.status()} ${await groupsRes.text()}`,
-    );
-  }
-  const groups = (await groupsRes.json()) as {
-    id: number;
-    groupReceiptSettings?: Record<string, unknown>;
-  }[];
-  const group = groups.find((g) => String(g.id) === String(groupId));
-  if (!group) {
-    throw new Error(`${what}: group ${groupId} not visible`);
-  }
-
-  const settings = group.groupReceiptSettings ?? {};
-  const command: Record<string, unknown> = {};
-  for (const key of [
-    'hideImages', 'hideReceiptCategories', 'hideReceiptTags',
-    'hideComments',
-    'quickScanPaidByEnabled', 'quickScanPaidByRequired',
-    'quickScanStatusEnabled', 'quickScanStatusRequired',
-    'quickScanCategoriesEnabled', 'quickScanCategoriesRequired',
-    'quickScanTagsEnabled', 'quickScanTagsRequired',
-    'quickScanCommentEnabled', 'quickScanCommentRequired',
-  ]) {
-    command[key] = settings[key] ?? false;
-  }
-
-  return command;
-}
-
-async function putGroupReceiptSettings(
-  api: APIRequestContext,
-  groupId: number | string,
-  command: Record<string, unknown>,
-  what: string,
-): Promise<void> {
-  const res = await api.put(`/api/group/${groupId}/groupReceiptSettings`, {
-    data: command,
-  });
-  if (!res.ok()) {
-    throw new Error(`${what} failed: HTTP ${res.status()} ${await res.text()}`);
-  }
-}
-
 // --- Household members -------------------------------------------------------
 
 /** Replaces a group's whole member roster (the wholesale UpdateGroup path). */
@@ -740,7 +650,7 @@ export async function apiQuickScan(
       statuses: 'OPEN',
       categoryIds: '',
       tagIds: '',
-      comments: '',
+      notes: '',
     },
   });
   if (!res.ok()) {

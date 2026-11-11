@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { Location } from "@angular/common";
 import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
@@ -152,11 +151,4 @@ describe("HeaderComponent", () => {
     expect(component.notificationCount()).toBe(3);
   });
 
-  it("keeps an in-app shortcut under the app's base (the demo) and leaves other addresses alone", () => {
-    vi.spyOn(TestBed.inject(Location), "prepareExternalUrl").mockImplementation((url) => `/demo/#${url}`);
-
-    expect(component.shortcutHref("/receipts")).toBe("/demo/#/receipts");
-    expect(component.shortcutHref("https://example.com/x")).toBe("https://example.com/x");
-    expect(component.shortcutHref("//example.com/x")).toBe("//example.com/x");
-  });
 });

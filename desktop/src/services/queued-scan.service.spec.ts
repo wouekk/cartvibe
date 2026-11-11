@@ -16,7 +16,7 @@ const scan = (name: string): QueuedScan => ({
   statuses: [ReceiptStatus.Open],
   categoryIds: [""],
   tagIds: [""],
-  comments: [name],
+  notes: [name],
 });
 
 const settled = async () => {
@@ -75,10 +75,10 @@ describe("QueuedScanService", () => {
     quickScanReceipt.mockReturnValue(of({}));
     await service.flush();
 
-    const [files, groupIds, paidByUserIds, statuses, categoryIds, tagIds, comments, observe, , options] =
+    const [files, groupIds, paidByUserIds, statuses, categoryIds, tagIds, notes, observe, , options] =
       quickScanReceipt.mock.calls[quickScanReceipt.mock.calls.length - 1];
     expect(files).toHaveLength(1);
-    expect([groupIds, paidByUserIds, statuses, categoryIds, tagIds, comments]).toEqual([[1], [7], [ReceiptStatus.Open], [""], [""], ["till"]]);
+    expect([groupIds, paidByUserIds, statuses, categoryIds, tagIds, notes]).toEqual([[1], [7], [ReceiptStatus.Open], [""], [""], ["till"]]);
     expect(observe).toBe("body");
     expect(options.context.get(QUIET_ERRORS)).toBe(true);
 
@@ -94,6 +94,27 @@ describe("QueuedScanService", () => {
     await start();
 
     expect(quickScanReceipt.mock.calls.map((call) => call[6])).toEqual([["first"], ["second"]]);
+    expect(await storage.keys("quick-scan:")).toEqual([]);
+  });
+
+  it("uploads a scan an earlier version of the app kept: its comment as the note, a removed status as what it became", async () => {
+    await storage.set("quick-scan:1", {
+      files: [new Blob(["old"], { type: "image/jpeg" })],
+      groupIds: [1],
+      paidByUserIds: [7],
+      statuses: ["NEEDS_ATTENTION"],
+      categoryIds: [""],
+      tagIds: [""],
+      comments: ["for the party"],
+    });
+    await storage.set("quick-scan:2", { ...scan("new"), statuses: ["DECLINED"] });
+
+    await start();
+
+    expect(quickScanReceipt.mock.calls.map((call) => [call[3], call[6]])).toEqual([
+      [[ReceiptStatus.Open], ["for the party"]],
+      [[ReceiptStatus.Resolved], ["new"]],
+    ]);
     expect(await storage.keys("quick-scan:")).toEqual([]);
   });
 

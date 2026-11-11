@@ -6,7 +6,7 @@ import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { DONE_STATUSES } from "../../utils/receipt-status";
+import { isSettled } from "../../utils/receipt-status";
 import { catchError, debounceTime, EMPTY, filter, finalize, forkJoin, map, of, startWith, switchMap, take, tap } from "rxjs";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { CarouselComponent } from "src/carousel/carousel/carousel.component";
@@ -36,11 +36,11 @@ import { StatefulMenuItem } from "../../standalone/components/filtered-stateful-
 import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
-import { familyReceiptStatus } from "../../utils/receipt-status";
 import { downloadFile } from "../../utils/file";
 import { receiptImageFileUrl } from "../../utils/receipt-image-url";
 import { DEMO_MODE } from "../../demo/demo-runtime";
-import { ReceiptCommentsComponent } from "../receipt-comments/receipt-comments.component";
+import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
+import { codePointMaxLengthValidator } from "../../validators";
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { marker } from "../../i18n/marker";
@@ -63,9 +63,10 @@ export class ReceiptFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  // Optional: the comments child only renders when the group doesn't hide
-  // comments (see the @if in the template), so this query may be empty.
-  public readonly receiptCommentsComponent = viewChild(ReceiptCommentsComponent);
+  // base-input has no message of its own for maxlength; held as a field so the binding is stable.
+  public readonly noteErrorMessages: { [key: string]: string } = {
+    maxlength: marker("Note must be {requiredLength} characters or fewer."),
+  };
 
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
@@ -401,7 +402,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private initForm(): void {
-this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""));
+    this.receiptDone.set(isSettled(this.originalReceipt?.status));
 
     // The group being browsed, or -- when that is not a receipt target (the "All"
     // group, nothing selected, or a stale persisted id) -- the user's only group.
@@ -453,8 +454,9 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
         this.originalReceipt?.groupId ?? addTargetGroupId,
         Validators.required,
       ],
-      // Shown as "To check" or "Done" (Phase 3 C6), so any older status reads as one of the two.
-      status: familyReceiptStatus(this.originalReceipt?.status) || ReceiptStatus.Open,
+      status: this.originalReceipt?.status || ReceiptStatus.Open,
+      // Counted in characters like the server does (Validators.maxLength counts UTF-16 units).
+      note: [this.originalReceipt?.note ?? "", codePointMaxLengthValidator(RECEIPT_NOTE_MAX_LENGTH)],
     });
 
     if (this.mode === FormMode.view) {
@@ -684,10 +686,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     ) {
       filledKeys.push("tags");
     }
-    if (this.patchMagicComments(magicReceipt)) {
-      filledKeys.push("comments");
-    }
-
     this.showMagicFillResult(filledKeys);
   }
 
@@ -733,20 +731,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     });
   }
 
-  // Hands magic-filled comments to the comments child, which owns them and is
-  // mode-aware (add mode collects them for the create submit; edit mode POSTs
-  // each as an individual resource). Returns whether the child handled them.
-  private patchMagicComments(magicReceipt: Receipt): boolean {
-    const comments = magicReceipt.comments ?? [];
-    const commentsComponent = this.receiptCommentsComponent();
-    if (comments.length === 0 || !commentsComponent) {
-      return false;
-    }
-
-    commentsComponent.addMagicFilledComments(comments);
-    return true;
-  }
-
   private showMagicFillResult(filledKeys: string[]): void {
     if (filledKeys.length === 0) {
       this.snackbarService.error(
@@ -770,11 +754,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
   }
 
   private patchMagicValue(key: string, magicReceipt: Receipt): void {
-    this.form.patchValue({
-      [key]: key === "status"
-        ? familyReceiptStatus(magicReceipt.status)
-        : (magicReceipt as any)[key],
-    });
+    this.form.patchValue({ [key]: (magicReceipt as any)[key] });
   }
 
   private handleDateMagicFill(value: string): Date | null {
@@ -814,11 +794,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
 
   public uploadImageButtonClicked(): void {
     this.uploadImageComponent().clickInput();
-  }
-
-  public updateComments(commentsArray: FormArray): void {
-    this.form.removeControl("comments");
-    this.form.addControl("comments", commentsArray);
   }
 
   public duplicateReceipt(): void {
@@ -974,7 +949,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     };
   }
 
-  // One multipart call carries the receipt, its comments (on the form value)
+  // One multipart call carries the receipt (its note is on the form value)
   // and its queued images, so the server sees the images at create time and the
   // create is atomic - there is no "receipt added but images failed" state.
   private createReceipt(): void {

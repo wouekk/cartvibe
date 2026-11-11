@@ -4,8 +4,8 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from "@angular/forms";
  * A maximum-length validator that counts **Unicode code points**, not UTF-16
  * code units like `Validators.maxLength`.
  *
- * The Go backend measures its string limits in runes (e.g. the quick-scan
- * comment's `models.MaxCommentLength`, checked with `utf8.RuneCountInString`).
+ * The Go backend measures its string limits in runes (e.g. a receipt note's
+ * `models.MaxReceiptNoteLength`, checked with `utf8.RuneCountInString`).
  * JavaScript's `String.length` counts UTF-16 code units, so anything outside the BMP counts
  * twice: `"😀".repeat(500)` has a `length` of 1000 and would be rejected here
  * while the server accepts it happily. Counting code points keeps the client
@@ -37,9 +37,8 @@ export function codePointMaxLengthValidator(maxLength: number): ValidatorFn {
  *
  * Use it wherever the backend trims a string before its own emptiness check --
  * otherwise `"   "` satisfies the form, and the request comes back as a 400
- * saying the field is missing. The quick-scan comment is one such field
- * (`QuickScanCommand` trims each entry on parse, so a whitespace-only comment
- * arrives empty and fails the group's required check).
+ * saying the field is missing. A receipt's name in the rename dialog is one
+ * such field.
  *
  * Emits the standard `required` error so the shared inputs render their usual
  * "<label> is required." message.

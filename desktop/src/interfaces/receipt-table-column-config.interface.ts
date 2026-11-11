@@ -23,5 +23,5 @@ export const DEFAULT_RECEIPT_TABLE_COLUMNS: ReceiptTableColumnConfig[] = [
   // saved before, through reconcileColumns.
   // Opt-in: reconcileColumns appends a missing built-in with the visibility
   // it has here, so an existing saved layout gains the column unchecked.
-  { matColumnDef: 'first_comment', visible: false, order: 5 },
+  { matColumnDef: 'note', visible: false, order: 5 },
 ];

@@ -1,26 +1,29 @@
 import { comboboxNamed } from './helpers/ui';
-import { expect, Route, test } from '@playwright/test';
+import { expect, type Route, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
-import { openReceiptsOverflowMenu } from './helpers/receipts-table';
 import {
   apiCreateGroup,
   apiDeleteGroupById,
   uniqueName,
   withAdminApi,
 } from './helpers/provisioning';
-import { selectImageGroup } from './helpers/quick-scan';
+import {
+  injectQuickScanAppData,
+  openQuickScanDialog,
+  selectImageGroup,
+  uploadQuickScanImages,
+} from './helpers/quick-scan';
 
-// Verifies the quick-scan DIALOG responds to a group's quick-scan configuration — no scan is sent.
+// The Quick Scan DIALOG: a photo, its household, and nothing else unless the household asks for a note.
 //
-// The dialog is only reachable via a button gated behind the `aiPoweredReceipts` feature flag, which
-// is off in dev/CI. Rather than mutate that global server config, we intercept the AppData response
-// client-side (per-BrowserContext, like stubTokenRefresh) to (1) flip the flag on and (2) inject a
-// distinctive quick-scan config onto the target group. The dialog reads config from
-// GroupState.getGroupById(...).groupReceiptSettings, so the injected values drive its field visibility.
+// The dialog is only reachable via a button gated behind the `aiPoweredReceipts` feature flag, which is off in
+// dev/CI. Rather than mutate that global server config, the AppData response is intercepted client-side (see
+// helpers/quick-scan.ts) to flip the flag on and switch the note on for the target household. The scan itself is
+// answered by a stub: with no AI configured the server would refuse it, and what is proved here is the dialog.
 
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
-test.describe('Quick scan dialog field response', () => {
+test.describe('Quick scan dialog', () => {
   let group: { id: number; name: string };
 
   test.beforeAll(async () => {
@@ -37,71 +40,46 @@ test.describe('Quick scan dialog field response', () => {
 
   test.beforeEach(async ({ page }) => {
     await stubTokenRefresh(page);
-
-    // Enable the AI feature flag and inject the group's quick-scan config into AppData.
-    await page.route('**/api/user/appData', async (route: Route) => {
-      const response = await route.fetch();
-      const body = await response.json();
-      body.featureConfig = { ...body.featureConfig, aiPoweredReceipts: true };
-      const target = (body.groups ?? []).find((g: any) => g.id === group.id);
-      if (target) {
-        target.groupReceiptSettings = {
-          ...target.groupReceiptSettings,
-          quickScanCommentEnabled: true, // shown, required
-          quickScanCommentRequired: true,
-        };
-      }
-      await route.fulfill({ response, json: body });
+    await injectQuickScanAppData(page, {
+      groupConfigs: [{ groupId: group.id, config: { quickScanNoteEnabled: true } }],
     });
-
-    // Belt-and-suspenders for the pre-auth path (logged-in path uses AppData above).
-    await page.route('**/api/featureConfig', (route: Route) =>
-      route.fulfill({ json: { enableLocalSignUp: true, aiPoweredReceipts: true } }),
-    );
   });
 
-  test('shows/hides and requires fields per the selected group config', async ({ page }) => {
-    await page.goto(`/receipts/group/${group.id}`);
+  test('asks for the household, then for a note only where the household wants one', async ({ page }) => {
+    let scansSent = 0;
+    await page.route('**/api/receipt/quickScan', async (route: Route) => {
+      scansSent += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
 
-    // The feature-flag-gated Quick Scan entry now renders (flag stubbed + admin owns the group).
-    // It lives in the toolbar's overflow menu, and the mat-menu-item carries the testid itself.
-    await openReceiptsOverflowMenu(page);
-    await page.getByTestId('receipts-quick-scan').click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    const dialog = await openQuickScanDialog(page, group.id);
+    await uploadQuickScanImages(dialog, 1);
 
-    // Uploading an image adds the per-image fields (the file is read client-side).
-    await dialog
-      .locator('app-upload-image input[type="file"]')
-      .setInputFiles('e2e/fixtures/receipt.png');
+    // No household is selected yet (the admin belongs to several, so none is seeded), and a photo with no
+    // household has no settings to follow: only the Group field renders. The toHaveValue('') is load-bearing: an
+    // auto-filled household would turn the absence checks below into vacuous truths.
     const groupField = comboboxNamed(dialog, 'Group');
     await expect(groupField).toBeVisible();
-
-    // No group is selected yet (the admin belongs to several, so soleGroupId seeds nothing), and a
-    // form with no group has no config to honour -- so ONLY the Group field renders rather than
-    // guessing a field set it would have to flip the moment a group is chosen. The toHaveValue('')
-    // is load-bearing: it pins that precondition, since an auto-filled group would silently turn
-    // the five absence assertions below into vacuous truths.
     await expect(groupField).toHaveValue('');
+    await expect(dialog.getByTestId('quick-scan-note')).toHaveCount(0);
+
+    // Without a household the scan is refused and nothing is sent.
+    await dialog.getByTestId('dialog-submit-button').click();
+    await expect(page.getByText('Please fill in all required fields', { exact: false })).toBeVisible();
+    expect(scansSent).toBe(0);
+
+    await selectImageGroup(page, dialog, group.name);
+
+    // The note is the only field a household can add. Who paid, the status, categories and tags are never asked.
+    await expect(dialog.getByTestId('quick-scan-note')).toBeVisible();
     await expect(comboboxNamed(dialog, 'Paid By')).toHaveCount(0);
     await expect(comboboxNamed(dialog, 'Status')).toHaveCount(0);
     await expect(comboboxNamed(dialog, 'Categories')).toHaveCount(0);
     await expect(comboboxNamed(dialog, 'Tags')).toHaveCount(0);
-    await expect(dialog.getByTestId('quick-scan-comment')).toHaveCount(0);
 
-    // Select the injected-config group. Via the shared helper because the field
-    // may already carry a value (it auto-fills for a single-group user), which
-    // makes the input readonly until its X is clicked.
-    await selectImageGroup(page, dialog, group.name);
-
-    // The Comment is the only per-image field left (Paid By, Status, Categories and Tags went with the family
-    // rework): it appears with the group's config and, being required and empty, blocks the submit below.
-    await expect(dialog.getByTestId('quick-scan-comment')).toBeVisible();
-
-    // The comment is required and empty → submitting surfaces a validation error and queues nothing.
+    // The note can stay empty: the photo and its household are enough.
     await dialog.getByTestId('dialog-submit-button').click();
-    await expect(
-      page.getByText('Please fill in all required fields', { exact: false }),
-    ).toBeVisible();
+    await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
+    expect(scansSent).toBe(1);
   });
 });

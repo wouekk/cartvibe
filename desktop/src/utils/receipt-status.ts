@@ -2,70 +2,28 @@ import { ReceiptStatus } from "../open-api";
 import { marker } from "../i18n/marker";
 
 /**
- * A family sees two receipt statuses (Phase 3 C6): **To check** and **Settled** (it read "Done" until 2026-10). This is display
- * only — the API's `ReceiptStatus` enum is unchanged (it is closed, and released clients would
- * fail on a new value). OPEN, NEEDS_ATTENTION and DRAFT read as To check; RESOLVED and DECLINED
- * as Settled. Picking one writes OPEN or RESOLVED.
+ * A receipt is **To check** (`OPEN` on the API) or **Settled** (`RESOLVED`). Those are the only two statuses:
+ * the three more that the API once had are gone from it, and the server rewrote the receipts that had one.
  */
-export const TO_CHECK_STATUSES: readonly string[] = [
-  ReceiptStatus.Open,
-  ReceiptStatus.NeedsAttention,
-  ReceiptStatus.Draft,
-];
-
-export const DONE_STATUSES: readonly string[] = [ReceiptStatus.Resolved, ReceiptStatus.Declined];
-
 export const TO_CHECK_LABEL = marker("To check");
 
 export const SETTLED_LABEL = marker("Settled");
 
 /** "To check" / "Settled"; an unknown status (or none) as it came, so nothing is hidden. */
 export function receiptStatusLabel(status: string | null | undefined): string {
-  if (status && TO_CHECK_STATUSES.includes(status)) {
+  if (status === ReceiptStatus.Open) {
     return TO_CHECK_LABEL;
   }
-  if (status && DONE_STATUSES.includes(status)) {
+  if (status === ReceiptStatus.Resolved) {
     return SETTLED_LABEL;
   }
   return status ?? "";
 }
 
-/** The value a picker shows for a status: OPEN for anything to check, RESOLVED for anything done. */
-export function familyReceiptStatus(status: string | null | undefined): string | null | undefined {
-  if (status && TO_CHECK_STATUSES.includes(status)) {
-    return ReceiptStatus.Open;
-  }
-  if (status && DONE_STATUSES.includes(status)) {
-    return ReceiptStatus.Resolved;
-  }
-  return status;
+export function isToCheck(status: string | null | undefined): boolean {
+  return status === ReceiptStatus.Open;
 }
 
-/**
- * A status filter as it goes on the wire: picking "To check" (OPEN) also matches NEEDS_ATTENTION and
- * DRAFT, and "Settled" (RESOLVED) also DECLINED. Call it where the request is assembled, never where
- * the filter is stored, so the picker keeps showing what was picked. Returns a new object.
- */
-export function toStatusWireFilter<T extends object>(filter: T | undefined | null): T | undefined {
-  if (!filter) {
-    return undefined;
-  }
-
-  const entry = (filter as Record<string, any>)["status"];
-  if (!entry || !Array.isArray(entry.value)) {
-    return { ...filter };
-  }
-
-  const expanded = new Set<string>();
-  for (const value of entry.value as string[]) {
-    if (value === ReceiptStatus.Open) {
-      TO_CHECK_STATUSES.forEach((status) => expanded.add(status));
-    } else if (value === ReceiptStatus.Resolved) {
-      DONE_STATUSES.forEach((status) => expanded.add(status));
-    } else {
-      expanded.add(value);
-    }
-  }
-
-  return { ...filter, status: { ...entry, value: Array.from(expanded) } } as T;
+export function isSettled(status: string | null | undefined): boolean {
+  return status === ReceiptStatus.Resolved;
 }

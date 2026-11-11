@@ -82,7 +82,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   serializes nil tags as `[]`. A person's category choice survives sweeps, renames and Read again.
   `PUT /receipt-product/product/{id}/labels` sets only category and tags (the full update would count a printed/display
   name difference as a rename). Category rename keeps products by id; delete nulls their `category_id`. Receipt-level
-  categories/tags remain in the model and still drive grants and the receipts filter (which matches receipt-level or
+  categories/tags remain in the model and still drive the receipts filter (which matches receipt-level or
   line-level).
 - **Trips** (`ShoppingTrip`): a receipt attached to a list; products not on the list get `planned = false` (unplanned
   spend); `null` counts as planned. Attach an existing receipt (`group.shopping-lists.update` + `group.receipts.read`,
@@ -137,8 +137,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   is the only transition logic: RESOLVED stamps `resolved_date`, any other status clears it. Reports label statuses "To
   check" / "Settled".
 - Create is `POST /receipt/withFiles` (multipart: `receipt` JSON as a form value or a file part, plus `files`): parse →
-  gate → `ValidateFileType` on every file before any write → `enforceReceiptCreate` (All group, grants, member
-  visibility, requirements) → one transaction with tracked file paths removed on failure → `writeCreatedReceipt`.
+  gate → `ValidateFileType` on every file before any write → `enforceReceiptCreate` (the All group is refused; a
+  category or tag sent by name needs its create permission) → one transaction with tracked file paths removed on failure → `writeCreatedReceipt`.
   `POST /receipt/` (deprecated) shares the checks with zero files.
 - `DuplicateReceipt` and `CreateReceiptWithFiles` are all-or-nothing: paths are tracked before each write, the copy runs
   on the transaction, the stored bytes are copied (`ReadDataFile`, never the display conversion), and the system task is
@@ -191,8 +191,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `GetReceiptForUser` (paid-by and member isolation included). `fire_on = max(today, end − lead)`; an end before today
   plans nothing. `SyncWarrantyReminders` re-plans one receipt (an upsert that keeps `fired_for`) after the warranty
   date, a receipt update (group or payer may move) and a duplicate; `SyncWarrantyRemindersForUser` after a preferences
-  save; `SyncWarrantyRemindersForGroup` after a group update or member grants change; `SyncWarrantyRemindersForUser`
-  also for a new account (it joins the household); `SyncAllWarrantyReminders` at start-up (catches role edits).
+  save; `SyncWarrantyRemindersForGroup` after a group update (its members may have changed); `SyncWarrantyRemindersForUser`
+  also for a new account (it joins the household); `SyncAllWarrantyReminders` at start-up.
   Receipt and user deletion remove the rows explicitly.
 - The `system_clean_up:warranty_reminders` sweep (every minute) drops reminders of ended warranties and, once the app
   zone is past 09:00, fires due rows: a conditional UPDATE sets `fired_for = warranty_until` and the notification is
@@ -235,8 +235,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   admin key, so paid-by and member isolation do not apply (`authorization.md`). The All group is never written; its ids
   are in the manifest for report templates that cover it.
 - Never exported: password hashes, AI processing settings and keys, the Logo.dev key, OIDC providers and identities,
-  push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles and
-  grants, shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
+  push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles,
+  shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
 - A new table or column the household would miss after a move goes into `tableSpecs` (`backup/export.go`), the reader
   (`backup/parse.go`), the writer (`backup/import.go`) and the format note in the same branch; an additive column keeps
   `FormatVersion`.
@@ -312,22 +312,21 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 
 ## Roles in detail
 
-- Role CRUD (`services/roles.go`, `repositories/roles.go`, gated by `app.roles.*`): system roles are immutable, scope
-  cannot change, an assigned or default role cannot be deleted. Grant rows sync delete-then-insert with associations
-  omitted. Group-only flags are rejected on APP scope; `SkipDefaultGroupCreation` is APP-only. Extra role flags
-  (`SetGroupRoleIndividualGrantConfig`, `SetGroupRoleReceiptRequirements`) persist through separate methods to avoid
-  long runs of transposable bools.
-- Seeded on every boot by `SeedSystemRoles` (add-only, keyed on name): Legacy Admin / Owner (every app / group key, so a
-  new key reaches admins next boot), Legacy User / Viewer / Editor, and the family roles **User** (`FamilyUserAppKeys`,
-  includes the AI page's receipt-processing create/read/update) and **Member** (`FamilyMemberGroupKeys`). Only Admin and
-  User are offered in the family UI; names are shared with the desktop's `utils/family-roles.ts`.
-- `EnsureDefaultRoles` guarantees one default per scope without overriding an admin's choice. `CreateUser` gives the first
-  account Legacy Admin, others the default app role, best-effort. Public `SignUp` strips a submitted `AppRoleID`.
-- Reporting is admin-by-default: Legacy User lacks `app.reports.*`. `app.categories.read` / `app.tags.read` (global
-  catalogs) are admin-only too; other users get `AppData.groupCategories` / `groupTags`, filtered per group.
-- `PermissionService` (`HasAppPermissions`, `HasGroupPermissions` and their `Any` variants) scope-guards keys: an `app.*`
-  key in a group check is an error. The role permission list is cached per role and evicted on role update/delete;
-  assignment is read fresh.
+The roles are fixed; the rules and why are in `authorization.md` and `../CLAUDE.md` → 4. What is left to know here:
+
+- `SeedSystemRoles` runs on every start, keyed on name so ids never change, and brings each of the four rows to
+  exactly its list: Legacy Admin / Legacy Owner hold every key of their scope (a new key reaches admins and owners at
+  the next start); **User** (`FamilyUserAppKeys`, which includes the AI page's receipt-processing create, read and
+  update) and **Member** (`FamilyMemberGroupKeys`) are fixed lists. Names are shared with the desktop's
+  `utils/family-roles.ts`.
+- `EnsureDefaultRoles` marks User (what a new account gets) and Owner (what the creator of a household gets).
+  `CreateUser` gives the first account Legacy Admin, best-effort. Public `SignUp` strips a submitted `AppRoleID`.
+- Reporting is admin-only: a User holds no `app.reports.*`. `app.categories.read` / `app.tags.read` (the global
+  catalogs) are admin-only too; other people get `AppData.groupCategories` / `groupTags`, the whole pool of every
+  household they are in.
+- `PermissionService` (`HasAppPermissions`, `HasGroupPermissions` and their `Any` variants) scope-guards keys: an
+  `app.*` key in a group check is an error. The role permission list is cached per role for the life of the
+  process; assignment is read fresh.
 
 ## Time zone in detail
 
@@ -375,8 +374,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   own categories/tags). Lines are scaled to the receipt amount by `allocateProportionally` so totals stay exact; a rest
   row carries what lines do not cover. Rows outnumber receipts, so the preview cap cuts on whole receipts and `COUNT()`
   counts rows. Callers preload `PaidByUser` and `Group`.
-- `ReportDataService` fetches through `GetPagedReceiptsByGroupId` with the access controls in order (grant-intersected
-  filter, paid-by in SQL, `(Restricted)` per line). `ReportService.buildModel` is shared by generate and preview: it reads
+- `ReportDataService` fetches through `GetPagedReceiptsByGroupId`, the same list the receipts page reads.
+  `ReportService.buildModel` is shared by generate and preview: it reads
   the clock once, resolves the `-1` "whoever generates" paid-by sentinel, the currency format and the zone. The receipts
   drill-in shares `prepareReportFilter` and the fetch so list and count agree.
 - Gates: generate needs `app.reports.generate` plus `group.reports.read` in every group; preview `app.reports.read` or
