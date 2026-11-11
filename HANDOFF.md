@@ -33,10 +33,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     (sprint 10) has the detail and two decisions made differently from the audit, waiting for the owner's word:
     icons stay on one map, and the six small Dashboard tiles stay as markup in the page. The rewritten real-app
     specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column` have never run.
-  - **Sprint 11 onward, one branch each from `preview`.** First: `feature/no-cgo` (B9, step one: ImageMagick and
-    Tesseract run as programs, the server builds with `CGO_ENABLED=0`), in the worktree
-    `.claude/worktrees/dependency-updates`. Then Go serving the app without nginx, arm64 images, id-only file
-    paths, money as integers, a generated contract, aisle order per shop, signal stores.
+  - **Sprint 11 onward, one branch each from `preview`.** In `preview` (green CI on `11972ce3`, 2026-11-11):
+    `feature/no-cgo` (B9, step one): ImageMagick and Tesseract run as programs and the server has no C code.
+    **Next, in this order:** Go serves the app and nginx goes (`feature/go-serves-app`, B9 step two; scoped,
+    not started: `docker/default.conf` is the list of what Go must take over, and the app must bind port 80 as
+    uid 10001); arm64 images; id-only file paths; money as integers; a generated contract; aisle order per
+    shop; signal stores. The working worktree is `.claude/worktrees/dependency-updates`.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac
@@ -46,9 +48,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - **Dependabot:** all nine pull requests of 2026-11-10 are dealt with in `preview`. They close when it reaches
   `main` (#21 and #22 were redone by hand, so Dependabot closes those at its next run).
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
-- On `feature/no-cgo` the API has no C code: plain `go vet`, `go test`, `staticcheck` and `govulncheck` run on the
-  PC (`go-without-cgo.sh` is gone). The picture tests are skipped there (no `magick`, `tesseract`, `gs`), so only
-  CI proves them. The race detector runs in CI only (it needs cgo and a C compiler).
+- In `preview` the API has no C code: plain `go vet`, `go test`, `staticcheck` and `govulncheck` run on the PC
+  (`go-without-cgo.sh` is gone; on `main` it is still needed). The picture tests are skipped there (no `magick`,
+  `tesseract`, `gs`), so only CI proves them. The race detector runs in CI only (it needs cgo and a C compiler).
 - Playwright: on the Mac `failed-activity-source-file` and `system-task-filter` fail on `main` (15 skipped behind
   them); never run: `app-time-zone`, `report-period-date-field`. The real-app specs need a live API, which this PC
   cannot run in Docker: a new spec's taps and ids can be proved against the built demo (`desktop/docs/e2e.md`).
@@ -97,6 +99,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   (and for a note once *Ask for a note* is on under the household's Receipt Settings); with a monthly goal the
   Dashboard opens with one sentence; a to-check receipt ends with *Looks right*; on a phone a dialog rises from
   the bottom, and the keyboard does not hide its buttons (never seen on a real phone).
+- Sprint 11, the server without C code (`:preview`): nothing should look different. Worth one look each, because
+  the conversions now run as programs: a HEIC photo and a PDF open on a receipt (and as an avatar), a Quick Scan
+  is read, and, only if a text-only AI model is configured, a scan through OCR. The container's log must not
+  say "image tools missing".
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
