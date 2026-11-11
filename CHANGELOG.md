@@ -148,6 +148,9 @@ it is doing.
 - **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity
   log no longer scroll sideways on a phone: each row is a card with one ⋮ menu, and *Sort by* replaces the column
   headers. A receipt's product lines are cards as well *(APP-17)*.
+- **Dialogs are sheets on a phone.** A confirmation, Quick Scan, a filter or a form now rises from the bottom of
+  the screen and is as wide as it, so its buttons sit under the thumb instead of in the middle of the screen
+  *(APP-19)*.
 - **Buttons and fields are finger-sized on touch screens.** 44 pixels tall instead of 36; nothing changes with a
   mouse *(APP-16)*.
 - **The theme is chosen in Settings.** The palette menu and the Day/Night switch left the header, which on a phone

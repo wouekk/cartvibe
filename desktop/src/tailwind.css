@@ -209,6 +209,16 @@
     @apply block max-h-[inherit] overflow-y-auto outline-none;
   }
 
+  /* A phone: the dialog is a sheet on the bottom edge (app-dialog.ts). Square below, it rises instead of zooming,
+     and keeps clear of the home indicator. */
+  .app-dialog-panel.app-dialog-sheet {
+    @apply rounded-b-none zoom-in-100 slide-in-from-bottom-6 duration-200;
+  }
+
+  .app-dialog-panel.app-dialog-sheet > .cdk-dialog-container {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   /* An indeterminate progress bar: a thin track with a bar sweeping across it (slower under reduced motion, still
      moving, since it is the only sign of work). */
   .app-progress-indeterminate {

@@ -54,7 +54,9 @@ feature.
   `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomplete`,
   `app-table` (types in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`. Add a helm part only
   with `node tools/spartan-add.cjs <name>`: it re-applies the local patches listed at its end.
-- **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`); the opened component injects `AppDialogRef` and
+- **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`), which opens a centred dialog, or on a phone a sheet on
+  the bottom edge (decided when it opens; the width and height a caller passes apply to wider screens only, so a
+  dialog's content must not count on them). The opened component injects `AppDialogRef` and
   `APP_DIALOG_DATA`. Never hand the CDK an explicit `autoFocus: undefined` (it leaves focus on the page behind).
   Dialogs are created from the root injector, so a provider in a lazy module is invisible to them (NG0201): provide it
   in the dialog component.

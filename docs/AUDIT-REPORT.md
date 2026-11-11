@@ -199,8 +199,13 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     - F4, the review: a receipt that is to check ends with one *Looks right* button under its products, and its
       lines without an amount are listed first (RCPT-07). The photo is not pinned beside the lines: the lines
       table needs the page's full width, so that part needs a layout of its own.
-  - Still to do on the branch: C11's second half (one button idiom in the templates), F6's split of the Dashboard
-    into panel components, and dialogs as bottom sheets on a phone (F9).
+    - F9, the sheets: on a phone every dialog is a sheet across the bottom of the screen (APP-19), done once in
+      the dialog service. Seen in the demo at phone width; never on a real phone, where the on-screen keyboard is
+      the thing to watch.
+  - Found on the way, not fixed: the receipts filter's two date fields overlap their labels at phone width (they
+    did before the sheet too).
+  - Still to do on the branch: C11's second half (one button idiom in the templates) and F6's split of the
+    Dashboard into panel components.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---
