@@ -1,11 +1,10 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ShoppingListItem, ShoppingListService } from "../../open-api";
-import { ShoppingListEventType } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { buildShoppingListItemForm, toUpsertShoppingListItemCommand } from "../shopping-list-item-form";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
 import { InputComponent } from "../../input/input/input.component";
@@ -30,6 +29,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     ],
 })
 export class ShoppingListItemFormDialogComponent implements OnInit {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   @Input() public groupId!: number;
 
   @Input() public item!: ShoppingListItem;
@@ -39,8 +40,7 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private dialogRef: AppDialogRef<ShoppingListItemFormDialogComponent, ShoppingListItem>,
-    private shoppingListService: ShoppingListService,
-    private store: Store
+    private shoppingListService: ShoppingListService
   ) {}
 
   public ngOnInit(): void {
@@ -60,14 +60,12 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
       .pipe(
         take(1),
         tap((item) => {
-          this.store.dispatch(
-            new ApplyShoppingListEvent({
+          this.shoppingListStore.applyEvent({
               type: ShoppingListEventType.ItemUpdated,
               groupId: this.groupId,
               shoppingListId: item.shoppingListId,
               item,
-            })
-          );
+            });
           this.dialogRef.close(item);
         })
       )

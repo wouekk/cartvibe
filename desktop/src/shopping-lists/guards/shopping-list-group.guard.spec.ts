@@ -9,7 +9,6 @@ import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
 import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
-import { ShoppingListState } from "../../store/shopping-list.state";
 import { shoppingListGroupGuard } from "./shopping-list-group.guard";
 
 const group = (id: number, isAllGroup = false): Group => ({ id, name: `group-${id}`, isAllGroup }) as Group;
@@ -27,7 +26,7 @@ describe("shoppingListGroupGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, GroupState, ShoppingListState])],
+      imports: [NgxsModule.forRoot([AuthState, GroupState])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
 

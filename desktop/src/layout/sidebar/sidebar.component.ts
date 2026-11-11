@@ -5,7 +5,7 @@ import { Data, NavigationEnd, Router, RouterLinkActive, RouterLink, RouterOutlet
 import { Store } from "@ngxs/store";
 import { catchError, filter, map, of, startWith, switchMap, take } from "rxjs";
 import { ReceiptTableStore } from "src/store/receipt-table.store";
-import { ShoppingListState } from "src/store/shopping-list.state";
+import { ShoppingListStore } from "src/store/shopping-list.store";
 import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
@@ -189,6 +189,8 @@ interface ManageNavItem {
     ],
 })
 export class SidebarComponent {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly receiptTableStore = inject(ReceiptTableStore);
 
   /** The Lucide icon for a nav item's Material icon name. */
@@ -307,7 +309,7 @@ export class SidebarComponent {
 
   private readonly overviewLink = this.store.selectSignal(GroupState.overviewLink);
 
-  private readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
+  private readonly shoppingListGroupId = this.shoppingListStore.targetGroupId;
 
   // Reports are reachable with read OR the readAll bypass (the *hasAppPermission
   // directive is single-key AND-only, so the OR is resolved through the selector).

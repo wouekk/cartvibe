@@ -1,6 +1,6 @@
-import { Injectable } from "@angular/core";
-import { Action, Selector, State, StateContext } from "@ngxs/store";
-import { catchError, EMPTY, take, tap } from "rxjs";
+import { computed, inject, Injectable } from "@angular/core";
+import { Actions, ofActionDispatched, Store } from "@ngxs/store";
+import { Observable, ReplaySubject, Subject, take } from "rxjs";
 import {
   Group,
   Permission,
@@ -22,15 +22,7 @@ import { hasAll } from "../utils/permission.utils";
 import { AuthState } from "./auth.state";
 import { Logout } from "./auth.state.actions";
 import { GroupState } from "./group.state";
-import {
-  ApplyShoppingListEvent,
-  DiscardLocalShoppingListItem,
-  LoadShoppingLists,
-  QueueShoppingListChange,
-  RestorePendingShoppingListChanges,
-  SelectShoppingList,
-  SettleShoppingListChange,
-} from "./shopping-list.state.actions";
+import { StateStore } from "./state-store";
 
 /**
  * The event types the API sends. `ShoppingListEvent.type` is a plain string on the contract (never
@@ -70,130 +62,130 @@ export function shoppingListsCacheKey(groupId: number): string {
 }
 
 /**
+ * The open household's shopping lists and the changes made on this device that the server does not have yet.
+ *
  * The server wins on conflict, and the device keeps a copy: a visit shows the copy at once and the server's answer
- * replaces it when it arrives. The copy and the queue are written by `ShoppingListSyncService` (IndexedDB), not by
- * the NGXS storage plugin: the slice stays out of `ngxsStorageKeys`.
+ * replaces it when it arrives. The copy and the queue are written by `ShoppingListSyncService` (IndexedDB), so this
+ * store has no storage key of its own.
  */
-@State<ShoppingListStateInterface>({
-  name: "shoppingLists",
-  defaults: {
-    lists: [],
-    pending: [],
-  },
-})
-@Injectable()
-export class ShoppingListState {
+@Injectable({ providedIn: "root" })
+export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
+  private readonly shoppingListService = inject(ShoppingListService);
+
+  private readonly offlineStorage = inject(OfflineStorageService);
+
+  // The households and the session are still NGXS states; they move in the next steps.
+  private readonly ngxs = inject(Store);
+
+  private readonly realGroups = this.ngxs.selectSignal(GroupState.groupsWithoutAll);
+
+  private readonly groupPermissions = this.ngxs.selectSignal(AuthState.groupPermissions);
+
+  private readonly selectedGroupId = this.ngxs.selectSignal(GroupState.selectedGroupId);
+
   /** The group asked for last, so a device copy that arrives late for an earlier group is not shown. */
   private requestedGroupId?: number;
 
-  constructor(
-    private shoppingListService: ShoppingListService,
-    private offlineStorage: OfflineStorageService
-  ) {}
+  /** The slice after each change, at once: a signal's own effect would wait for the next tick. */
+  public readonly changes = new Subject<ShoppingListStateInterface>();
+
+  /** Every event handed to `applyEvent`, whichever household it is for (the trips panel listens for its own). */
+  public readonly events = new Subject<ShoppingListEvent>();
+
+  /** The household whose lists were just asked for again. */
+  public readonly loads = new Subject<number>();
 
   /**
    * The real groups whose shopping lists the user may read. The synthetic "All" group is never one:
    * the API rejects it as a shopping list group.
    */
-  @Selector([GroupState.groupsWithoutAll, AuthState.groupPermissions])
-  static readableGroups(groups: Group[], groupPermissions: { [groupId: number]: string[] }): Group[] {
-    return groups.filter((group) =>
-      hasAll(groupPermissions[group.id] ?? [], Permission.GroupShoppingListsRead)
-    );
-  }
+  public readonly readableGroups = computed((): Group[] => {
+    const groupPermissions = this.groupPermissions();
+    return this.realGroups().filter((group) => hasAll(groupPermissions[group.id] ?? [], Permission.GroupShoppingListsRead));
+  });
 
   /**
    * Where the shopping list button lands: the selected group when it is a readable real group,
    * otherwise the first readable one. Undefined when the user can read no group's lists.
    */
-  @Selector([ShoppingListState.readableGroups, GroupState.selectedGroupId])
-  static targetGroupId(readableGroups: Group[], selectedGroupId: string): number | undefined {
-    const selected = readableGroups.find((group) => group.id.toString() === selectedGroupId);
+  public readonly targetGroupId = computed((): number | undefined => {
+    const readableGroups = this.readableGroups();
+    const selected = readableGroups.find((group) => group.id.toString() === this.selectedGroupId());
     return (selected ?? readableGroups[0])?.id;
-  }
+  });
 
-  @Selector()
-  static lists(state: ShoppingListStateInterface): ShoppingList[] {
-    return state.lists;
-  }
+  public readonly lists = computed(() => this.state().lists);
 
-  @Selector()
-  static groupId(state: ShoppingListStateInterface): number | undefined {
-    return state.groupId;
-  }
+  public readonly groupId = computed(() => this.state().groupId);
 
-  @Selector()
-  static selectedList(state: ShoppingListStateInterface): ShoppingList | undefined {
+  public readonly selectedList = computed((): ShoppingList | undefined => {
+    const state = this.state();
     return state.lists.find((list) => list.id === state.selectedListId);
-  }
+  });
 
   /** Items still to buy, in the order they were added. */
-  @Selector([ShoppingListState.selectedList])
-  static activeItems(list: ShoppingList | undefined): ShoppingListItem[] {
-    return (list?.items ?? [])
-      .filter((item) => !item.isChecked)
-      .sort(compareByCreation);
-  }
+  public readonly activeItems = computed((): ShoppingListItem[] =>
+    (this.selectedList()?.items ?? []).filter((item) => !item.isChecked).sort(compareByCreation)
+  );
 
   /** Crossed-off items, most recently crossed off first. */
-  @Selector([ShoppingListState.selectedList])
-  static checkedItems(list: ShoppingList | undefined): ShoppingListItem[] {
-    return (list?.items ?? [])
+  public readonly checkedItems = computed((): ShoppingListItem[] =>
+    (this.selectedList()?.items ?? [])
       .filter((item) => item.isChecked)
-      .sort((a, b) => (b.checkedAt ?? "").localeCompare(a.checkedAt ?? "") || b.id - a.id);
-  }
+      .sort((a, b) => (b.checkedAt ?? "").localeCompare(a.checkedAt ?? "") || b.id - a.id)
+  );
 
-  @Selector()
-  static pending(state: ShoppingListStateInterface): PendingChange[] {
-    return state.pending;
-  }
+  public readonly pending = computed(() => this.state().pending);
 
   /** How many changes of the open group are still waiting to be sent. */
-  @Selector()
-  static pendingCount(state: ShoppingListStateInterface): number {
+  public readonly pendingCount = computed(() => {
+    const state = this.state();
     return state.pending.filter((change) => change.groupId === state.groupId).length;
-  }
+  });
 
   /** The rows with a change still waiting, for their "not sent yet" mark. */
-  @Selector()
-  static pendingItemIds(state: ShoppingListStateInterface): Set<number> {
+  public readonly pendingItemIds = computed((): Set<number> => {
+    const state = this.state();
     return pendingItemIds(state.pending, state.groupId);
-  }
+  });
 
-  /** True when a group's lists could be read neither from the server nor from the device. */
-  @Selector()
-  static loadFailedGroupId(state: ShoppingListStateInterface): number | undefined {
-    return state.loadFailedGroupId;
-  }
+  /** The group whose lists could be read neither from the server nor from the device. */
+  public readonly loadFailedGroupId = computed(() => this.state().loadFailedGroupId);
 
   /** What the device keeps of the open group. */
-  @Selector()
-  static cacheSnapshot(state: ShoppingListStateInterface): { groupId?: number } & CachedShoppingLists {
+  public readonly cacheSnapshot = computed((): { groupId?: number } & CachedShoppingLists => {
+    const state = this.state();
     return { groupId: state.groupId, lists: state.lists, selectedListId: state.selectedListId };
+  });
+
+  constructor() {
+    super(() => ({ lists: [], pending: [] }));
+
+    // The account that signs out takes its lists and its waiting changes with it.
+    inject(Actions)
+      .pipe(ofActionDispatched(Logout))
+      .subscribe(() => this.clear());
   }
 
   /**
    * Shows the device's copy of the group at once (when another group, or nothing, is on screen), then asks the
    * server; its answer replaces the copy. Without a connection the copy stays, with the waiting changes laid over
-   * it either way.
+   * it either way. The answer completes once the server has answered or could not be reached.
    */
-  @Action(LoadShoppingLists)
-  loadShoppingLists(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { groupId }: LoadShoppingLists
-  ) {
+  public load(groupId: number): Observable<void> {
     this.requestedGroupId = groupId;
+    this.loads.next(groupId);
 
-    if (getState().groupId !== groupId) {
+    if (this.state().groupId !== groupId) {
       void this.offlineStorage.get<CachedShoppingLists>(shoppingListsCacheKey(groupId)).then((cached) => {
-        const state = getState();
+        const state = this.state();
         // The server may have answered first, or the page moved on to another group.
         if (!cached || !Array.isArray(cached.lists) || this.requestedGroupId !== groupId || state.groupId === groupId) {
           return;
         }
 
         const lists = overlayPending(sortLists(cached.lists), state.pending, groupId);
-        patchState({
+        this.patch({
           groupId,
           lists,
           selectedListId: resolveSelection(lists, cached.selectedListId),
@@ -202,47 +194,56 @@ export class ShoppingListState {
       });
     }
 
-    return this.shoppingListService.getShoppingListsForGroup(groupId).pipe(
-      take(1),
-      tap((answer) => {
-        if (this.requestedGroupId !== groupId) {
-          return;
-        }
+    const done = new ReplaySubject<void>(1);
+    const finish = () => {
+      done.next();
+      done.complete();
+    };
+    this.shoppingListService
+      .getShoppingListsForGroup(groupId)
+      .pipe(take(1))
+      .subscribe({
+        next: (answer) => {
+          if (this.requestedGroupId !== groupId) {
+            return;
+          }
 
-        const state = getState();
-        const lists = overlayPending(sortLists(answer), state.pending, groupId);
-        patchState({
-          groupId,
-          lists,
-          selectedListId: resolveSelection(lists, state.groupId === groupId ? state.selectedListId : undefined),
-          loadFailedGroupId: undefined,
-        });
-      }),
-      catchError(() => {
-        // No connection (or a server that is restarting): what is on screen stays. Only a group with nothing to
-        // show says so; the stream service asks again when the connection is back.
-        if (this.requestedGroupId === groupId && getState().groupId !== groupId) {
-          patchState({ loadFailedGroupId: groupId });
-        }
-        return EMPTY;
-      })
-    );
+          const state = this.state();
+          const lists = overlayPending(sortLists(answer), state.pending, groupId);
+          this.patch({
+            groupId,
+            lists,
+            selectedListId: resolveSelection(lists, state.groupId === groupId ? state.selectedListId : undefined),
+            loadFailedGroupId: undefined,
+          });
+        },
+        error: () => {
+          // No connection (or a server that is restarting): what is on screen stays. Only a group with nothing to
+          // show says so; the stream service asks again when the connection is back.
+          if (this.requestedGroupId === groupId && this.state().groupId !== groupId) {
+            this.patch({ loadFailedGroupId: groupId });
+          }
+          finish();
+        },
+        complete: finish,
+      });
+
+    return done.asObservable();
   }
 
-  @Action(SelectShoppingList)
-  selectShoppingList(
-    { patchState }: StateContext<ShoppingListStateInterface>,
-    { listId }: SelectShoppingList
-  ) {
-    patchState({ selectedListId: listId });
+  public select(listId?: number): void {
+    this.patch({ selectedListId: listId });
   }
 
-  @Action(ApplyShoppingListEvent)
-  applyShoppingListEvent(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { event }: ApplyShoppingListEvent
-  ) {
-    const state = getState();
+  /**
+   * Applies one mutation. Both the live stream and this tab's own HTTP answers go through it, so "my write" and
+   * "someone else's write" share one path. Applying is an idempotent upsert or removal by id, so the echo of our
+   * own write changes nothing.
+   */
+  public applyEvent(event: ShoppingListEvent): void {
+    this.events.next(event);
+
+    const state = this.state();
     if (event.groupId !== state.groupId) {
       return;
     }
@@ -254,34 +255,31 @@ export class ShoppingListState {
       return;
     }
 
-    patchState({
+    this.patch({
       lists,
       pending,
       selectedListId: resolveSelection(lists, state.selectedListId),
     });
   }
 
-  @Action(QueueShoppingListChange)
-  queueShoppingListChange(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { change }: QueueShoppingListChange
-  ) {
-    const state = getState();
+  /**
+   * A change made on this device (an item added, crossed off or put back): shown at once and kept in the queue until
+   * the server has it. `ShoppingListSyncService` sends the queue.
+   */
+  public queueChange(change: PendingChange): void {
+    const state = this.state();
     const pending = enqueue(state.pending, change);
-    patchState({ pending, lists: overlayPending(state.lists, pending, state.groupId) });
+    this.patch({ pending, lists: overlayPending(state.lists, pending, state.groupId) });
   }
 
-  @Action(SettleShoppingListChange)
-  settleShoppingListChange(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { opId, saved }: SettleShoppingListChange
-  ) {
-    const state = getState();
+  /** The server answered a queued change: `saved` is its item, absent when the change was refused and is dropped. */
+  public settleChange(opId: string, saved?: ShoppingListItem): void {
+    const state = this.state();
     const change = state.pending.find((candidate) => candidate.opId === opId);
     const pending = settle(state.pending, opId, saved);
     // A change of another group than the one on screen only leaves the queue.
     if (change && change.groupId !== state.groupId) {
-      patchState({ pending });
+      this.patch({ pending });
       return;
     }
 
@@ -294,40 +292,38 @@ export class ShoppingListState {
       lists = updateItems(lists, saved.shoppingListId, (items) => upsertItem(items, saved));
     }
 
-    patchState({ pending, lists: overlayPending(lists, pending, state.groupId) });
+    this.patch({ pending, lists: overlayPending(lists, pending, state.groupId) });
   }
 
-  @Action(DiscardLocalShoppingListItem)
-  discardLocalShoppingListItem(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { clientId }: DiscardLocalShoppingListItem
-  ) {
-    const state = getState();
+  /** Takes back an item that was added on this device and has not reached the server, with anything waiting for it. */
+  public discardLocalItem(clientId: string): void {
+    const state = this.state();
     const pending = state.pending.filter((change) => change.clientId !== clientId);
     const lists = state.lists.map((list) =>
       list.items?.some((item) => item.clientId === clientId && item.id < 0)
         ? { ...list, items: list.items.filter((item) => !(item.clientId === clientId && item.id < 0)) }
         : list
     );
-    patchState({ pending, lists });
+    this.patch({ pending, lists });
   }
 
-  @Action(RestorePendingShoppingListChanges)
-  restorePendingShoppingListChanges(
-    { getState, patchState }: StateContext<ShoppingListStateInterface>,
-    { pending }: RestorePendingShoppingListChanges
-  ) {
-    const state = getState();
+  /** The queue as the device kept it across a reload. */
+  public restorePending(kept: PendingChange[]): void {
+    const state = this.state();
     // Anything queued since the page opened goes after what the device kept.
-    const merged = [...pending.filter((kept) => !state.pending.some((change) => change.opId === kept.opId)), ...state.pending];
-    patchState({ pending: merged, lists: overlayPending(state.lists, merged, state.groupId) });
+    const merged = [...kept.filter((change) => !state.pending.some((queued) => queued.opId === change.opId)), ...state.pending];
+    this.patch({ pending: merged, lists: overlayPending(state.lists, merged, state.groupId) });
   }
 
-  /** The account that signs out takes its lists and its waiting changes with it. */
-  @Action(Logout)
-  logout({ setState }: StateContext<ShoppingListStateInterface>) {
+  /** Forgets the lists and the waiting changes. */
+  public clear(): void {
     this.requestedGroupId = undefined;
-    setState({ lists: [], pending: [] });
+    this.reset();
+  }
+
+  protected override replace(next: ShoppingListStateInterface): void {
+    super.replace(next);
+    this.changes.next(next);
   }
 }
 

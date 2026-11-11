@@ -1,9 +1,8 @@
 import { DOCUMENT } from "@angular/common";
-import { Inject, Injectable, OnDestroy, signal } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Inject, Injectable, OnDestroy, signal, inject } from "@angular/core";
 import { ShoppingListEvent } from "../open-api";
-import { ApplyShoppingListEvent, LoadShoppingLists } from "../store/shopping-list.state.actions";
-import { ShoppingListEventType } from "../store/shopping-list.state";
+import { ShoppingListStore } from "../store/shopping-list.store";
+import { ShoppingListEventType } from "../store/shopping-list.store";
 
 const INITIAL_RECONNECT_DELAY_MS = 1000;
 const MAX_RECONNECT_DELAY_MS = 30000;
@@ -43,6 +42,8 @@ export const defaultEventSourceFactory: EventSourceFactory = (url) => new EventS
   providedIn: "root",
 })
 export class ShoppingListStreamService implements OnDestroy {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   /** Whether changes made elsewhere arrive right now. The page shows it; the sync service sends on "live". */
   public readonly status = signal<ShoppingListStreamStatus>("idle");
 
@@ -73,7 +74,6 @@ export class ShoppingListStreamService implements OnDestroy {
   };
 
   constructor(
-    private store: Store,
     @Inject(DOCUMENT) private document: Document
   ) {}
 
@@ -165,7 +165,7 @@ export class ShoppingListStreamService implements OnDestroy {
     this.heard();
     try {
       const event = JSON.parse(message.data) as ShoppingListEvent;
-      this.store.dispatch(new ApplyShoppingListEvent(event));
+      this.shoppingListStore.applyEvent(event);
     } catch {
       // A malformed frame is skipped; the next refetch reconciles the list.
     }
@@ -182,7 +182,7 @@ export class ShoppingListStreamService implements OnDestroy {
 
   private refetch(): void {
     if (this.groupId !== undefined) {
-      this.store.dispatch(new LoadShoppingLists(this.groupId));
+      this.shoppingListStore.load(this.groupId);
     }
   }
 

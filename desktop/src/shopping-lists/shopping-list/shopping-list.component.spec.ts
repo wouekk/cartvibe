@@ -13,9 +13,9 @@ import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListComponent } from "./shopping-list.component";
+import { seedStore } from "../../testing/seed-store";
 
 import type { Mock } from "vitest";
 const milk = {
@@ -53,7 +53,7 @@ describe("ShoppingListComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]),
+        NgxsModule.forRoot([AuthState, GroupState]),
         ReactiveFormsModule,
         ShoppingListComponent,
     ],
@@ -71,7 +71,7 @@ describe("ShoppingListComponent", () => {
 }).compileComponents();
 
     store = TestBed.inject(Store);
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListComponent);
     component = fixture.componentInstance;
@@ -90,11 +90,11 @@ describe("ShoppingListComponent", () => {
 
     component.toggleItem(milk);
 
-    expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([1]);
-    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([
+    expect(TestBed.inject(ShoppingListStore).checkedItems().map((i) => i.id)).toEqual([1]);
+    expect(TestBed.inject(ShoppingListStore).pending()).toEqual([
       expect.objectContaining({ kind: "toggle", groupId: 1, listId: 1, itemId: 1, isChecked: true }),
     ]);
-    expect(store.selectSnapshot(ShoppingListState.pendingItemIds).has(1)).toBe(true);
+    expect(TestBed.inject(ShoppingListStore).pendingItemIds().has(1)).toBe(true);
     expect(shoppingListService.setShoppingListItemChecked).not.toHaveBeenCalled();
     expect(snackbarService.error).not.toHaveBeenCalled();
   });
@@ -120,12 +120,12 @@ describe("ShoppingListComponent", () => {
     component.toggleItem(milk);
     component.toggleItem({ ...milk, isChecked: true });
 
-    const pending = store.selectSnapshot(ShoppingListState.pending);
+    const pending = TestBed.inject(ShoppingListStore).pending();
     expect(pending.map((change) => (change.kind === "toggle" ? [change.itemId, change.isChecked] : null))).toEqual([
       [9, true],
       [1, false],
     ]);
-    expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1]);
+    expect(TestBed.inject(ShoppingListStore).activeItems().map((i) => i.id)).toEqual([1]);
   });
 
   it("sends a tag correction and applies the corrected item", async () => {
@@ -136,7 +136,7 @@ describe("ShoppingListComponent", () => {
     component.correctTags({ item: milk, health: "MEDIUM" });
 
     expect(shoppingListService["setShoppingListItemClassification"]).toHaveBeenCalledWith(1, { health: "MEDIUM" });
-    expect((store.selectSnapshot(ShoppingListState.activeItems)[0] as any).health).toBe("MEDIUM");
+    expect((TestBed.inject(ShoppingListStore).activeItems()[0] as any).health).toBe("MEDIUM");
   });
 
   it("shows a trimmed item at once, queues its add and clears the bar", async () => {
@@ -145,7 +145,7 @@ describe("ShoppingListComponent", () => {
     component.addForm.patchValue({ name: "  Bread ", amount: "1,5", unit: "kg", note: "" });
     component.addItem();
 
-    const active = store.selectSnapshot(ShoppingListState.activeItems);
+    const active = TestBed.inject(ShoppingListStore).activeItems();
     expect(active.map((i) => i.name)).toEqual(["Milk", "Bread"]);
     const bread = active[1];
     // A row of this device only: a negative id, and the client id the server will know the add by.
@@ -153,7 +153,7 @@ describe("ShoppingListComponent", () => {
     expect(bread.clientId).toBeTruthy();
     expect(bread).toEqual(expect.objectContaining({ amount: "1.5", unit: "kg", isChecked: false, shoppingListId: 1 }));
 
-    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([
+    expect(TestBed.inject(ShoppingListStore).pending()).toEqual([
       expect.objectContaining({
         kind: "add",
         groupId: 1,
@@ -170,12 +170,12 @@ describe("ShoppingListComponent", () => {
     await setCanUpdate(true);
     component.addForm.patchValue({ name: "Bread" });
     component.addItem();
-    const bread = store.selectSnapshot(ShoppingListState.activeItems)[1];
+    const bread = TestBed.inject(ShoppingListStore).activeItems()[1];
 
     component.toggleItem(bread);
 
-    expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.name)).toEqual(["Bread"]);
-    expect(store.selectSnapshot(ShoppingListState.pending)[1]).toEqual(
+    expect(TestBed.inject(ShoppingListStore).checkedItems().map((i) => i.name)).toEqual(["Bread"]);
+    expect(TestBed.inject(ShoppingListStore).pending()[1]).toEqual(
       expect.objectContaining({ kind: "toggle", itemId: bread.id, clientId: bread.clientId, isChecked: true })
     );
   });
@@ -190,16 +190,13 @@ describe("ShoppingListComponent", () => {
 
     it("clears at once when nothing of this device's is waiting", async () => {
       await setCanUpdate(true);
-      store.reset({
-        ...store.snapshot(),
-        shoppingLists: { ...store.snapshot().shoppingLists, lists: [{ ...supermarket, items: [{ ...milk, isChecked: true }] }] },
-      });
+      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, lists: [{ ...supermarket, items: [{ ...milk, isChecked: true }] }] });
 
       confirmClear();
 
       expect(drained).not.toHaveBeenCalled();
       expect(shoppingListService.clearCheckedShoppingListItems).toHaveBeenCalledWith(1);
-      expect(store.selectSnapshot(ShoppingListState.lists)[0].items).toEqual([]);
+      expect(TestBed.inject(ShoppingListStore).lists()[0].items).toEqual([]);
     });
 
     // The server clears what it has as crossed off: a cross-off still waiting here must reach it first, or the row
@@ -226,7 +223,7 @@ describe("ShoppingListComponent", () => {
 
       expect(shoppingListService.clearCheckedShoppingListItems).not.toHaveBeenCalled();
       expect(snackbarService.error).toHaveBeenCalledTimes(1);
-      expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([1]);
+      expect(TestBed.inject(ShoppingListStore).checkedItems().map((i) => i.id)).toEqual([1]);
     });
   });
 
@@ -234,15 +231,15 @@ describe("ShoppingListComponent", () => {
     await setCanUpdate(true);
     component.addForm.patchValue({ name: "Bread" });
     component.addItem();
-    const bread = store.selectSnapshot(ShoppingListState.activeItems)[1];
+    const bread = TestBed.inject(ShoppingListStore).activeItems()[1];
     component.toggleItem(bread);
 
     const dialog = TestBed.inject(AppDialog);
     vi.spyOn(dialog, "open").mockReturnValue({ componentInstance: {}, afterClosed: () => of(true) } as never);
     component.deleteItem({ ...bread, isChecked: true });
 
-    expect(store.selectSnapshot(ShoppingListState.pending)).toEqual([]);
-    expect(store.selectSnapshot(ShoppingListState.lists)[0].items.map((i) => i.name)).toEqual(["Milk"]);
+    expect(TestBed.inject(ShoppingListStore).pending()).toEqual([]);
+    expect(TestBed.inject(ShoppingListStore).lists()[0].items.map((i) => i.name)).toEqual(["Milk"]);
   });
 
   it("does not send a blank item", async () => {
@@ -371,10 +368,7 @@ describe("ShoppingListComponent", () => {
     };
 
     const show = async (lists: ShoppingList[], shopMode: boolean) => {
-      store.reset({
-        ...store.snapshot(),
-        shoppingLists: { ...store.snapshot().shoppingLists, groupId: 1, selectedListId: 1, lists },
-      });
+      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, groupId: 1, selectedListId: 1, lists });
       fixture.componentRef.setInput("list", lists.find((list) => list.id === 1));
       fixture.componentRef.setInput("large", shopMode);
       await fixture.whenStable();
@@ -412,7 +406,7 @@ describe("ShoppingListComponent", () => {
         ...today,
         items: today.items.map((item) => (item.name === "Bread" || item.name === "Milk" ? { ...item, isChecked: true, checkedAt: now } : item)),
       };
-      store.reset({ ...store.snapshot(), shoppingLists: { ...store.snapshot().shoppingLists, lists: [during, lastTrip] } });
+      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, lists: [during, lastTrip] });
       await fixture.whenStable();
 
       expect(shown()).toEqual(["Apples", "Candles"]);

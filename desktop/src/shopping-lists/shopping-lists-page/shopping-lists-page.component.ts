@@ -28,12 +28,10 @@ import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog
 import { AuthState, GroupState } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
 import { SystemSettingsStore } from "../../store/system-settings.store";
-import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
 import {
-  ApplyShoppingListEvent,
-  LoadShoppingLists,
-  SelectShoppingList,
-} from "../../store/shopping-list.state.actions";
+  ShoppingListStore,
+} from "../../store/shopping-list.store";
 import { hasAll } from "../../utils/permission.utils";
 import { activeLists, recentPastLists } from "../shopping-list-groups";
 import { RecipeImportDialogComponent, RecipeImportDialogData } from "../recipe-import-dialog/recipe-import-dialog.component";
@@ -86,6 +84,8 @@ const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
     ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly translation = inject(TranslationService);
@@ -95,11 +95,11 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     { requireSync: true }
   );
 
-  public readonly lists = this.store.selectSignal(ShoppingListState.lists);
+  public readonly lists = this.shoppingListStore.lists;
 
-  public readonly selectedList = this.store.selectSignal(ShoppingListState.selectedList);
+  public readonly selectedList = this.shoppingListStore.selectedList;
 
-  private readonly loadedGroupId = this.store.selectSignal(ShoppingListState.groupId);
+  private readonly loadedGroupId = this.shoppingListStore.groupId;
 
   /** False until this group's lists arrive, so a group switch never flashes the previous group's. */
   public readonly isLoaded = computed(() => this.loadedGroupId() === this.groupId());
@@ -202,11 +202,11 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   public readonly online = inject(OnlineStatusService).online;
 
   /** This device's changes of the open household that the server has not confirmed yet. */
-  public readonly pendingCount = this.store.selectSignal(ShoppingListState.pendingCount);
+  public readonly pendingCount = this.shoppingListStore.pendingCount;
 
   private readonly streamStatus = this.shoppingListStreamService.status;
 
-  private readonly loadFailedGroupId = this.store.selectSignal(ShoppingListState.loadFailedGroupId);
+  private readonly loadFailedGroupId = this.shoppingListStore.loadFailedGroupId;
 
   /** Nothing to show: the lists could be read neither from the server nor from the device. */
   public readonly loadFailed = computed(() => this.loadFailedGroupId() === this.groupId());
@@ -273,7 +273,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     effect(() => {
       const groupId = this.groupId();
       untracked(() => {
-        this.store.dispatch(new LoadShoppingLists(groupId));
+        this.shoppingListStore.load(groupId);
         this.shoppingListStreamService.connect(groupId);
       });
     });
@@ -331,7 +331,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   }
 
   public selectList(id: number): void {
-    this.store.dispatch(new SelectShoppingList(id));
+    this.shoppingListStore.select(id);
   }
 
   /**
@@ -409,14 +409,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
       .pipe(take(1))
       .subscribe({
         next: (saved) => {
-          this.store.dispatch(
-            new ApplyShoppingListEvent({
+          this.shoppingListStore.applyEvent({
               type: ShoppingListEventType.ListUpdated,
               groupId: saved.groupId,
               shoppingListId: saved.id,
               list: saved,
-            })
-          );
+            });
           this.completing.set(false);
           done();
         },
@@ -474,7 +472,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         take(1),
         filter((list): list is ShoppingList => !!list)
       )
-      .subscribe((list) => this.store.dispatch(new SelectShoppingList(list.id)));
+      .subscribe((list) => this.shoppingListStore.select(list.id));
   }
 
   /**
@@ -489,14 +487,12 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         tap((created) =>
-          this.store.dispatch(
-            new ApplyShoppingListEvent({
+          this.shoppingListStore.applyEvent({
               type: ShoppingListEventType.ListCreated,
               groupId: created.groupId,
               shoppingListId: created.id,
               list: created,
             })
-          )
         ),
         concatMap((created) =>
           from(list.items).pipe(
@@ -510,21 +506,19 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
               })
             ),
             tap((item) =>
-              this.store.dispatch(
-                new ApplyShoppingListEvent({
+              this.shoppingListStore.applyEvent({
                   type: ShoppingListEventType.ItemAdded,
                   groupId: created.groupId,
                   shoppingListId: created.id,
                   item,
                 })
-              )
             ),
             toArray(),
             map(() => created)
           )
         )
       )
-      .subscribe((created) => this.store.dispatch(new SelectShoppingList(created.id)));
+      .subscribe((created) => this.shoppingListStore.select(created.id));
   }
 
   /** Tells the rest of the household you are going shopping, so they add what they need (Phase 3 S4). */
@@ -604,13 +598,11 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
         switchMap(() => this.shoppingListService.deleteShoppingList(list.id))
       )
       .subscribe(() =>
-        this.store.dispatch(
-          new ApplyShoppingListEvent({
+        this.shoppingListStore.applyEvent({
             type: ShoppingListEventType.ListDeleted,
             groupId: list.groupId,
             shoppingListId: list.id,
           })
-        )
       );
   }
 }

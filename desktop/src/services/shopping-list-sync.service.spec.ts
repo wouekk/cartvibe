@@ -12,8 +12,8 @@ import { PendingAdd, PendingChange, PendingToggle } from "../shopping-lists/shop
 import { AuthState } from "../store/auth.state";
 import { Logout, SetAuthState } from "../store/auth.state.actions";
 import { GroupState } from "../store/group.state";
-import { CachedShoppingLists, ShoppingListState, shoppingListsCacheKey } from "../store/shopping-list.state";
-import { LoadShoppingLists, QueueShoppingListChange } from "../store/shopping-list.state.actions";
+import { CachedShoppingLists, shoppingListsCacheKey } from "../store/shopping-list.store";
+import { ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "./shopping-list-stream.service";
 import { SHOPPING_LIST_OUTBOX_KEY, ShoppingListSyncService } from "./shopping-list-sync.service";
 import { SnackbarService } from "./snackbar.service";
@@ -72,7 +72,7 @@ describe("ShoppingListSyncService", () => {
     streamStatus = signal<ShoppingListStreamStatus>("idle");
 
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState, GroupState])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -98,18 +98,18 @@ describe("ShoppingListSyncService", () => {
   const start = async (): Promise<ShoppingListSyncService> => {
     const service = TestBed.inject(ShoppingListSyncService);
     await service.ready;
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
     await settled();
     return service;
   };
 
-  const pending = (): PendingChange[] => store.selectSnapshot(ShoppingListState.pending);
+  const pending = (): PendingChange[] => TestBed.inject(ShoppingListStore).pending();
 
   it("sends a queued add with its client id, quietly, and puts the server's item in its place", async () => {
     await start();
     api.addShoppingListItem.mockReturnValue(of(item(40, { clientId: "a", name: "Bread" })));
 
-    store.dispatch(new QueueShoppingListChange(breadAdd));
+    TestBed.inject(ShoppingListStore).queueChange(breadAdd);
     await settled();
 
     expect(api.addShoppingListItem).toHaveBeenCalledTimes(1);
@@ -121,7 +121,7 @@ describe("ShoppingListSyncService", () => {
     expect(options.context.get(QUIET_ERRORS)).toBe(true);
 
     expect(pending()).toEqual([]);
-    expect(store.selectSnapshot(ShoppingListState.lists)[0].items.map((row) => row.id)).toEqual([1, 2, 40]);
+    expect(TestBed.inject(ShoppingListStore).lists()[0].items.map((row) => row.id)).toEqual([1, 2, 40]);
   });
 
   it("sends changes one at a time, in the order they were made", async () => {
@@ -130,8 +130,8 @@ describe("ShoppingListSyncService", () => {
     api.addShoppingListItem.mockReturnValue(addAnswer);
     api.setShoppingListItemChecked.mockImplementation((id: number) => of(item(id, { isChecked: true })));
 
-    store.dispatch(new QueueShoppingListChange(breadAdd));
-    store.dispatch(new QueueShoppingListChange(crossOff("t", -1, { clientId: "a" })));
+    TestBed.inject(ShoppingListStore).queueChange(breadAdd);
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", -1, { clientId: "a" }));
     await settled();
 
     // The cross-off waits for the add: its item has no id on the server yet.
@@ -143,19 +143,19 @@ describe("ShoppingListSyncService", () => {
 
     expect(api.setShoppingListItemChecked.mock.calls[0].slice(0, 2)).toEqual([40, { isChecked: true }]);
     expect(pending()).toEqual([]);
-    expect(store.selectSnapshot(ShoppingListState.checkedItems).map((row) => row.id)).toEqual([40]);
+    expect(TestBed.inject(ShoppingListStore).checkedItems().map((row) => row.id)).toEqual([40]);
   });
 
   it("keeps the queue when the server cannot be reached, and sends it when the stream comes up", async () => {
     await start();
     api.setShoppingListItemChecked.mockImplementation(offline);
 
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
 
     expect(pending().map((change) => change.opId)).toEqual(["t"]);
     // Still shown as crossed off, with no toast: nothing failed, it only waits.
-    expect(store.selectSnapshot(ShoppingListState.checkedItems).map((row) => row.id)).toEqual([2]);
+    expect(TestBed.inject(ShoppingListStore).checkedItems().map((row) => row.id)).toEqual([2]);
     expect(snackbar.error).not.toHaveBeenCalled();
     // And the page is told the server is out of reach, whatever the stream still believes.
     expect(TestBed.inject(ShoppingListSyncService).stalled()).toBe(true);
@@ -173,7 +173,7 @@ describe("ShoppingListSyncService", () => {
     await start();
     api.setShoppingListItemChecked.mockImplementation(() => throwError(() => new HttpErrorResponse({ status })));
 
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
 
     expect(pending().map((change) => change.opId)).toEqual(["t"]);
@@ -183,7 +183,7 @@ describe("ShoppingListSyncService", () => {
     await start();
     vi.useFakeTimers();
     api.setShoppingListItemChecked.mockImplementation(offline);
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await vi.advanceTimersByTimeAsync(100);
     expect(api.setShoppingListItemChecked).toHaveBeenCalledTimes(1);
 
@@ -199,12 +199,12 @@ describe("ShoppingListSyncService", () => {
     api.addShoppingListItem.mockImplementation(() => throwError(() => new HttpErrorResponse({ status: 403 })));
     api.getShoppingListsForGroup.mockClear();
 
-    store.dispatch(new QueueShoppingListChange(breadAdd));
-    store.dispatch(new QueueShoppingListChange(crossOff("t", -1, { clientId: "a" })));
+    TestBed.inject(ShoppingListStore).queueChange(breadAdd);
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", -1, { clientId: "a" }));
     await settled();
 
     expect(pending()).toEqual([]);
-    expect(store.selectSnapshot(ShoppingListState.lists)[0].items.map((row) => row.name)).toEqual(["item-1", "item-2"]);
+    expect(TestBed.inject(ShoppingListStore).lists()[0].items.map((row) => row.name)).toEqual(["item-1", "item-2"]);
     expect(snackbar.error).toHaveBeenCalledTimes(1);
     expect(snackbar.error.mock.calls[0][0]).toContain("Bread");
     expect(api.getShoppingListsForGroup).toHaveBeenCalledWith(1);
@@ -215,13 +215,13 @@ describe("ShoppingListSyncService", () => {
     await start();
     api.setShoppingListItemChecked.mockImplementation(() => throwError(() => new HttpErrorResponse({ status: 403 })));
 
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
 
     expect(pending()).toEqual([]);
     expect(snackbar.error).not.toHaveBeenCalled();
     // The reread put the item back as the server has it.
-    expect(store.selectSnapshot(ShoppingListState.checkedItems)).toEqual([]);
+    expect(TestBed.inject(ShoppingListStore).checkedItems()).toEqual([]);
   });
 
   describe("drained()", () => {
@@ -236,7 +236,7 @@ describe("ShoppingListSyncService", () => {
       const service = await start();
       const answer = new Subject<ShoppingListItem>();
       api.setShoppingListItemChecked.mockReturnValue(answer);
-      store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+      TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
       await settled();
 
       let result: boolean | undefined;
@@ -254,7 +254,7 @@ describe("ShoppingListSyncService", () => {
     it("is false when the server cannot be reached", async () => {
       const service = await start();
       api.setShoppingListItemChecked.mockImplementation(offline);
-      store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+      TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
       await settled();
 
       expect(await service.drained()).toBe(false);
@@ -267,7 +267,7 @@ describe("ShoppingListSyncService", () => {
     ensureFreshToken.mockResolvedValue(false);
     api.setShoppingListItemChecked.mockImplementation((id: number) => of(item(id, { isChecked: true })));
 
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
 
     // An expired token would be refused, and a refusal drops the change: nothing goes out.
@@ -279,7 +279,7 @@ describe("ShoppingListSyncService", () => {
     await start();
     api.setShoppingListItemChecked.mockImplementation(offline);
 
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
     await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -316,7 +316,7 @@ describe("ShoppingListSyncService", () => {
   it("forgets everything on the device when the account signs out", async () => {
     await start();
     api.setShoppingListItemChecked.mockImplementation(offline);
-    store.dispatch(new QueueShoppingListChange(crossOff("t", 2)));
+    TestBed.inject(ShoppingListStore).queueChange(crossOff("t", 2));
     await settled();
     await storage.set("quick-scan:1", { files: [] });
 

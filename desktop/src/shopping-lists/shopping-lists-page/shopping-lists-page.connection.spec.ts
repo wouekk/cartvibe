@@ -14,9 +14,9 @@ import { ShoppingListStreamService, ShoppingListStreamStatus } from "../../servi
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { QueueShoppingListChange } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
+import { seedStore } from "../../testing/seed-store";
 
 const milk = { id: 10, shoppingListId: 1, name: "Milk", unit: "", quantity: "", note: "", isChecked: false } as ShoppingListItem;
 
@@ -46,7 +46,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
   };
 
   const crossOffMilk = async () => {
-    store.dispatch(new QueueShoppingListChange({ kind: "toggle", opId: "t", groupId: 1, listId: 1, itemId: 10, isChecked: true }));
+    TestBed.inject(ShoppingListStore).queueChange({ kind: "toggle", opId: "t", groupId: 1, listId: 1, itemId: 10, isChecked: true });
     await fixture.whenStable();
   };
 
@@ -60,7 +60,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     snackbarError = vi.fn();
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([AuthState, GroupState]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -154,7 +154,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     it("sends the waiting changes first, then completes the list", async () => {
       await create();
       status.set("live");
-      store.dispatch(new QueueShoppingListChange({ kind: "toggle", opId: "t", groupId: 1, listId: 1, itemId: 10, isChecked: false }));
+      TestBed.inject(ShoppingListStore).queueChange({ kind: "toggle", opId: "t", groupId: 1, listId: 1, itemId: 10, isChecked: false });
       await fixture.whenStable();
 
       fixture.componentInstance.completeList(fixture.componentInstance.selectedList()!);
@@ -162,7 +162,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
       expect(fixture.componentInstance.completing()).toBe(true);
 
       // The queue goes out (the sync service's job): nothing waits any more.
-      store.reset({ ...store.snapshot(), shoppingLists: { ...store.snapshot().shoppingLists, pending: [] } });
+      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, pending: [] });
       await settled();
 
       expect(drained).toHaveBeenCalledTimes(1);
@@ -173,7 +173,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
       drained.mockResolvedValue(false);
       await create();
       await crossOffMilk();
-      store.dispatch(new QueueShoppingListChange({ kind: "toggle", opId: "u", groupId: 1, listId: 1, itemId: 10, isChecked: false }));
+      TestBed.inject(ShoppingListStore).queueChange({ kind: "toggle", opId: "u", groupId: 1, listId: 1, itemId: 10, isChecked: false });
       await fixture.whenStable();
 
       fixture.componentInstance.completeList(fixture.componentInstance.selectedList()!);

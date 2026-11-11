@@ -6,8 +6,8 @@ import { of } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { ShoppingListItem, ShoppingListService } from "../../open-api";
-import { ShoppingListEventType } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsModule } from "../shopping-lists.module";
 import { ShoppingListItemFormDialogComponent } from "./shopping-list-item-form-dialog.component";
 
@@ -25,7 +25,7 @@ describe("ShoppingListItemFormDialogComponent", () => {
   let fixture: ComponentFixture<ShoppingListItemFormDialogComponent>;
   let service: { updateShoppingListItem: Mock };
   let dialogRef: { close: Mock };
-  let dispatch: Mock;
+  let applyEvent: Mock;
 
   const el = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
   const input = (testId: string): HTMLInputElement => fixture.nativeElement.querySelector(`[data-testid="${testId}"] input`);
@@ -56,7 +56,7 @@ describe("ShoppingListItemFormDialogComponent", () => {
       ],
     }).compileComponents();
 
-    dispatch = vi.spyOn(TestBed.inject(Store), "dispatch") as unknown as Mock;
+    applyEvent = vi.spyOn(TestBed.inject(ShoppingListStore), "applyEvent") as unknown as Mock;
     fixture = TestBed.createComponent(ShoppingListItemFormDialogComponent);
     fixture.componentInstance.groupId = 5;
     fixture.componentInstance.item = oldMilk;
@@ -95,8 +95,7 @@ describe("ShoppingListItemFormDialogComponent", () => {
     });
     const saved = dialogRef.close.mock.calls[0][0] as ShoppingListItem;
     expect(saved.id).toBe(9);
-    const action = dispatch.mock.calls.map((call) => call[0]).find((value) => value instanceof ApplyShoppingListEvent);
-    expect(action?.event).toEqual({ type: ShoppingListEventType.ItemUpdated, groupId: 5, shoppingListId: 3, item: saved });
+    expect(applyEvent).toHaveBeenCalledWith({ type: ShoppingListEventType.ItemUpdated, groupId: 5, shoppingListId: 3, item: saved });
   });
 
   it("refuses a blank name or a bad amount without calling the API", async () => {

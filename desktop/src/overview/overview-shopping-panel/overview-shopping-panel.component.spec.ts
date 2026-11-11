@@ -6,8 +6,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import {
   MAX_UNDO_ROWS,
   OverviewShoppingPanelComponent,
@@ -47,7 +46,7 @@ describe("OverviewShoppingPanelComponent", () => {
     snackbar = { error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [OverviewShoppingPanelComponent, NgxsModule.forRoot([ShoppingListState])],
+      imports: [OverviewShoppingPanelComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -56,9 +55,8 @@ describe("OverviewShoppingPanelComponent", () => {
       ],
     }).compileComponents();
 
-    // The page feeds the panel from the store; here a dispatched event stands in for that round trip.
-    vi.spyOn(TestBed.inject(Store), "dispatch").mockImplementation((action: unknown) => {
-      const event = (action as ApplyShoppingListEvent).event;
+    // The page feeds the panel from the store; here an applied event stands in for that round trip.
+    vi.spyOn(TestBed.inject(ShoppingListStore), "applyEvent").mockImplementation((event) => {
       const next = lists.map((l) =>
         l.id === event.shoppingListId
           ? { ...l, items: l.items.map((candidate) => (candidate.id === event.item!.id ? event.item! : candidate)) }
@@ -66,7 +64,6 @@ describe("OverviewShoppingPanelComponent", () => {
       );
       lists = next as ShoppingList[];
       fixture.componentRef.setInput("lists", lists);
-      return of(undefined);
     });
 
     fixture = TestBed.createComponent(OverviewShoppingPanelComponent);

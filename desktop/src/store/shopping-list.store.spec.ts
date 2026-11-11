@@ -7,8 +7,7 @@ import { AuthState } from "./auth.state";
 import { SetPermissions } from "./auth.state.actions";
 import { GroupState } from "./group.state";
 import { SetGroups, SetSelectedGroupId } from "./group.state.actions";
-import { applyEvent, ShoppingListEventType, ShoppingListState } from "./shopping-list.state";
-import { ApplyShoppingListEvent, LoadShoppingLists, SelectShoppingList } from "./shopping-list.state.actions";
+import { applyEvent, ShoppingListEventType, ShoppingListStore } from "./shopping-list.store";
 
 const item = (id: number, overrides: Partial<ShoppingListItem> = {}): ShoppingListItem => ({
   id,
@@ -31,16 +30,18 @@ const list =(id: number, name: string, items: ShoppingListItem[] = []): Shopping
 
 const group = (id: number, isAllGroup = false): Group => ({ id, name: `group-${id}`, isAllGroup }) as Group;
 
-describe("ShoppingListState", () => {
+describe("ShoppingListStore", () => {
   let store: Store;
+  let listStore: ShoppingListStore;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState])],
+      imports: [NgxsModule.forRoot([AuthState, GroupState])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);
+    listStore = TestBed.inject(ShoppingListStore);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -49,13 +50,13 @@ describe("ShoppingListState", () => {
   });
 
   const load = (groupId: number, lists: ShoppingList[]) => {
-    store.dispatch(new LoadShoppingLists(groupId));
+    listStore.load(groupId);
     httpMock
       .expectOne((r) => r.method === "GET" && r.url.endsWith(`/shopping-list/group/${groupId}`))
       .flush(lists);
   };
 
-  describe("LoadShoppingLists", () => {
+  describe("load", () => {
     it("stores the group's lists newest first and selects the newest", () => {
       load(1, [
         { ...list(1, "Pharmacy"), createdAt: "2026-10-23T08:00:00Z" },
@@ -63,37 +64,37 @@ describe("ShoppingListState", () => {
         list(3, "Bakery"),
       ]);
 
-      expect(store.selectSnapshot(ShoppingListState.groupId)).toBe(1);
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Pharmacy", "Supermarket", "Bakery"]);
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(1);
+      expect(listStore.groupId()).toBe(1);
+      expect(listStore.lists().map((l) => l.name)).toEqual(["Pharmacy", "Supermarket", "Bakery"]);
+      expect(listStore.selectedList()?.id).toBe(1);
     });
 
     it("opens the newest list still being shopped, not a finished one", () => {
       load(1, [list(2, "Done", [item(1, { isChecked: true })]), list(1, "Open", [item(2)])]);
 
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(1);
+      expect(listStore.selectedList()?.id).toBe(1);
     });
 
     it("keeps the selection across a refetch while the list still exists", () => {
       load(1, [list(1, "A"), list(2, "B")]);
-      store.dispatch(new SelectShoppingList(2));
+      listStore.select(2);
 
       load(1, [list(1, "A"), list(2, "B")]);
 
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
+      expect(listStore.selectedList()?.id).toBe(2);
     });
 
     it("falls back to the newest list when the selected one is gone", () => {
       load(1, [list(1, "A"), list(2, "B"), list(3, "C")]);
-      store.dispatch(new SelectShoppingList(3));
+      listStore.select(3);
 
       load(1, [list(1, "A"), list(2, "B")]);
 
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
+      expect(listStore.selectedList()?.id).toBe(2);
 
       load(1, [list(1, "A")]);
 
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(1);
+      expect(listStore.selectedList()?.id).toBe(1);
     });
   });
 
@@ -108,22 +109,22 @@ describe("ShoppingListState", () => {
         ]),
       ]);
 
-      expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1, 3]);
-      expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([4, 2]);
+      expect(listStore.activeItems().map((i) => i.id)).toEqual([1, 3]);
+      expect(listStore.checkedItems().map((i) => i.id)).toEqual([4, 2]);
     });
   });
 
-  describe("ApplyShoppingListEvent", () => {
+  describe("applyEvent", () => {
     beforeEach(() => load(1, [list(1, "Supermarket", [item(1)])]));
 
-    const apply = (event: Parameters<typeof applyEvent>[1]) => store.dispatch(new ApplyShoppingListEvent(event));
+    const apply = (event: Parameters<typeof applyEvent>[1]) => listStore.applyEvent(event);
 
     it("adds an item, and applying the same event again changes nothing", () => {
       const event = { type: ShoppingListEventType.ItemAdded, groupId: 1, shoppingListId: 1, item: item(2) };
       apply(event);
       apply(event);
 
-      expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([1, 2]);
+      expect(listStore.activeItems().map((i) => i.id)).toEqual([1, 2]);
     });
 
     it("moves a toggled item to crossed off", () => {
@@ -134,22 +135,22 @@ describe("ShoppingListState", () => {
         item: item(1, { isChecked: true, checkedAt: "2026-10-19T12:00:00Z" }),
       });
 
-      expect(store.selectSnapshot(ShoppingListState.activeItems)).toEqual([]);
-      expect(store.selectSnapshot(ShoppingListState.checkedItems).map((i) => i.id)).toEqual([1]);
+      expect(listStore.activeItems()).toEqual([]);
+      expect(listStore.checkedItems().map((i) => i.id)).toEqual([1]);
     });
 
     it("removes a deleted item and cleared items", () => {
       apply({ type: ShoppingListEventType.ItemAdded, groupId: 1, shoppingListId: 1, item: item(2) });
       apply({ type: ShoppingListEventType.ItemDeleted, groupId: 1, shoppingListId: 1, item: item(1) });
-      expect(store.selectSnapshot(ShoppingListState.activeItems).map((i) => i.id)).toEqual([2]);
+      expect(listStore.activeItems().map((i) => i.id)).toEqual([2]);
 
       apply({ type: ShoppingListEventType.CheckedCleared, groupId: 1, shoppingListId: 1, itemIds: [2] });
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.items).toEqual([]);
+      expect(listStore.selectedList()?.items).toEqual([]);
     });
 
     it("creates, renames and deletes lists, keeping them sorted and the selection valid", () => {
       apply({ type: ShoppingListEventType.ListCreated, groupId: 1, shoppingListId: 2, list: list(2, "Bakery") });
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Bakery", "Supermarket"]);
+      expect(listStore.lists().map((l) => l.name)).toEqual(["Bakery", "Supermarket"]);
 
       apply({
         type: ShoppingListEventType.ListUpdated,
@@ -157,21 +158,21 @@ describe("ShoppingListState", () => {
         shoppingListId: 1,
         list: list(1, "Aldi", [item(1)]),
       });
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.name)).toEqual(["Bakery", "Aldi"]);
+      expect(listStore.lists().map((l) => l.name)).toEqual(["Bakery", "Aldi"]);
 
       apply({ type: ShoppingListEventType.ListDeleted, groupId: 1, shoppingListId: 1 });
-      expect(store.selectSnapshot(ShoppingListState.lists).map((l) => l.id)).toEqual([2]);
-      expect(store.selectSnapshot(ShoppingListState.selectedList)?.id).toBe(2);
+      expect(listStore.lists().map((l) => l.id)).toEqual([2]);
+      expect(listStore.selectedList()?.id).toBe(2);
     });
 
     it("ignores events for another group, unknown types, and items of unknown lists", () => {
-      const before = store.selectSnapshot(ShoppingListState.lists);
+      const before = listStore.lists();
 
       apply({ type: ShoppingListEventType.ItemAdded, groupId: 2, shoppingListId: 1, item: item(9) });
       apply({ type: "SOMETHING_NEW", groupId: 1, shoppingListId: 1, item: item(9) });
       apply({ type: ShoppingListEventType.ItemAdded, groupId: 1, shoppingListId: 99, item: item(9) });
 
-      expect(store.selectSnapshot(ShoppingListState.lists)).toBe(before);
+      expect(listStore.lists()).toBe(before);
     });
   });
 
@@ -187,25 +188,25 @@ describe("ShoppingListState", () => {
     });
 
     it("never offers the All group, even when its permissions include read", () => {
-      expect(store.selectSnapshot(ShoppingListState.readableGroups).map((g) => g.id)).toEqual([2]);
+      expect(listStore.readableGroups().map((g) => g.id)).toEqual([2]);
     });
 
     it("uses the selected group when its lists are readable", () => {
       store.dispatch(new SetSelectedGroupId("2"));
-      expect(store.selectSnapshot(ShoppingListState.targetGroupId)).toBe(2);
+      expect(listStore.targetGroupId()).toBe(2);
     });
 
     it("falls back to the first readable group otherwise", () => {
       store.dispatch(new SetSelectedGroupId("1"));
-      expect(store.selectSnapshot(ShoppingListState.targetGroupId)).toBe(2);
+      expect(listStore.targetGroupId()).toBe(2);
 
       store.dispatch(new SetSelectedGroupId("10"));
-      expect(store.selectSnapshot(ShoppingListState.targetGroupId)).toBe(2);
+      expect(listStore.targetGroupId()).toBe(2);
     });
 
     it("is undefined when no group's lists are readable", () => {
       store.dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead] }));
-      expect(store.selectSnapshot(ShoppingListState.targetGroupId)).toBeUndefined();
+      expect(listStore.targetGroupId()).toBeUndefined();
     });
   });
 });

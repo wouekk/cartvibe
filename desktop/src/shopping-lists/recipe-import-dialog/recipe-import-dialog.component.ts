@@ -2,7 +2,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { Store } from "@ngxs/store";
 import { take } from "rxjs";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
@@ -10,8 +9,8 @@ import { TranslationService } from "../../i18n/translation.service";
 import { RecipePreview, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
-import { ShoppingListEventType } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import {
   RECIPE_MULTIPLIERS,
   formatQuantity,
@@ -107,9 +106,10 @@ const GENERIC_FAILURE_HINT = marker("The recipe could not be read. Copy the ingr
     ],
 })
 export class RecipeImportDialogComponent {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly dialogRef = inject<AppDialogRef<RecipeImportDialogComponent, ShoppingList>>(AppDialogRef);
   private readonly shoppingListService = inject(ShoppingListService);
-  private readonly store = inject(Store);
   private readonly snackbarService = inject(SnackbarService);
   private readonly translation = inject(TranslationService);
 
@@ -322,14 +322,12 @@ export class RecipeImportDialogComponent {
       .pipe(take(1))
       .subscribe({
         next: (result) => {
-          this.store.dispatch(
-            new ApplyShoppingListEvent({
+          this.shoppingListStore.applyEvent({
               type: ShoppingListEventType.ListUpdated,
               groupId: result.list.groupId,
               shoppingListId: result.list.id,
               list: result.list,
-            })
-          );
+            });
           this.snackbarService.success(
             this.translation.t("Recipe added to the list: {name}", { name: result.list.name })
           );

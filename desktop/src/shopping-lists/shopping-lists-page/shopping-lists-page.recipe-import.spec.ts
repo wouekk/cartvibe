@@ -13,8 +13,7 @@ import { ShoppingListStreamService } from "../../services/shopping-list-stream.s
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { RecipeImportDialogComponent } from "../recipe-import-dialog/recipe-import-dialog.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
 
@@ -43,7 +42,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
     service = { getShoppingListsForGroup: vi.fn().mockReturnValue(of(options.lists ?? lists())) };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([AuthState, GroupState]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -70,7 +69,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
       ...store.snapshot(),
       auth: { ...store.snapshot().auth, groupPermissions: { 1: options.permissions ?? EDITOR } },
     });
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     await fixture.whenStable();

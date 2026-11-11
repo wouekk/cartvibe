@@ -3,14 +3,13 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, effect, input, signal, untracked, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Actions, ofActionDispatched, Store } from "@ngxs/store";
+import { Store } from "@ngxs/store";
 import { catchError, EMPTY, filter, from, merge, Observable, switchMap, take } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState } from "../../store";
-import { ShoppingListEventType } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent, LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType, ShoppingListStore } from "../../store/shopping-list.store";
 import { downscaleImageForUpload } from "../../utils/downscale-image";
 import { hasAll } from "../../utils/permission.utils";
 import { AttachReceiptDialogComponent } from "../attach-receipt-dialog/attach-receipt-dialog.component";
@@ -102,7 +101,6 @@ export class ShoppingTripsComponent {
 
   constructor(
     private store: Store,
-    private actions: Actions,
     private shoppingListService: ShoppingListService,
     private dialog: AppDialog,
     private snackbarService: SnackbarService
@@ -116,15 +114,12 @@ export class ShoppingTripsComponent {
       }
     });
 
+    const lists = inject(ShoppingListStore);
     merge(
-      this.actions.pipe(
-        ofActionDispatched(ApplyShoppingListEvent),
-        filter(
-          (action: ApplyShoppingListEvent) =>
-            action.event.type === ShoppingListEventType.TripsChanged && action.event.shoppingListId === this.listId()
-        )
+      lists.events.pipe(
+        filter((event) => event.type === ShoppingListEventType.TripsChanged && event.shoppingListId === this.listId())
       ),
-      this.actions.pipe(ofActionDispatched(LoadShoppingLists))
+      lists.loads
     )
       .pipe(
         filter(() => this.canSee()),

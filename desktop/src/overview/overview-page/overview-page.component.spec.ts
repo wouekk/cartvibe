@@ -31,7 +31,6 @@ import { AuthState } from "../../store/auth.state";
 import { FeatureConfigStore } from "../../store/feature-config.store";
 import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { todayInZone } from "../../utils/app-time-zone";
@@ -122,7 +121,7 @@ describe("OverviewPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, GroupState, ShoppingListState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
+    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, GroupState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

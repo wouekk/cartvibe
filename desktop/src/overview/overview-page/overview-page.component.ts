@@ -18,8 +18,7 @@ import { ProductCheckLauncher } from "../../product-check/product-check-launcher
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
 import { AuthState, GroupState, FeatureConfigStore } from "../../store";
 import { SnackbarService } from "../../services";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
@@ -188,6 +187,8 @@ const UNCATEGORIZED = marker("Uncategorized");
         PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly featureConfigStore = inject(FeatureConfigStore);
@@ -465,7 +466,7 @@ export class OverviewPageComponent {
   public readonly canQuickScan = computed(() => hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan));
 
   /** The shopping list group: this group when readable, otherwise the user's first readable one. */
-  public readonly shoppingListGroupId = this.store.selectSignal(ShoppingListState.targetGroupId);
+  public readonly shoppingListGroupId = this.shoppingListStore.targetGroupId;
 
   public readonly canCreateList = computed(() => {
     const listGroupId = this.shoppingListGroupId();
@@ -478,9 +479,9 @@ export class OverviewPageComponent {
   /** Where "New list" goes, as the segments a routerLink takes. */
   public readonly newListLink = computed(() => ["/shopping-lists/group", String(this.shoppingListGroupId())]);
 
-  private readonly shoppingLists = this.store.selectSignal(ShoppingListState.lists);
+  private readonly shoppingLists = this.shoppingListStore.lists;
 
-  private readonly loadedShoppingListGroupId = this.store.selectSignal(ShoppingListState.groupId);
+  private readonly loadedShoppingListGroupId = this.shoppingListStore.groupId;
 
   /** The open lists of the shopping list group, for the Dashboard's shopping panel (empty until that group has loaded). */
   public readonly openLists = computed(() =>
@@ -1043,7 +1044,7 @@ export class OverviewPageComponent {
     effect(() => {
       const groupId = this.shoppingListGroupId();
       if (groupId !== undefined) {
-        untracked(() => this.store.dispatch(new LoadShoppingLists(groupId)));
+        untracked(() => this.shoppingListStore.load(groupId));
       }
     });
 

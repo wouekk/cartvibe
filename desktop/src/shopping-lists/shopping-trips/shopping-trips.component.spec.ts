@@ -14,8 +14,8 @@ import { Permission, ShoppingListService, ShoppingTripView } from "../../open-ap
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingTripsComponent } from "./shopping-trips.component";
 
 import type { Mock } from "vitest";
@@ -58,7 +58,7 @@ describe("ShoppingTripsComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState, ShoppingListState]),
+        NgxsModule.forRoot([AuthState]),
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
@@ -123,14 +123,10 @@ describe("ShoppingTripsComponent", () => {
     await render([...LIST_PERMISSIONS, Permission.GroupReceiptsRead]);
     const store = TestBed.inject(Store);
 
-    store.dispatch(
-      new ApplyShoppingListEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 2 })
-    );
+    TestBed.inject(ShoppingListStore).applyEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 2 });
     expect(shoppingListService.getShoppingTrips).toHaveBeenCalledTimes(1);
 
-    store.dispatch(
-      new ApplyShoppingListEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 1 })
-    );
+    TestBed.inject(ShoppingListStore).applyEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 1 });
     expect(shoppingListService.getShoppingTrips).toHaveBeenCalledTimes(2);
   });
 });

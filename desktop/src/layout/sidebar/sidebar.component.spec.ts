@@ -13,7 +13,6 @@ import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { ShoppingListState } from "src/store/shopping-list.state";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, SetSelectedGroupId, FeatureConfigStore } from "../../store";
@@ -57,7 +56,7 @@ describe("SidebarComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, GroupState, ShoppingListState]),
+    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, GroupState]),
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,

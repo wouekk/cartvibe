@@ -13,8 +13,7 @@ import { ShoppingListStreamService } from "../../services/shopping-list-stream.s
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { AuthState } from "../../store/auth.state";
 import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
 
 import type { Mock } from "vitest";
@@ -73,7 +72,7 @@ describe("ShoppingListsPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([AuthState, GroupState]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -103,7 +102,7 @@ describe("ShoppingListsPageComponent", () => {
         },
       },
     });
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     component = fixture.componentInstance;
@@ -146,7 +145,7 @@ describe("ShoppingListsPageComponent", () => {
 
   it("leaves the active cards out when the only one is the open list", async () => {
     shoppingListService["getShoppingListsForGroup"].mockReturnValue(of([lists()[0]]));
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
     await fixture.whenStable();
 
     expect(component.showActiveCards()).toBe(false);

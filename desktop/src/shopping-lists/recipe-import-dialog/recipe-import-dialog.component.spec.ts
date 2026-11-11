@@ -23,8 +23,7 @@ import { SelectModule } from "../../select/select.module";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType, ShoppingListStore } from "../../store/shopping-list.store";
 import { TextareaModule } from "../../textarea/textarea.module";
 import { RecipeImportDialogComponent, RecipeImportDialogData } from "./recipe-import-dialog.component";
 
@@ -119,7 +118,7 @@ describe("RecipeImportDialogComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([ShoppingListState]),
+        NgxsModule.forRoot([]),
         HlmButton,
         HlmCheckbox,
         HlmSpinner,
@@ -497,21 +496,19 @@ describe("RecipeImportDialogComponent", () => {
 
       it("puts the merged list in the store, tells the person and closes", async () => {
         await create();
-        const dispatch = vi.spyOn(store, "dispatch");
+        const applyEvent = vi.spyOn(TestBed.inject(ShoppingListStore), "applyEvent");
         const merged = { ...supermarket, items: [item(1, "Milk"), item(9, "flour")] };
         service.importShoppingListRecipe.mockReturnValue(of({ ...result(), list: merged }));
         await preview();
 
         await submit();
 
-        expect(dispatch).toHaveBeenCalledWith(
-          new ApplyShoppingListEvent({
-            type: ShoppingListEventType.ListUpdated,
-            groupId: 1,
-            shoppingListId: 1,
-            list: merged,
-          })
-        );
+        expect(applyEvent).toHaveBeenCalledWith({
+          type: ShoppingListEventType.ListUpdated,
+          groupId: 1,
+          shoppingListId: 1,
+          list: merged,
+        });
         expect(snackbar.success).toHaveBeenCalledWith("Recipe added to the list: Supermarket");
         expect(dialogRef.close).toHaveBeenCalledWith(merged);
       });
