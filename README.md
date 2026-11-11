@@ -212,7 +212,7 @@ The same tour, with screenshots and a live demo, is on [cartvibe.app](https://ca
 | **Reports** | Build a report by category, shop, or month with a live preview, and export it to PDF, CSV, or Excel. |
 | **Barcode scanner** | Scan or type a barcode to see the Nutri-Score, NOVA level, additives, and nutrition from Open Food Facts. |
 | **Installs like an app** | Phone-first: add it to your home screen and it opens full-screen, with the everyday pages in a bar under your thumb and lists that never scroll sideways. In the shop, Shop mode shows the list alone with bigger rows and keeps the display awake. |
-| **Other** | Shop logos (with your own free Logo.dev key), light and dark modes with four accent palettes, five languages (English and Polish checked by hand), custom tags, multiple currencies, family accounts, `Ctrl`/`Cmd + K` search, and reminders. |
+| **Other** | Shop logos (with your own free Logo.dev key), light and dark modes with four accent palettes, five languages (English and Polish checked by hand), custom tags, multiple currencies, family accounts, sign-in through your own identity provider if you run one (Authentik, Authelia, Keycloak; [how](docs/faq.md#how-do-i-sign-in-with-authentik-authelia-or-keycloak)), `Ctrl`/`Cmd + K` search, and reminders. |
 
 <p align="center">
   <picture>

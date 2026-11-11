@@ -4,7 +4,7 @@ import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, take, tap, } from "rxjs";
-import { AppData, AuthService, FeatureConfigService } from "src/open-api";
+import { AppData, AuthService, FeatureConfigService, OidcProviderSummary } from "src/open-api";
 import { SnackbarService } from "src/services";
 import { setAppData } from "src/utils";
 import { GroupState, SetFeatureConfig } from "../../store";
@@ -12,6 +12,7 @@ import { FeatureConfigState } from "../../store/feature-config.state";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
+import { buildOidcLoginUrl, oidcErrorMessage } from "../../utils/oidc";
 
 @Component({
     selector: "app-auth-form",
@@ -35,6 +36,9 @@ export class AuthForm implements OnInit {
   /** On while the household has a Logo.dev key: the page then credits Logo.dev. */
   protected readonly shopLogosEnabled = inject(Store).selectSignal(FeatureConfigState.shopLogosEnabled);
 
+  /** The identity providers an admin switched on: one button each under the form. Empty on most installs. */
+  protected readonly oidcProviders = inject(Store).selectSignal(FeatureConfigState.oidcProviders);
+
   private readonly signInTransition = inject(SignInTransitionService);
 
   private readonly featureConfigService = inject(FeatureConfigService);
@@ -55,6 +59,39 @@ export class AuthForm implements OnInit {
     this.listenForRouteChanges();
     this.listenForIsSignUpChanges();
     this.refreshFeatureConfig();
+    this.showOidcError();
+  }
+
+  /**
+   * Starts a provider's sign-in by opening the server's address as a page: the browser has to follow the redirects
+   * to the provider itself, which a request made from here could not.
+   */
+  public loginWithProvider(provider: OidcProviderSummary): void {
+    this.navigateToUrl(buildOidcLoginUrl(provider.name));
+  }
+
+  /** Seam for the full-page navigation, so a spec can assert where it goes. */
+  protected navigateToUrl(url: string): void {
+    window.location.href = url;
+  }
+
+  /**
+   * A provider sign-in that failed comes back here with a code in the address. It is said once and then taken out
+   * of the address, so a reload or a shared link does not repeat it.
+   */
+  private showOidcError(): void {
+    const code = this.route.snapshot?.queryParams?.["oidcError"];
+    if (!code) {
+      return;
+    }
+
+    this.snackbarService.error(oidcErrorMessage(code));
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { oidcError: null },
+      queryParamsHandling: "merge",
+      replaceUrl: true,
+    });
   }
 
   /**

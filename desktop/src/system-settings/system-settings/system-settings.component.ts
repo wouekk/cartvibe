@@ -16,7 +16,7 @@ interface SystemSettingsTab extends TabConfig {
 /**
  * The System Settings shell: pill tabs (the Dashboard's period picker look) over cards. Each tab is a
  * route; Currency & Time Zone, Shop Logos, Auth and Tasks are the one settings form showing its own cards
- * (plus the tables that belong with them), Logs is the log viewer.
+ * (plus the tables that belong with them), Sign-in providers lists the identity providers, Logs is the log viewer.
  */
 @Component({
     selector: "app-system-settings",
@@ -61,9 +61,9 @@ export class SystemSettingsComponent implements OnInit {
   }
 
   private initTabs(): void {
-    // The four settings tabs are one form each, so they share the settings permission; the tables inside
-    // them (system emails, OIDC providers, tasks) are shown only to who may read them. Export & import has
-    // its own permission (a whole-household dump).
+    // The four settings tabs are one form each, so they share the settings permission; the task table inside
+    // one is shown only to who may read it. Sign-in providers and Export & import (a whole-household dump)
+    // have their own permission.
     const allTabs: SystemSettingsTab[] = [
       {
         label: marker("Currency & Time Zone"),
@@ -82,6 +82,12 @@ export class SystemSettingsComponent implements OnInit {
         routerLink: "security",
         name: "security",
         readPermission: Permission.AppSystemSettingsRead,
+      },
+      {
+        label: marker("Sign-in providers"),
+        routerLink: "providers",
+        name: "providers",
+        readPermission: Permission.AppOidcProvidersRead,
       },
       {
         label: marker("Tasks & Storage"),

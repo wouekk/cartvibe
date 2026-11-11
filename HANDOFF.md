@@ -23,8 +23,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     later sprint goes into `:preview` as it comes. Its migration `fixed-roles-v1` is one-way. Its three rewritten
     specs outside the smoke set (`group-delete-any`, `user-visibility`, `household-member-visibility`) have never
     run.
-  - Next, one branch each from `preview`: sprint 9 (identity-provider screens, `feature/oidc-ui`, started), 10 (app
-    cleanup), then 11 onward. The audit report lists what each holds.
+  - Sprint 9 (identity-provider screens, `feature/oidc-ui`) is in `preview` too: web app only, proved by component
+    specs; no sign-in was made end to end, because the agent has no identity provider.
+  - Next, one branch each from `preview`: sprint 10 (app cleanup), then 11 onward. The audit report lists what
+    each holds.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac
@@ -74,6 +76,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   has no "database is locked".
 - On a phone (`:preview`): the receipts page starts with receipts (three rows above the list); *Custom* shows the
   two date fields; the Dashboard opens without a failed panel on a slow connection.
+- Sprint 9, only if an identity provider runs at home (Authentik, Authelia, Keycloak): follow the FAQ's *How do I
+  sign in with…* on `:preview`; the login page gets the button, signing in lands on the Dashboard, and *Connect*
+  under User Settings → Sign-in methods ties it to an existing account. Without one, System Settings has one more
+  tab and nothing else changes.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around

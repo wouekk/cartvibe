@@ -27,6 +27,9 @@ about them: run them in Docker before trusting them. The run figures above are f
 touches a list, the scan dialog and a receipt. `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
 added a template under a pending click. More files join smoke only after three green runs; one that turns flaky in CI leaves the list again.
 
+Signing in with an identity provider has no Playwright spec: it needs a provider to sign in at, and none runs beside
+the suite. The screens are covered by their component specs, the flow by the API's tests against a fake provider.
+
 **Phones.** `phone-shell.phone.spec.ts` is the app as it is used in the shop: from the landing page by taps only,
 the tab bar, a new list with an item added and crossed off, the receipts as cards, and no sideways scroll on the
 way. It does not tap Scan: that tab is there only while one household is browsed, and the specs beside it give the

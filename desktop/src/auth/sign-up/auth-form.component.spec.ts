@@ -19,6 +19,8 @@ import { SnackbarService } from '../../services/snackbar.service';
 import { SignInTransitionService } from '../../services/sign-in-transition.service';
 import { AuthForm } from './auth-form.component';
 import { CartVibeLogoComponent } from '../../shared-ui/cartvibe-logo/cartvibe-logo.component';
+import { AppIconComponent } from '../../shared-ui/icon/icon.component';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { AuthState } from '../../store/auth.state';
 import { FeatureConfigState } from '../../store/feature-config.state';
 import { GroupState } from '../../store/group.state';
@@ -35,6 +37,8 @@ describe('AuthForm', () => {
     await TestBed.configureTestingModule({
     declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
+        HlmButton,
+        AppIconComponent,
         CartVibeLogoComponent,
         InputModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
@@ -79,6 +83,71 @@ describe('AuthForm', () => {
 
     expect(attribution().textContent.trim()).toBe('Logos provided by Logo.dev');
     expect(attribution().querySelector('a').getAttribute('href')).toBe('https://logo.dev');
+  });
+
+  describe('signing in with an identity provider', () => {
+    const providers = () => fixture.nativeElement.querySelector('[data-testid="oidc-providers"]');
+
+    async function switchOn(...names: string[]) {
+      await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({
+        enableLocalSignUp: true,
+        aiPoweredReceipts: false,
+        oidcProviders: names.map((name) => ({ name, displayName: name.toUpperCase() })),
+      })));
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+    }
+
+    it('shows nothing on an install without a provider', () => {
+      expect(providers()).toBeNull();
+    });
+
+    it('offers one button per provider, which opens the server\'s sign-in address as a page', async () => {
+      await switchOn('authentik', 'key cloak');
+      const navigate = vi.spyOn(component as any, 'navigateToUrl').mockImplementation(() => undefined);
+
+      const buttons: HTMLButtonElement[] = Array.from(providers().querySelectorAll('button'));
+      expect(buttons.map((button) => button.textContent?.trim())).toEqual(['Sign in with AUTHENTIK', 'Sign in with KEY CLOAK']);
+
+      fixture.nativeElement.querySelector('[data-testid="oidc-login-key cloak"]').click();
+
+      expect(navigate).toHaveBeenCalledWith('/api/oidc/key%20cloak/login');
+    });
+
+    it('keeps the buttons off the sign-up page', async () => {
+      await switchOn('authentik');
+      component.isSignUp.next(true);
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(providers()).toBeNull();
+    });
+
+    it('says why a provider sign-in failed, once, and takes the code out of the address', () => {
+      const errorSpy = vi.spyOn(TestBed.inject(SnackbarService), 'error').mockImplementation(() => {});
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      TestBed.inject(ActivatedRoute).snapshot.queryParams = { oidcError: 'no_account' };
+
+      const returned = TestBed.createComponent(AuthForm);
+      returned.detectChanges();
+      TestBed.inject(HttpTestingController).expectOne('/api/featureConfig').flush({ enableLocalSignUp: true, aiPoweredReceipts: false });
+
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy.mock.calls[0][0]).toContain('No CartVibe account is connected to that identity');
+      expect(navigate).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { oidcError: null }, replaceUrl: true }));
+    });
+
+    it('answers a code it does not know, or one that is a property of every object, with the general text', () => {
+      const errorSpy = vi.spyOn(TestBed.inject(SnackbarService), 'error').mockImplementation(() => {});
+      vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      TestBed.inject(ActivatedRoute).snapshot.queryParams = { oidcError: 'constructor' };
+
+      const returned = TestBed.createComponent(AuthForm);
+      returned.detectChanges();
+      TestBed.inject(HttpTestingController).expectOne('/api/featureConfig').flush({ enableLocalSignUp: true, aiPoweredReceipts: false });
+
+      expect(errorSpy).toHaveBeenCalledWith('Signing in with the provider failed. Please try again.');
+    });
   });
 
   // Regression guard: isLoading used to be a plain field reset inside finalize().

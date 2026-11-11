@@ -1,0 +1,61 @@
+@if (needsServerUrl()) {
+  <div
+    class="rounded-lg border border-warning/40 bg-warning/15 px-4 py-3 text-sm text-foreground"
+    data-testid="oidc-server-url-missing"
+  >
+    {{ 'Set the Server Public URL first: it is the start of the address every provider sends people back to, and a provider cannot be switched on without it.' | t }}
+    <a class="cv-link" routerLink="/system-settings/security">{{ 'Open Auth & Security' | t }}</a>
+  </div>
+}
+
+<app-settings-section
+  testId="settings-card-oidc-providers"
+  title="Sign-in providers"
+  description="Let people sign in with an account they already have at your identity provider (Authentik, Authelia, Keycloak, Google and any other OpenID Connect provider) instead of a CartVibe password. Each provider you switch on gets a button on the login page."
+>
+  @if (canCreate()) {
+    <button sectionActions hlmBtn type="button" data-testid="oidc-provider-add" (click)="openForm()">
+      <app-icon name="add"></app-icon>
+      {{ 'Add provider' | t }}
+    </button>
+  }
+
+  @if (loaded() && providers().length === 0) {
+    <div class="cv-section items-center text-center" data-testid="oidc-providers-empty">
+      <app-icon name="vpn_key" class="size-6 text-muted-foreground"></app-icon>
+      <p class="m-0 text-sm text-muted-foreground">
+        {{ 'No sign-in provider yet. Everyone signs in with their CartVibe username and password.' | t }}
+      </p>
+    </div>
+  }
+
+  @if (providers().length > 0) {
+    <ul class="m-0 list-none p-0" data-testid="oidc-provider-rows">
+      @for (provider of providers(); track provider.id) {
+        <li
+          class="flex min-h-14 items-center gap-3 border-b border-border/40 px-6 py-2 last:border-b-0 hover:bg-muted/40"
+          data-testid="oidc-provider-row"
+        >
+          <div class="flex min-w-0 flex-1 flex-col">
+            <span class="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium">
+              <span class="min-w-0 break-words" data-testid="oidc-provider-row-name">{{ provider.displayName }}</span>
+              @if (provider.enabled) {
+                <app-badge text="Switched on" tone="green" data-testid="oidc-provider-row-status"></app-badge>
+              } @else {
+                <app-badge text="Switched off" data-testid="oidc-provider-row-status"></app-badge>
+              }
+            </span>
+            <span class="min-w-0 text-xs break-all text-muted-foreground">{{ provider.issuerUrl }}</span>
+          </div>
+          <app-row-actions
+            menuTestId="oidc-provider-menu"
+            [menuLabel]="'Provider actions' | t"
+            [actions]="rowActions"
+            [row]="provider"
+            (run)="rowAction($event, provider)"
+          ></app-row-actions>
+        </li>
+      }
+    </ul>
+  }
+</app-settings-section>

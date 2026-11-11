@@ -42,6 +42,71 @@
   </app-form-section>
 </ng-template>
 
+<!-- Signing in with an identity provider: only on an install where an admin switched one on, or for an account
+     that is connected to one. Connecting here is the safe way to attach an account: the session proves who asks. -->
+@if (showSignInMethods()) {
+  <div class="mt-4" data-testid="sign-in-methods">
+    <app-settings-section
+      title="Sign-in methods"
+      description="Sign in with an account at an identity provider instead of your password. Connect one here and its button on the login page opens this account."
+    >
+      <ul class="m-0 list-none p-0">
+        @for (connection of connections(); track connection.providerName) {
+          <li
+            class="flex min-h-14 items-center gap-3 border-b border-border/40 px-6 py-2 last:border-b-0"
+            data-testid="oidc-connection"
+          >
+            <div class="flex min-w-0 flex-1 flex-col">
+              <span class="text-sm font-medium break-words">{{ connection.providerDisplayName }}</span>
+              <span class="text-xs break-all text-muted-foreground">
+                {{ connection.email || connection.preferredUsername || ('Connected' | t) }}
+              </span>
+              @if (!canDisconnect(connection)) {
+                <span class="text-xs text-muted-foreground" data-testid="oidc-connection-required">
+                  {{ 'This account has no password, so this provider is the only way in. An admin can set a password first.' | t }}
+                </span>
+              }
+            </div>
+            <!-- Without app.account.update the list is read-only. -->
+            @if (canEdit() && canDisconnect(connection)) {
+              <button
+                hlmBtn
+                variant="outline"
+                type="button"
+                [attr.data-testid]="'oidc-disconnect-' + connection.providerName"
+                (click)="disconnectProvider(connection)"
+              >
+                {{ 'Disconnect' | t }}
+              </button>
+            }
+          </li>
+        }
+        @for (provider of availableProviders(); track provider.name) {
+          <li
+            class="flex min-h-14 items-center gap-3 border-b border-border/40 px-6 py-2 last:border-b-0"
+            data-testid="oidc-available"
+          >
+            <div class="flex min-w-0 flex-1 flex-col">
+              <span class="text-sm font-medium break-words">{{ provider.displayName }}</span>
+              <span class="text-xs text-muted-foreground">{{ 'Not connected' | t }}</span>
+            </div>
+            @if (canEdit()) {
+              <button
+                hlmBtn
+                variant="outline"
+                type="button"
+                [attr.data-testid]="'oidc-connect-' + provider.name"
+                (click)="connectProvider(provider)"
+              >
+                {{ 'Connect' | t }}
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    </app-settings-section>
+  </div>
+}
 
 <!-- A lost phone, or a browser left signed in somewhere: one button ends every session, this one included. -->
 <div class="mt-4" data-testid="sessions-section">

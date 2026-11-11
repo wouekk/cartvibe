@@ -17,6 +17,12 @@ export const authRoutes: Routes = [
     path: 'login',
     component: AuthForm,
   },
+  {
+    // Where the server sends the browser after a sign-in at an identity provider. It sits under /auth on purpose:
+    // the auth guard lets a browser without a stored session through any address that contains "auth".
+    path: 'callback',
+    loadComponent: () => import('./oidc-callback/oidc-callback.component').then((m) => m.OidcCallbackComponent),
+  },
 ];
 
 @NgModule({

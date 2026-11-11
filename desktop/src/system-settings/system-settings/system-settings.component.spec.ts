@@ -86,6 +86,15 @@ describe("SystemSettingsComponent", () => {
     expect(component.filterTabs[4].label).toBe("Export & import");
   });
 
+  it("adds Sign-in providers after Auth & Security only for who may read the providers", () => {
+    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead, Permission.AppOidcProvidersRead], {}));
+
+    fixture.detectChanges();
+
+    expect(component.tabs.map((tab) => tab.name)).toEqual(["general", "logos", "security", "providers", "tasks", "logs"]);
+    expect(component.filterTabs[3].label).toBe("Sign-in providers");
+  });
+
   it("opens a tab's route when it is picked", () => {
     store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
     fixture.detectChanges();

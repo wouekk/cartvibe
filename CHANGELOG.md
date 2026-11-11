@@ -38,6 +38,12 @@ and you can add `stop_grace_period: 30s` to your stack as the README shows, so a
 it is doing.
 
 ### Added
+- **Sign in with your own identity provider.** If you run Authentik, Authelia, Keycloak or another OpenID Connect
+  provider, an admin can add it under *System Settings → Sign-in providers*, and the login page gets a *Sign in
+  with …* button for it. People who already have an account connect the provider under *User Settings → Sign-in
+  methods*; someone new gets an account only if the admin allowed that for the provider. Signing in with a name and
+  password works as before, and nothing changes for a household that adds no provider. The
+  [FAQ](docs/faq.md#how-do-i-sign-in-with-authentik-authelia-or-keycloak) has the steps *(ADM-19)*.
 - **Ollama on the AI page, with a context size.** Ollama is its own provider now: enter the server's address alone,
   and a *Context size*, so a long receipt is read whole instead of in part *(ADM-05)*.
 - **What the AI used.** The AI page lists, for this month and the last, how many reads each model did and how many
