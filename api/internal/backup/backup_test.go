@@ -118,7 +118,7 @@ func seedHousehold(t *testing.T) seeded {
 	file := models.FileData{Name: "scan.pdf", FileType: "application/pdf", Size: uint(len(fileBytes)), ReceiptId: receipt.ID}
 	mustCreate(&file)
 	fileRepository := repositories.NewFileRepository(nil)
-	path, err := fileRepository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(file.ID), file.Name)
+	path, err := fileRepository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(file.ID))
 	if err != nil {
 		t.Fatalf("file path: %v", err)
 	}

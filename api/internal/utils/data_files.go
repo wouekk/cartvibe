@@ -134,13 +134,16 @@ func RenameDataPath(oldPath string, newPath string) error {
 
 // EnsureDataDirectory creates path inside the data directory if it does not
 // already exist, refusing any path that would escape it. Unlike
-// MakeDataDirectory it is tolerant of an already-existing directory.
+// MakeDataDirectory it is tolerant of an already-existing directory, and it
+// makes the data directory itself when that is missing too (a server started
+// in a new folder), so a household's first file does not depend on someone
+// having made data/ by hand.
 func EnsureDataDirectory(path string) error {
 	if err := AssertWithinDataDir(path); err != nil {
 		return err
 	}
 
-	return DirectoryExists(path, true)
+	return os.MkdirAll(path, os.ModePerm)
 }
 
 // WriteDataFile writes data to a file inside the data directory, refusing any

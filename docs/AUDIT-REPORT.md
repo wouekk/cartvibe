@@ -258,6 +258,14 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     kind and pushed by digest; a last job puts both under the tags. Nothing is emulated. amd64 is what the smoke
     suite tests and what must publish; a failed arm64 build publishes the tags with amd64 alone and says so.
     Never run on an ARM machine.
+  - B6, id-only file paths (`feature/id-file-paths`, cut from `preview`, 2026-11-11): a receipt file is
+    `data/<groupId>/<fileId>`. No name a person typed is part of a path any more, so the folder move inside a
+    household rename is deleted (with the refusal it could cause), and the path helpers take numbers only. One
+    data migration, `id-file-paths-v1`, moves the files of an existing install by renaming them; it is one-way.
+    Proved by unit tests of the migration (a cut-short run, a missing file, a stray file, a folder under an
+    older name, a file that cannot be moved) and by a real upgrade on the PC: the previous binary stored two
+    photos, the new one moved them at its start (after the database snapshot), served the same bytes, renamed
+    the household without touching a file and stored a new upload by id. Never on the NAS.
 
 ---
 

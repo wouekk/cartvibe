@@ -4,7 +4,6 @@ import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
-	"os"
 	"path/filepath"
 	"testing"
 )
@@ -27,11 +26,11 @@ func seedGroupWithReceiptFile(t *testing.T, groupName string) (models.Group, mod
 		t.Fatalf("seed receipt: %v", err)
 	}
 
-	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
+	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7")
 	if err != nil {
 		t.Fatalf("build path: %v", err)
 	}
-	if err := utils.MakeDataDirectory(filepath.Dir(path)); err != nil {
+	if err := utils.EnsureDataDirectory(filepath.Dir(path)); err != nil {
 		t.Fatalf("make folder: %v", err)
 	}
 	if err := utils.WriteDataFile(path, []byte("receipt bytes")); err != nil {
@@ -40,12 +39,10 @@ func seedGroupWithReceiptFile(t *testing.T, groupName string) (models.Group, mod
 	return group, receipt
 }
 
-func cleanGroupFolders(t *testing.T, groupId uint, names ...string) {
+func cleanGroupFolder(t *testing.T, groupId uint) {
 	t.Cleanup(func() {
-		for _, name := range names {
-			if path, err := utils.BuildGroupPathString(utils.UintToString(groupId), name); err == nil {
-				_ = utils.RemoveAllInDataDir(path)
-			}
+		if path, err := utils.BuildGroupPathString(utils.UintToString(groupId)); err == nil {
+			_ = utils.RemoveAllInDataDir(path)
 		}
 	})
 }
@@ -60,7 +57,7 @@ func renameCommand(group models.Group, name string) commands.UpsertGroupCommand 
 
 func readReceiptFile(t *testing.T, receipt models.Receipt) []byte {
 	t.Helper()
-	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7", "photo.jpg")
+	path, err := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7")
 	if err != nil {
 		t.Fatalf("build path: %v", err)
 	}
@@ -71,25 +68,28 @@ func readReceiptFile(t *testing.T, receipt models.Receipt) []byte {
 	return bytes
 }
 
-func TestUpdateGroup_RenameMovesTheDataFolderSoFilesStayReachable(t *testing.T) {
+// A household's files are in data/<id>, so a rename touches nothing on disk and can never be refused for a folder.
+func TestUpdateGroup_RenameLeavesTheFilesWhereTheyAre(t *testing.T) {
 	defer TruncateTestDb()
 	group, receipt := seedGroupWithReceiptFile(t, "Household")
-	cleanGroupFolders(t, group.ID, "Household", "Kowalscy")
+	cleanGroupFolder(t, group.ID)
+	before, _ := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7")
 
-	updated, err := setupGroupRepository().UpdateGroup(renameCommand(group, "Kowalscy"), utils.UintToString(group.ID))
+	// A name that would have been a path of its own, were names still part of one.
+	updated, err := setupGroupRepository().UpdateGroup(renameCommand(group, "Kowalscy & Co (2026)"), utils.UintToString(group.ID))
 	if err != nil {
 		t.Fatalf("rename: %v", err)
 	}
-	if updated.Name != "Kowalscy" {
-		utils.PrintTestError(t, updated.Name, "Kowalscy")
+	if updated.Name != "Kowalscy & Co (2026)" {
+		utils.PrintTestError(t, updated.Name, "Kowalscy & Co (2026)")
 	}
 	if got := string(readReceiptFile(t, receipt)); got != "receipt bytes" {
 		utils.PrintTestError(t, got, "receipt bytes")
 	}
 
-	oldPath, _ := utils.BuildGroupPathString(utils.UintToString(group.ID), "Household")
-	if exists, _ := utils.DataPathExists(oldPath); exists {
-		t.Fatalf("the old folder is still there after the rename")
+	after, _ := NewFileRepository(nil).BuildFilePath(utils.UintToString(receipt.ID), "7")
+	if after != before {
+		utils.PrintTestError(t, after, before)
 	}
 }
 
@@ -99,7 +99,7 @@ func TestUpdateGroup_RenameWithoutAFolderJustRenames(t *testing.T) {
 	group := models.Group{Name: "Empty"}
 	GetDB().Create(&group)
 	GetDB().Create(&models.GroupMember{GroupID: group.ID, UserID: 1})
-	cleanGroupFolders(t, group.ID, "Empty", "Still empty")
+	cleanGroupFolder(t, group.ID)
 
 	updated, err := setupGroupRepository().UpdateGroup(renameCommand(group, "Still empty"), utils.UintToString(group.ID))
 	if err != nil {
@@ -107,55 +107,6 @@ func TestUpdateGroup_RenameWithoutAFolderJustRenames(t *testing.T) {
 	}
 	if updated.Name != "Still empty" {
 		utils.PrintTestError(t, updated.Name, "Still empty")
-	}
-}
-
-func TestUpdateGroup_RenameRefusedWhenTheTargetFolderExistsKeepsTheOldName(t *testing.T) {
-	defer TruncateTestDb()
-	group, receipt := seedGroupWithReceiptFile(t, "Home")
-	cleanGroupFolders(t, group.ID, "Home", "Cabin")
-
-	taken, _ := utils.BuildGroupPathString(utils.UintToString(group.ID), "Cabin")
-	if err := utils.MakeDataDirectory(taken); err != nil {
-		t.Fatalf("make taken folder: %v", err)
-	}
-
-	if _, err := setupGroupRepository().UpdateGroup(renameCommand(group, "Cabin"), utils.UintToString(group.ID)); err == nil {
-		t.Fatalf("expected the rename to be refused")
-	}
-
-	var stored models.Group
-	GetDB().First(&stored, group.ID)
-	if stored.Name != "Home" {
-		utils.PrintTestError(t, stored.Name, "Home")
-	}
-	if got := string(readReceiptFile(t, receipt)); got != "receipt bytes" {
-		utils.PrintTestError(t, got, "receipt bytes")
-	}
-}
-
-func TestGroupFolderMove_UndoMovesTheFolderBack(t *testing.T) {
-	dataDir, _ := utils.GetDataDir()
-	_ = os.MkdirAll(dataDir, 0o755)
-	cleanGroupFolders(t, 424242, "Before", "After")
-
-	move, err := planGroupFolderMove(424242, "Before", "After")
-	if err != nil {
-		t.Fatalf("plan: %v", err)
-	}
-	if err := utils.MakeDataDirectory(move.from); err != nil {
-		t.Fatalf("make folder: %v", err)
-	}
-	if err := move.apply(); err != nil {
-		t.Fatalf("apply: %v", err)
-	}
-	move.undo()
-
-	if exists, _ := utils.DataPathExists(move.from); !exists {
-		t.Fatalf("undo did not move the folder back")
-	}
-	if exists, _ := utils.DataPathExists(move.to); exists {
-		t.Fatalf("undo left the new folder behind")
 	}
 }
 
@@ -177,7 +128,7 @@ func TestRenamedHouseholdStillTakesInNewAccounts(t *testing.T) {
 	if err != nil || household.ID == 0 || !household.IsHousehold {
 		t.Fatalf("the first account's group is not flagged as the household: %+v, %v", household, err)
 	}
-	cleanGroupFolders(t, household.ID, HouseholdGroupName, "Kowalscy")
+	cleanGroupFolder(t, household.ID)
 
 	command := commands.UpsertGroupCommand{
 		Name:         "Kowalscy",

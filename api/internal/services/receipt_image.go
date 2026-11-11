@@ -38,7 +38,7 @@ func ReadReceiptImage(receiptImageId string) (commands.UpsertReceiptCommand, com
 	}
 	fileRepository := repositories.NewFileRepository(nil)
 
-	receiptImagePath, err := fileRepository.BuildFilePath(utils.UintToString(receiptImage.ReceiptId), receiptImageId, receiptImage.Name)
+	receiptImagePath, err := fileRepository.BuildFilePath(utils.UintToString(receiptImage.ReceiptId), receiptImageId)
 	if err != nil {
 		return result, commands.ReceiptProcessingMetadata{}, err
 	}

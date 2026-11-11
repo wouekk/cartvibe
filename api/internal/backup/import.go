@@ -616,7 +616,7 @@ func (run *importRun) writeFiles() error {
 		if err := run.tx.Omit(clause.Associations).Create(&created).Error; err != nil {
 			return err
 		}
-		final, err := fileRepository.BuildFilePath(utils.UintToString(created.ReceiptId), utils.UintToString(created.ID), created.Name)
+		final, err := fileRepository.BuildFilePath(utils.UintToString(created.ReceiptId), utils.UintToString(created.ID))
 		if err != nil {
 			return err
 		}

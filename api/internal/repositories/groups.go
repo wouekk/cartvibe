@@ -178,15 +178,6 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 		return models.Group{}, err
 	}
 
-	var stored models.Group
-	if err := db.Model(models.Group{}).Select("id", "name").Where("id = ?", uintId).First(&stored).Error; err != nil {
-		return models.Group{}, err
-	}
-	folderMove, err := planGroupFolderMove(uintId, stored.Name, command.Name)
-	if err != nil {
-		return models.Group{}, err
-	}
-
 	groupToUpdate := models.Group{
 		Name:   command.Name,
 		Status: command.Status,
@@ -229,12 +220,10 @@ func (repository GroupRepository) UpdateGroup(command commands.UpsertGroupComman
 			return txErr
 		}
 
-		// Last, so a failed move rolls the whole update back: receipt files are found through the group's
-		// current name, so the folder and the name must change together.
-		return folderMove.apply()
+		// Nothing on disk follows a rename: the group's files are in data/<id>.
+		return nil
 	})
 	if err != nil {
-		folderMove.undo()
 		return models.Group{}, err
 	}
 

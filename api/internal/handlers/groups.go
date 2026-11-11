@@ -204,12 +204,13 @@ func CreateGroup(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fileRepository := repositories.NewFileRepository(nil)
-			groupPath, err := fileRepository.BuildGroupPath(group.ID, "")
+			groupPath, err := fileRepository.BuildGroupPath(group.ID)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
 
-			err = utils.MakeDataDirectory(groupPath)
+			// The household's folder of receipt files, data/<id>. Tolerant of one that is already there.
+			err = utils.EnsureDataDirectory(groupPath)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

@@ -35,37 +35,60 @@ func TestIsSafePathComponent(t *testing.T) {
 	}
 }
 
-func TestBuildGroupPathString_ValidNameStaysInDataDir(t *testing.T) {
+func TestBuildGroupPathString_IsTheIdUnderTheDataDir(t *testing.T) {
 	dataDir, err := GetDataDir()
 	if err != nil {
 		t.Fatalf("GetDataDir: %v", err)
 	}
 
-	got, err := BuildGroupPathString("42", "My Receipts")
+	got, err := BuildGroupPathString("42")
 	if err != nil {
-		t.Fatalf("unexpected error for a valid name: %v", err)
+		t.Fatalf("unexpected error for an id: %v", err)
 	}
 
-	want := filepath.Join(dataDir, "42-My Receipts")
+	want := filepath.Join(dataDir, "42")
 	if got != want {
 		PrintTestError(t, got, want)
 	}
 }
 
-func TestBuildGroupPathString_RejectsTraversal(t *testing.T) {
-	// Enough ".." to climb out of the data dir regardless of the test cwd depth.
-	names := []string{
-		"../../../../../../../../../../tmp/x",
-		"../../../../../../../../../../etc",
+// A household's folder and a file in it are named by ids alone. Anything that is not a number is refused, so
+// nothing a person typed (a household's name, an upload's name) can ever be part of a path.
+func TestReceiptFilePaths_TakeNumbersOnly(t *testing.T) {
+	notIds := []string{
+		"", " ", "42-Home", "4 2", "-1", "1.5", "0x10", "..", "../42", "42/..", "42/7", "42\\7", "abc",
+		"../../../../../../../../../../tmp/x", "４２",
 	}
 
-	for _, name := range names {
-		t.Run(name, func(t *testing.T) {
-			got, err := BuildGroupPathString("42", name)
-			if err == nil {
-				PrintTestError(t, got, "error: path escapes data directory")
+	for _, value := range notIds {
+		t.Run(value, func(t *testing.T) {
+			if got, err := BuildGroupPathString(value); err == nil {
+				PrintTestError(t, got, "error: not a number")
+			}
+			if got, err := BuildReceiptFilePathString(value, "7"); err == nil {
+				PrintTestError(t, got, "error: the household is not a number")
+			}
+			if got, err := BuildReceiptFilePathString("42", value); err == nil {
+				PrintTestError(t, got, "error: the file is not a number")
 			}
 		})
+	}
+}
+
+func TestBuildReceiptFilePathString_IsHouseholdThenFile(t *testing.T) {
+	dataDir, err := GetDataDir()
+	if err != nil {
+		t.Fatalf("GetDataDir: %v", err)
+	}
+
+	got, err := BuildReceiptFilePathString("42", "1007")
+	if err != nil {
+		t.Fatalf("unexpected error for two ids: %v", err)
+	}
+
+	want := filepath.Join(dataDir, "42", "1007")
+	if got != want {
+		PrintTestError(t, got, want)
 	}
 }
 

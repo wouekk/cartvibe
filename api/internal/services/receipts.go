@@ -188,7 +188,7 @@ func (service ReceiptService) DeleteReceipt(id string) error {
 		fileRepository.SetTransaction(tx)
 
 		for _, f := range receipt.ImageFiles {
-			path, _ := fileRepository.BuildFilePath(utils.UintToString(f.ReceiptId), utils.UintToString(f.ID), f.Name)
+			path, _ := fileRepository.BuildFilePath(utils.UintToString(f.ReceiptId), utils.UintToString(f.ID))
 			imagesToDelete = append(imagesToDelete, path)
 		}
 
@@ -750,7 +750,6 @@ func copyDuplicateImages(tx *gorm.DB, sources []models.FileData, copies []models
 		sourcePath, err := fileRepository.BuildFilePath(
 			utils.UintToString(source.ReceiptId),
 			utils.UintToString(source.ID),
-			source.Name,
 		)
 		if err != nil {
 			return written, err
@@ -764,7 +763,6 @@ func copyDuplicateImages(tx *gorm.DB, sources []models.FileData, copies []models
 		copyPath, err := fileRepository.BuildFilePath(
 			utils.UintToString(copied.ReceiptId),
 			utils.UintToString(copied.ID),
-			copied.Name,
 		)
 		if err != nil {
 			return written, err
@@ -839,7 +837,6 @@ func (service ReceiptService) CreateReceiptWithFiles(
 				path, pathErr := fileRepository.BuildFilePath(
 					utils.UintToString(createdReceiptId),
 					utils.UintToString(createdFile.ID),
-					createdFile.Name,
 				)
 				if pathErr != nil {
 					return pathErr

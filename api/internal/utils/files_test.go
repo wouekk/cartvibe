@@ -189,23 +189,14 @@ func TestReadLastFileLineShouldReturnErrorOnOpenErrorOutsideTestEnv(t *testing.T
 }
 
 func TestBuildGroupPathStringShouldBuildPath(t *testing.T) {
-	path, err := BuildGroupPathString("42", "Groceries")
+	path, err := BuildGroupPathString("42")
 	if err != nil {
 		PrintTestError(t, err, nil)
 	}
 
-	expectedSuffix := filepath.Join("data", "42-Groceries")
+	expectedSuffix := filepath.Join("data", "42")
 	if !strings.HasSuffix(path, expectedSuffix) {
 		t.Errorf("Expected path to end with %q, got %q", expectedSuffix, path)
-	}
-}
-
-func TestBuildFileNameShouldConcatenate(t *testing.T) {
-	expected := "r1-f2-receipt.jpg"
-
-	actual := BuildFileName("r1", "f2", "receipt.jpg")
-	if actual != expected {
-		PrintTestError(t, actual, expected)
 	}
 }
 

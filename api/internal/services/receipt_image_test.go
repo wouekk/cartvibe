@@ -100,7 +100,7 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 
 	// Write the jpg to the path BuildFilePath will resolve.
 	fileRepo := repositories.NewFileRepository(nil)
-	path, err := fileRepo.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID), fileData.Name)
+	path, err := fileRepo.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID))
 	if err != nil {
 		t.Fatalf("BuildFilePath: %v", err)
 	}
@@ -160,7 +160,7 @@ func TestReadReceiptImage_PdfRoutesThroughConversion(t *testing.T) {
 	// match.
 	db := repositories.GetDB()
 	fileRepo := repositories.NewFileRepository(nil)
-	path, err := fileRepo.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
+	path, err := fileRepo.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID))
 	if err != nil {
 		t.Fatalf("BuildFilePath: %v", err)
 	}

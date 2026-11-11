@@ -26,12 +26,11 @@ type Group struct {
 	Color string `json:"color" gorm:"not null;default:''"`
 }
 
-// A rename moves the group's data folder; that happens in GroupRepository.UpdateGroup, inside the transaction, so a
-// failed move rolls the new name back instead of leaving receipt files under a folder nothing points at.
+// A group's receipt files live in data/<id>: the folder goes with the group, and a rename does not touch it.
 
 func (deletedGroup *Group) AfterDelete(tx *gorm.DB) (err error) {
 	if deletedGroup.ID > 0 {
-		dataPath, err := utils.BuildGroupPathString(utils.UintToString(deletedGroup.ID), deletedGroup.Name)
+		dataPath, err := utils.BuildGroupPathString(utils.UintToString(deletedGroup.ID))
 		if err != nil {
 			return err
 		}

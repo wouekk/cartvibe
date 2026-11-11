@@ -114,12 +114,19 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 
 ### Paths
 
-- Group and receipt files live under `data/<groupId>-<groupName>/`; the group name is user-controlled (CWE-22,
-  GHSA-966v-m9rv-j5cx). **Every data path goes through `internal/utils/data_files.go`** (`GetDataDir`,
-  `BuildGroupPathString` / `FileRepository.BuildFilePath`, `MakeDataDirectory`, `WriteDataFile`, `ReadDataFile`,
-  `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`, `DataFileSize`, `DataPathExists`, `BuildAvatarPathString`), each
-  re-asserting containment. A group rename moves the folder inside `UpdateGroup`'s transaction (`docs/domain.md`). No ad-hoc sanitizing and no
-  raw `os.*` on a data path. `UpsertGroupCommand.Validate` also rejects separators and `.`/`..` in names.
+- **A receipt file is `data/<groupId>/<fileId>`: ids only, no extension** (since 2026-11-11; the migration
+  `id-file-paths-v1` moved older installs, `repositories/id_file_paths.go`). No name a person typed is part of a
+  path: not the household's (a rename touches nothing on disk), not the upload's (`FileData.Name` lives in the
+  database, `FileType` says what the bytes are). `utils.BuildGroupPathString` and `BuildReceiptFilePathString`
+  refuse anything that is not a number; `FileRepository.BuildFilePath(receiptId, fileId)` looks the receipt's
+  household up. Never put a name back into a path (the old layout, `data/<groupId>-<groupName>/…`, was CWE-22,
+  GHSA-966v-m9rv-j5cx, and needed a folder move inside the rename's transaction). A receipt that moves to another
+  household takes its files along (`BeforeUpdateReceipt`); a household gets its folder with its first file.
+- **Every data path goes through `internal/utils/data_files.go`** (`GetDataDir`, `EnsureDataDirectory`,
+  `MakeDataDirectory`, `WriteDataFile`, `ReadDataFile`, `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`,
+  `DataFileSize`, `DataPathExists`, `BuildAvatarPathString`), each re-asserting containment. No ad-hoc
+  sanitizing and no raw `os.*` on a data path. `UpsertGroupCommand.Validate` still rejects separators and
+  `.`/`..` in a household's name: no path needs that any more, and an import or an export may still spell it.
 - Server-built paths (`temp/`, `logs/`, `sqlite/`, OCR and PDF scratch) may use the generic helpers. A `temp/` path read
   back out of a job's payload is attacker-adjacent: assert it with `FileRepository.AssertWithinTempDirectory` before
   opening it. Both checks delegate to `utils.AssertWithinDir(base, path)` (lexical); prefer a scoped wrapper.

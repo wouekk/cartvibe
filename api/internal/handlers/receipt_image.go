@@ -194,7 +194,7 @@ func DownloadReceiptImage(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			fileRepository := repositories.NewFileRepository(nil)
 
-			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
+			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -308,7 +308,7 @@ func RemoveReceiptImage(w http.ResponseWriter, r *http.Request) {
 			}
 
 			fileRepository := repositories.NewFileRepository(nil)
-			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), id, fileData.Name)
+			path, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), id)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

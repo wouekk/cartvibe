@@ -343,7 +343,7 @@ var tableSpecs = []tableSpec{
 			return eachInBatches(state.tx.Model(models.FileData{}), func(file models.FileData) error {
 				entryName := ""
 				if state.options.IncludeFiles {
-					path, err := fileRepository.BuildFilePath(formatUint(file.ReceiptId), formatUint(file.ID), file.Name)
+					path, err := fileRepository.BuildFilePath(formatUint(file.ReceiptId), formatUint(file.ID))
 					if err != nil {
 						return err
 					}

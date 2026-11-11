@@ -480,7 +480,7 @@ func (service ReceiptProductExtractionService) receiptImagePaths(receipt models.
 	paths := make([]string, 0, len(files))
 
 	for _, file := range files {
-		path, err := fileRepository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(file.ID), file.Name)
+		path, err := fileRepository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(file.ID))
 		if err != nil {
 			return nil, err
 		}
