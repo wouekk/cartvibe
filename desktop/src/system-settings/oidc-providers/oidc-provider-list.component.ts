@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { RouterLink } from "@angular/router";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { Store } from "@ngxs/store";
-import { catchError, filter, of, switchMap, take } from "rxjs";
+import { catchError, filter, of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AppDialog } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
@@ -22,7 +22,7 @@ import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState, SetFeatureConfig } from "../../store";
+import { AuthState, FeatureConfigStore } from "../../store";
 import { OidcProviderFormComponent, OidcProviderFormData } from "./oidc-provider-form.component";
 
 /**
@@ -39,6 +39,8 @@ import { OidcProviderFormComponent, OidcProviderFormData } from "./oidc-provider
   imports: [AppIconComponent, BadgeComponent, HlmButton, RouterLink, RowActionsComponent, SharedUiModule, TranslatePipe],
 })
 export class OidcProviderListComponent implements OnInit {
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly dialog = inject(AppDialog);
   private readonly featureConfigService = inject(FeatureConfigService);
   private readonly oidcProviderService = inject(OidcProviderService);
@@ -146,7 +148,7 @@ export class OidcProviderListComponent implements OnInit {
       .getFeatureConfig()
       .pipe(
         take(1),
-        switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
+        tap((config) => this.featureConfigStore.setFeatureConfig(config)),
         catchError(() => of(undefined))
       )
       .subscribe();

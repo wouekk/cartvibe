@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
-import { firstValueFrom, map, Observable, of, switchMap } from "rxjs";
+import { firstValueFrom, map, Observable, of, switchMap, tap } from "rxjs";
 import { AppDialogRef } from "../dialog/app-dialog";
 import { TranslatePipe } from "../i18n/translate.pipe";
 import { TranslationLoader } from "../i18n/translation-loader";
@@ -13,8 +13,7 @@ import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { CURRENCY_PRESETS, CurrencyPreset, matchCurrencyPreset } from "../system-settings/system-settings-form/currency-presets";
 import { AuthState } from "../store/auth.state";
 import { SetUserPreferences } from "../store/auth.state.actions";
-import { SystemSettingsState } from "../store/system-settings.state";
-import { SetCurrencyData, SetCurrencyDisplay } from "../store/system-settings.state.actions";
+import { SystemSettingsStore } from "../store/system-settings.store";
 import { ThemeService } from "../theme/theme.service";
 import { MODE_OPTIONS, PALETTES, ThemeMode } from "../theme/themes";
 
@@ -66,6 +65,8 @@ const CURRENCY_SHORT: Record<string, string> = { EUR: "EUR €", PLN: "PLN zł",
   `,
 })
 export class WelcomeDialogComponent {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly dialogRef = inject(AppDialogRef);
   private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
@@ -103,11 +104,11 @@ export class WelcomeDialogComponent {
 
   /** The household's current preset (the euro default on a new install). */
   private readonly savedCurrency = matchCurrencyPreset({
-    currencyDisplay: this.store.selectSnapshot(SystemSettingsState.currencyDisplay),
-    currencySymbolPosition: this.store.selectSnapshot(SystemSettingsState.currencySymbolPosition),
-    currencyThousandthsSeparator: this.store.selectSnapshot(SystemSettingsState.currencyThousandthsSeparator),
-    currencyDecimalSeparator: this.store.selectSnapshot(SystemSettingsState.currencyDecimalSeparator),
-    currencyHideDecimalPlaces: this.store.selectSnapshot(SystemSettingsState.currencyHideDecimalPlaces),
+    currencyDisplay: this.systemSettingsStore.currencyDisplay(),
+    currencySymbolPosition: this.systemSettingsStore.currencySymbolPosition(),
+    currencyThousandthsSeparator: this.systemSettingsStore.currencyThousandthsSeparator(),
+    currencyDecimalSeparator: this.systemSettingsStore.currencyDecimalSeparator(),
+    currencyHideDecimalPlaces: this.systemSettingsStore.currencyHideDecimalPlaces(),
   });
 
   protected readonly currency = signal<string>(this.savedCurrency);
@@ -160,11 +161,9 @@ export class WelcomeDialogComponent {
     return this.systemSettingsService.getSystemSettings().pipe(
       map((settings) => ({ ...settings, ...currencyFields(preset), currencyHideDecimalPlaces: false }) as unknown as UpsertSystemSettingsCommand),
       switchMap((command) => this.systemSettingsService.updateSystemSettings(command)),
-      switchMap(() => this.store.dispatch(new SetCurrencyDisplay(preset.currencyDisplay))),
-      switchMap(() =>
-        this.store.dispatch(
-          new SetCurrencyData(preset.currencySymbolPosition, preset.currencyDecimalSeparator, preset.currencyThousandthsSeparator, false)
-        )
+      tap(() => this.systemSettingsStore.setCurrencyDisplay(preset.currencyDisplay)),
+      tap(() =>
+        this.systemSettingsStore.setCurrencyData(preset.currencySymbolPosition, preset.currencyDecimalSeparator, preset.currencyThousandthsSeparator, false)
       )
     );
   }

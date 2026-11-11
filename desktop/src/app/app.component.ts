@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterOutlet } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
-import { HideProgressBar } from "src/store/layout.state.actions";
+import { LayoutStore } from "src/store/layout.store";
 import { TokenRefreshService } from "../services";
 import { PullToRefreshService } from "../services/pull-to-refresh.service";
 import { SignInTransitionService } from "../services/sign-in-transition.service";
@@ -19,6 +19,8 @@ import { ToastHostComponent } from "../toast/toast-host.component";
     imports: [CartVibeSplashComponent, RouterOutlet, ToastHostComponent],
 })
 export class AppComponent implements OnInit {
+  private readonly layoutStore = inject(LayoutStore);
+
   protected readonly signInTransition = inject(SignInTransitionService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -32,7 +34,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
-    this.store.dispatch(new HideProgressBar());
+    this.layoutStore.hideProgress();
     this.refreshTokens();
   }
 

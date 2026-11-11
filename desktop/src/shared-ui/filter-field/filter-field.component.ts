@@ -4,7 +4,6 @@ import { endOfDay, startOfMonth } from "date-fns";
 import { FilterFieldType } from "src/constants";
 import { Store } from "@ngxs/store";
 import { FilterOperation } from "../../open-api";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { todayInZone } from "../../utils/app-time-zone";
 import { NgIf } from "@angular/common";
 import { InputComponent } from "../../input/input/input.component";
@@ -15,6 +14,7 @@ import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocompl
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
 import { OperationsPipe } from "../receipt-filter/operations.pipe";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 
 /**
  * One row of a filter dialog: the field's value editor beside its Operation
@@ -59,7 +59,7 @@ export class FilterFieldComponent implements OnInit {
 
   // The server resolves WITHIN_CURRENT_MONTH in the app time zone, so the range
   // shown for it starts from that zone's today rather than the browser's.
-  private readonly today = todayInZone(inject(Store).selectSnapshot(SystemSettingsState.timeZone));
+  private readonly today = todayInZone(inject(SystemSettingsStore).timeZone());
 
   // Display-only: WITHIN_CURRENT_MONTH carries no value, so the two datepickers
   // that show the range it implies are disabled and never read back.

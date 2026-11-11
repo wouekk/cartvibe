@@ -16,11 +16,11 @@ import {
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
-import { AuthState, FeatureConfigState, GroupState } from "../../store";
+import { AuthState, GroupState, FeatureConfigStore } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListState } from "../../store/shopping-list.state";
 import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { todayInZone } from "../../utils/app-time-zone";
 import { hasAll } from "../../utils/permission.utils";
@@ -188,19 +188,23 @@ const UNCATEGORIZED = marker("Uncategorized");
         PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   public readonly groupId = toSignal(
     this.activatedRoute.paramMap.pipe(map((params) => Number(params.get("groupId")))),
     { requireSync: true }
   );
 
-  public readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
+  public readonly timeZone = this.systemSettingsStore.timeZone;
 
   /**
    * The days to ask for, set by the period picker; undefined while a custom range is incomplete. It
    * starts as this month so the first render never shows the "pick a range" prompt.
    */
   public readonly period = signal<ResolvedPeriod | undefined>(
-    resolvePeriod("THIS_MONTH", todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone)))
+    resolvePeriod("THIS_MONTH", todayInZone(this.systemSettingsStore.timeZone()))
   );
 
   /** The receipts list opened from a Dashboard figure starts on the period on show. */
@@ -326,7 +330,7 @@ export class OverviewPageComponent {
   );
 
   /** Today in the app time zone, "yyyy-MM-dd": the warranty panel counts its days left from it. */
-  private readonly appToday = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
+  private readonly appToday = computed(() => formatDateInput(todayInZone(this.systemSettingsStore.timeZone())));
 
   /** Bumped after a warranty row's Edit or Remove, so the panel loads again. */
   private readonly warrantyReload = signal(0);
@@ -450,7 +454,7 @@ export class OverviewPageComponent {
     hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsCreate)
   );
 
-  private readonly hasAiPoweredReceipts = this.store.selectSignal(FeatureConfigState.hasFeature("aiPoweredReceipts"));
+  private readonly hasAiPoweredReceipts = computed(() => this.featureConfigStore.hasFeature("aiPoweredReceipts"));
 
   /** Whether anyone has set the AI up yet; without it Quick Scan cannot read a receipt. */
   public readonly aiConfigured = computed(() => this.hasAiPoweredReceipts());

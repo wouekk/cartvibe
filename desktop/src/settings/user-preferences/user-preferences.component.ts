@@ -10,7 +10,7 @@ import { BaseFormComponent } from "../../form/index";
 import { Permission, UserPreferencesService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { parseGoalInput } from "../../overview/overview-chart.utils";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { AuthState, SetUserPreferences } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
 import { pluralMarker } from "../../i18n/marker";
@@ -53,6 +53,8 @@ pluralMarker("year", "years");
     imports: [FormComponent, FeatureDirective, FormSectionComponent, GroupAutocompleteComponent, UserAutocompleteComponent, StatusSelectComponent, InputComponent, SelectComponent, CheckboxComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -62,7 +64,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate)
   );
 
-  private readonly currencySymbol = this.store.selectSignal(SystemSettingsState.currencyDisplay);
+  private readonly currencySymbol = this.systemSettingsStore.currencyDisplay;
 
   /** The region picked in the form, so the Automatic option can say what it resolves to. */
   private readonly regionValue = signal("");

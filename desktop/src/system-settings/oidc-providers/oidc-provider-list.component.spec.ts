@@ -13,10 +13,11 @@ import {
 } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, FeatureConfigState } from "../../store";
+import { AuthState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { OidcProviderFormComponent } from "./oidc-provider-form.component";
 import { OidcProviderListComponent } from "./oidc-provider-list.component";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 
 import type { Mock } from "vitest";
 
@@ -74,7 +75,7 @@ describe("OidcProviderListComponent", () => {
     dialog = { open: vi.fn(() => ({ afterClosed: () => of(closeWith), componentInstance: {} })) };
 
     await TestBed.configureTestingModule({
-      imports: [OidcProviderListComponent, NgxsModule.forRoot([AuthState, FeatureConfigState])],
+      imports: [OidcProviderListComponent, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -168,7 +169,7 @@ describe("OidcProviderListComponent", () => {
     );
     expect(providers.getPagedOidcProviders).toHaveBeenCalledTimes(2);
     // The login page and User Settings read the providers from the feature config.
-    expect(TestBed.inject(Store).selectSnapshot(FeatureConfigState.oidcProviders)).toEqual([
+    expect(TestBed.inject(FeatureConfigStore).oidcProviders()).toEqual([
       { name: "authentik", displayName: "Authentik" },
     ]);
   });

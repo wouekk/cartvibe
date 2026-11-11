@@ -10,7 +10,7 @@ import { TranslationService } from "../i18n/translation.service";
 import { Permission, SystemSettingsService, UserPreferencesService } from "../open-api";
 import { AuthState } from "../store/auth.state";
 import { SetPermissions, SetUserPreferences } from "../store/auth.state.actions";
-import { SystemSettingsState } from "../store/system-settings.state";
+import { SystemSettingsStore } from "../store/system-settings.store";
 import { ThemeService } from "../theme/theme.service";
 import { OnboardingService } from "./onboarding.service";
 import { WelcomeDialogComponent } from "./welcome-dialog.component";
@@ -39,7 +39,7 @@ describe("WelcomeDialogComponent", () => {
     updateSystemSettings.mockReset().mockImplementation((body) => of(body));
 
     await TestBed.configureTestingModule({
-      imports: [WelcomeDialogComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [WelcomeDialogComponent, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -123,7 +123,7 @@ describe("WelcomeDialogComponent", () => {
     expect(updateSystemSettings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 1, timeZone: "UTC", currencyDisplay: " zł", currencySymbolPosition: "END" })
     );
-    expect(store.selectSnapshot(SystemSettingsState.currencyDisplay)).toBe(" zł");
+    expect(TestBed.inject(SystemSettingsStore).currencyDisplay()).toBe(" zł");
     expect(close).toHaveBeenCalledWith(true);
   });
 });

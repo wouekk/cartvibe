@@ -1,7 +1,6 @@
-import { Component, Input, TemplateRef, computed, input, output, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Component, Input, TemplateRef, computed, input, output, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormMode } from "src/enums/form-mode.enum";
-import { LayoutState } from "src/store/layout.state";
+import { LayoutStore } from "src/store/layout.store";
 import { NgIf, NgTemplateOutlet } from "@angular/common";
 import { CancelButtonComponent } from "../cancel-button/cancel-button.component";
 import { SubmitButtonComponent } from "../submit-button/submit-button.component";
@@ -14,6 +13,8 @@ import { SubmitButtonComponent } from "../submit-button/submit-button.component"
     imports: [NgIf, NgTemplateOutlet, CancelButtonComponent, SubmitButtonComponent]
 })
 export class DialogFooterComponent {
+  private readonly layoutStore = inject(LayoutStore);
+
   @Input() public additionalButtonsTemplate?: TemplateRef<any>;
   public readonly submitButtonTooltip = input<string>("Save");
   public readonly submitButtonType = input<"button" | "submit">("submit");
@@ -28,7 +29,6 @@ export class DialogFooterComponent {
   public readonly cancelClicked = output<void>();
   public readonly submitClicked = output<void>();
 
-  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  public showProgressBar = this.layoutStore.showProgressBar;
 
-  constructor(private store: Store) {}
 }

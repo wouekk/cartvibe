@@ -1,7 +1,9 @@
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { GroupState, UserState } from "../store";
+import { GroupState } from "../store";
 import { ParameterizedDataParser } from "./paramterterized-data-parser";
+import { seedStore } from "../testing/seed-store";
+import { UserStore } from "../store/user.store";
 
 describe("ParameterizedDataParser", () => {
   let parameterizedDataParser: ParameterizedDataParser;
@@ -10,7 +12,7 @@ describe("ParameterizedDataParser", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [],
-      imports: [NgxsModule.forRoot([GroupState, UserState])],
+      imports: [NgxsModule.forRoot([GroupState])],
       providers: [],
     }).compileComponents();
 
@@ -24,10 +26,8 @@ describe("ParameterizedDataParser", () => {
 
   it("should resolve userId", () => {
     const user = { id: "1", name: "John" };
-    store.reset({
-      users: {
-        users: [user],
-      },
+    seedStore(TestBed.inject(UserStore), {
+      users: [user],
     });
 
     const result = parameterizedDataParser.parse("${userId:1.name}");

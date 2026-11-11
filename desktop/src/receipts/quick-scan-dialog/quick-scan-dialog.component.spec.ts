@@ -10,7 +10,6 @@ import { ActivatedRoute } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { LayoutState } from "src/store/layout.state";
 import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
@@ -31,7 +30,7 @@ describe("QuickScanDialogComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([AuthState, GroupState, LayoutState]),
+        NgxsModule.forRoot([AuthState, GroupState]),
         ReactiveFormsModule,
         SharedUiModule, QuickScanDialogComponent],
     providers: [

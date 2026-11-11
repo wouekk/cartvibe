@@ -28,13 +28,10 @@ import {
   UserPreferences,
 } from "../../open-api";
 import { AuthState } from "../../store/auth.state";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SetFeatureConfig } from "../../store/feature-config.state.actions";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
 import { GroupState } from "../../store/group.state";
 import { ShoppingListState } from "../../store/shopping-list.state";
-import { SystemSettingsState } from "../../store/system-settings.state";
-import { UserState } from "../../store/user.state";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { todayInZone } from "../../utils/app-time-zone";
@@ -43,6 +40,7 @@ import { OverviewCategoriesPanelComponent } from "../overview-categories-panel/o
 import { OverviewTrendPanelComponent } from "../overview-trend-panel/overview-trend-panel.component";
 import { OverviewSpentTileComponent } from "../overview-spent-tile/overview-spent-tile.component";
 import { OverviewPageComponent } from "./overview-page.component";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 
 import type { Mock } from "vitest";
 import type { ChartConfiguration } from "chart.js";
@@ -105,7 +103,7 @@ describe("OverviewPageComponent", () => {
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "";
 
   const thisMonth = (): { from: string; to: string } => {
-    const today = todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone));
+    const today = todayInZone(TestBed.inject(SystemSettingsStore).timeZone());
     return {
       from: toDayKey(new Date(today.getFullYear(), today.getMonth(), 1)),
       to: toDayKey(new Date(today.getFullYear(), today.getMonth() + 1, 0)),
@@ -124,7 +122,7 @@ describe("OverviewPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
+    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, GroupState, ShoppingListState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -691,7 +689,7 @@ describe("OverviewPageComponent", () => {
     });
 
     it("opens the scan dialog once the AI is set up", async () => {
-      TestBed.inject(Store).dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as never));
+      TestBed.inject(FeatureConfigStore).setFeatureConfig({ aiPoweredReceipts: true } as never);
       TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
       await fixture.whenStable();
       const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
@@ -790,7 +788,7 @@ describe("OverviewPageComponent", () => {
     });
 
     it("lists the warranties ending in the next two months, nearest first, with the days left", async () => {
-      const today = toDayKey(todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone)));
+      const today = toDayKey(todayInZone(TestBed.inject(SystemSettingsStore).timeZone()));
       const inDays = (days: number) => {
         const [year, month, day] = today.split("-").map(Number);
         return toDayKey(new Date(year, month - 1, day + days));

@@ -25,8 +25,8 @@ import {
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 import { SnackbarService } from "../../services";
-import { AuthState, SetFeatureConfig } from "../../store";
-import { SetCurrencyData, SetCurrencyDisplay, SetDateFormat, SetTimeZone } from "../../store/system-settings.state.actions";
+import { AuthState, FeatureConfigStore } from "../../store";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { APP_DATE_FORMATS, appDatePattern, resolveAppDateFormat } from "../../utils/app-date-format";
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
 import { DEFAULT_APP_TIME_ZONE, timeZoneOptions } from "../../utils/app-time-zone";
@@ -76,6 +76,10 @@ export function shopLogoKeyValidator(): ValidatorFn {
     imports: [SystemTaskTableComponent, ReactiveFormsModule, SettingsSectionComponent, SelectComponent, AutocompleteComponent, NgTemplateOutlet, InputComponent, CheckboxComponent, ExchangeRatesComponent, BrnButton, HlmButton, TranslatePipe, AppDatePipe, CustomCurrencyPipe, FormGetPipe, InputReadonlyPipe]
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit {
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   // Optional: the processing pickers are no longer rendered (Phase 3 M1).
   public readonly fallbackReceiptProcessingSettings = viewChild<AutocompleteComponent>("fallbackReceiptProcessingSettings");
 
@@ -247,7 +251,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
           this.snackbarService.success(marker("The logos were deleted"));
         }),
         switchMap(() => this.featureConfigService.getFeatureConfig()),
-        tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
+        tap((featureConfig) => this.featureConfigStore.setFeatureConfig(featureConfig)),
       )
       .subscribe({ error: () => this.refreshLogoStatus() });
   }
@@ -550,18 +554,16 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
           }
         }),
         switchMap(() => this.featureConfigService.getFeatureConfig()),
-        tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
-        switchMap(() => this.store.dispatch(new SetCurrencyDisplay(formValue["currencyDisplay"]?.toString()))),
-        switchMap(() => this.store.dispatch(
-          new SetCurrencyData(formValue["currencySymbolPosition"],
+        tap((featureConfig) => this.featureConfigStore.setFeatureConfig(featureConfig)),
+        tap(() => this.systemSettingsStore.setCurrencyDisplay(formValue["currencyDisplay"]?.toString())),
+        tap(() => this.systemSettingsStore.setCurrencyData(formValue["currencySymbolPosition"],
             formValue["currencyDecimalSeparator"],
             formValue["currencyThousandthsSeparator"],
-            formValue["currencyHideDecimalPlaces"]
-          ))),
+            formValue["currencyHideDecimalPlaces"])),
         // Every appDate pipe and "today" reads the zone from the store, so the
         // app repaints in the new zone without a reload.
-        switchMap(() => this.store.dispatch(new SetTimeZone(formValue["timeZone"]))),
-        switchMap(() => this.store.dispatch(new SetDateFormat(formValue["dateFormat"]))),
+        tap(() => this.systemSettingsStore.setTimeZone(formValue["timeZone"])),
+        tap(() => this.systemSettingsStore.setDateFormat(formValue["dateFormat"])),
       )
       .subscribe();
   }

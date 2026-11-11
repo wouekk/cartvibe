@@ -1,9 +1,9 @@
 import { ConnectedPosition, CdkOverlayOrigin, CdkConnectedOverlay } from "@angular/cdk/overlay";
-import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
-import { LayoutState } from "src/store/layout.state";
+import { LayoutStore } from "src/store/layout.store";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
@@ -31,13 +31,15 @@ export const HANDSET_LOGO_SCALE = 0.3;
     imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe, HlmTooltip, HlmBadge, AppIconComponent]
 })
 export class HeaderComponent {
+  private readonly layoutStore = inject(LayoutStore);
+
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
 
   public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
 
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
-  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  public showProgressBar = this.layoutStore.showProgressBar;
 
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();

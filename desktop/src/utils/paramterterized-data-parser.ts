@@ -1,11 +1,13 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Store } from "@ngxs/store";
-import { GroupState, UserState } from "../store";
+import { GroupState, UserStore } from "../store";
 
 @Injectable({
   providedIn: "root",
 })
 export class ParameterizedDataParser {
+  private readonly userStore = inject(UserStore);
+
   constructor(private store: Store) {}
 
   public link?: string;
@@ -48,7 +50,7 @@ export class ParameterizedDataParser {
 
     switch (idType) {
       case "userId":
-        const user = this.store.selectSnapshot(UserState.getUserById(id));
+        const user = this.userStore.getUserById(id);
         if (user && key) {
           return (user as any)[key];
         }

@@ -10,7 +10,6 @@ import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
@@ -26,7 +25,7 @@ describe("NotificationComponent", () => {
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
-        NgxsModule.forRoot([GroupState, AuthState, SystemSettingsState]),
+        NgxsModule.forRoot([GroupState, AuthState]),
         RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });

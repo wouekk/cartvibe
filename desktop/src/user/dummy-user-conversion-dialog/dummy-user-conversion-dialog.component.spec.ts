@@ -7,7 +7,7 @@ import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { UpdateUser } from "../../store";
+import { UserStore } from "../../store";
 import { StoreModule } from "../../store/store.module";
 import { DummyUserConversionDialogComponent } from "./dummy-user-conversion-dialog.component";
 
@@ -66,9 +66,7 @@ describe("DummyUserConversionDialogComponent", () => {
     const usersSpy = vi.spyOn(usersService, "convertDummyUserById");
     usersSpy.mockReturnValue(of(undefined as any));
 
-    const store = TestBed.inject(Store);
-    const storeSpy = vi.spyOn(store, "dispatch");
-    storeSpy.mockReturnValue(of(undefined));
+    const updateUser = vi.spyOn(TestBed.inject(UserStore), "updateUser");
 
     const dialogSpy = vi.spyOn(component.dialogRef, "close");
     dialogSpy.mockReturnValue(undefined);
@@ -95,9 +93,7 @@ describe("DummyUserConversionDialogComponent", () => {
         password: "hello world",
       },
     );
-    expect(storeSpy).toHaveBeenCalledWith(
-      new UpdateUser("1", { id: 1, isDummyUser: false } as any)
-    );
+    expect(updateUser).toHaveBeenCalledWith("1", { id: 1, isDummyUser: false });
     expect(dialogSpy).toHaveBeenCalledWith(true);
   });
 });

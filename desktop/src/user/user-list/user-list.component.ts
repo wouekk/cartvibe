@@ -14,7 +14,7 @@ import { loadAssignableRoles } from "../../roles/role-loading.util";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
-import { AuthState, RemoveUser, RemoveUsers } from "../../store";
+import { AuthState, UserStore } from "../../store";
 import { UserTableStore } from "../../store/user-table.store";
 import { DummyUserConversionDialogComponent } from "../dummy-user-conversion-dialog/dummy-user-conversion-dialog.component";
 import { ResetPasswordComponent } from "../reset-password/reset-password.component";
@@ -50,6 +50,8 @@ import { RoleNamePipe } from "../../pipes/role-name.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe, HlmButton, AppIconComponent]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
+  private readonly userStore = inject(UserStore);
+
   private readonly userTableStore = inject(UserTableStore);
 
   private readonly translation = inject(TranslationService);
@@ -287,7 +289,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
               take(1),
               tap(() => {
                 this.snackbarService.success("User successfully deleted");
-                this.store.dispatch(new RemoveUser(user.id.toString()));
+                this.userStore.removeUser(user.id.toString());
                 this.getTableData();
               })
             )
@@ -330,7 +332,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
             take(1),
             tap(() => {
               this.snackbarService.success(this.translation.t("{count} user(s) successfully deleted", { count: usersToDelete.length }));
-              this.store.dispatch(new RemoveUsers(bulkDeleteCommand.userIds));
+              this.userStore.removeUsers(bulkDeleteCommand.userIds);
               this.table().selection.clear();
               this.getTableData();
             })

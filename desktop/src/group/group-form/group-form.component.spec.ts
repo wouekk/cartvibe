@@ -181,7 +181,7 @@ describe("GroupFormComponent", () => {
     const createSpy = vi.spyOn(TestBed.inject(GroupsService), "createGroup");
     const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const group: Group = {
       id: 1,
@@ -236,7 +236,7 @@ describe("GroupFormComponent", () => {
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
     const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const group: Group = {
       id: 1,
@@ -324,7 +324,7 @@ describe("GroupFormComponent", () => {
 
   it("hydrates the household's icon and colour and sends them with the save", () => {
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, icon: "dog", color: "teal", groupMembers: [{ userId: 1, groupRoleId: 11, groupId: 1 }] },
@@ -358,7 +358,7 @@ describe("GroupFormComponent", () => {
     // must save a non-owner-only membership without blocking.
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
     vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {

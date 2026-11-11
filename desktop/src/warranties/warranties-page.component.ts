@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { rxResource, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { HlmTableImports } from "@spartan-ng/helm/table";
 import { catchError, map, of } from "rxjs";
 import { formatDateInput } from "../datepicker/date-input.directive";
@@ -11,7 +10,7 @@ import { Receipt, ReceiptService, SortDirection } from "../open-api";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
-import { SystemSettingsState } from "../store/system-settings.state";
+import { SystemSettingsStore } from "../store/system-settings.store";
 import { todayInZone } from "../utils/app-time-zone";
 import { WarrantyRow, warrantyRows } from "../utils/warranty-period";
 import { WarrantyMenuComponent } from "./warranty-menu/warranty-menu.component";
@@ -28,15 +27,16 @@ import { AppDatePipe } from "../pipes/app-date.pipe";
   imports: [RouterLink, TranslatePipe, PluralPipe, AppDatePipe, SharedUiModule, AppIconComponent, ShopMonogramComponent, WarrantyMenuComponent, ...HlmTableImports],
 })
 export class WarrantiesPageComponent {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly receiptService = inject(ReceiptService);
-  private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
 
   private readonly groupId = toSignal(this.route.paramMap.pipe(map((params) => Number(params.get("groupId")))), {
     initialValue: Number(this.route.snapshot.paramMap.get("groupId")),
   });
 
-  private readonly today = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
+  private readonly today = computed(() => formatDateInput(todayInZone(this.systemSettingsStore.timeZone())));
 
   private readonly warranties = rxResource({
     params: this.groupId,

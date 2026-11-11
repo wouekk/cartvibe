@@ -13,7 +13,7 @@ import {
   ReportRequestCommand,
   ReportService,
 } from "../../../open-api";
-import { SystemSettingsState } from "../../../store/system-settings.state";
+import { SystemSettingsStore } from "../../../store/system-settings.store";
 import {
   ReportReceiptsDialogComponent,
   ReportReceiptsDialogData,
@@ -57,13 +57,13 @@ function configure(
         provideZonelessChangeDetection(),
         { provide: ReportService, useValue: reportService },
         { provide: AppDialogRef, useValue: { close: vi.fn() } },
-        // The row pipes (user, customCurrency) read the store; nothing here asserts
-        // on them. The app time zone is the one value the subtitle reads.
+        // What is left on NGXS reads this stand-in; nothing here asserts on it. The app time zone, the one
+        // value the subtitle reads, is set on its own store below.
         {
             provide: Store,
             useValue: {
-                selectSnapshot: vi.fn((selector) => selector === SystemSettingsState.timeZone ? "America/New_York" : {}),
-                selectSignal: vi.fn((selector) => signal(selector === SystemSettingsState.timeZone ? "America/New_York" : {})),
+                selectSnapshot: vi.fn(() => ({})),
+                selectSignal: vi.fn(() => signal({})),
             },
         },
         CurrencyPipe,
@@ -74,6 +74,7 @@ function configure(
     ],
     schemas: [NO_ERRORS_SCHEMA],
 });
+  TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
   const fixture = TestBed.createComponent(ReportReceiptsDialogComponent);
   return { fixture, component: fixture.componentInstance, reportService };
 }

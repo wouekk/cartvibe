@@ -1,9 +1,8 @@
 import { inject, Injectable } from "@angular/core";
 import { SwPush } from "@angular/service-worker";
-import { Store } from "@ngxs/store";
 import { firstValueFrom } from "rxjs";
 import { NotificationsService, PushSubscriptionCommand } from "../open-api";
-import { FeatureConfigState } from "../store/feature-config.state";
+import { FeatureConfigStore } from "../store/feature-config.store";
 
 /**
  * Web Push for warranty reminders. Permission is asked in context, when a person sets a warranty date, never at
@@ -12,15 +11,15 @@ import { FeatureConfigState } from "../store/feature-config.state";
  */
 @Injectable({ providedIn: "root" })
 export class WebPushService {
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly swPush = inject(SwPush, { optional: true });
   private readonly notificationsService = inject(NotificationsService);
-  private readonly store = inject(Store);
-
   /** Whether this browser could show push at all (it may still be refused). */
   public isSupported(): boolean {
     return (
       !!this.swPush?.isEnabled &&
-      !!this.store.selectSnapshot(FeatureConfigState.webPushPublicKey) &&
+      !!this.featureConfigStore.webPushPublicKey() &&
       typeof Notification !== "undefined"
     );
   }
@@ -36,7 +35,7 @@ export class WebPushService {
 
     try {
       const subscription = await this.swPush!.requestSubscription({
-        serverPublicKey: this.store.selectSnapshot(FeatureConfigState.webPushPublicKey),
+        serverPublicKey: this.featureConfigStore.webPushPublicKey(),
       });
       await firstValueFrom(
         this.notificationsService.savePushSubscription(subscription.toJSON() as PushSubscriptionCommand)

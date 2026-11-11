@@ -11,9 +11,8 @@ import { Location } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { Receipt, ReportRequestCommand, ReportService } from "../../../open-api";
-import { SystemSettingsState } from "../../../store/system-settings.state";
+import { SystemSettingsStore } from "../../../store/system-settings.store";
 import { marker } from "../../../i18n/marker";
 import { TranslateFn } from "../../../i18n/translate-fn";
 import { TranslationService } from "../../../i18n/translation.service";
@@ -63,10 +62,11 @@ export interface ReportReceiptsDialogData {
         AppDatePipe, HlmButton],
 })
 export class ReportReceiptsDialogComponent {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly reportService = inject(ReportService);
   private readonly dialogRef = inject(AppDialogRef<ReportReceiptsDialogComponent>);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -88,7 +88,7 @@ export class ReportReceiptsDialogComponent {
   public readonly truncated = computed(() => this.receipts().length < this.totalCount());
 
   constructor(@Inject(APP_DIALOG_DATA) data: ReportReceiptsDialogData) {
-    const timeZone = this.store.selectSnapshot(SystemSettingsState.timeZone);
+    const timeZone = this.systemSettingsStore.timeZone();
     const translate: TranslateFn = (text, params) => this.translation.t(text, params);
     const range = formatPeriodRange(
       resolvePeriodRange(data.period.preset, data.period.startDate, data.period.endDate, timeZone),

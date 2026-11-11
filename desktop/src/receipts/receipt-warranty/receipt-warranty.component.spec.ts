@@ -8,8 +8,6 @@ import { formatDateInput } from "../../datepicker/date-input.directive";
 import { Receipt, ReceiptService } from "../../open-api";
 import { WebPushService } from "../../services/web-push.service";
 import { AuthState } from "../../store";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptWarrantyComponent } from "./receipt-warranty.component";
 
 import type { Mock } from "vitest";
@@ -32,7 +30,7 @@ describe("ReceiptWarrantyComponent", () => {
     webPush = { enableForWarranties: vi.fn(() => Promise.resolve()) };
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([AuthState, FeatureConfigState, SystemSettingsState])],
+      imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

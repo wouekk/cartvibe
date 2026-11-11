@@ -23,10 +23,8 @@ import { SelectModule } from "../../select/select.module";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { LayoutState } from "../../store/layout.state";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { TextareaModule } from "../../textarea/textarea.module";
 import { RecipeImportDialogComponent, RecipeImportDialogData } from "./recipe-import-dialog.component";
 
@@ -121,7 +119,7 @@ describe("RecipeImportDialogComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([ShoppingListState, LayoutState, SystemSettingsState]),
+        NgxsModule.forRoot([ShoppingListState]),
         HlmButton,
         HlmCheckbox,
         HlmSpinner,

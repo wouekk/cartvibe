@@ -16,7 +16,7 @@ import { merge } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS, ReceiptDateFilterFieldKey } from "src/constants";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
 import { GroupState } from "src/store";
-import { SystemSettingsState } from "src/store/system-settings.state";
+import { SystemSettingsStore } from "src/store/system-settings.store";
 import { BadgeTone } from "src/shared-ui/badge/badge.component";
 import { ReportColumn, ReportDetail, ReportPeriod } from "../../open-api";
 import {
@@ -144,6 +144,8 @@ const KIND_META: Record<
         FormGetPipe, HlmButton, HlmTooltip],
 })
 export class ReportConfigPanelComponent implements OnInit {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly translation = inject(TranslationService);
 
   public readonly form = input.required<FormGroup>();
@@ -156,7 +158,7 @@ export class ReportConfigPanelComponent implements OnInit {
   private readonly allGroups = this.store.selectSignal(GroupState.groupsWithoutAll);
 
   /** The app time zone: the period hint resolves "today" in it and names it. */
-  private readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
+  private readonly timeZone = this.systemSettingsStore.timeZone;
   private readonly revision = signal(0);
 
   public readonly dimensions = signal<ReportField[]>(REPORT_BUILTIN_DIMENSIONS).asReadonly();

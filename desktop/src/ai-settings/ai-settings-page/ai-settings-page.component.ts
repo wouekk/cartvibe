@@ -5,7 +5,6 @@ import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { Store } from "@ngxs/store";
 import { catchError, finalize, map, Observable, of, startWith, switchMap, take, tap } from "rxjs";
 import {
   FeatureConfigService,
@@ -18,7 +17,7 @@ import {
 
 import { SnackbarService } from "../../services";
 import { TranslationService } from "../../i18n/translation.service";
-import { SetFeatureConfig } from "../../store";
+import { FeatureConfigStore } from "../../store";
 import { AiProviderFieldsComponent } from "../ai-provider-fields/ai-provider-fields.component";
 import { AiUsageCardComponent } from "../ai-usage-card/ai-usage-card.component";
 import { AiFallbackCardComponent } from "../ai-fallback-card/ai-fallback-card.component";
@@ -65,13 +64,14 @@ export type { ConnectionResult } from "../ai-settings-shared";
 ],
 })
 export class AiSettingsPageComponent implements OnInit {
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly receiptProcessingSettingsService = inject(ReceiptProcessingSettingsService);
   private readonly systemSettingsService = inject(SystemSettingsService);
   private readonly featureConfigService = inject(FeatureConfigService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly translation = inject(TranslationService);
-  private readonly store = inject(Store);
   private readonly destroyRef = inject(DestroyRef);
 
   public readonly form = this.formBuilder.group(buildAiProviderControls(this.formBuilder));
@@ -210,7 +210,7 @@ export class AiSettingsPageComponent implements OnInit {
     // the app reads needs refreshing.
     if (!this.systemSettings) {
       return this.featureConfigService.getFeatureConfig().pipe(
-        tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
+        tap((featureConfig) => this.featureConfigStore.setFeatureConfig(featureConfig)),
         map(() => created)
       );
     }
@@ -223,7 +223,7 @@ export class AiSettingsPageComponent implements OnInit {
     return this.systemSettingsService.updateSystemSettings(command).pipe(
       tap((systemSettings) => (this.systemSettings = systemSettings)),
       switchMap(() => this.featureConfigService.getFeatureConfig()),
-      tap((featureConfig) => this.store.dispatch(new SetFeatureConfig(featureConfig))),
+      tap((featureConfig) => this.featureConfigStore.setFeatureConfig(featureConfig)),
       map(() => created)
     );
   }

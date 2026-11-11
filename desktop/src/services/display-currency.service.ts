@@ -1,6 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
-import { inject, Injectable } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Injectable } from "@angular/core";
 import { CustomCurrencyPipe } from "../pipes/custom-currency.pipe";
 
 /**
@@ -10,7 +9,7 @@ import { CustomCurrencyPipe } from "../pipes/custom-currency.pipe";
  */
 @Injectable({ providedIn: "root" })
 export class DisplayCurrencyService {
-  private readonly household = new CustomCurrencyPipe(inject(Store), new CurrencyPipe("en-US"));
+  private readonly household = new CustomCurrencyPipe(new CurrencyPipe("en-US"));
 
   public format(value: number | string | null | undefined): string {
     return this.household.transform(value ?? 0);

@@ -16,7 +16,7 @@ import {
   UserService,
 } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
-import { AddUser, AuthState, GroupState, SetGroups, UpdateUser, UserState } from "../../store";
+import { AuthState, GroupState, SetGroups, UserStore } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { UserFormComponent } from "./user-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -53,7 +53,7 @@ describe("UserFormComponent", () => {
     getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([AuthState, UserState, GroupState]),
+    imports: [NgxsModule.forRoot([AuthState, GroupState]),
         ReactiveFormsModule,
         ApiModule, UserFormComponent],
     providers: [
@@ -143,8 +143,8 @@ describe("UserFormComponent", () => {
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
-    storeSpy.mockReturnValue(of(undefined));
+    const updateUser = vi.spyOn(TestBed.inject(UserStore), "updateUser");
+    const addUser = vi.spyOn(TestBed.inject(UserStore), "addUser");
 
     const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
 
@@ -170,12 +170,11 @@ describe("UserFormComponent", () => {
       } as User,
     );
 
-    expect(storeSpy).toHaveBeenCalledWith(
-      new UpdateUser("1", {
-        ...component.user,
-        ...component.form.value,
-      })
-    );
+    expect(updateUser).toHaveBeenCalledWith("1", {
+      ...component.user,
+      ...component.form.value,
+    });
+    expect(addUser).not.toHaveBeenCalled();
 
     expect(authServiceSpy).toHaveBeenCalled();
 
@@ -202,8 +201,8 @@ describe("UserFormComponent", () => {
     );
     authServiceSpy.mockReturnValue(of(undefined as any));
 
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
-    storeSpy.mockReturnValue(of(undefined));
+    const updateUser = vi.spyOn(TestBed.inject(UserStore), "updateUser");
+    const addUser = vi.spyOn(TestBed.inject(UserStore), "addUser");
 
     const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
 
@@ -229,12 +228,11 @@ describe("UserFormComponent", () => {
       } as User,
     );
 
-    expect(storeSpy).toHaveBeenCalledWith(
-      new UpdateUser("1", {
-        ...component.user,
-        ...component.form.value,
-      })
-    );
+    expect(updateUser).toHaveBeenCalledWith("1", {
+      ...component.user,
+      ...component.form.value,
+    });
+    expect(addUser).not.toHaveBeenCalled();
     expect(component.form.get("isDummyUser")?.value).toEqual(false);
 
     expect(authServiceSpy).toHaveBeenCalledTimes(0);
@@ -258,8 +256,8 @@ describe("UserFormComponent", () => {
     const userServiceSpy = vi.spyOn(TestBed.inject(UserService), "createUser");
     userServiceSpy.mockReturnValue(of(user as any));
 
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
-    storeSpy.mockReturnValue(of(undefined));
+    const updateUser = vi.spyOn(TestBed.inject(UserStore), "updateUser");
+    const addUser = vi.spyOn(TestBed.inject(UserStore), "addUser");
 
     const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
     component.ngOnInit();
@@ -282,7 +280,7 @@ describe("UserFormComponent", () => {
       password: "Dough boy",
     } as any);
 
-    expect(storeSpy).toHaveBeenCalledWith(new AddUser(user));
+    expect(addUser).toHaveBeenCalledWith(user);
 
     expect(dialogRefSpy).toHaveBeenCalledWith(true);
   });

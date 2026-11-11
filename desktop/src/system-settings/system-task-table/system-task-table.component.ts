@@ -3,7 +3,6 @@ import { DatePipe, NgIf } from "@angular/common";
 import { Component, DestroyRef, OnInit, TemplateRef, computed, inject, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { SystemTaskFilterFieldKey } from "../../constants";
@@ -11,9 +10,9 @@ import { AssociatedEntityType, ReceiptProcessingSettings, SystemTaskPagedRequest
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
 import { SystemTaskTableService } from "../../services/system-task-table.service";
 import { TaskTableComponent } from "../../shared-ui/task-table/task-table.component";
-import { UserState } from "../../store";
+import { UserStore } from "../../store";
 import { SystemTaskTableStore } from "../../store/system-task-table.store";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { appDatePattern } from "../../utils/app-date-format";
 import { applyFormCommand } from "../../utils/form.utils";
 import { buildSystemTaskFilterChips, SystemTaskFilterChip } from "../../utils/system-task-filter-chips";
@@ -41,6 +40,10 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [SettingsSectionComponent, NgIf, HlmBadge, AppIconComponent, TaskTableComponent, ReceiptProcessingSettingsChildSystemTaskAccordionComponent, TranslatePipe, HlmButton, HlmTooltip]
 })
 export class SystemTaskTableComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly systemTaskTableStore = inject(SystemTaskTableStore);
 
   public readonly expandedRowTemplate = viewChild.required<TemplateRef<any>>("expandedRowTemplate");
@@ -61,9 +64,9 @@ export class SystemTaskTableComponent implements OnInit {
    */
   public readonly filterProvider = (): SystemTaskPagedRequestFilter => this.filter();
 
-  private users = this.store.selectSignal(UserState.users);
+  private users = this.userStore.users;
 
-  private dateFormat = this.store.selectSignal(SystemSettingsState.dateFormat);
+  private dateFormat = this.systemSettingsStore.dateFormat;
 
   public filterChips = computed<SystemTaskFilterChip[]>(() =>
     buildSystemTaskFilterChips(this.filter(), {
@@ -81,7 +84,6 @@ export class SystemTaskTableComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private store: Store,
     private dialog: AppDialog,
     private datePipe: DatePipe,
     private translation: TranslationService

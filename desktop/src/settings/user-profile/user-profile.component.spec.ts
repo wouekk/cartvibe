@@ -10,11 +10,11 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { firstValueFrom, of, throwError } from "rxjs";
 import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
-import { AuthState, FeatureConfigState, Logout, UserState } from "../../store";
+import { AuthState, Logout, FeatureConfigStore, UserStore } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { SetFeatureConfig } from "../../store/feature-config.state.actions";
 import { buildOidcDeleteConfirmationUrl, UserProfileComponent } from "./user-profile.component";
 import { DeleteAccountDialogComponent } from "../delete-account-dialog/delete-account-dialog.component";
+import { seedStore } from "../../testing/seed-store";
 
 import type { Mock } from "vitest";
 function connection(overrides: Partial<OidcConnectionView> = {}): OidcConnectionView {
@@ -36,7 +36,7 @@ describe("UserProfileComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         ColorSwatchesComponent,
-        NgxsModule.forRoot([AuthState, FeatureConfigState, UserState]),
+        NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule, UserProfileComponent],
     providers: [
         {
@@ -123,7 +123,6 @@ describe("UserProfileComponent", () => {
     authSpy.mockReturnValue(of(undefined as any));
 
     store.reset({
-      users: { users: [{ id: 1, displayName: "cheetos", username: "burger" }] },
       auth: {
         userId: "1",
         username: "cheetos",
@@ -131,6 +130,7 @@ describe("UserProfileComponent", () => {
         defaultAvatarColor: "#CD5C5C",
       },
     });
+    seedStore(TestBed.inject(UserStore), { users: [{ id: 1, displayName: "cheetos", username: "burger" }] });
 
     component.ngOnInit();
     component.form.patchValue({
@@ -141,7 +141,7 @@ describe("UserProfileComponent", () => {
     component.submit();
 
     const updatedUser = store.selectSnapshot(AuthState.loggedInUser);
-    const updatedUsers = store.selectSnapshot(UserState.users);
+    const updatedUsers = TestBed.inject(UserStore).users();
 
     expect(serviceSpy).toHaveBeenCalledWith({
       username: "general",
@@ -464,15 +464,11 @@ describe("UserProfileComponent", () => {
     async function open(connections: OidcConnectionView[], providerNames: string[], permissions = [Permission.AppAccountUpdate]) {
       const store = TestBed.inject(Store);
       store.dispatch(new SetPermissions(permissions, {}));
-      await firstValueFrom(
-        store.dispatch(
-          new SetFeatureConfig({
+      TestBed.inject(FeatureConfigStore).setFeatureConfig({
             enableLocalSignUp: false,
             aiPoweredReceipts: false,
             oidcProviders: providerNames.map((name) => ({ name, displayName: name.toUpperCase() })),
-          })
-        )
-      );
+          });
       vi.spyOn(TestBed.inject(OidcService), "getOidcConnections").mockReturnValue(of(connections) as any);
       fixture.detectChanges();
       await fixture.whenStable();

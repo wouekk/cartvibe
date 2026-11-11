@@ -16,7 +16,6 @@ import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ShoppingTripsComponent } from "./shopping-trips.component";
 
 import type { Mock } from "vitest";
@@ -59,7 +58,7 @@ describe("ShoppingTripsComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
+        NgxsModule.forRoot([AuthState, ShoppingListState]),
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,

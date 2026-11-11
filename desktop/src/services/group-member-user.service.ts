@@ -1,12 +1,14 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { GroupMember, User } from "../open-api";
-import { GroupState, UserState } from "../store";
+import { GroupState, UserStore } from "../store";
 
 @Injectable({
   providedIn: "root",
 })
 export class GroupMemberUserService {
+  private readonly userStore = inject(UserStore);
+
   constructor(private store: Store) {}
 
   public getUsersInGroup(groupId: string): User[] {
@@ -16,9 +18,7 @@ export class GroupMemberUserService {
       .filter((gm) => gm.groupId.toString() === groupId.toString());
 
     groupMembers.forEach((gm) => {
-      const user = this.store.selectSnapshot(
-        UserState.findUserById(gm.userId.toString())
-      );
+      const user = this.userStore.findUserById(gm.userId.toString());
       if (user) {
         users.push(user);
       }

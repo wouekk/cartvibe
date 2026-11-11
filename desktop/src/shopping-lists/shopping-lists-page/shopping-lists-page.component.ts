@@ -27,7 +27,7 @@ import { ShoppingListSyncService } from "../../services/shopping-list-sync.servi
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState, GroupState } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
 import {
   ApplyShoppingListEvent,
@@ -86,6 +86,8 @@ const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
     ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly translation = inject(TranslationService);
 
   public readonly groupId = toSignal(
@@ -480,7 +482,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
    * unchecked: the same shop again, without retyping it (Phase 3 S2).
    */
   public copyList(list: ShoppingList): void {
-    const name = nameForToday("List", this.store.selectSnapshot(SystemSettingsState.timeZone));
+    const name = nameForToday("List", this.systemSettingsStore.timeZone());
 
     this.shoppingListService
       .createShoppingList(this.groupId(), { name })

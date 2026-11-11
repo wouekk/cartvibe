@@ -12,7 +12,6 @@ import {
   SystemTaskStatus,
 } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { FeatureConfigState } from "../../store/feature-config.state";
 import { AI_SETTINGS_NAME, AiSettingsPageComponent, describeConnection } from "./ai-settings-page.component";
 
 import type { Mock } from "vitest";
@@ -41,7 +40,7 @@ describe("AiSettingsPageComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
+      imports: [AiSettingsPageComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -264,7 +263,7 @@ describe("AiSettingsPageComponent", () => {
         updateSystemSettings: vi.fn(),
       };
       await TestBed.configureTestingModule({
-        imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
+        imports: [AiSettingsPageComponent, NgxsModule.forRoot([])],
         providers: [
           provideZonelessChangeDetection(),
           provideHttpClient(),

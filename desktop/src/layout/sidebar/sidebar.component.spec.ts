@@ -13,11 +13,10 @@ import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { LayoutState } from "src/store/layout.state";
 import { ShoppingListState } from "src/store/shopping-list.state";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, FeatureConfigState, GroupState, SetFeatureConfig, SetSelectedGroupId } from "../../store";
+import { AuthState, GroupState, SetSelectedGroupId, FeatureConfigStore } from "../../store";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups } from "../../store/group.state.actions";
 import { SidebarComponent } from "./sidebar.component";
@@ -58,7 +57,7 @@ describe("SidebarComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
+    imports: [TranslatePipe, NgxsModule.forRoot([AuthState, GroupState, ShoppingListState]),
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
@@ -340,7 +339,7 @@ describe("SidebarComponent", () => {
   // Adding lives on the Dashboard now (Phase 3 D3): "Add receipt" and "New list" there.
   it("has no New menu, whatever the user may add", async () => {
     login();
-    store.dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as FeatureConfig));
+    TestBed.inject(FeatureConfigStore).setFeatureConfig({ aiPoweredReceipts: true } as FeatureConfig);
     selectGroupFive([Permission.GroupReceiptsCreate, Permission.GroupReceiptsQuickScan]);
     await fixture.whenStable();
 

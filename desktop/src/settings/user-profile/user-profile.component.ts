@@ -20,7 +20,7 @@ import {
 } from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import {ClaimsService, SnackbarService, TokenRefreshService} from "../../services";
-import {AuthState, FeatureConfigState, Logout, UpdateUser} from "../../store";
+import { AuthState, Logout, FeatureConfigStore, UserStore } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
 import { buildOidcLinkUrl, oidcErrorMessage } from "../../utils/oidc";
 import {
@@ -62,6 +62,10 @@ const AVATAR_SWATCHES: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
     imports: [AvatarPhotoComponent, FormComponent, FormSectionComponent, InputComponent, BrnTooltip, HlmTooltip, ColorSwatchesComponent, SettingsSectionComponent, BrnButton, HlmButton, AppIconComponent, HasAppPermissionDirective, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserProfileComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
 
   public form: FormGroup = new FormGroup({});
 
@@ -87,7 +91,7 @@ export class UserProfileComponent implements OnInit {
   public readonly connections = signal<OidcConnectionView[]>([]);
 
   /** The providers an admin switched on (the login page's buttons). */
-  private readonly providers = this.store.selectSignal(FeatureConfigState.oidcProviders);
+  private readonly providers = this.featureConfigStore.oidcProviders;
 
   /** Switched-on providers this account is not connected to yet. */
   public readonly availableProviders = computed(() =>
@@ -325,13 +329,11 @@ export class UserProfileComponent implements OnInit {
           take(1),
           switchMap(() => this.tokenRefreshService.refreshToken()),
           switchMap(() => this.claimsService.getAndSetClaimsForLoggedInUser()),
-          switchMap(() => {
+          tap(() => {
             const loggedInUser = this.store.selectSnapshot(
               AuthState.loggedInUser
             );
-            return this.store.dispatch(
-              new UpdateUser(loggedInUser.id.toString(), loggedInUser)
-            );
+            this.userStore.updateUser(loggedInUser.id.toString(), loggedInUser);
           }),
           tap(() => {
             this.snackbarService.success("User profile successfully updated");

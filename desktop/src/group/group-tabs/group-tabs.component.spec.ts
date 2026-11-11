@@ -3,8 +3,10 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
-import { AuthState, FeatureConfigState } from "../../store";
+import { AuthState } from "../../store";
 import { GroupTabsComponent } from "./group-tabs.component";
+import { seedStore } from "../../testing/seed-store";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 
 describe("GroupTabsComponent", () => {
   let component: GroupTabsComponent;
@@ -12,7 +14,7 @@ describe("GroupTabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([FeatureConfigState, AuthState]), GroupTabsComponent],
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([AuthState]), GroupTabsComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });
     fixture = TestBed.createComponent(GroupTabsComponent);
@@ -45,12 +47,12 @@ describe("GroupTabsComponent", () => {
     const store = TestBed.inject(Store);
     store.reset({
       ...store.snapshot(),
-      featureConfig: {
-        aiPoweredReceipts: true,
-      },
       auth: {
         appPermissions: [Permission.AppGroupsRead],
       },
+    });
+    seedStore(TestBed.inject(FeatureConfigStore), {
+      aiPoweredReceipts: true,
     });
     component.ngOnInit();
 
@@ -72,12 +74,12 @@ describe("GroupTabsComponent", () => {
     const store = TestBed.inject(Store);
     store.reset({
       ...store.snapshot(),
-      featureConfig: {
-        aiPoweredReceipts: true,
-      },
       auth: {
         appPermissions: [],
       },
+    });
+    seedStore(TestBed.inject(FeatureConfigStore), {
+      aiPoweredReceipts: true,
     });
     component.ngOnInit();
 

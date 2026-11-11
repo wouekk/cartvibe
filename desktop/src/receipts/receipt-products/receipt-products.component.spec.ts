@@ -5,7 +5,6 @@ import { of, Subject, take } from "rxjs";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { AuthState } from "../../store/auth.state";
 import { SetGroupCatalog, SetPermissions } from "../../store/auth.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 import type { Mock } from "vitest";
@@ -46,7 +45,7 @@ describe("ReceiptProductsComponent", () => {
       setReceiptProductLabels: vi.fn(),
     };
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
     }).compileComponents();
   });

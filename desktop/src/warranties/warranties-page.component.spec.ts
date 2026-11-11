@@ -5,7 +5,6 @@ import { provideRouter } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { Observable, of, Subject, throwError } from "rxjs";
 import { ReceiptService, SortDirection } from "../open-api";
-import { SystemSettingsState } from "../store/system-settings.state";
 import { AuthState } from "../store";
 import { SetPermissions } from "../store/auth.state.actions";
 import { Store } from "@ngxs/store";
@@ -32,7 +31,7 @@ describe("WarrantiesPageComponent", () => {
   const open = async (response: () => Observable<unknown>, { settle = true } = {}) => {
     getReceiptsForGroup = vi.fn(response);
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([{ path: "warranties/group/:groupId", component: WarrantiesPageComponent }]),

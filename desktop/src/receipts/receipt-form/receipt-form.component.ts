@@ -14,8 +14,7 @@ import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { LayoutState } from "src/store/layout.state";
-import { HideProgressBar, ShowProgressBar } from "src/store/layout.state.actions";
+import { LayoutStore } from "src/store/layout.store";
 import { UserAutocompleteComponent } from "src/user-autocomplete/user-autocomplete/user-autocomplete.component";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import {
@@ -32,8 +31,8 @@ import {
 import { SnackbarService } from "../../services";
 import { shakeInvalid } from "../../utils/shake";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
-import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { AuthState, GroupState, FeatureConfigStore, UserStore } from "../../store";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
 import { downloadFile } from "../../utils/file";
 import { receiptImageFileUrl } from "../../utils/receipt-image-url";
@@ -87,6 +86,14 @@ export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
     imports: [ReactiveFormsModule, FormHeaderComponent, FormSectionComponent, NgIf, AuditDetailSectionComponent, InputComponent, ReceiptCurrencyNoteComponent, DatepickerComponent, ReceiptWarrantyComponent, GroupAutocompleteComponent, UserAutocompleteComponent, SelectComponent, TextareaComponent, UploadImageComponent, AppIconComponent, HlmSpinner, CarouselComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, ReceiptProductsComponent, UploadProgressComponent, FormButtonBarComponent, CancelButtonComponent, SubmitButtonComponent, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, TranslatePipe, FormGetPipe, InputReadonlyPipe, HlmButton, HlmTooltip, RouterLink]
 })
 export class ReceiptFormComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
+  private readonly layoutStore = inject(LayoutStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -109,9 +116,9 @@ export class ReceiptFormComponent implements OnInit {
 
   public receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
 
-  public aiPoweredReceipts = this.store.selectSignal(FeatureConfigState.aiPoweredReceipts);
+  public aiPoweredReceipts = this.featureConfigStore.aiPoweredReceipts;
 
-  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  public showProgressBar = this.layoutStore.showProgressBar;
 
   public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
@@ -447,7 +454,7 @@ export class ReceiptFormComponent implements OnInit {
     // receipt is "Receipt {today}" (magic fill replaces it with the store name)
     // and paid by whoever is adding it. An unknown user id stays blank, so the
     // Paid By field shows and asks rather than posting 0.
-    const timeZone = this.store.selectSnapshot(SystemSettingsState.timeZone);
+    const timeZone = this.systemSettingsStore.timeZone();
     const currentUserId = Number(this.store.selectSnapshot(AuthState.userId)) || "";
     const isAdd = this.mode === FormMode.add && !this.originalReceipt;
 
@@ -519,7 +526,7 @@ export class ReceiptFormComponent implements OnInit {
         this.currentGroupId.set(groupId);
         this.setCategoryTagPoolsForGroup(groupId);
         const paidBy = this.form.get("paidByUserId");
-        const users = this.store.selectSnapshot(UserState.users);
+        const users = this.userStore.users();
         if (!groupId) {
           this.usersToOmit.set(users.map((u) => u.id.toString()));
           this.paidByAutocomplete()?.autocompleteComponent()?.clearFilter();
@@ -671,7 +678,7 @@ export class ReceiptFormComponent implements OnInit {
       receiptImageId = receiptImage?.id;
     }
 
-    this.store.dispatch(new ShowProgressBar());
+    this.layoutStore.showProgress();
     this.receiptImageService
       .magicFillReceipt(receiptImageId, file)
       .pipe(
@@ -681,7 +688,7 @@ export class ReceiptFormComponent implements OnInit {
           // Patched values are changes to save, so Save stops being dimmed.
           this.form.markAsDirty();
         }),
-        finalize(() => this.store.dispatch(new HideProgressBar()))
+        finalize(() => this.layoutStore.hideProgress())
       )
       .subscribe();
   }

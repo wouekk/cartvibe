@@ -1,8 +1,9 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { UserState } from "../store";
 import { UserPipe } from "./user.pipe";
+import { seedStore } from "../testing/seed-store";
+import { UserStore } from "../store/user.store";
 
 describe("UserPipe", () => {
   let pipe: UserPipe;
@@ -10,7 +11,7 @@ describe("UserPipe", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([UserState]), UserPipe],
+    imports: [NgxsModule.forRoot([]), UserPipe],
     providers: [UserPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
@@ -18,10 +19,8 @@ describe("UserPipe", () => {
     store = TestBed.inject(Store);
     pipe = TestBed.inject(UserPipe);
 
-    store.reset({
-      users: {
-        users: [{ id: 1 }, { id: 2 }, { id: 3 }],
-      },
+    seedStore(TestBed.inject(UserStore), {
+      users: [{ id: 1 }, { id: 2 }, { id: 3 }],
     });
   });
 

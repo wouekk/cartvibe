@@ -1,10 +1,9 @@
-import { Component, computed, effect, input, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, input, untracked, viewChild, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormControl } from "@angular/forms";
-import { Store } from "@ngxs/store";
 import { AutocompleteComponent } from "src/autocomplete/autocomplete/autocomplete.component";
 import { GroupMemberUserService } from "src/services/group-member-user.service";
 import { User } from "../../open-api";
-import { UserState } from "../../store";
+import { UserStore } from "../../store";
 import { NgIf } from "@angular/common";
 
 @Component({
@@ -16,8 +15,9 @@ import { NgIf } from "@angular/common";
     imports: [NgIf, AutocompleteComponent]
 })
 export class UserAutocompleteComponent {
+  private readonly userStore = inject(UserStore);
+
   constructor(
-    private store: Store,
     private groupMemberUserService: GroupMemberUserService
   ) {}
 
@@ -47,7 +47,7 @@ export class UserAutocompleteComponent {
       return this.groupMemberUserService.getUsersInGroup(groupId);
     }
 
-    const allUsers = this.store.selectSnapshot(UserState.users);
+    const allUsers = this.userStore.users();
 
     if (usersToOmit.length > 0) {
       return allUsers.filter((u) => !usersToOmit.includes(u.id.toString()));
@@ -70,9 +70,7 @@ export class UserAutocompleteComponent {
 
   public displayWith(id?: number): string {
     if (id) {
-      const user = this.store.selectSnapshot(
-        UserState.getUserById(id.toString())
-      );
+      const user = this.userStore.getUserById(id.toString());
       return user?.displayName ?? "";
     }
     return "";

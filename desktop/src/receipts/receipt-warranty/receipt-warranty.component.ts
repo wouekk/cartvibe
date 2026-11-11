@@ -11,7 +11,7 @@ import { Receipt, ReceiptService } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { WebPushService } from "../../services/web-push.service";
 import { AuthState } from "../../store";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { calendarDayToLocalDate, todayInZone } from "../../utils/app-time-zone";
 import { addWarrantyYears, daysBetween, effectiveRegion, warrantyYears } from "../../utils/warranty-period";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
@@ -29,6 +29,8 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
   imports: [DatepickerModule, HlmButton, AppDatePipe, TranslatePipe, PluralPipe],
 })
 export class ReceiptWarrantyComponent {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly receiptService = inject(ReceiptService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly webPush = inject(WebPushService);
@@ -47,7 +49,7 @@ export class ReceiptWarrantyComponent {
 
   public readonly control = new FormControl<Date | null>(null);
 
-  private readonly today = computed(() => formatDateInput(todayInZone(this.store.selectSnapshot(SystemSettingsState.timeZone))));
+  private readonly today = computed(() => formatDateInput(todayInZone(this.systemSettingsStore.timeZone())));
 
   /** Days until the warranty ends (0 today, negative once it has ended), or null without a date. */
   public readonly daysLeft = computed(() => daysBetween(this.today(), this.warrantyUntil()));

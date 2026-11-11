@@ -1,7 +1,6 @@
 import { Component, Input, OnInit, computed, inject, output, ChangeDetectionStrategy } from "@angular/core";
 import { FormGroup } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import {
   SYSTEM_RAN_BY_OPTION_DISPLAY_VALUE,
   SYSTEM_RAN_BY_OPTION_ID,
@@ -14,7 +13,7 @@ import { FormCommand } from "../../form/index";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { UserState } from "../../store";
+import { UserStore } from "../../store";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
 import { FilterFieldComponent } from "../../shared-ui/filter-field/filter-field.component";
 import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
@@ -34,6 +33,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [DialogComponent, FilterFieldComponent, DialogFooterComponent, TranslatePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class SystemTaskFilterComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
   private readonly systemTaskTableStore = inject(SystemTaskTableStore);
 
   @Input() public headerText: string = "";
@@ -44,7 +45,7 @@ export class SystemTaskFilterComponent implements OnInit {
 
   public systemTaskTypeOptions = SYSTEM_TASK_TYPE_OPTIONS;
 
-  private users = this.store.selectSignal(UserState.users);
+  private users = this.userStore.users;
 
   /**
    * "System" is pinned above the real users so tasks with no `ranByUserId` —
@@ -57,7 +58,6 @@ export class SystemTaskFilterComponent implements OnInit {
   ]);
 
   constructor(
-    private store: Store,
     private dialogRef: AppDialogRef<SystemTaskFilterComponent>
   ) {}
 

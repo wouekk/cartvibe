@@ -9,7 +9,7 @@ import { Permission } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState } from "../../store/auth.state";
-import { FeatureConfigState } from "../../store/feature-config.state";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 import { openQuickScanDialog } from "./open-quick-scan-dialog";
 
 /**
@@ -21,6 +21,8 @@ import { openQuickScanDialog } from "./open-quick-scan-dialog";
  */
 @Injectable({ providedIn: "root" })
 export class QuickScanLauncher {
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly dialog = inject(AppDialog);
   private readonly router = inject(Router);
   private readonly snackbarService = inject(SnackbarService);
@@ -28,7 +30,7 @@ export class QuickScanLauncher {
   private readonly translation = inject(TranslationService);
 
   public open(): Observable<unknown> {
-    if (this.store.selectSnapshot(FeatureConfigState.aiPoweredReceipts)) {
+    if (this.featureConfigStore.aiPoweredReceipts()) {
       return openQuickScanDialog(this.dialog);
     }
 

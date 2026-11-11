@@ -5,7 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { AppData, UserService } from "../../open-api";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
-import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
+import { AuthState, GroupState } from "../../store";
 import { OidcCallbackComponent } from "./oidc-callback.component";
 
 import type { Mock } from "vitest";
@@ -19,7 +19,7 @@ describe("OidcCallbackComponent", () => {
     router = { navigate: vi.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
-      imports: [OidcCallbackComponent, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, UserState])],
+      imports: [OidcCallbackComponent, NgxsModule.forRoot([AuthState, GroupState])],
       providers: [
         provideZonelessChangeDetection(),
         { provide: UserService, useValue: userService },

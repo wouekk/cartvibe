@@ -3,7 +3,6 @@ import { TestBed } from "@angular/core/testing";
 import { NgxsModule } from "@ngxs/store";
 import { provideRouter } from "@angular/router";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { WarrantyDateDialogComponent } from "./warranty-date-dialog.component";
 
 describe("WarrantyDateDialogComponent", () => {
@@ -12,7 +11,7 @@ describe("WarrantyDateDialogComponent", () => {
   const create = async () => {
     close = vi.fn();
     await TestBed.configureTestingModule({
-      imports: [WarrantyDateDialogComponent, NgxsModule.forRoot([SystemSettingsState])],
+      imports: [WarrantyDateDialogComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

@@ -12,7 +12,7 @@ import {
 } from "../../open-api";
 import { buildColumnGroup } from "../models/report-form.factory";
 import { ReportConfigPanelComponent } from "./report-config-panel.component";
-import { SystemSettingsState } from "src/store/system-settings.state";
+import { SystemSettingsStore } from "src/store/system-settings.store";
 
 import type { Mock } from "vitest";
 const GROUPS = [
@@ -59,7 +59,7 @@ describe("ReportConfigPanelComponent", () => {
         {
             provide: Store,
             useValue: {
-                selectSignal: (selector: unknown) => signal(selector === SystemSettingsState.timeZone ? "America/New_York" : GROUPS),
+                selectSignal: () => signal(GROUPS),
             },
         },
         { provide: AppDialog, useValue: dialog },
@@ -71,6 +71,7 @@ describe("ReportConfigPanelComponent", () => {
       .overrideComponent(ReportConfigPanelComponent, { set: { template: "" } })
       .compileComponents();
 
+    TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
     formBuilder = TestBed.inject(FormBuilder);
     form = buildForm(formBuilder);
     fixture = TestBed.createComponent(ReportConfigPanelComponent);

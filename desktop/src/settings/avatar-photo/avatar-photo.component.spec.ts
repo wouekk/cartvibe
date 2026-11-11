@@ -8,8 +8,7 @@ import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { AuthState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { UserState } from "../../store/user.state";
-import { SetUsers } from "../../store/user.state.actions";
+import { UserStore } from "../../store/user.store";
 import { AvatarPhotoComponent } from "./avatar-photo.component";
 
 describe("AvatarPhotoComponent", () => {
@@ -27,7 +26,7 @@ describe("AvatarPhotoComponent", () => {
     confirmation = {};
 
     await TestBed.configureTestingModule({
-      imports: [AvatarPhotoComponent, NgxsModule.forRoot([AuthState, UserState])],
+      imports: [AvatarPhotoComponent, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -42,7 +41,7 @@ describe("AvatarPhotoComponent", () => {
 
     store = TestBed.inject(Store);
     store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "7", displayname: "Sam" } });
-    store.dispatch(new SetUsers([{ id: 7, displayName: "Sam", username: "sam" } as User]));
+    TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Sam", username: "sam" } as User]);
     store.dispatch(new SetPermissions(["app.account.update"], {}));
     fixture = TestBed.createComponent(AvatarPhotoComponent);
     await fixture.whenStable();
@@ -55,7 +54,7 @@ describe("AvatarPhotoComponent", () => {
     await vi.waitFor(() => expect(fixture.componentInstance.saving()).toBe(false));
     await fixture.whenStable();
   };
-  const myAvatarUpdatedAt = () => store.selectSnapshot(UserState.users).find((user) => user.id === 7)?.avatarUpdatedAt;
+  const myAvatarUpdatedAt = () => TestBed.inject(UserStore).users().find((user) => user.id === 7)?.avatarUpdatedAt;
 
   it("offers a camera and a file picker as native inputs inside labels", () => {
     const camera = byTestId("avatar-take-photo") as HTMLInputElement;
@@ -86,7 +85,7 @@ describe("AvatarPhotoComponent", () => {
   });
 
   it("removes the photo after a red Remove confirmation", async () => {
-    store.dispatch(new SetUsers([{ id: 7, displayName: "Sam", username: "sam", avatarUpdatedAt: "2026-11-01T00:00:00Z" } as User]));
+    TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Sam", username: "sam", avatarUpdatedAt: "2026-11-01T00:00:00Z" } as User]);
     await fixture.whenStable();
 
     (byTestId("avatar-remove") as HTMLButtonElement).click();

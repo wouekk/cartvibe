@@ -8,7 +8,6 @@ import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { FilterOperation } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { UserState } from "../../store";
 import { buildDefaultSystemTaskFilter, SystemTaskTableStore } from "../../store/system-task-table.store";
 import { TableModule } from "../../table/table.module";
 
@@ -24,7 +23,7 @@ describe("SystemTaskTableComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
-        NgxsModule.forRoot([UserState]),
+        NgxsModule.forRoot([]),
         TableModule, SystemTaskTableComponent],
     providers: [{
             provide: ActivatedRoute,

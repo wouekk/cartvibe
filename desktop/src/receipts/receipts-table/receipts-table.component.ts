@@ -8,7 +8,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
@@ -38,7 +38,7 @@ import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, GroupState, UserState } from "../../store";
+import { AuthState, GroupState, UserStore } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
@@ -98,6 +98,10 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
+  private readonly userStore = inject(UserStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly receiptTableStore = inject(ReceiptTableStore);
 
   constructor(
@@ -164,9 +168,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private groups = this.store.selectSignal(GroupState.groups);
 
-  private users = this.store.selectSignal(UserState.users);
+  private users = this.userStore.users;
 
-  private dateFormat = this.store.selectSignal(SystemSettingsState.dateFormat);
+  private dateFormat = this.systemSettingsStore.dateFormat;
 
   private receiptFilter = computed(
     () => this.filter()?.filter as ReceiptPagedRequestFilter | undefined

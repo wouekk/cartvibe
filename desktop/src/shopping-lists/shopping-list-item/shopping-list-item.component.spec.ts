@@ -3,8 +3,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ShoppingListItem, User } from "../../open-api";
-import { UserState } from "../../store/user.state";
-import { SetUsers } from "../../store/user.state.actions";
+import { UserStore } from "../../store/user.store";
 import { ShoppingListsModule } from "../shopping-lists.module";
 import { ShoppingListItemClassification, ShoppingListItemComponent } from "./shopping-list-item.component";
 
@@ -184,10 +183,10 @@ describe("ShoppingListItemComponent: who crossed it off", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([UserState])],
+      imports: [ShoppingListsModule, NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
-    TestBed.inject(Store).dispatch(new SetUsers([{ id: 7, displayName: "Ola", username: "ola" } as User]));
+    TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Ola", username: "ola" } as User]);
     fixture = TestBed.createComponent(ShoppingListItemComponent);
   });
 

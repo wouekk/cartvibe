@@ -7,7 +7,6 @@ import { Permission, ReceiptProductService, ReceiptProductsView } from "../../op
 import { ReceiptReadStreamService } from "../../services/receipt-read-stream.service";
 import { AuthState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 const view = (status: string, products: unknown[] = []): ReceiptProductsView =>
@@ -39,7 +38,7 @@ describe("ReceiptProductsComponent while the AI reads the receipt", () => {
     getReceiptProducts = vi.fn().mockReturnValue(of(view("PENDING")));
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProductService, useValue: { getReceiptProducts } },

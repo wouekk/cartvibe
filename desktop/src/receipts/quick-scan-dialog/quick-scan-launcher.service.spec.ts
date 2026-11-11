@@ -10,8 +10,7 @@ import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SetFeatureConfig } from "../../store/feature-config.state.actions";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { QuickScanLauncher } from "./quick-scan-launcher.service";
 
@@ -29,7 +28,7 @@ describe("QuickScanLauncher", () => {
     open = vi.fn();
     hint = vi.fn();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState, FeatureConfigState])],
+      imports: [NgxsModule.forRoot([AuthState])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -41,7 +40,7 @@ describe("QuickScanLauncher", () => {
   });
 
   it("opens the scan dialog when the AI is set up, and hands back its afterClosed", () => {
-    store.dispatch(new SetFeatureConfig({ aiPoweredReceipts: true } as never));
+    TestBed.inject(FeatureConfigStore).setFeatureConfig({ aiPoweredReceipts: true } as never);
     open.mockReturnValue({ afterClosed: () => of("closed") });
     const seen: unknown[] = [];
 

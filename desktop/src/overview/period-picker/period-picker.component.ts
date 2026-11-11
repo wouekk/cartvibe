@@ -1,10 +1,9 @@
-import { Component, computed, effect, input, OnInit, output, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, input, OnInit, output, signal, ChangeDetectionStrategy, inject } from "@angular/core";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { Store } from "@ngxs/store";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { todayInZone } from "../../utils/app-time-zone";
 import {
   formatDayMonthYear,
@@ -29,12 +28,14 @@ import {
   imports: [AppIconComponent, SharedUiModule, TranslatePipe],
 })
 export class PeriodPickerComponent implements OnInit {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   /** Opens on this range ("yyyy-MM-dd" ends, as a custom range) instead of this month; read once, on init. */
   public readonly initial = input<{ from: string; to: string }>();
 
   public readonly periodChange = output<ResolvedPeriod | undefined>();
 
-  private readonly timeZone = this.store.selectSignal(SystemSettingsState.timeZone);
+  private readonly timeZone = this.systemSettingsStore.timeZone;
 
   public readonly periodTabs: FilterTab[] = PERIOD_CHOICES.map((choice) => ({
     value: choice.value,
@@ -65,7 +66,7 @@ export class PeriodPickerComponent implements OnInit {
     this.preset() === "CUSTOM" ? this.customTo() : this.formatEnd(this.period()?.to)
   );
 
-  constructor(private store: Store) {
+  constructor() {
     effect(() => this.periodChange.emit(this.period()));
   }
 

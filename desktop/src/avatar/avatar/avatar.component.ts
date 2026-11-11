@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { Group, User } from "../../open-api";
-import { UserState } from "../../store/user.state";
+import { UserStore } from "../../store/user.store";
 import { groupColorStyle, isGroupIcon } from "../../constants/group-look";
 import { BrnTooltip } from "@spartan-ng/brain/tooltip";
 import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
@@ -25,6 +25,8 @@ export function avatarPhotoUrl(userId: number, avatarUpdatedAt: string): string 
     imports: [BrnTooltip, HlmTooltip, AppIconComponent, SlicePipe]
 })
 export class AvatarComponent {
+  private readonly userStore = inject(UserStore);
+
   public readonly user = input<User>();
   public readonly group = input<Group>();
   /** "md" (3.125rem, the default), "sm" (a list row) or "xs" (a menu entry). */
@@ -46,7 +48,7 @@ export class AvatarComponent {
 
   private readonly store = inject(Store, { optional: true });
 
-  private readonly users = this.store?.selectSignal(UserState.users) ?? signal<User[]>([]);
+  private readonly users = this.userStore.users ?? signal<User[]>([]);
 
   public readonly photoUrl = computed(() => {
     const user = this.user();

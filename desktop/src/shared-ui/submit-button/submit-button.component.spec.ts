@@ -4,7 +4,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
-import { LayoutState } from "src/store/layout.state";
 import { SubmitButtonComponent } from "./submit-button.component";
 
 @Component({
@@ -28,7 +27,7 @@ describe("SubmitButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([LayoutState]), SubmitButtonComponent, HostComponent],
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([]), SubmitButtonComponent, HostComponent],
     providers: [
         provideZonelessChangeDetection(),
         {

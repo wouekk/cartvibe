@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
@@ -6,7 +6,7 @@ import { Observable, take, tap } from "rxjs";
 import { ShoppingList, ShoppingListService, UpsertShoppingListCommand } from "../../open-api";
 import { ShoppingListEventType } from "../../store/shopping-list.state";
 import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { nameForToday } from "../../utils/app-time-zone";
 import { marker } from "../../i18n/marker";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
@@ -32,6 +32,8 @@ export const SHOPPING_LIST_NAME_MAX_LENGTH = 100;
     ],
 })
 export class ShoppingListFormDialogComponent implements OnInit {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   @Input() public groupId!: number;
 
   @Input() public list?: ShoppingList;
@@ -53,7 +55,7 @@ export class ShoppingListFormDialogComponent implements OnInit {
     this.form = this.formBuilder.group({
       name: [
         // A new list is one shopping trip, named after its day (Phase 3 S3); editable.
-        this.list?.name ?? nameForToday("List", this.store.selectSnapshot(SystemSettingsState.timeZone)),
+        this.list?.name ?? nameForToday("List", this.systemSettingsStore.timeZone()),
         [Validators.required, Validators.maxLength(SHOPPING_LIST_NAME_MAX_LENGTH)],
       ],
     });

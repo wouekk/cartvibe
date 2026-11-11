@@ -19,7 +19,7 @@ import { SnackbarService, TokenRefreshService } from "../../services";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { AddUser, AuthState, UpdateUser } from "../../store";
+import { AuthState, UserStore } from "../../store";
 import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
 import { InputComponent } from "../../input/input/input.component";
 import { NgIf } from "@angular/common";
@@ -39,6 +39,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class UserFormComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
   @Input() public user?: User;
 
   /** Editing an existing user dims Save until something changes. */
@@ -175,13 +177,11 @@ export class UserFormComponent implements OnInit {
         .updateUserById(this.user.id, this.form.value)
         .pipe(
           take(1),
-          switchMap(() =>
-            this.store.dispatch(
-              new UpdateUser(this.user?.id.toString() as string, {
+          tap(() =>
+            this.userStore.updateUser(this.user?.id.toString() as string, {
                 ...this.user,
                 ...this.form.value,
               })
-            )
           ),
           // Ahead of the token refresh below, which is session housekeeping
           // rather than something this message speaks for.
@@ -210,7 +210,7 @@ export class UserFormComponent implements OnInit {
         .createUser(this.form.value)
         .pipe(
           take(1),
-          switchMap((u) => this.store.dispatch(new AddUser(u))),
+          tap((u) => this.userStore.addUser(u)),
           tap(() => {
             this.snackbarService.success("User successfully created");
             this.dialogRef.close(true);

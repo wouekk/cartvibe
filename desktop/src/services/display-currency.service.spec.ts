@@ -1,7 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { AuthState } from "../store/auth.state";
-import { SystemSettingsState } from "../store/system-settings.state";
 import { DisplayCurrencyService } from "./display-currency.service";
 
 describe("DisplayCurrencyService", () => {
@@ -12,7 +11,7 @@ describe("DisplayCurrencyService", () => {
     store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userPreferences } });
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [NgxsModule.forRoot([AuthState, SystemSettingsState])] });
+    TestBed.configureTestingModule({ imports: [NgxsModule.forRoot([AuthState])] });
     store = TestBed.inject(Store);
     service = TestBed.inject(DisplayCurrencyService);
   });

@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { FilterOperation, User } from "../../open-api";
-import { UserState } from "../../store";
+import { UserStore } from "../../store";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { REPORT_GENERATOR_PAID_BY_ID, ReportFiltersComponent } from "./report-filters.component";
 
@@ -13,14 +13,11 @@ describe("ReportFiltersComponent", () => {
   let component: ReportFiltersComponent;
   let formBuilder: FormBuilder;
   let destroyRef: DestroyRef;
-  let usersSignal: WritableSignal<User[]>;
 
   beforeEach(async () => {
-    usersSignal = signal<User[]>([]);
-    // Route UserState.users to a signal the test controls (for the paid-by picker);
-    // every other selector stays empty as before.
+    // The paid-by picker reads the people from their store; every NGXS selector stays empty as before.
     const store = {
-      selectSignal: (selector: unknown) => (selector === UserState.users ? usersSignal : signal([])),
+      selectSignal: () => signal([]),
       selectSnapshot: () => [],
     };
 
@@ -125,7 +122,7 @@ describe("ReportFiltersComponent", () => {
 
   it("prepends a 'whoever generates the report' sentinel ahead of the user pool in the paid-by picker", () => {
     fixture.componentRef.setInput("form", formBuilder.group({ filter: formBuilder.group({}) }));
-    usersSignal.set([
+    TestBed.inject(UserStore).setUsers([
       { id: 5, username: "amy", displayName: "Amy" } as User,
       { id: 6, username: "ben", displayName: "" } as User,
     ]);

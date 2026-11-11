@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants";
-import { AuthState, GroupState, UserState } from "src/store";
+import { AuthState, GroupState, UserStore } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -79,6 +79,8 @@ const FILTER_FIELDS: FilterFieldDef[] = [
         FormGetPipe, HlmButton, HlmTooltip, AppIconComponent],
 })
 export class ReportFiltersComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
   public readonly form = input.required<FormGroup>();
 
   private readonly store = inject(Store);
@@ -120,7 +122,7 @@ export class ReportFiltersComponent implements OnInit {
   // The paid-by picker prepends a "whoever generates the report" sentinel to the full
   // user pool (read reactively so it repopulates if AppData lands after first paint),
   // then stores plain user ids like every other paid-by filter — the -1 sentinel too.
-  private readonly users = this.store.selectSignal(UserState.users);
+  private readonly users = this.userStore.users;
   public readonly paidByOptions = computed<PaidByOption[]>(() => [
     { id: REPORT_GENERATOR_PAID_BY_ID, displayName: marker("Whoever generates the report") },
     ...this.users().map((user) => ({

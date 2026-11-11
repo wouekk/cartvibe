@@ -1,8 +1,7 @@
 import { Component, provideZonelessChangeDetection, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { SystemSettingsState } from "../store/system-settings.state";
-import { SetDateFormat, SetTimeZone } from "../store/system-settings.state.actions";
+import { SystemSettingsStore } from "../store/system-settings.store";
 import { AppDatePipe, formatAppDate } from "./app-date.pipe";
 
 @Component({
@@ -62,7 +61,7 @@ describe("AppDatePipe", () => {
   describe("in a template", () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [HostComponent, NgxsModule.forRoot([SystemSettingsState])],
+        imports: [HostComponent, NgxsModule.forRoot([])],
         providers: [provideZonelessChangeDetection()],
       }).compileComponents();
     });
@@ -80,7 +79,7 @@ describe("AppDatePipe", () => {
       const pipe = TestBed.runInInjectionContext(() => new AppDatePipe());
       expect(pipe.transform("2026-10-01", "mediumDate", "calendar")).toBe("01/10/2026");
 
-      TestBed.inject(Store).dispatch(new SetDateFormat("MM/DD/YYYY"));
+      TestBed.inject(SystemSettingsStore).setDateFormat("MM/DD/YYYY");
 
       expect(pipe.transform("2026-10-01", "mediumDate", "calendar")).toBe("10/01/2026");
     });
@@ -93,7 +92,7 @@ describe("AppDatePipe", () => {
       expect(text(fixture, "instant")).toBe("2026-10-01 01:00");
       expect(text(fixture, "calendar")).toBe("30/09/2026");
 
-      TestBed.inject(Store).dispatch(new SetTimeZone("America/New_York"));
+      TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
       await fixture.whenStable();
 
       expect(text(fixture, "instant")).toBe("2026-09-30 21:00");
