@@ -5,18 +5,20 @@ import (
 	"bytes"
 	"cartvibe/api/internal/constants"
 	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/imagetool"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"gopkg.in/gographics/imagick.v3/imagick"
 	"gorm.io/gorm"
 )
 
@@ -218,23 +220,13 @@ func (repository FileRepository) ValidateJsonFileType(bytes []byte) (string, err
 	return "", errors.New("invalid file type")
 }
 
+// ConvertHeicToJpg turns an iPhone photo into a JPEG a browser shows. The picture is the file's first image; a
+// HEIC may carry more (a depth map, a burst).
 func (repository FileRepository) ConvertHeicToJpg(bytes []byte) ([]byte, error) {
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
-
-	if err := mw.ReadImageBlob(bytes); err != nil {
-		return nil, err
-	}
-
-	if err := mw.SetImageFormat("jpeg"); err != nil {
-		return nil, err
-	}
-
-	if err := mw.SetCompressionQuality(95); err != nil {
-		return nil, err
-	}
-
-	return mw.GetImageBlob()
+	return imagetool.Convert(context.Background(), bytes, imagetool.Conversion{
+		Operations: []string{"-quality", "95"},
+		Format:     "jpeg",
+	})
 }
 
 // visionImageMaxSide is the longest edge, in pixels, of an image sent to a vision model. Receipts stay readable well
@@ -255,54 +247,16 @@ func (repository FileRepository) NormalizeImageForVision(bytes []byte) ([]byte, 
 // toOpaqueJpeg is the conversion behind NormalizeImageForVision and the stored display copies: the first frame,
 // upright, on white, sRGB, its long edge at most maxSide (never enlarged), as a JPEG of the given quality.
 func (repository FileRepository) toOpaqueJpeg(bytes []byte, maxSide uint, quality uint) ([]byte, error) {
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
+	operations := []string{
+		"-auto-orient",
+		// Flatten any transparency onto white: JPEG has no alpha, and a black background hides dark receipt text.
+		"-background", "white", "-alpha", "remove",
+		"-colorspace", "sRGB",
+	}
+	operations = append(operations, imagetool.ShrinkToFit(maxSide)...)
+	operations = append(operations, "-strip", "-quality", strconv.FormatUint(uint64(quality), 10))
 
-	if err := mw.ReadImageBlob(bytes); err != nil {
-		return nil, err
-	}
-	mw.SetIteratorIndex(0)
-
-	if err := mw.AutoOrientImage(); err != nil {
-		return nil, err
-	}
-
-	// Flatten any transparency onto white: JPEG has no alpha, and a black background hides dark receipt text.
-	background := imagick.NewPixelWand()
-	defer background.Destroy()
-	background.SetColor("white")
-	if err := mw.SetImageBackgroundColor(background); err != nil {
-		return nil, err
-	}
-	if err := mw.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_REMOVE); err != nil {
-		return nil, err
-	}
-
-	if err := mw.TransformImageColorspace(imagick.COLORSPACE_SRGB); err != nil {
-		return nil, err
-	}
-
-	width, height := mw.GetImageWidth(), mw.GetImageHeight()
-	if longest := max(width, height); longest > maxSide {
-		scale := float64(maxSide) / float64(longest)
-		newWidth := max(1, uint(float64(width)*scale+0.5))
-		newHeight := max(1, uint(float64(height)*scale+0.5))
-		if err := mw.ResizeImage(newWidth, newHeight, imagick.FILTER_LANCZOS); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := mw.StripImage(); err != nil {
-		return nil, err
-	}
-	if err := mw.SetImageFormat("jpeg"); err != nil {
-		return nil, err
-	}
-	if err := mw.SetCompressionQuality(quality); err != nil {
-		return nil, err
-	}
-
-	return mw.GetImageBlob()
+	return imagetool.Convert(context.Background(), bytes, imagetool.Conversion{Operations: operations, Format: "jpeg"})
 }
 
 // pdfRasterizationDpi returns the DPI used to rasterize PDFs into images. It is
@@ -330,81 +284,25 @@ func (repository FileRepository) pdfRasterizationDpi() float64 {
 	return dpi
 }
 
+// ConvertPdfToJpg draws every page of a PDF and stacks them, top to bottom, into one JPEG.
 func (repository FileRepository) ConvertPdfToJpg(bytes []byte) ([]byte, error) {
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
-
 	// PDFs are vector documents with no inherent pixel resolution. ImageMagick
 	// rasterizes them at a default of 72 DPI unless a resolution is set BEFORE
-	// the blob is read, which produces low-resolution images that degrade OCR
+	// the file is read, which produces low-resolution images that degrade OCR
 	// and vision-model accuracy. Set the rasterization density first; it is
 	// configurable via the PdfDpi system setting (default 300).
-	dpi := repository.pdfRasterizationDpi()
-	if err := mw.SetResolution(dpi, dpi); err != nil {
-		return nil, err
-	}
+	dpi := strconv.FormatFloat(repository.pdfRasterizationDpi(), 'f', -1, 64)
 
-	if err := mw.ReadImageBlob(bytes); err != nil {
-		return nil, err
-	}
-
-	// Set the format to JPEG once, the setting is retained across frames.
-	if err := mw.SetImageFormat("jpeg"); err != nil {
-		return nil, err
-	}
-
-	// Must be *after* ReadImageFile
-	// Flatten image and remove alpha channel, to prevent alpha turning black in jpg
-	if err := mw.SetImageAlphaChannel(0); err != nil {
-		return nil, err
-	}
-
-	// Find out how many images/pages we've got in a pdf.
-	numPages := int(mw.GetNumberImages())
-
-	// Create a new wand to store the final long image.
-	finalImage := imagick.NewMagickWand()
-	defer finalImage.Destroy()
-
-	// Iterate over each page, processing it as needed.
-	for i := 0; i < numPages; i++ {
-		mw.SetIteratorIndex(i)
-
-		// Get the current image as a MagickWand.
-		// This is done because AddImage() expects a MagickWand, not a blob.
-		currImage := mw.GetImage()
-
-		// Add the current image to the finalImage wand.
-		if err := finalImage.AddImage(currImage); err != nil {
-			currImage.Destroy()
-			return nil, err
-		}
-
-		// Destroy the current image object as it's no longer needed.
-		currImage.Destroy()
-	}
-
-	// Now, we will append all the images stored in finalImage vertically.
-	// Resetting the wand is necessary for AppendImages to work.
-	finalImage.ResetIterator()
-	combinedImage := finalImage.AppendImages(true)
-
-	tempFilePath, err := repository.BuildTempFilePath("jpg")
-	if err != nil {
-		return nil, err
-	}
-
-	if err := combinedImage.WriteImage(tempFilePath); err != nil {
-		return nil, err
-	}
-
-	bytes, err = utils.ReadFile(tempFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	os.Remove(tempFilePath)
-	return bytes, nil
+	return imagetool.Convert(context.Background(), bytes, imagetool.Conversion{
+		ReadSettings: []string{"-density", dpi},
+		AllFrames:    true,
+		Operations: []string{
+			// A page comes back transparent where nothing is drawn, and JPEG has no alpha: put each page on white.
+			"-background", "white", "-alpha", "remove", "-alpha", "off",
+			"-append",
+		},
+		Format: "jpeg",
+	})
 }
 
 func (repository FileRepository) WriteTempFile(data []byte) (string, error) {

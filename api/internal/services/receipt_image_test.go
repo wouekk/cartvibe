@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,7 +13,8 @@ import (
 	"runtime"
 	"testing"
 
-	"gopkg.in/gographics/imagick.v3/imagick"
+	"cartvibe/api/internal/imagetool"
+	"cartvibe/api/internal/imagetool/imagetooltest"
 )
 
 // testApiRoot returns the absolute path of the api/ directory. See the
@@ -27,17 +29,11 @@ func testApiRoot() string {
 // the PDF-branch receipt-image test.
 func jpgToPdf(t *testing.T, jpgBytes []byte) []byte {
 	t.Helper()
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
-	if err := mw.ReadImageBlob(jpgBytes); err != nil {
-		t.Fatalf("ImageMagick ReadImageBlob: %v", err)
-	}
-	if err := mw.SetImageFormat("pdf"); err != nil {
-		t.Fatalf("ImageMagick SetImageFormat pdf: %v", err)
-	}
-	out, err := mw.GetImageBlob()
+	imagetooltest.RequireMagick(t)
+
+	out, err := imagetool.Convert(context.Background(), jpgBytes, imagetool.Conversion{Format: "pdf"})
 	if err != nil {
-		t.Fatalf("ImageMagick GetImageBlob: %v", err)
+		t.Fatalf("ImageMagick could not write the PDF: %v", err)
 	}
 	return out
 }
@@ -124,6 +120,8 @@ func seedReceiptImagePipeline(t *testing.T, url string) (models.User, models.Gro
 // ---------- ReadReceiptImage ----------
 
 func TestReadReceiptImage_HappyPath(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("FromImage", "10"))
@@ -197,6 +195,8 @@ func TestReadReceiptImage_PdfRoutesThroughConversion(t *testing.T) {
 // ---------- ReadReceiptImageFromFileOnly / WithEmailBody / ImagesWithEmailBody ----------
 
 func TestReadReceiptImageFromFileOnly(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("FileOnly", "3"))
@@ -215,6 +215,8 @@ func TestReadReceiptImageFromFileOnly(t *testing.T) {
 // ---------- MagicFillFromImage ----------
 
 func TestMagicFillFromImage_HappyPath(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("Magic", "7"))

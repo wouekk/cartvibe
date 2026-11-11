@@ -1,17 +1,14 @@
 package services
 
 import (
-	"bytes"
+	"cartvibe/api/internal/commands"
+	"cartvibe/api/internal/imagetool"
+	"cartvibe/api/internal/logging"
+	"context"
 	"fmt"
-	"github.com/otiai10/gosseract/v2"
-	"gopkg.in/gographics/imagick.v3/imagick"
 	"gorm.io/gorm"
-	"image"
-	"image/jpeg"
 	"os"
 	"path/filepath"
-	"cartvibe/api/internal/commands"
-	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
@@ -105,30 +102,9 @@ const ocrCharBlacklist = "|~`^_{}[]<>\\"
 var ocrLanguages = []string{"eng", "pol", "deu", "fra", "spa"}
 
 func (service OcrService) ReadImageWithTesseract(preparedImageBytes []byte) (string, error) {
-	client := gosseract.NewClient()
-	defer client.Close()
-
-	err := client.SetLanguage(ocrLanguages...)
-	if err != nil {
-		return "", err
-	}
-
-	err = client.SetVariable("tessedit_char_blacklist", ocrCharBlacklist)
-	if err != nil {
-		return "", err
-	}
-
-	err = client.SetImageFromBytes(preparedImageBytes)
-	if err != nil {
-		return "", err
-	}
-
-	text, err := client.Text()
-	if err != nil {
-		return "", err
-	}
-
-	return text, nil
+	return imagetool.ReadText(context.Background(), preparedImageBytes, ocrLanguages, map[string]string{
+		"tessedit_char_blacklist": ocrCharBlacklist,
+	})
 }
 
 func (service OcrService) writeDebuggingFiles(ocrText string, path string, imageBytes []byte, ocrDuration time.Duration) error {
@@ -138,7 +114,8 @@ func (service OcrService) writeDebuggingFiles(ocrText string, path string, image
 
 	tempPath := fileRepository.GetTempDirectoryPath()
 	textFilePath := filepath.Join(tempPath, filename+".txt")
-	imageFilePath := filepath.Join(tempPath, filename+".jpg")
+	// The prepared image is a PNG (prepareImage); it is written as it was read.
+	imageFilePath := filepath.Join(tempPath, filename+".png")
 
 	textBytes := []byte(ocrText)
 
@@ -148,23 +125,7 @@ func (service OcrService) writeDebuggingFiles(ocrText string, path string, image
 		return err
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(imageBytes))
-	if err != nil {
-		return err
-	}
-
 	os.Remove(imageFilePath)
-	imgFile, err := os.Create(imageFilePath)
-	if err != nil {
-		return err
-	}
-	defer imgFile.Close()
-
-	err = jpeg.Encode(imgFile, img, nil)
-	if err != nil {
-		return err
-	}
-
 	err = utils.WriteFile(imageFilePath, imageBytes)
 	if err != nil {
 		return err
@@ -177,58 +138,30 @@ func (service OcrService) writeDebuggingFiles(ocrText string, path string, image
 	return nil
 }
 
+// prepareImage makes a photo easier for Tesseract to read: trimmed to the paper, black on white, straightened.
+// The result is a PNG whatever the photo was (a bilevel picture is small without loss, and Tesseract reads it).
 func (service OcrService) prepareImage(path string) ([]byte, error) {
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
-	err := mw.ReadImage(path)
+	// The bytes are handed over, never the path: it holds the household's folder name, which a person chose, and
+	// ImageMagick reads meaning into a file name (imagetool's rules).
+	original, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 
 	// The filters below cost time per pixel; a 12 MP phone photo is shrunk first. ocrImageMaxSide keeps receipt
 	// print well above the size Tesseract needs.
-	if width, height := mw.GetImageWidth(), mw.GetImageHeight(); max(width, height) > ocrImageMaxSide {
-		scale := float64(ocrImageMaxSide) / float64(max(width, height))
-		err = mw.ResizeImage(max(1, uint(float64(width)*scale+0.5)), max(1, uint(float64(height)*scale+0.5)), imagick.FILTER_LANCZOS)
-		if err != nil {
-			return nil, err
-		}
-	}
+	operations := imagetool.ShrinkToFit(ocrImageMaxSide)
+	operations = append(operations,
+		"-trim", "+repage",
+		"-type", "bilevel",
+		"-blur", "0x1.5",
+		"-sharpen", "0x1",
+		"-enhance",
+		// "+contrast" lowers the contrast one step, as the library call did with sharpen=false.
+		"+contrast",
+		// The threshold the library call was given, in the same unit (an absolute value, not a percentage).
+		"-deskew", "0.4",
+	)
 
-	err = mw.TrimImage(0)
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.SetImageType(imagick.IMAGE_TYPE_BILEVEL)
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.BlurImage(0, 1.5)
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.SharpenImage(0, 1)
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.EnhanceImage()
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.ContrastImage(false)
-	if err != nil {
-		return nil, err
-	}
-
-	err = mw.DeskewImage(.40)
-	if err != nil {
-		return nil, err
-	}
-
-	return mw.GetImageBlob()
+	return imagetool.Convert(context.Background(), original, imagetool.Conversion{Operations: operations, Format: "png"})
 }

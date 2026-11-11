@@ -22,7 +22,8 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-	"gopkg.in/gographics/imagick.v3/imagick"
+	"cartvibe/api/internal/imagetool"
+	"cartvibe/api/internal/imagetool/imagetooltest"
 )
 
 func TestHtmlToPdfService_Render_BasicHtml(t *testing.T) {
@@ -452,22 +453,14 @@ func renderOrFatal(t *testing.T, html string) []byte {
 // format so colors are preserved exactly (unlike lossy JPEG).
 func rasterizePdfPage(t *testing.T, pdf []byte) image.Image {
 	t.Helper()
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
+	imagetooltest.RequireMagick(t)
 
-	if err := mw.SetResolution(150, 150); err != nil {
-		t.Fatalf("SetResolution: %v", err)
-	}
-	if err := mw.ReadImageBlob(pdf); err != nil {
-		t.Fatalf("ReadImageBlob: %v", err)
-	}
-	mw.SetIteratorIndex(0)
-	if err := mw.SetImageFormat("png"); err != nil {
-		t.Fatalf("SetImageFormat: %v", err)
-	}
-	blob, err := mw.GetImageBlob()
+	blob, err := imagetool.Convert(context.Background(), pdf, imagetool.Conversion{
+		ReadSettings: []string{"-density", "150"},
+		Format:       "png",
+	})
 	if err != nil {
-		t.Fatalf("GetImageBlob: %v", err)
+		t.Fatalf("ImageMagick could not draw the page: %v", err)
 	}
 	img, err := png.Decode(bytes.NewReader(blob))
 	if err != nil {

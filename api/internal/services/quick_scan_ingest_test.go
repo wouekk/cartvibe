@@ -1,6 +1,7 @@
 package services
 
 import (
+	"cartvibe/api/internal/imagetool/imagetooltest"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -163,6 +164,8 @@ func hasTagId(tags []models.Tag, id uint) bool {
 // TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem proves QuickScan fills the paid-by/status
 // from its arguments (the group's resolved defaults) when the AI omits them.
 func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, user, _, err := runQuickScan(
@@ -197,6 +200,8 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 // status: the prompt asks for neither, and text printed on a receipt or a PDF must not be able to set them.
 // The person's choice (the QuickScan arguments) is what the receipt gets.
 func TestQuickScan_IgnoresAPayerAndStatusInTheAiAnswer(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	var aiPayerId uint
@@ -241,6 +246,8 @@ func TestQuickScan_IgnoresAPayerAndStatusInTheAiAnswer(t *testing.T) {
 // TestQuickScan_MergesUserCategoryAndTagPicksWithAi proves the user's per-file category/tag picks are
 // unioned (deduped by id) with the AI-assigned ones, with names resolved so validation passes.
 func TestQuickScan_MergesUserCategoryAndTagPicksWithAi(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
@@ -305,6 +312,8 @@ func TestQuickScan_InvalidAiJsonReturnsError(t *testing.T) {
 // required") and silently dropped the whole receipt. QuickScan now resolves each id to its real record
 // so the receipt is created with the name filled in.
 func TestQuickScan_ResolvesIdOnlyAiCategory(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
@@ -344,6 +353,8 @@ func TestQuickScan_ResolvesIdOnlyAiCategory(t *testing.T) {
 // TestQuickScan_DropsUnresolvableAiCategory proves a hallucinated AI category id (no matching row) is
 // dropped rather than failing the whole scan.
 func TestQuickScan_DropsUnresolvableAiCategory(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
@@ -378,6 +389,8 @@ func TestQuickScan_DropsUnresolvableAiCategory(t *testing.T) {
 // scan was queued with no payer); QuickScan now records a FAILED RECEIPT_UPLOADED task and flips the QUICK_SCAN
 // parent to FAILED.
 func TestQuickScan_ValidationFailureRecordsFailedSystemTask(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	_, _, _, err := runQuickScan(
@@ -486,6 +499,8 @@ func storedNote(t *testing.T, receiptId uint) string {
 
 // The person's quick-scan note is saved on the receipt the scan creates.
 func TestQuickScan_PersistsTheNote(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScanWithSetup(
@@ -512,6 +527,8 @@ func TestQuickScan_PersistsTheNote(t *testing.T) {
 
 // A scan without a note (the default: Quick Scan does not ask for one) leaves the note empty.
 func TestQuickScan_NoNoteLeavesItEmpty(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
@@ -538,6 +555,8 @@ func TestQuickScan_NoNoteLeavesItEmpty(t *testing.T) {
 // to put words in a household member's mouth. The person's own quick-scan note is the only one saved, and without
 // one the note stays empty.
 func TestQuickScan_IgnoresANoteInTheAiAnswer(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	aiAnswer := func(u models.User, g models.Group) string {
 		return `{"name": "Both", "amount": 5.00, "date": "2024-07-07T00:00:00Z", "note": "AI note", "comments": [{"comment": "AI comment"}]}`
 	}

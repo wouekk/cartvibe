@@ -3,6 +3,7 @@ package repositories
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/base64"
 	"image"
 	"image/color"
@@ -19,7 +20,8 @@ import (
 	"testing"
 
 	"github.com/gabriel-vasile/mimetype"
-	"gopkg.in/gographics/imagick.v3/imagick"
+	"cartvibe/api/internal/imagetool"
+	"cartvibe/api/internal/imagetool/imagetooltest"
 )
 
 // testBasePath returns the absolute path of the api/ directory so tests
@@ -47,18 +49,11 @@ func readTestJpgBytes(t *testing.T) []byte {
 // ImageMagick. Returns the PDF bytes for use as a ConvertPdfToJpg fixture.
 func makePdfFromJpg(t *testing.T, jpgBytes []byte) []byte {
 	t.Helper()
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
+	imagetooltest.RequireMagick(t)
 
-	if err := mw.ReadImageBlob(jpgBytes); err != nil {
-		t.Fatalf("ImageMagick ReadImageBlob failed: %v", err)
-	}
-	if err := mw.SetImageFormat("pdf"); err != nil {
-		t.Fatalf("ImageMagick SetImageFormat pdf failed: %v", err)
-	}
-	pdf, err := mw.GetImageBlob()
+	pdf, err := imagetool.Convert(context.Background(), jpgBytes, imagetool.Conversion{Format: "pdf"})
 	if err != nil {
-		t.Fatalf("ImageMagick GetImageBlob failed: %v", err)
+		t.Fatalf("ImageMagick could not write the PDF: %v", err)
 	}
 	return pdf
 }
@@ -741,6 +736,8 @@ func TestConvertPdfToJpg_HigherDpiProducesLargerImage(t *testing.T) {
 }
 
 func TestConvertHeicToJpg_InvalidBytes(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	repository := NewFileRepository(nil)
 	_, err := repository.ConvertHeicToJpg([]byte("not heic"))
 	if err == nil {
@@ -1035,6 +1032,8 @@ func writePng(t *testing.T, width, height int) []byte {
 }
 
 func TestNormalizeImageForVision_OversizedTransparentPngBecomesSmallOpaqueJpeg(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	repository := NewFileRepository(nil)
 
 	normalized, err := repository.NormalizeImageForVision(writePng(t, 3000, 1500))
@@ -1063,6 +1062,8 @@ func TestNormalizeImageForVision_OversizedTransparentPngBecomesSmallOpaqueJpeg(t
 }
 
 func TestNormalizeImageForVision_SmallImagesAreNotUpscaled(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	repository := NewFileRepository(nil)
 
 	normalized, err := repository.NormalizeImageForVision(writePng(t, 400, 300))

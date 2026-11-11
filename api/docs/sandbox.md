@@ -1,12 +1,15 @@
 # Running the API in the Claude Code cloud sandbox
 
-Purpose: boot the API and run the full Go test suite (real cgo bindings) in the ephemeral Claude Code web sandbox. Re-run every session; the container is rebuilt each time.
+Purpose: boot the API and run the Go test suite in the ephemeral Claude Code web sandbox. Re-run every session; the
+container is rebuilt each time.
 
-## Why the normal path does not work
+## What changed on 2026-11-11
 
-The sandbox is Ubuntu 24.04, while the Docker images and `set-up-dependencies.sh` assume Debian. The cgo binding
-`gopkg.in/gographics/imagick.v3` needs ImageMagick 7's MagickWand; Ubuntu ships only ImageMagick 6, so IM7 is built from
-source. Install only the native libs below; do not run `set-up-dependencies.sh`.
+The API has no C code any more: ImageMagick and Tesseract are programs it starts (`internal/imagetool`), so
+`go build ./...` and `go test ./...` work on any machine with Go, the sandbox included. What a machine without the
+programs loses is only the tests that convert or read a picture: they are skipped there (and required in CI, where
+`CI` is set). The steps below that build ImageMagick are for running those tests too. They were written for the cgo
+binding and have not been re-run since it went.
 
 ## Check first: Go and the module downloads
 
@@ -26,28 +29,21 @@ source. Install only the native libs below; do not run `set-up-dependencies.sh`.
 ## Steps
 
 1. No queue server is needed: background work runs in the API and its database.
-2. **Tesseract and build tools:**
-   `apt-get install -y build-essential pkg-config libtesseract-dev libleptonica-dev tesseract-ocr-eng`
-3. **IM7 delegate libs:**
-   `apt-get install -y libpng-dev libjpeg-turbo8-dev libtiff-dev libwebp-dev libheif-dev libde265-dev ghostscript libtool`
-4. **Build ImageMagick 7** outside the repo (the imagemagick.org archive tarball 404s; clone instead):
+2. **Optional, for the picture tests: Tesseract and Ghostscript.**
+   `apt-get install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-pol tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa ghostscript`
+3. **Optional, for the picture tests: ImageMagick 7.** The sandbox is Ubuntu 24.04, which ships ImageMagick 6 and
+   so has no `magick` program. Build 7 outside the repo (the imagemagick.org archive tarball 404s; clone instead):
    ```bash
+   apt-get install -y build-essential pkg-config libpng-dev libjpeg-turbo8-dev libtiff-dev libwebp-dev libheif-dev libde265-dev libtool
    git clone --depth 1 https://github.com/ImageMagick/ImageMagick.git && cd ImageMagick
    ./configure --prefix=/usr/local --with-heic=yes --with-jpeg=yes --with-png=yes \
                --with-tiff=yes --with-webp=yes --with-gslib=yes --disable-docs --without-magick-plus-plus
    make -j"$(nproc)" && make install && ldconfig
    ```
-   `ldconfig` is the key step: `/usr/local/lib` is already in the loader config, so afterwards neither
-   `PKG_CONFIG_PATH` nor `LD_LIBRARY_PATH` is needed. Check with `magick -version` (7.x, Q16-HDRI).
-5. **Copy the private headers.** Git master's public headers include private ones (`MagickCore/image-private.h`, …) that
-   `make install` does not install, so every cgo compile fails. From the source tree:
-   ```bash
-   INC=/usr/local/include/ImageMagick-7
-   for d in MagickCore MagickWand; do for f in "$d"/*.h; do
-     [ -f "$INC/$f" ] || cp "$f" "$INC/$f"; done; done
-   ```
-   Do not pipe the loop into `head` (SIGPIPE stops it halfway). Verify with a plain `go build ./...` from `api/`, not
-   `go build | tail`, whose exit status hides the failure.
+   Check with `magick -version` (7.x). Without steps 2 and 3 the picture tests say `SKIP`, which is not a pass:
+   name them as not run.
+4. Verify with a plain `go build ./...` from `api/`, not `go build | tail`, whose exit status hides a failure.
+5. (No headers to copy any more: nothing compiles against ImageMagick.)
 6. **Create `api/data/`** (gitignored). Without it the server starts but `POST /group/` fails with a 500
    (`mkdir .../data/<id>-<name>: no such file or directory` in `logs/app.log`), which breaks every e2e fixture that
    provisions a group and looks like a test bug.
@@ -66,7 +62,7 @@ The first start creates `admin` / `admin` (any env except `-env test`; `CreateUs
 
 ## Tests
 
-The suite compiles after steps 1-5. The HTML-to-PDF tests need Chromium; `/usr/bin/chromium` (the default) does not exist
+The suite compiles as it is. The HTML-to-PDF tests need Chromium; `/usr/bin/chromium` (the default) does not exist
 here, but Playwright's build does:
 
 ```bash
@@ -77,8 +73,9 @@ Without it `internal/services` fails, which looks like a regression and is not. 
 DevTools protocol error from Playwright's Chromium 1194, on `main` as well. Not investigated.) Do not run `playwright install` (the
 download is blocked).
 
-The ImageMagick PDF policy edit in `set-up-dependencies.sh` is not needed: a source build's policy
-(`/usr/local/etc/ImageMagick-7/policy.xml`) does not block PDF.
+The ImageMagick PDF policy edit in `set-up-dependencies.sh` is not needed with a source build: its policy
+(`/usr/local/etc/ImageMagick-7/policy.xml`) does not block PDF. Do not run that script here: it is written for
+Debian and CI.
 
 ## PDF tests on the Windows PC or the Mac
 
@@ -91,4 +88,5 @@ Bash by path, because `bash` there is WSL: `& "C:\Program Files\Git\bin\bash.exe
   configuration is incorrect".
 - With Ghostscript installed (`winget install ArtifexSoftware.GhostScript`) the script shims `gswin64c.exe` as `gs`, so the
   `file://` and SSRF guard tests also check the PDF text; without it those checks skip.
-- The ImageMagick PDF tests (rasterizing, file type sniffing, AI image encoding) still need the real binding: CI only.
+- The tests that convert or read a picture need `magick`, `tesseract` and `gs` on the PATH. Where one is missing they
+  are skipped (`imagetooltest.RequireMagick`), so on the Windows PC only CI proves them.

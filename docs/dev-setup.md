@@ -5,9 +5,10 @@ something outside CI. GitHub Actions is the real build and test machine either w
 
 ## Windows PC (bash; tools live in `C:\Users\Marcin\tools\`, outside the repo)
 
-- **Go** is installed but not on the bash PATH: `export PATH="$PATH:/c/Program Files/Go/bin"`.
-  `api/scripts/go-without-cgo.sh vet ./...` (or `test <pkg>`, `build -o <path> .`) stubs the ImageMagick and Tesseract
-  cgo bindings. The services package's ImageMagick tests and some jobs temp-path tests fail here only.
+- **Go** is installed but not on the bash PATH: `export PATH="$PATH:/c/Program Files/Go/bin"`. From `api/`,
+  `go vet ./...`, `go test <pkg>` and `go build -o <path> .` work as they are: the API has no C code (since
+  2026-11-11). The tests that convert or read a picture are skipped here (no `magick`, `tesseract` or `gs`), four
+  HTML-to-PDF tests fail without the Chromium of the next line, and some jobs temp-path tests fail here only.
 - **PDF tests:** `api/scripts/install-test-chromium.sh` once, then `api/scripts/test-pdf.sh`.
 - **Node 26.13.0 + npm 11.20.0** (CI's versions since 2026-11-10; Node 24 before) in `tools\node-v26.13.0-win-x64`, not on the PATH:
   `export PATH="/c/Users/Marcin/tools/node-v26.13.0-win-x64:$PATH"`. `npm ci`, `npx ng test --include "<glob>"` and `npx ng build`
@@ -20,8 +21,10 @@ something outside CI. GitHub Actions is the real build and test machine either w
 ### Local stack (`tools\devstack\`)
 
 1. Nothing to start first: the API needs no queue server (the `redis\` folder and its `miniredis.exe` are leftovers).
-2. API: `api.exe`, built with `bash api/scripts/go-without-cgo.sh build -o <path> .`; `api.cmd` runs it from `run\` on
+2. API: `api.exe`, built with `go build -o <path> .` in `api/`; `api.cmd` runs it from `run\` on
    :8081 (SQLite `dev.db`, `TZ=Europe/Paris`). Rebuild after API changes; delete `run\dev.db` for a fresh database.
+   Without ImageMagick and Tesseract on the PC it logs that at its start, and a HEIC, a PDF or a scan for a
+   text-only model fails; everything else works.
 3. Web: `npm start` in `desktop/` (`web.cmd`) serves :4200 and proxies `/api` to :8081. Log in as `admin` / `admin`.
 4. Screenshots: `shot.cjs` (Playwright) logs in and writes PNGs to `shots\`.
 
@@ -31,9 +34,9 @@ Functional checks (clicking through, screenshots) are done in English; switch th
 ## MacBook
 
 May have more toolchains than the PC; check before assuming. The commands above work unchanged once Go and Node are on
-the PATH. The full Go suite with cgo runs there after `brew install imagemagick tesseract ghostscript pkg-config`, with
-`CGO_CPPFLAGS=-I/opt/homebrew/include CGO_LDFLAGS=-L/opt/homebrew/lib`; the whole Playwright suite runs against a native
-API.
+the PATH. The full Go suite, picture tests included, runs there after
+`brew install imagemagick tesseract tesseract-lang ghostscript` (the programs only; nothing is compiled against
+them, so no `CGO_*` flags); the whole Playwright suite runs against a native API.
 
 ## Cloud sandbox
 

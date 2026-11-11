@@ -1,6 +1,7 @@
 package services
 
 import (
+	"cartvibe/api/internal/imagetool/imagetooltest"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -424,6 +425,8 @@ func TestBuildPrompt_NeedsNoStoredPrompt(t *testing.T) {
 // ---------- Image encoding helpers ----------
 
 func TestEncodeImageForAi_OpenAi(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	path := setupImagePathFixture(t)
 	service := ReceiptProcessingService{}
 
@@ -437,6 +440,8 @@ func TestEncodeImageForAi_OpenAi(t *testing.T) {
 }
 
 func TestEncodeImageForAi_Ollama(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	path := setupImagePathFixture(t)
 	service := ReceiptProcessingService{}
 
@@ -453,6 +458,8 @@ func TestEncodeImageForAi_Ollama(t *testing.T) {
 }
 
 func TestEncodeImageForAi_Gemini(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	path := setupImagePathFixture(t)
 	service := ReceiptProcessingService{}
 
@@ -547,6 +554,8 @@ func TestReadReceipt_FallbackUsedWhenPrimaryFails(t *testing.T) {
 
 // ReadReceiptImage is a thin one-line wrapper around readReceipt; cover it so the wrapper isn't 0%.
 func TestReadReceiptImage_SingleImageWrapper(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	server, _ := newMockOllamaServerForService(t, http.StatusOK, ollamaReceiptJson("Wrapper", "1"))

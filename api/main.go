@@ -2,6 +2,7 @@ package main
 
 import (
 	config "cartvibe/api/internal/env"
+	"cartvibe/api/internal/imagetool"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/routers"
@@ -21,7 +22,6 @@ import (
 	_ "time/tzdata"
 
 	"github.com/go-chi/chi/v5"
-	"gopkg.in/gographics/imagick.v3/imagick"
 )
 
 func main() {
@@ -83,9 +83,13 @@ func main() {
 		logging.LogStd(logging.LOG_LEVEL_ERROR, "could not record the running version: "+err.Error())
 	}
 
-	logging.LogStd(logging.LOG_LEVEL_INFO, "Initializing Imagick...")
-	imagick.Initialize()
-	defer imagick.Terminate()
+	// Receipts are converted by ImageMagick and read by Tesseract, as programs (internal/imagetool). The image
+	// installs both; without one the API still serves everything that is not a HEIC, a PDF or a text-only AI model.
+	if magick, tesseract := imagetool.Installed(); !magick || !tesseract {
+		logging.LogStd(logging.LOG_LEVEL_ERROR, fmt.Sprintf(
+			"image tools missing (magick installed: %t, tesseract installed: %t): photo conversion or text reading will fail",
+			magick, tesseract))
+	}
 
 	// The job queue and the periodic sweeps. Both live in the database and this process, so there is no other
 	// service to reach first; jobs a previous run was in the middle of are put back before the worker starts.

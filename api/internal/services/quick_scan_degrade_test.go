@@ -1,6 +1,7 @@
 package services
 
 import (
+	"cartvibe/api/internal/imagetool/imagetooltest"
 	"errors"
 	"os"
 	"testing"
@@ -152,6 +153,8 @@ func TestQuickScan_StillSavesNothingWhenTheAiCannotReadIt(t *testing.T) {
 
 // An answer that left out the name and date gets the shop's name and today instead of failing validation.
 func TestQuickScan_FillsANameAndDateTheAiLeftOut(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(t, func(u models.User) uint { return u.ID }, models.OPEN, nil, nil,
@@ -191,6 +194,8 @@ func TestFillQuickScanDefaultsKeepsWhatTheAiRead(t *testing.T) {
 
 // W1: a category switched off for the AI is dropped from the AI's answer, but a person may still pick it.
 func TestQuickScan_DropsASwitchedOffCategoryTheAiAssigned(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, aiErr, err, _, _ := runQuickScanKeepingThePhoto(t,

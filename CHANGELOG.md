@@ -192,6 +192,13 @@ it is doing.
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
   release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
   Go 1.26 still works.
+- **The server has no C code any more.** ImageMagick and Tesseract used to be linked into the server; now it
+  starts them as programs, the same ones the image already carried. Nothing changes in what a photo, a HEIC or a
+  PDF becomes, or in how a receipt is read. A file that crashes a decoder now ends a helper program instead of the
+  server. Building from source needs only Go: no C compiler and no `-dev` libraries (`go build` with
+  `CGO_ENABLED=0`), on Windows too. To convert pictures a server built that way needs `magick` (ImageMagick 7),
+  `gs` and `tesseract` on its PATH; without them it starts, says so in its log, and everything that is not a
+  HEIC, a PDF or a text-only AI model still works.
 
 ### Fixed
 - **An image address no longer says whether an image exists.** Asking for a receipt image that is not there used

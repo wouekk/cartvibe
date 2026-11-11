@@ -16,7 +16,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/jinzhu/copier v0.4.0
 	github.com/modelcontextprotocol/go-sdk v1.8.0
-	github.com/otiai10/gosseract/v2 v2.4.1
 	github.com/rs/cors v1.11.1
 	github.com/sashabaranov/go-openai v1.43.0
 	github.com/shopspring/decimal v1.6.0
@@ -25,7 +24,6 @@ require (
 	golang.org/x/net v0.62.0
 	golang.org/x/oauth2 v0.38.0
 	google.golang.org/genai v1.77.0
-	gopkg.in/gographics/imagick.v3 v3.7.3
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.31.2
 )

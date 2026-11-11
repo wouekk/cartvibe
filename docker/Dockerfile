@@ -1,11 +1,11 @@
-# Four stages: the desktop build (Node), the API build (Go with the compiler and the -dev libraries), a throwaway
-# stage that makes a test file for the runtime checks, and a slim Debian runtime that receives only what runs: the API
-# binary and the desktop's static files. The Go toolchain, the compilers, the *-dev packages and the API's source stay
-# behind in the build stages. .dockerignore keeps local build output and data out of the build context.
+# Four stages: the desktop build (Node), the API build (Go, no C code), a throwaway stage that makes a test file
+# for the runtime checks, and a slim Debian runtime that receives only what runs: the API binary and the desktop's
+# static files. The Go toolchain and the API's source stay behind in the build stages. .dockerignore keeps local
+# build output and data out of the build context.
 #
 # Layer order matters for build time: each stage installs its dependencies from the few files that declare them
-# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages;
-# ImageMagick, Tesseract; Go modules). Keep anything that changes per build (VERSION, BUILD_DATE, source) below them.
+# BEFORE copying the source, so a code-only change reuses the cached dependency layers (npm packages; Go modules).
+# Keep anything that changes per build (VERSION, BUILD_DATE, source) below them.
 # The weekly publish run builds without the cache, so the apt layers pick up Debian's security updates.
 
 # ---- Desktop: dependencies, then source
@@ -23,17 +23,15 @@ RUN npm run build
 COPY docker/default.conf /tmp/default.conf
 RUN node tools/check-csp-hash.cjs dist/cartvibe/browser/index.html /tmp/default.conf
 
-# ---- API: system libraries, Go modules, then the source
+# ---- API: Go modules, then the source
 FROM golang:1.27-trixie AS api-build
 
 ENV BASE_PATH="/app/cartvibe-api"
 WORKDIR /app/cartvibe-api
 
-# The libraries the cgo bindings link (Tesseract, ImageMagick with HEIC). Only the script is copied first, so this
-# layer survives code changes. Chromium is not installed here: nothing compiles against it (CI's test job asks the
-# script for it with --with-test-tools).
-COPY api/set-up-dependencies.sh ./
-RUN bash set-up-dependencies.sh
+# No C code: ImageMagick and Tesseract are programs the runtime stage installs and the API starts
+# (api/internal/imagetool), not libraries the binary links. So this stage installs nothing, and the binary is static.
+ENV CGO_ENABLED=0
 
 COPY api/go.mod api/go.sum ./
 RUN go mod download
@@ -43,8 +41,8 @@ RUN go mod download
 COPY api/ ./
 RUN go build -trimpath -ldflags "-s -w" -o api .
 
-# Every shared library the binary links must be one the runtime stage installs (checked there too).
-RUN ldd ./api | tee /tmp/api-libs.txt && ! grep "not found" /tmp/api-libs.txt
+# The binary must stay static: a shared library it asked for would have to be one the runtime stage installs.
+RUN if ldd ./api > /tmp/api-libs.txt 2>&1; then cat /tmp/api-libs.txt; echo "the API binary links shared libraries" >&2; exit 1; fi
 
 # ---- Check fixtures: a tiny HEIC made with a full toolchain (the runtime image has no encoder), so the runtime checks
 # decode a real file rather than only listing the format.
@@ -61,11 +59,12 @@ FROM debian:trixie-slim
 ENV ENV="prod"
 ENV BASE_PATH="/app/cartvibe-api"
 
-# What the API runs at run time: nginx, Tesseract and its data for the five languages the app ships in, ImageMagick with HEIC and PDF support, Chromium
-# (report PDFs), certificates for HTTPS calls and time zone data for the app time zone.
-# Recommended packages are off: Tesseract (the library the API links and the binary), ghostscript (PDF to image) and
-# the fonts (Helvetica for ImageMagick, Liberation for Arial in reports) are named below because they only used to
-# arrive as Recommends. docker/checks/runtime-check.sh proves each one, so a missing
+# What the API runs at run time: nginx, and the programs the API starts: ImageMagick (`magick`, with HEIC and PDF
+# support), Tesseract (`tesseract`, with its data for the five languages the app ships in) and Chromium (report
+# PDFs); certificates for HTTPS calls and time zone data for the app time zone.
+# Recommended packages are off: Tesseract, ghostscript (PDF to image) and the fonts (Helvetica for ImageMagick,
+# Liberation for Arial in reports) are named below because they only used to arrive as Recommends.
+# docker/checks/runtime-check.sh proves each one, with the very commands the API runs, so a missing
 # package fails the build; add the package it names rather than switching Recommends back on.
 # The upgrade takes Debian's security fixes released since the base image was built.
 RUN apt-get update \
@@ -86,8 +85,8 @@ COPY docker/imagemagick/policy.xml /etc/ImageMagick-7/policy.xml
 WORKDIR /app/cartvibe-api
 COPY --from=api-build /app/cartvibe-api/api /app/cartvibe-api/api
 
-# Fail the build, not the NAS, when something the API needs is missing at run time (libraries, HEIC and PDF
-# conversion, fonts, OCR, Chromium printing a PDF). The script lists every failure in one build.
+# Fail the build, not the NAS, when something the API needs is missing at run time (HEIC and PDF conversion,
+# fonts, OCR, Chromium printing a PDF). The script lists every failure in one build.
 COPY --from=fixtures /out/tiny.heic /tmp/checks/tiny.heic
 COPY docker/checks/runtime-check.sh /tmp/checks/runtime-check.sh
 RUN sh /tmp/checks/runtime-check.sh && rm -rf /tmp/checks
