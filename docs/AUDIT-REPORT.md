@@ -204,8 +204,11 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
       the thing to watch.
   - Found on the way and fixed: the receipts filter's two date fields overlapped their labels at phone width. A
     range now takes the row there, with its Operation under it.
-  - Still to do on the branch: C11's second half (one button idiom in the templates) and F6's split of the
-    Dashboard into panel components.
+    - F6, the split, in part: the receipts panel and the warranties panel are components of their own, beside
+      the shopping panel that already was. The page's template went from 712 lines to 605.
+  - Still to do on the branch: C11's second half (one button idiom in the templates), and the rest of F6's
+    split: the tiles and the two chart panels, each of which has to move together with its state (the page's
+    class is still about 1,640 lines) and the specs that drive it.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

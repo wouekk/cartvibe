@@ -120,11 +120,9 @@ import { HlmSwitch } from "../../ui/switch/lib/hlm-switch";
 import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
 import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
-import { HlmTHead, HlmTh, HlmTable, HlmTr, HlmTBody, HlmTd } from "../../ui/table/lib/hlm-table";
-import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
-import { StatusChipComponent } from "../../shared-ui/status-chip/status-chip.component";
-import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
-import { WarrantyMenuComponent } from "../../warranties/warranty-menu/warranty-menu.component";
+import { HlmTHead, HlmTh } from "../../ui/table/lib/hlm-table";
+import { OverviewReceiptsPanelComponent } from "../overview-receipts-panel/overview-receipts-panel.component";
+import { OverviewWarrantiesPanelComponent } from "../overview-warranties-panel/overview-warranties-panel.component";
 import { OverviewShoppingPanelComponent } from "../overview-shopping-panel/overview-shopping-panel.component";
 import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
 import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
@@ -132,8 +130,6 @@ import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-men
 import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
 import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { TranslatePipe, TranslateDataPipe, PluralPipe } from "../../i18n/translate.pipe";
-import { AppDatePipe } from "../../pipes/app-date.pipe";
-import { UserPipe } from "../../pipes/user.pipe";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -218,14 +214,8 @@ const UNCATEGORIZED = marker("Uncategorized");
         ChartComponent,
         HlmTHead,
         HlmTh,
-        HlmTable,
-        HlmTr,
-        HlmTBody,
-        HlmTd,
-        ShopMonogramComponent,
-        StatusChipComponent,
-        AddButtonComponent,
-        WarrantyMenuComponent,
+        OverviewReceiptsPanelComponent,
+        OverviewWarrantiesPanelComponent,
         OverviewShoppingPanelComponent,
         CdkMenu,
         HlmDropdownMenu,
@@ -237,8 +227,6 @@ const UNCATEGORIZED = marker("Uncategorized");
         TranslatePipe,
         TranslateDataPipe,
         PluralPipe,
-        AppDatePipe,
-        UserPipe,
     ],
 })
 export class OverviewPageComponent {

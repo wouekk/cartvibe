@@ -1,0 +1,56 @@
+<div class="cv-panel-header">
+  <h2 id="overview-receipts-title">{{ 'Receipts in {period}' | t: { period: periodLabel() } }}</h2>
+  <a [routerLink]="['/receipts/group', groupId()]">{{ 'All receipts' | t }}</a>
+</div>
+@if (receipts().length > 0) {
+  <!-- With a mouse it scrolls under the wheel, header pinned; the page takes over at either end. -->
+  <div
+    class="overflow-x-auto"
+    [class.cv-scroll-y]="maxHeight()"
+    [style.max-height]="maxHeight()"
+    [attr.data-scrollable]="maxHeight() ? '' : null"
+    data-testid="overview-recent-receipts-scroll"
+  >
+    <table hlmTable class="w-full min-w-[35rem]" data-testid="overview-recent-receipts">
+      <thead class="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_var(--border)]">
+        <tr hlmTr>
+          <th hlmTh scope="col">{{ 'Date' | t }}</th>
+          <th hlmTh scope="col">{{ 'Shop' | t }}</th>
+          <th hlmTh scope="col">{{ 'Added by' | t }}</th>
+          <th hlmTh scope="col">{{ 'Status' | t }}</th>
+          <th hlmTh scope="col" class="text-right">{{ 'Amount' | t }}</th>
+        </tr>
+      </thead>
+      <tbody hlmTBody>
+        @for (receipt of receipts(); track receipt.id) {
+          <tr hlmTr>
+            <td hlmTd class="text-muted-foreground whitespace-nowrap">
+              <a class="text-inherit underline-offset-4 hover:text-foreground hover:underline" data-testid="overview-receipt-date-link" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.date | appDate : "MMM d" : "calendar" }}</a>
+            </td>
+            <td hlmTd class="font-semibold">
+              <span class="inline-flex items-center gap-2">
+                <app-shop-monogram [name]="receipt.shopName || receipt.name"></app-shop-monogram>
+                <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
+              </span>
+            </td>
+            <td hlmTd>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
+            <td hlmTd><app-status-chip [status]="receipt.status"></app-status-chip></td>
+            <td hlmTd class="text-right font-semibold"><app-money [value]="receipt.amount" [display]="true"></app-money></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else {
+  <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-receipts-empty">
+    <p class="m-0 py-6 text-center text-muted-foreground">{{ 'No receipts yet in {period}.' | t: { period: periodLabel() } }}</p>
+    @if (canAddReceipt()) {
+      <app-add-button
+        [buttonText]="'Add receipt' | t"
+        [tooltip]="'Add a receipt' | t"
+        data-testid="overview-empty-add-receipt"
+        [buttonRouterLink]="['/receipts/add']"
+      ></app-add-button>
+    }
+  </div>
+}
