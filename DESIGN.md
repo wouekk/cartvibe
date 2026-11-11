@@ -63,7 +63,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   changes. A crossed-off row ends in the `xs` avatar of whoever crossed it off, after the amount.
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
 - Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
-- Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.
+- Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomplete`, `app-form-section [panel]`.
 - Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip` (the popover surface with a hairline, no arrow, not an inverted black box); toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram` (a logo sits on a white tile with a `ring-border` hairline: the one allowed fixed colour, since logo art assumes white); toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
 
 ## Patterns

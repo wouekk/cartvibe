@@ -1,10 +1,10 @@
 package services
 
 import (
-	"fmt"
 	"cartvibe/api/internal/logging"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/repositories"
+	"fmt"
 	"time"
 )
 
@@ -49,11 +49,11 @@ func shoppingListName(listId uint) string {
 }
 
 func actorString(userId uint) string {
-	return repositories.BuildParamaterisedString("userId", userId, "displayName", "string")
+	return repositories.BuildParameterisedString("userId", userId, "displayName", "string")
 }
 
 func groupString(groupId uint) string {
-	return repositories.BuildParamaterisedString("groupId", groupId, "name", "string")
+	return repositories.BuildParameterisedString("groupId", groupId, "name", "string")
 }
 
 func notifyListCreated(groupId uint, actorUserId uint, listName string) {

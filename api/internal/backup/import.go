@@ -876,16 +876,16 @@ func (run *importRun) writePersonalSettings() error {
 			"warranty_period_years":         preferences.WarrantyPeriodYears,
 			"warranty_reminder_lead_days":   preferences.WarrantyReminderLeadDays,
 		}
-		var existing models.UserPrefernces
-		if err := run.tx.Model(models.UserPrefernces{}).Where("user_id = ?", userId).Limit(1).Find(&existing).Error; err != nil {
+		var existing models.UserPreferences
+		if err := run.tx.Model(models.UserPreferences{}).Where("user_id = ?", userId).Limit(1).Find(&existing).Error; err != nil {
 			return err
 		}
 		if existing.ID == 0 {
-			if err := run.tx.Create(&models.UserPrefernces{UserId: userId}).Error; err != nil {
+			if err := run.tx.Create(&models.UserPreferences{UserId: userId}).Error; err != nil {
 				return err
 			}
 		}
-		if err := run.tx.Model(&models.UserPrefernces{}).Where("user_id = ?", userId).Updates(updates).Error; err != nil {
+		if err := run.tx.Model(&models.UserPreferences{}).Where("user_id = ?", userId).Updates(updates).Error; err != nil {
 			return err
 		}
 	}

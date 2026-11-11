@@ -35,7 +35,7 @@
             {{ 'Decides which day a moment in time falls on: when a receipt was added or resolved, what "today" and "last month" mean in reports and filters, and how times are shown. A receipt\'s own Date is a calendar day and never shifts with this setting.' | t }}
           </p>
         </div>
-        <app-autocomlete
+        <app-autocomplete
           data-testid="system-settings-time-zone"
           [label]="'Time zone' | t"
           hint="An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required."
@@ -44,7 +44,7 @@
           [displayWith]="timeZoneDisplayWith"
           [creatable]="false"
           [readonly]="formConfig.mode | inputReadonly"
-        ></app-autocomlete>
+        ></app-autocomplete>
       </div>
       <div sectionFooter class="cv-card__footer"><ng-container *ngTemplateOutlet="saveActions"></ng-container></div>
     </app-settings-section>

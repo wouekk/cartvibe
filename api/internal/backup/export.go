@@ -436,7 +436,7 @@ var tableSpecs = []tableSpec{
 			"close_chip_select_on_select", "monthly_spending_goal", "language", "ai_language", "region", "onboarding_pending",
 			"warranty_period_years", "warranty_reminder_lead_days"},
 		write: func(state *exportState, table *tableWriter) error {
-			return eachInBatches(state.tx.Model(models.UserPrefernces{}), func(preferences models.UserPrefernces) error {
+			return eachInBatches(state.tx.Model(models.UserPreferences{}), func(preferences models.UserPreferences) error {
 				return table.write(formatUint(preferences.UserId), formatUintPtr(preferences.QuickScanDefaultGroupId),
 					formatUintPtr(preferences.QuickScanDefaultPaidById), string(preferences.QuickScanDefaultStatus),
 					formatBool(preferences.CloseChipSelectOnSelect), formatDecimalPtr(preferences.MonthlySpendingGoal),

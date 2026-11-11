@@ -45,8 +45,8 @@ func AiAnswerLanguage(tx *gorm.DB, userId uint) string {
 		tx = repositories.GetDB()
 	}
 
-	var preferences models.UserPrefernces
-	err := tx.Model(&models.UserPrefernces{}).Select("language", "ai_language").Where("user_id = ?", userId).Take(&preferences).Error
+	var preferences models.UserPreferences
+	err := tx.Model(&models.UserPreferences{}).Select("language", "ai_language").Where("user_id = ?", userId).Take(&preferences).Error
 	if err != nil {
 		return defaultAiLanguage
 	}

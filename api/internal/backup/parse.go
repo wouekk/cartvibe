@@ -22,29 +22,29 @@ const maxProblems = 50
 type Household struct {
 	Manifest Manifest
 
-	Users          []models.User
-	UserRoles      map[uint]string
-	Groups         []models.Group
-	Members        []SourceMember
-	Categories     []models.Category
-	Tags           []models.Tag
-	Lists          []models.ShoppingList
-	Items          []models.ShoppingListItem
-	Receipts       []models.Receipt
-	ReceiptCats    []IdPair
-	ReceiptTags    []IdPair
-	Products       []models.ReceiptProduct
-	ProductTags    []IdPair
+	Users       []models.User
+	UserRoles   map[uint]string
+	Groups      []models.Group
+	Members     []SourceMember
+	Categories  []models.Category
+	Tags        []models.Tag
+	Lists       []models.ShoppingList
+	Items       []models.ShoppingListItem
+	Receipts    []models.Receipt
+	ReceiptCats []IdPair
+	ReceiptTags []IdPair
+	Products    []models.ReceiptProduct
+	ProductTags []IdPair
 	// OldComments are the rows of comments.csv, which only an export made before 2026-11 has (a receipt had a
 	// thread of comments then). Parse joins them into each receipt's Note; nothing else reads them.
-	OldComments []SourceComment
-	Files       []SourceFile
+	OldComments    []SourceComment
+	Files          []SourceFile
 	Trips          []SourceTrip
 	Overrides      []models.ProductClassificationOverride
 	Rates          []models.ExchangeRate
 	Templates      []models.ReportTemplate
 	TemplateGroups []IdPair
-	Preferences    []models.UserPrefernces
+	Preferences    []models.UserPreferences
 	Layouts        []models.DashboardLayout
 	GroupSettings  []models.GroupReceiptSettings
 
@@ -236,9 +236,9 @@ func Parse(archive *Archive) (*Household, error) {
 			household.TemplateGroups = append(household.TemplateGroups, IdPair{c.id("report_template_id"), c.id("group_id")})
 		}},
 		{"user_preferences", func(c cells) {
-			household.Preferences = append(household.Preferences, models.UserPrefernces{UserId: c.id("user_id"),
+			household.Preferences = append(household.Preferences, models.UserPreferences{UserId: c.id("user_id"),
 				QuickScanDefaultGroupId: c.idPtr("quick_scan_default_group_id"), QuickScanDefaultPaidById: c.idPtr("quick_scan_default_paid_by_id"),
-				QuickScanDefaultStatus: models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status"))),
+				QuickScanDefaultStatus:  models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status"))),
 				CloseChipSelectOnSelect: c.boolean("close_chip_select_on_select"), MonthlySpendingGoal: c.decimalPtr("monthly_spending_goal"),
 				Language: c.text("language"), AiLanguage: c.text("ai_language"), Region: c.text("region"), OnboardingPending: c.boolean("onboarding_pending"),
 				WarrantyPeriodYears: c.intPtr("warranty_period_years"), WarrantyReminderLeadDays: c.intPtr("warranty_reminder_lead_days")})
@@ -251,8 +251,8 @@ func Parse(archive *Archive) (*Household, error) {
 			// upstream Quick Scan matrix (a "show" and a "require" column per field), which is not read.
 			settings := models.GroupReceiptSettings{GroupId: c.id("group_id"),
 				HideImages: c.boolean("hide_images"), HideReceiptCategories: c.boolean("hide_receipt_categories"),
-				HideReceiptTags: c.boolean("hide_receipt_tags"),
-				HideNote:        c.boolean("hide_note") || c.boolean("hide_comments"),
+				HideReceiptTags:            c.boolean("hide_receipt_tags"),
+				HideNote:                   c.boolean("hide_note") || c.boolean("hide_comments"),
 				QuickScanNoteEnabled:       c.boolean("quick_scan_note_enabled") || c.boolean("quick_scan_comment_enabled"),
 				QuickScanDefaultPaidByType: models.QuickScanDefaultPaidByType(c.text("quick_scan_default_paid_by_type")),
 				QuickScanDefaultPaidById:   c.idPtr("quick_scan_default_paid_by_id"),

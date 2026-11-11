@@ -411,7 +411,7 @@ export class ReceiptFormComponent implements OnInit {
     // Validators.required calls isEmptyInputValue, which treats 0 as PRESENT
     // (only null/undefined and zero-length string/array count as empty), so a 0
     // seed would make a group-less form valid and POST groupId: 0. It is also
-    // the value app-autocomlete filters its option list by, and "0" matches only
+    // the value app-autocomplete filters its option list by, and "0" matches only
     // groups whose name contains a zero.
     const addTargetGroupId: number | string =
       this.store.selectSnapshot(GroupState.addTargetGroupId) ?? "";

@@ -146,7 +146,7 @@ func seedHousehold(t *testing.T) seeded {
 		PhotoName: "trip.jpg", Status: models.ShoppingTripStatus("DONE"), NextAttemptAt: time.Now(), QueuedAt: time.Now()})
 
 	goal := decimal.RequireFromString("1500.00")
-	mustCreate(&models.UserPrefernces{UserId: admin.ID, MonthlySpendingGoal: &goal, Language: "pl"})
+	mustCreate(&models.UserPreferences{UserId: admin.ID, MonthlySpendingGoal: &goal, Language: "pl"})
 	mustCreate(&models.ExchangeRate{Code: "EUR", Rate: &rate})
 	template := models.ReportTemplate{Name: "Monthly", ConfigurationVersion: 1,
 		Configuration: json.RawMessage(fmt.Sprintf(`{"groupIds":["%d"],"filter":{"paidBy":{"operation":"CONTAINS","value":[%d]},"categories":{"operation":"CONTAINS","value":[%d]}}}`, household.ID, partner.ID, dairy.ID))}

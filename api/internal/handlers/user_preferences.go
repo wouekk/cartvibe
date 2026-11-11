@@ -52,7 +52,7 @@ func UpdateUserPreferences(w http.ResponseWriter, r *http.Request) {
 		AppPermissions: []string{permissions.AppUserPreferencesUpdate},
 		ResponseType:   constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			userPreferences := models.UserPrefernces{}
+			userPreferences := models.UserPreferences{}
 			userPreferences.LoadDataFromRequest(w, r)
 			token := structs.GetClaims(r)
 

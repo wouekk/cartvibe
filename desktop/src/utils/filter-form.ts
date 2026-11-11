@@ -17,7 +17,7 @@ import { FilterOperation } from "../open-api/index";
 
 /**
  * One `{ operation, value }` group. `isArray` makes the value a `FormArray`,
- * which the multi-select autocompletes require — the shared `app-autocomlete`
+ * which the multi-select autocompletes require — the shared `app-autocomplete`
  * `push()`es the picked option onto the control.
  */
 export function buildFieldFormGroup(

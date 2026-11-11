@@ -14,7 +14,7 @@ export type SystemTaskFilterField = FilterField<SystemTaskFilterFieldKey>;
  * "System" option for tasks with no user (see SYSTEM_RAN_BY_OPTION_ID). Both
  * types offer the same CONTAINS-only operation, so the row is identical either
  * way. Same reason the report builder's paid-by picker is a plain
- * `app-autocomlete` rather than `app-user-autocomplete`.
+ * `app-autocomplete` rather than `app-user-autocomplete`.
  */
 export const SYSTEM_TASK_FILTER_FIELDS: readonly SystemTaskFilterField[] = [
   { key: "type", label: "Type", type: "list" },

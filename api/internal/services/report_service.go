@@ -469,7 +469,7 @@ func (service ReportService) groupNames(groupIds []string) ([]string, error) {
 func (service ReportService) readerLanguage(userId uint) i18n.Translator {
 	var languages []*string
 	err := service.GetDB().
-		Model(&models.UserPrefernces{}).
+		Model(&models.UserPreferences{}).
 		Where("user_id = ?", userId).
 		Limit(1).
 		Pluck("language", &languages).

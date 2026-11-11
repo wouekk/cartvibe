@@ -551,7 +551,7 @@ describe("SystemSettingsFormComponent", () => {
       );
 
       expect(picker).not.toBeNull();
-      expect(picker!.tagName.toLowerCase()).toEqual("app-autocomlete");
+      expect(picker!.tagName.toLowerCase()).toEqual("app-autocomplete");
     });
 
     it("is disabled in view mode but still read by getRawValue", () => {

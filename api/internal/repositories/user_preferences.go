@@ -9,64 +9,64 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserPreferncesRepository struct {
+type UserPreferencesRepository struct {
 	BaseRepository
 }
 
-func NewUserPreferencesRepository(tx *gorm.DB) UserPreferncesRepository {
-	repository := UserPreferncesRepository{BaseRepository: BaseRepository{
+func NewUserPreferencesRepository(tx *gorm.DB) UserPreferencesRepository {
+	repository := UserPreferencesRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
 
-func (repository UserPreferncesRepository) GetUserPreferencesOrCreate(userId uint) (models.UserPrefernces, error) {
+func (repository UserPreferencesRepository) GetUserPreferencesOrCreate(userId uint) (models.UserPreferences, error) {
 	db := repository.GetDB()
-	var userPreferences models.UserPrefernces
+	var userPreferences models.UserPreferences
 
 	err := db.
-		Model(models.UserPrefernces{}).
+		Model(models.UserPreferences{}).
 		Where("user_id = ?", userId).
 		Preload(clause.Associations).
 		Find(&userPreferences).
 		Error
 	if err != nil {
-		return models.UserPrefernces{}, err
+		return models.UserPreferences{}, err
 	}
 
 	if userPreferences.ID == 0 {
-		userPreferencesToCreate := models.UserPrefernces{
+		userPreferencesToCreate := models.UserPreferences{
 			UserId: userId,
 		}
 
 		userPreferences, err = repository.CreateUserPreferences(userPreferencesToCreate)
 		if err != nil {
-			return models.UserPrefernces{}, err
+			return models.UserPreferences{}, err
 		}
 	}
 
 	return userPreferences, nil
 }
 
-func (repository UserPreferncesRepository) CreateUserPreferences(userPreferences models.UserPrefernces) (models.UserPrefernces, error) {
+func (repository UserPreferencesRepository) CreateUserPreferences(userPreferences models.UserPreferences) (models.UserPreferences, error) {
 	db := repository.GetDB()
 
-	err := db.Model(models.UserPrefernces{}).Create(&userPreferences).Error
+	err := db.Model(models.UserPreferences{}).Create(&userPreferences).Error
 	if err != nil {
-		return models.UserPrefernces{}, err
+		return models.UserPreferences{}, err
 	}
 
 	return repository.GetUserPreferencesOrCreate(userPreferences.UserId)
 }
 
-func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, userPreferences models.UserPrefernces) (models.UserPrefernces, error) {
+func (repository UserPreferencesRepository) UpdateUserPreferences(userId uint, userPreferences models.UserPreferences) (models.UserPreferences, error) {
 	db := repository.GetDB()
-	var userPreferencesToUpdate models.UserPrefernces
+	var userPreferencesToUpdate models.UserPreferences
 
-	err := db.Model(models.UserPrefernces{}).Where("user_id = ?", userId).First(&userPreferencesToUpdate).Error
+	err := db.Model(models.UserPreferences{}).Where("user_id = ?", userId).First(&userPreferencesToUpdate).Error
 	if err != nil {
-		return models.UserPrefernces{}, err
+		return models.UserPreferences{}, err
 	}
 
 	userPreferencesToUpdate.QuickScanDefaultGroupId = userPreferences.QuickScanDefaultGroupId
@@ -88,19 +88,19 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 		Select("*").
 		Updates(&userPreferencesToUpdate).Error
 	if err != nil {
-		return models.UserPrefernces{}, err
+		return models.UserPreferences{}, err
 	}
 
 	return userPreferencesToUpdate, nil
 }
 
-func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) error {
+func (repository UserPreferencesRepository) DeleteUserPreferences(userId uint) error {
 	db := repository.GetDB()
 
-	var userPreferences models.UserPrefernces
+	var userPreferences models.UserPreferences
 
 	err := db.
-		Model(models.UserPrefernces{}).
+		Model(models.UserPreferences{}).
 		Where("user_id = ?", userId).
 		First(&userPreferences).Error
 	if err != nil {
@@ -109,7 +109,7 @@ func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) er
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		txErr := tx.
-			Model(models.UserPrefernces{}).
+			Model(models.UserPreferences{}).
 			Where("user_id = ?", userId).
 			Delete(&userPreferences).Error
 		if txErr != nil {

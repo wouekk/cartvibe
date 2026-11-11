@@ -1,18 +1,18 @@
 package models
 
 import (
-	"net/http/httptest"
 	"cartvibe/api/internal/utils"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-func TestUserPrefernces_LoadDataFromRequest(t *testing.T) {
+func TestUserPreferences_LoadDataFromRequest(t *testing.T) {
 	body := `{"userId": 5, "quickScanDefaultStatus": "OPEN", "closeChipSelectOnSelect": true}`
 	r := httptest.NewRequest("POST", "/", strings.NewReader(body))
 	w := httptest.NewRecorder()
 
-	var preferences UserPrefernces
+	var preferences UserPreferences
 	err := preferences.LoadDataFromRequest(w, r)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -32,12 +32,12 @@ func TestUserPrefernces_LoadDataFromRequest(t *testing.T) {
 // default behavior (the option list stays open). Pinned because the repository
 // writes the field unconditionally, so "omitted" and "explicitly false" are the
 // same request as far as the stored value is concerned.
-func TestUserPrefernces_LoadDataFromRequestDefaultsCloseChipSelectOnSelect(t *testing.T) {
+func TestUserPreferences_LoadDataFromRequestDefaultsCloseChipSelectOnSelect(t *testing.T) {
 	body := `{"userId": 5, "quickScanDefaultStatus": "OPEN"}`
 	r := httptest.NewRequest("POST", "/", strings.NewReader(body))
 	w := httptest.NewRecorder()
 
-	var preferences UserPrefernces
+	var preferences UserPreferences
 	err := preferences.LoadDataFromRequest(w, r)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -52,12 +52,12 @@ func TestUserPrefernces_LoadDataFromRequestDefaultsCloseChipSelectOnSelect(t *te
 // decoder and the API sets DisallowUnknownFields nowhere, so the unknown key is
 // ignored rather than rejected and the fields that remain still decode. Keep
 // the removed field in this payload - it is the whole point of the test.
-func TestUserPrefernces_LoadDataFromRequestIgnoresRemovedFields(t *testing.T) {
+func TestUserPreferences_LoadDataFromRequestIgnoresRemovedFields(t *testing.T) {
 	body := `{"userId": 5, "showLargeImagePreviews": true, "quickScanDefaultStatus": "OPEN"}`
 	r := httptest.NewRequest("POST", "/", strings.NewReader(body))
 	w := httptest.NewRecorder()
 
-	var preferences UserPrefernces
+	var preferences UserPreferences
 	err := preferences.LoadDataFromRequest(w, r)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -70,22 +70,22 @@ func TestUserPrefernces_LoadDataFromRequestIgnoresRemovedFields(t *testing.T) {
 	}
 }
 
-func TestUserPrefernces_LoadDataFromRequest_MalformedJson(t *testing.T) {
+func TestUserPreferences_LoadDataFromRequest_MalformedJson(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", strings.NewReader("{"))
 	w := httptest.NewRecorder()
 
-	var preferences UserPrefernces
+	var preferences UserPreferences
 	err := preferences.LoadDataFromRequest(w, r)
 	if err == nil {
 		utils.PrintTestError(t, err, "an unmarshal error")
 	}
 }
 
-func TestUserPrefernces_LoadDataFromRequest_BodyReadError(t *testing.T) {
+func TestUserPreferences_LoadDataFromRequest_BodyReadError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/", errReader{})
 	w := httptest.NewRecorder()
 
-	var preferences UserPrefernces
+	var preferences UserPreferences
 	err := preferences.LoadDataFromRequest(w, r)
 	if err == nil {
 		utils.PrintTestError(t, err, "a body read error")

@@ -22,7 +22,7 @@ type ReceiptRepository struct {
 func NewReceiptRepository(tx *gorm.DB) ReceiptRepository {
 	repository := ReceiptRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -299,7 +299,7 @@ func (repository ReceiptRepository) CreateReceipt(
 		var userIdsToOmit []interface{} = make([]interface{}, 1)
 		userIdsToOmit = append(userIdsToOmit, *receipt.CreatedBy)
 
-		notificationBody := fmt.Sprintf("The receipt: %s has been uploaded to the group %s. Check it out! %s", receipt.Name, BuildParamaterisedString("groupId", receipt.GroupId, "name", "string"), BuildParamaterisedString("receiptId", receipt.ID, "", "link"))
+		notificationBody := fmt.Sprintf("The receipt: %s has been uploaded to the group %s. Check it out! %s", receipt.Name, BuildParameterisedString("groupId", receipt.GroupId, "name", "string"), BuildParameterisedString("receiptId", receipt.ID, "", "link"))
 		err = notificationRepository.SendNotificationToGroup(receipt.GroupId, "Receipt Uploaded", notificationBody, models.NOTIFICATION_TYPE_NORMAL, userIdsToOmit)
 		if err != nil {
 			return err

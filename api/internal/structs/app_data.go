@@ -21,7 +21,7 @@ type AppData struct {
 	Tags             []models.Tag               `json:"tags"`
 	GroupCategories  map[uint][]models.Category `json:"groupCategories"`
 	GroupTags        map[uint][]models.Tag      `json:"groupTags"`
-	UserPreferences  models.UserPrefernces      `json:"userPreferences"`
+	UserPreferences  models.UserPreferences     `json:"userPreferences"`
 	Users            []UserView                 `json:"users"`
 	FeatureConfig    FeatureConfig              `json:"featureConfig"`
 	Icons            []Icon                     `json:"icons"`

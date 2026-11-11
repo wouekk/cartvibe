@@ -54,7 +54,7 @@ func setLeadDays(t *testing.T, userId uint, days int) {
 	if _, err := repository.GetUserPreferencesOrCreate(userId); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := repository.UpdateUserPreferences(userId, models.UserPrefernces{WarrantyReminderLeadDays: &days}); err != nil {
+	if _, err := repository.UpdateUserPreferences(userId, models.UserPreferences{WarrantyReminderLeadDays: &days}); err != nil {
 		t.Fatal(err)
 	}
 }

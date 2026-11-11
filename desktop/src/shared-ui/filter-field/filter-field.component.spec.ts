@@ -55,7 +55,7 @@ describe("FilterFieldComponent", () => {
       { type: "text", selector: "app-input" },
       { type: "number", selector: "app-input" },
       { type: "date", selector: "app-datepicker" },
-      { type: "list", selector: "app-autocomlete" },
+      { type: "list", selector: "app-autocomplete" },
       { type: "users", selector: "app-user-autocomplete" },
     ];
 

@@ -147,7 +147,7 @@ func TestImportRestoresTheHouseholdIntoAFreshServer(t *testing.T) {
 	// Anna was picked as the importer, so no account was made for her and her goal is the admin's now.
 	var anna int64
 	db.Model(models.User{}).Where("username = ?", "anna").Count(&anna)
-	var preferences models.UserPrefernces
+	var preferences models.UserPreferences
 	db.Where("user_id = ?", admin.ID).First(&preferences)
 	if anna != 0 || preferences.MonthlySpendingGoal == nil || preferences.MonthlySpendingGoal.String() != "1500" || preferences.Language != "pl" {
 		t.Errorf("importer settings: anna rows %d, %+v", anna, preferences)

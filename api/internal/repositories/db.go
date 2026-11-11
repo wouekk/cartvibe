@@ -219,7 +219,7 @@ func migrateSchema(target *gorm.DB) error {
 		&models.GroupRolePermission{},
 		&models.GroupMember{},
 		&models.Notification{},
-		&models.UserPrefernces{},
+		&models.UserPreferences{},
 		&models.DashboardLayout{},
 		&models.SystemSettings{},
 		&models.SystemTask{},

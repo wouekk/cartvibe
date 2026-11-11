@@ -4,14 +4,14 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule, } from "@angula
 import { NgxsModule, Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { AuthState } from "../../store/auth.state";
-import { AutocompleteSelection, AutocomleteComponent } from "./autocomlete.component";
+import { AutocompleteSelection, AutocompleteComponent } from "./autocomplete.component";
 import { OptionDisplayPipe } from "./option-display.pipe";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 
 import type { Mock } from "vitest";
-describe("AutocomleteComponent", () => {
-  let component: AutocomleteComponent;
-  let fixture: ComponentFixture<AutocomleteComponent>;
+describe("AutocompleteComponent", () => {
+  let component: AutocompleteComponent;
+  let fixture: ComponentFixture<AutocompleteComponent>;
   vi.useFakeTimers();
 
   beforeEach(async () => {
@@ -19,7 +19,7 @@ describe("AutocomleteComponent", () => {
       // OptionDisplayPipe renders the chips. Only the panel-behavior cases
       // below reach it - they are the only ones that let change detection
       // run over the multiple-mode branch of the template.
-      declarations: [AutocomleteComponent, BaseInputComponent, OptionDisplayPipe],
+      declarations: [AutocompleteComponent, BaseInputComponent, OptionDisplayPipe],
       imports: [
         TranslatePipe,
         NgxsModule.forRoot([AuthState]),
@@ -28,7 +28,7 @@ describe("AutocomleteComponent", () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AutocomleteComponent);
+    fixture = TestBed.createComponent(AutocompleteComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

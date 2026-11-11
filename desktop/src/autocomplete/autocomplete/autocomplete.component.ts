@@ -15,13 +15,13 @@ export interface AutocompleteSelection {
 const CREATE_SENTINEL = Symbol("create");
 
 @Component({
-    selector: "app-autocomlete",
-    templateUrl: "./autocomlete.component.html",
-    styleUrls: ["./autocomlete.component.scss"],
+    selector: "app-autocomplete",
+    templateUrl: "./autocomplete.component.html",
+    styleUrls: ["./autocomplete.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class AutocomleteComponent
+export class AutocompleteComponent
   extends BaseInputComponent
   implements OnInit {
   @Input() public inputId: string = "";

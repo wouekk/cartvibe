@@ -1,13 +1,13 @@
 package services
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -221,14 +221,14 @@ func TestDeleteUser_WithPreferencesAndShortcuts(t *testing.T) {
 	user := createUserForDeletion(t, "prefuser")
 
 	// UserPreferences are auto-created by CreateUser, so just verify they get deleted
-	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 1, "preferences should exist before deletion")
+	assertCount(t, &models.UserPreferences{}, "user_id = ?", []interface{}{user.ID}, 1, "preferences should exist before deletion")
 
 	err := DeleteUser(utils.UintToString(user.ID))
 	if err != nil {
 		t.Fatalf("DeleteUser failed: %v", err)
 	}
 
-	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
+	assertCount(t, &models.UserPreferences{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
 }
 
 func TestDeleteUser_ReferencedInOtherPreferences(t *testing.T) {
@@ -237,14 +237,14 @@ func TestDeleteUser_ReferencedInOtherPreferences(t *testing.T) {
 	otherUser := createUserForDeletion(t, "otherprefuser")
 
 	db := repositories.GetDB()
-	db.Model(&models.UserPrefernces{}).Where("user_id = ?", otherUser.ID).Update("quick_scan_default_paid_by_id", user.ID)
+	db.Model(&models.UserPreferences{}).Where("user_id = ?", otherUser.ID).Update("quick_scan_default_paid_by_id", user.ID)
 
 	err := DeleteUser(utils.UintToString(user.ID))
 	if err != nil {
 		t.Fatalf("DeleteUser failed: %v", err)
 	}
 
-	var prefs models.UserPrefernces
+	var prefs models.UserPreferences
 	db.Where("user_id = ?", otherUser.ID).First(&prefs)
 	if prefs.QuickScanDefaultPaidById != nil {
 		t.Errorf("QuickScanDefaultPaidById should be nullified, got %v", *prefs.QuickScanDefaultPaidById)

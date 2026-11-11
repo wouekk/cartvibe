@@ -19,63 +19,11 @@ import { AppRoutingModule } from "./app-routing.module";
 import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
 import { PipesModule } from "../pipes";
-import { AboutState } from "../store/about.state";
-import { AuthState } from "../store/auth.state";
-import { CategoryTableState } from "../store/category-table.state";
-import { FeatureConfigState } from "../store/feature-config.state";
-import { GroupTableState } from "../store/group-table.state";
-import { GroupState } from "../store/group.state";
-import { LayoutState } from "../store/layout.state";
-import { ReceiptProcessingSettingsTaskTableState } from "../store/receipt-processing-settings-task-table.state";
-import { ReceiptTableState } from "../store/receipt-table.state";
-import { ReportTemplateTableState } from "../store/report-template-table.state";
-import { ShoppingListState } from "../store/shopping-list.state";
-import { SystemSettingsState } from "../store/system-settings.state";
-import { SystemTaskTableState } from "../store/system-task-table.state";
-import { TagTableState } from "../store/tag-table.state";
-import { UserTableState } from "../store/user-table.state";
-import { UserState } from "../store/user.state";
+import { ngxsStates, ngxsStorageKeys } from "../store/ngxs-states";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { DEMO_MODE, demoInterceptors, demoProviders } from "../demo/demo-runtime";
 import { environment } from "src/environments/environment";
-
-const ngxsStates = [
-  AboutState,
-  AuthState,
-  CategoryTableState,
-  FeatureConfigState,
-  GroupState,
-  GroupTableState,
-  LayoutState,
-  ReceiptProcessingSettingsTaskTableState,
-  ReceiptTableState,
-  ReportTemplateTableState,
-  // Not in ngxsStorageKeys: ShoppingListSyncService keeps its copy in IndexedDB (lists and waiting changes).
-  ShoppingListState,
-  SystemSettingsState,
-  SystemTaskTableState,
-  TagTableState,
-  UserTableState,
-  UserState,
-];
-
-const ngxsStorageKeys = [
-  "about",
-  "auth",
-  "categoryTable",
-  "groupTable",
-  "groups",
-  "layout",
-  "receiptProcessingSettingsTaskTable",
-  "receiptTable",
-  "reportTemplateTable",
-  "systemSettings",
-  "systemTaskTable",
-  "tagTable",
-  "userTable",
-  "users",
-];
 
 export const appConfig: ApplicationConfig = {
   providers: [

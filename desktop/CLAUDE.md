@@ -32,7 +32,8 @@ feature.
   describe the past. Most components are still `standalone: false` in NgModules; new leaf components may be
   standalone, a non-standalone one must be declared (and exported if another module uses it).
 - **State:** NGXS in `src/store/`; read with `store.selectSignal(...)` or `selectSnapshot`, never `@Select` / `| async`.
-  Persisted slices are listed in `ngxsStorageKeys` (`app.config.ts`); the shopping lists keep their own copy in
+  The states and the persisted slices (`ngxsStorageKeys`) are listed once, in `src/store/ngxs-states.ts`, for the app
+  and for the specs' `StoreModule`; the shopping lists keep their own copy in
   IndexedDB instead (`src/offline/`).
 - **Zoneless traps.** Only signal writes, template/host events, `markForCheck()` and `setInput()` repaint. A plain
   field written in `subscribe`, `setTimeout`, a promise or **`finalize()`** never repaints (the login spinner once stuck
@@ -41,7 +42,7 @@ feature.
 - **HTTP:** `provideHttpClient(withXhr(), …)`; XHR is kept because upload progress needs it. In templates `?.` yields
   `undefined`; the few places that relied on `null` read `$safeNavigationMigration(…)`.
 - **Spartan wrappers keep the app's API:** `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
-  `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomlete` (sic),
+  `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomplete`,
   `app-table` (types in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`. Add a helm part only
   with `node tools/spartan-add.cjs <name>`: it re-applies the local patches listed at its end.
 - **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`); the opened component injects `AppDialogRef` and
@@ -62,7 +63,7 @@ feature.
   Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +
   `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
   `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
-  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocomleteComponent` needs `AuthState`.
+  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocompleteComponent` needs `AuthState`.
 - **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
   (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`chart.js`), not
@@ -93,7 +94,7 @@ feature.
   `app-add-button`; settings pages `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
 - **Small pieces:** `app-badge`, `app-filter-bar`, `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button`
   (silent on failure by design; hand-roll a toasting copy where the value matters).
-- **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
+- **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   silently does nothing); clear with `FormArray.clear()`. Plain-string options need a `displayWith`.
 
 ## Dependencies (recipe and failure modes: `docs/lockfile.md`)
@@ -113,7 +114,7 @@ feature.
 ## Cross-cutting invariants
 
 - **Permission gating** mirrors the server (which re-checks, so a stale button at worst 403s). `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService`. The matcher
+  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService`. The matcher
   `src/utils/permission.utils.ts` ports the Go matcher. Use `AuthState.hasAppPermission` / `hasGroupPermission`, the
   `*hasAppPermission` / `*hasGroupPermission` directives and `appPermissionGuard` / `groupPermissionGuard`.
 - **Gate on the item's own group,** never the page's: the "All" group never appears in `groupPermissions`.
@@ -179,7 +180,7 @@ feature.
   note only where it is asked for.
 - **A receipt has one note** (`note`, a field of the receipt, sent with it; `""` clears it) and two statuses, OPEN
   ("To check") and RESOLVED ("Settled"). Magic Fill never writes the note; its Paid by needs
-  `AutocomleteComponent.syncSingleDisplay()` after the patch.
+  `AutocompleteComponent.syncSingleDisplay()` after the patch.
 - **Preferences saves send the whole object** (`PUT /userPreferences` replaces it); the Dashboard layout is its own
   endpoint for that reason.
 - **Product checker:** no name search on purpose (Open Food Facts answers cross-site search with 503 and no CORS; a

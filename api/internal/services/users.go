@@ -49,7 +49,7 @@ func DeleteUser(userId string) error {
 		var receipts []models.Receipt
 		var groupIdsToNotDelete []uint
 		notificationsRepository := repositories.NewNotificationRepository(tx)
-		userPreferncesRepository := repositories.NewUserPreferencesRepository(tx)
+		userPreferencesRepository := repositories.NewUserPreferencesRepository(tx)
 		groupService := NewGroupService(tx)
 		receiptService := NewReceiptService(tx)
 
@@ -134,13 +134,13 @@ func DeleteUser(userId string) error {
 		}
 
 		// Remove user's preferences
-		txErr = userPreferncesRepository.DeleteUserPreferences(uintUserId)
+		txErr = userPreferencesRepository.DeleteUserPreferences(uintUserId)
 		if txErr != nil {
 			return txErr
 		}
 
 		// Remove user from other user's users preferences
-		txErr = tx.Model(models.UserPrefernces{}).Where("quick_scan_default_paid_by_id = ?", userId).Update("quick_scan_default_paid_by_id", nil).Error
+		txErr = tx.Model(models.UserPreferences{}).Where("quick_scan_default_paid_by_id = ?", userId).Update("quick_scan_default_paid_by_id", nil).Error
 		if txErr != nil {
 			return txErr
 		}
@@ -160,7 +160,7 @@ func DeleteUser(userId string) error {
 			&models.Tag{},
 			&models.Category{},
 			&models.Notification{},
-			&models.UserPrefernces{},
+			&models.UserPreferences{},
 			&models.SystemSettings{},
 			&models.SystemTask{},
 			&models.ReceiptProcessingSettings{},

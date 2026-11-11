@@ -1,7 +1,7 @@
 import { Component, computed, effect, input, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
-import { AutocomleteComponent } from "src/autocomplete/autocomlete/autocomlete.component";
+import { AutocompleteComponent } from "src/autocomplete/autocomplete/autocomplete.component";
 import { GroupMemberUserService } from "src/services/group-member-user.service";
 import { User } from "../../open-api";
 import { UserState } from "../../store";
@@ -20,7 +20,7 @@ export class UserAutocompleteComponent {
     private groupMemberUserService: GroupMemberUserService
   ) {}
 
-  public readonly autocompleteComponent = viewChild(AutocomleteComponent);
+  public readonly autocompleteComponent = viewChild(AutocompleteComponent);
 
   public readonly inputFormControl = input.required<FormControl>();
 

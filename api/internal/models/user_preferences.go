@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type UserPrefernces struct {
+type UserPreferences struct {
 	BaseModel
 	UserId                   uint          `gorm:"not null; uniqueIndex" json:"userId"`
 	User                     *User         `json:"-"`
@@ -44,7 +44,14 @@ type UserPrefernces struct {
 	WarrantyReminderLeadDays *int `json:"warrantyReminderLeadDays"`
 }
 
-func (userPreferences *UserPrefernces) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
+// TableName keeps the table under the name it has in every existing database. The type was misspelled
+// (UserPrefernces) when the table was made, and GORM named the table after it; the type is spelled right now, the
+// table is not renamed. Its indexes and foreign keys carry the same spelling.
+func (UserPreferences) TableName() string {
+	return "user_prefernces"
+}
+
+func (userPreferences *UserPreferences) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
 	bytes, err := utils.GetBodyData(w, r)
 	if err != nil {
 		return err

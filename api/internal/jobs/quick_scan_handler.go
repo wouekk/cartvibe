@@ -14,13 +14,13 @@ import (
 )
 
 type QuickScanTaskPayload struct {
-	Token            *structs.Claims
-	PaidByUserId     uint
-	GroupId          uint
-	Status           models.ReceiptStatus
-	CategoryIds      []uint
-	TagIds           []uint
-	Note             string
+	Token        *structs.Claims
+	PaidByUserId uint
+	GroupId      uint
+	Status       models.ReceiptStatus
+	CategoryIds  []uint
+	TagIds       []uint
+	Note         string
 	// Comment is what Note was called while a receipt had comments. A scan queued before the update still
 	// carries it; nothing writes it any more.
 	Comment          string
@@ -116,11 +116,11 @@ func notifyQuickScanResult(payload QuickScanTaskPayload, title string, receiptId
 	case receiptId != 0 && receiptName != "":
 		body = fmt.Sprintf("The receipt: %s has been read by the AI. Check it out! %s",
 			receiptName,
-			repositories.BuildParamaterisedString("receiptId", receiptId, "", "link"))
+			repositories.BuildParameterisedString("receiptId", receiptId, "", "link"))
 	case receiptId != 0:
 		body = fmt.Sprintf("The AI could not read the photo: %s. It is saved as a receipt for you to fill in. %s",
 			payload.OriginalFileName,
-			repositories.BuildParamaterisedString("receiptId", receiptId, "", "link"))
+			repositories.BuildParameterisedString("receiptId", receiptId, "", "link"))
 	}
 
 	err := repositories.NewNotificationRepository(nil).SendNotificationToUsers(

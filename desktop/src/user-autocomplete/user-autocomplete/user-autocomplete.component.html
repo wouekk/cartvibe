@@ -1,4 +1,4 @@
-<app-autocomlete
+<app-autocomplete
   *ngIf="multiple()"
   optionFilterKey="displayName"
   optionDisplayKey="displayName"
@@ -9,9 +9,9 @@
   [multiple]="true"
   [readonly]="readonly() || (selectGroupMembersOnly() && !groupId())"
   [optionValueKey]="optionValueKey() ?? ''"
-></app-autocomlete>
+></app-autocomplete>
 
-<app-autocomlete
+<app-autocomplete
   *ngIf="!multiple()"
   optionFilterKey="displayName"
   optionDisplayKey="displayName"
@@ -22,7 +22,7 @@
   [optionTemplate]="optionTemplate"
   [displayWith]="displayWith.bind(this)"
   [readonly]="readonly() || (selectGroupMembersOnly() && !groupId())"
-></app-autocomlete>
+></app-autocomplete>
 
 <ng-template #optionTemplate let-option="option"
   >{{ option.displayName }}

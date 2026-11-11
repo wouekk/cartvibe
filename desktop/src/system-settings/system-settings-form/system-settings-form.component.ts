@@ -8,7 +8,7 @@ import { filter, startWith, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AutocomleteComponent } from "../../autocomplete/autocomlete/autocomlete.component";
+import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocomplete.component";
 import { BaseFormComponent } from "../../form";
 import { FormOption } from "../../interfaces/form-option.interface";
 import {
@@ -66,7 +66,7 @@ export function shopLogoKeyValidator(): ValidatorFn {
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit {
   // Optional: the processing pickers are no longer rendered (Phase 3 M1).
-  public readonly fallbackReceiptProcessingSettings = viewChild<AutocomleteComponent>("fallbackReceiptProcessingSettings");
+  public readonly fallbackReceiptProcessingSettings = viewChild<AutocompleteComponent>("fallbackReceiptProcessingSettings");
 
 
   /** Only on the General tab; its rates save with this form's Save changes. */

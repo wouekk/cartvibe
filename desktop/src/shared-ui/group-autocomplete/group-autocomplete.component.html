@@ -1,4 +1,4 @@
-<app-autocomlete
+<app-autocomplete
   class="w-full"
   [label]="'Group' | t"
   optionFilterKey="name"
@@ -8,7 +8,7 @@
   [optionTemplate]="groupOptionTemplate"
   [readonly]="readonly()"
   [displayWith]="groupDisplayWith.bind(this)"
-></app-autocomlete>
+></app-autocomplete>
 
 <ng-template #groupOptionTemplate let-option="option"
   >{{ option.name }}

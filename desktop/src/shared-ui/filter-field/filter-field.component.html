@@ -108,7 +108,7 @@
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value'"
     >
     </app-datepicker>
-    <app-autocomlete
+    <app-autocomplete
       *ngIf="type() === 'list'"
       class="w-1/2"
       [multiple]="multiple()"
@@ -119,7 +119,7 @@
       [optionFilterKey]="optionFilterKey()"
       [optionDisplayKey]="optionDisplayKey()"
     >
-    </app-autocomlete>
+    </app-autocomplete>
     <app-select
       class="ms-2 w-1/2"
       [label]="'Operation' | t"

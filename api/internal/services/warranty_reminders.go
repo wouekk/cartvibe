@@ -249,7 +249,7 @@ func FireDueWarrantyReminders(now time.Time) (int, error) {
 			return tx.Create(&models.Notification{
 				Type:   models.NOTIFICATION_TYPE_NORMAL,
 				Title:  message.title,
-				Body:   message.body + " " + repositories.BuildParamaterisedString("receiptId", reminder.ReceiptId, "id", "link"),
+				Body:   message.body + " " + repositories.BuildParameterisedString("receiptId", reminder.ReceiptId, "id", "link"),
 				UserId: reminder.UserId,
 			}).Error
 		})

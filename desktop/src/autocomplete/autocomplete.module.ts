@@ -4,12 +4,12 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { HlmAutocompleteImports } from "@spartan-ng/helm/autocomplete";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
-import { AutocomleteComponent } from "./autocomlete/autocomlete.component";
-import { OptionDisplayPipe } from "./autocomlete/option-display.pipe";
+import { AutocompleteComponent } from "./autocomplete/autocomplete.component";
+import { OptionDisplayPipe } from "./autocomplete/option-display.pipe";
 
 @NgModule({
-  declarations: [AutocomleteComponent, OptionDisplayPipe],
+  declarations: [AutocompleteComponent, OptionDisplayPipe],
   imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, AppIconComponent, ...HlmAutocompleteImports],
-  exports: [AutocomleteComponent],
+  exports: [AutocompleteComponent],
 })
 export class AutocompleteModule {}

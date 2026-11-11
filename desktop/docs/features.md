@@ -129,7 +129,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   Uploads go through `downscaleImageForUpload` (over 1.5 MB → JPEG ≤ 3072px; returns the file unchanged when it cannot
   improve it).
 - **Magic Fill** (`magicFill()` → `patchMagicValues`) patches the AI's parsed receipt into the form for review. A field
-  counts as filled only when it changes the form. Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the
+  counts as filled only when it changes the form. Paid by needs `AutocompleteComponent.syncSingleDisplay()` after the
   patch. It never writes the note: that is the household's own text.
 - **Quick Scan pickers:** the dialog has two native `<label>`s around hidden file inputs. **Take a photo**
   (`capture="environment"`, `quick-scan-take-photo`) opens the back camera and is shown on touch devices only
@@ -523,7 +523,7 @@ The long form of points the guide states briefly.
   `confirmText = marker("Delete")`, a removal `marker("Remove")`; those two (`DESTRUCTIVE_CONFIRM_TEXTS`) turn the
   button red through `app-dialog-footer [submitDestructive]`. The dialog starts the focus on the question
   (`cdkFocusInitial`), not on Cancel, whose tooltip would pop open.
-- **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
+- **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   has no `push()` and the picker silently does nothing); clear with `FormArray.clear()`. A single-select goes
   `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain
   strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthState`,
@@ -535,7 +535,7 @@ The long form of points the guide states briefly.
   resolve through the `src/*` path) and `skipLibCheck` is on.
 - **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
   AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService` (its claims-only
+  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService` (its claims-only
   update must not wipe permissions). The matcher `src/utils/permission.utils.ts` is a port of the Go matcher, wildcards
   included. Selectors: `AuthState.hasAppPermission`, `hasAnyAppPermission`, `hasGroupPermission(groupId, perm, orApp)`
   (applies the app-scoped override first). Directives `*hasAppPermission` / `*hasGroupPermission` are effect-driven, so

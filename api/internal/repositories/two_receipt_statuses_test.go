@@ -45,8 +45,8 @@ func TestTwoReceiptStatusesMigrationRewritesTheRemovedStatuses(t *testing.T) {
 		t.Fatal(err)
 	}
 	db.Exec("UPDATE group_receipt_settings SET quick_scan_default_status = ? WHERE id = ?", "DRAFT", settings.ID)
-	preferences := models.UserPrefernces{UserId: 1}
-	if err := db.Where("user_id = ?", 1).FirstOrCreate(&preferences, models.UserPrefernces{UserId: 1}).Error; err != nil {
+	preferences := models.UserPreferences{UserId: 1}
+	if err := db.Where("user_id = ?", 1).FirstOrCreate(&preferences, models.UserPreferences{UserId: 1}).Error; err != nil {
 		t.Fatal(err)
 	}
 	db.Exec("UPDATE user_prefernces SET quick_scan_default_status = ? WHERE id = ?", "DECLINED", preferences.ID)
