@@ -13,14 +13,6 @@ type CommentRepository struct {
 	BaseRepository
 }
 
-// AuthorVisibilityResolver reports whether a notification recipient is allowed to
-// see the comment's author WITHIN the receipt's group (member-presence isolation). It
-// lets the comment repository suppress a notification whose body names an author the
-// recipient may not see in that group, without importing the service layer that
-// resolves visibility (mirroring the PaidByAllowedResolver injection). A nil resolver
-// disables suppression, so every recipient receives (backward compatible).
-type AuthorVisibilityResolver func(authorId uint, recipientId uint, groupId uint) (canSeeAuthor bool, err error)
-
 func NewCommentRepository(tx *gorm.DB) CommentRepository {
 	repository := CommentRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
@@ -38,7 +30,7 @@ const firstCommentOrder = "comments.created_at ASC, comments.id ASC"
 
 // GetCommentsForReceiptIds returns every comment on the given receipts in a single
 // query, in firstCommentOrder, so a receipt's first comment is the first of its
-// rows the caller is allowed to see.
+// rows.
 func (repository CommentRepository) GetCommentsForReceiptIds(receiptIds []uint) ([]models.Comment, error) {
 	comments := make([]models.Comment, 0)
 	if len(receiptIds) == 0 {
@@ -57,7 +49,7 @@ func (repository CommentRepository) GetCommentsForReceiptIds(receiptIds []uint) 
 	return comments, nil
 }
 
-func (repository CommentRepository) AddComment(command commands.UpsertCommentCommand, authorVisibleTo AuthorVisibilityResolver) (models.Comment, error) {
+func (repository CommentRepository) AddComment(command commands.UpsertCommentCommand) (models.Comment, error) {
 	db := repository.GetDB()
 	comment := models.Comment{
 		Comment:   command.Comment,
@@ -73,7 +65,7 @@ func (repository CommentRepository) AddComment(command commands.UpsertCommentCom
 			return err
 		}
 
-		err = repository.sendNotificationsToUsers(comment, authorVisibleTo)
+		err = repository.sendNotificationsToUsers(comment)
 		if err != nil {
 			return err
 		}
@@ -151,7 +143,7 @@ func (repository CommentRepository) DeleteComment(commentId string, tokenUserId 
 	return nil
 }
 
-func (repository CommentRepository) sendNotificationsToUsers(comment models.Comment, authorVisibleTo AuthorVisibilityResolver) error {
+func (repository CommentRepository) sendNotificationsToUsers(comment models.Comment) error {
 	var receipt models.Receipt
 	authorId := *comment.UserId
 	usersToOmit := make([]interface{}, 0)
@@ -165,15 +157,6 @@ func (repository CommentRepository) sendNotificationsToUsers(comment models.Comm
 	}
 
 	if comment.CommentId == nil {
-		// Member isolation: suppress the notification for any group member who may
-		// not see the comment's author (the body names them) by adding them to the
-		// omit list.
-		hiddenRecipients, err := repository.recipientsWhoCannotSeeAuthor(authorId, receipt.GroupId, authorVisibleTo)
-		if err != nil {
-			return err
-		}
-		usersToOmit = append(usersToOmit, hiddenRecipients...)
-
 		err = notificationRepository.SendNotificationToGroup(receipt.GroupId, "Comment Added", fmt.Sprintf("%s has added a comment to a receipt in group %s. %s", BuildParamaterisedString("userId", authorId, "displayName", "string"), BuildParamaterisedString("groupId", receipt.GroupId, "name", "string"), BuildParamaterisedString("receiptId", comment.ReceiptId, "noop", "link")), models.NOTIFICATION_TYPE_NORMAL, usersToOmit)
 		if err != nil {
 			return err
@@ -184,12 +167,6 @@ func (repository CommentRepository) sendNotificationsToUsers(comment models.Comm
 			return err
 		}
 
-		hiddenRecipients, err := omitRecipientsWhoCannotSeeAuthor(authorId, threadUsers, receipt.GroupId, authorVisibleTo)
-		if err != nil {
-			return err
-		}
-		usersToOmit = append(usersToOmit, hiddenRecipients...)
-
 		err = notificationRepository.SendNotificationToUsers(threadUsers, "Comment Replied", fmt.Sprintf("%s has replied to a thread that you are a part of.", BuildParamaterisedString("userId", authorId, "displayName", "string")), models.NOTIFICATION_TYPE_NORMAL, usersToOmit)
 		if err != nil {
 			return err
@@ -199,66 +176,3 @@ func (repository CommentRepository) sendNotificationsToUsers(comment models.Comm
 	return nil
 }
 
-// recipientsWhoCannotSeeAuthor returns the ids of the group's members who may not
-// see the comment author under member isolation (so they can be added to a
-// notification's omit list). A nil resolver returns no ids.
-func (repository CommentRepository) recipientsWhoCannotSeeAuthor(authorId uint, groupId uint, authorVisibleTo AuthorVisibilityResolver) ([]interface{}, error) {
-	if authorVisibleTo == nil {
-		return nil, nil
-	}
-
-	// Fast path: a non-isolated group hides nothing, so no recipient can fail to see the
-	// author. Skip the roster fetch and the per-member visibility lookups entirely — the
-	// common case does one cheap flag read instead of O(members) resolver calls.
-	var group struct {
-		IsolateMembers bool
-	}
-	if err := repository.GetDB().Model(&models.Group{}).
-		Select("isolate_members").
-		Where("id = ?", groupId).
-		Scan(&group).Error; err != nil {
-		return nil, err
-	}
-	if !group.IsolateMembers {
-		return nil, nil
-	}
-
-	groupMemberRepository := NewGroupMemberRepository(repository.TX)
-	members, err := groupMemberRepository.GetsGroupMembersByGroupId(utils.UintToString(groupId))
-	if err != nil {
-		return nil, err
-	}
-
-	recipientIds := make([]uint, 0, len(members))
-	for _, member := range members {
-		recipientIds = append(recipientIds, member.UserID)
-	}
-
-	return omitRecipientsWhoCannotSeeAuthor(authorId, recipientIds, groupId, authorVisibleTo)
-}
-
-// omitRecipientsWhoCannotSeeAuthor evaluates each candidate recipient against the
-// author-visibility resolver (scoped to groupId) and returns those who may not see the
-// author. The author is never included. A nil resolver returns no ids.
-func omitRecipientsWhoCannotSeeAuthor(authorId uint, recipientIds []uint, groupId uint, authorVisibleTo AuthorVisibilityResolver) ([]interface{}, error) {
-	if authorVisibleTo == nil {
-		return nil, nil
-	}
-
-	hidden := make([]interface{}, 0)
-	for _, recipientId := range recipientIds {
-		if recipientId == authorId {
-			continue
-		}
-
-		canSee, err := authorVisibleTo(authorId, recipientId, groupId)
-		if err != nil {
-			return nil, err
-		}
-		if !canSee {
-			hidden = append(hidden, recipientId)
-		}
-	}
-
-	return hidden, nil
-}

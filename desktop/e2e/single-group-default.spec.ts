@@ -46,7 +46,7 @@ test.describe('Single-group users get the Group field pre-filled', () => {
     await createUserWithRole(adminPage, {
       username,
       password: NEW_USER_PASSWORD,
-      role: 'Legacy User',
+      role: 'User',
     });
     await admin.close();
 

@@ -151,64 +151,6 @@ describe("ReceiptCommentsComponent", () => {
     expect(component.commentCount()).toEqual(2);
   });
 
-  describe("last comment when the role requires one", () => {
-    const render = async (
-      mode: FormMode,
-      initialComments: Comment[],
-      preventDeletingLastComment: boolean
-    ): Promise<ComponentFixture<ReceiptCommentsComponent>> => {
-      store.reset({
-        users: { users: [] },
-        auth: {
-          userId: "1",
-          groupPermissions: {
-            5: [Permission.GroupCommentsCreate, Permission.GroupCommentsDelete],
-          },
-        },
-      });
-      const lockedFixture = TestBed.createComponent(ReceiptCommentsComponent);
-      lockedFixture.componentRef.setInput("mode", mode);
-      lockedFixture.componentRef.setInput("groupId", 5);
-      lockedFixture.componentRef.setInput("comments", initialComments);
-      lockedFixture.componentRef.setInput(
-        "preventDeletingLastComment",
-        preventDeletingLastComment
-      );
-      lockedFixture.detectChanges();
-      await lockedFixture.whenStable();
-      return lockedFixture;
-    };
-
-    const deleteButtons = (f: ComponentFixture<ReceiptCommentsComponent>) =>
-      f.nativeElement.querySelectorAll('[data-testid="comment-delete"]');
-
-    it("hides delete on the only saved comment in edit mode", async () => {
-      const locked = await render(FormMode.edit, [comments[0]], true);
-
-      expect(locked.componentInstance.isLastCommentLocked()).toBe(true);
-      expect(deleteButtons(locked).length).toBe(0);
-    });
-
-    it("keeps delete while more than one comment remains", async () => {
-      const unlocked = await render(FormMode.edit, comments, true);
-
-      expect(unlocked.componentInstance.isLastCommentLocked()).toBe(false);
-      expect(deleteButtons(unlocked).length).toBe(2);
-    });
-
-    it("keeps delete when nothing is required", async () => {
-      const unlocked = await render(FormMode.edit, [comments[0]], false);
-
-      expect(deleteButtons(unlocked).length).toBe(1);
-    });
-
-    it("never locks an unsaved add-mode comment", async () => {
-      const addMode = await render(FormMode.add, [comments[0]], true);
-
-      expect(addMode.componentInstance.isLastCommentLocked()).toBe(false);
-    });
-  });
-
   it("gates comment create/delete on the group comment permissions", () => {
     store.dispatch(
       new SetPermissions([], { 5: [Permission.GroupCommentsCreate] })

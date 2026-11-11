@@ -27,8 +27,4 @@ type AppData struct {
 	Icons            []Icon                     `json:"icons"`
 	AppPermissions   []string                   `json:"appPermissions"`
 	GroupPermissions map[uint][]string          `json:"groupPermissions"`
-	// GroupReceiptRequirements is what the caller must supply on each group's
-	// receipts, resolved server-side from their group role. Only groups where
-	// something is required are present (absent ⇒ nothing required); never null.
-	GroupReceiptRequirements map[uint]ReceiptRequirements `json:"groupReceiptRequirements"`
 }

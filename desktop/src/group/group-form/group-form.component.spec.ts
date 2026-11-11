@@ -227,7 +227,6 @@ describe("GroupFormComponent", () => {
       name: "test",
       status: GroupStatus.Active,
       groupMembers: [],
-      isolateMembers: false,
       icon: "",
       color: "",
     } as any);
@@ -320,7 +319,6 @@ describe("GroupFormComponent", () => {
             groupId: 1,
           },
         ],
-        isolateMembers: false,
         icon: "",
         color: "",
       } as Group
@@ -328,53 +326,6 @@ describe("GroupFormComponent", () => {
     expect(storeSpy).toHaveBeenCalledWith(new UpdateGroup(returnValue));
     // The form stays where it is (always editable): it settles instead of navigating to a view page.
     expect(component.form.pristine).toBe(true);
-  });
-
-  it("includes isolateMembers in the create payload when enabled", () => {
-    const createSpy = vi.spyOn(TestBed.inject(GroupsService), "createGroup");
-    vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
-
-    const route = TestBed.inject(ActivatedRoute);
-    route.snapshot.data = {
-      formConfig: {
-        mode: FormMode.add,
-      },
-    };
-
-    component.ngOnInit();
-    component.ngAfterViewInit();
-
-    component.form.patchValue({
-      name: "test",
-      isolateMembers: true,
-    });
-
-    createSpy.mockReturnValue(of({ ...component.form.value, id: 1 }));
-
-    component.submit();
-
-    expect(createSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ isolateMembers: true })
-    );
-  });
-
-  it("hydrates isolateMembers from the group on edit", () => {
-    const route = TestBed.inject(ActivatedRoute);
-    route.snapshot.data = {
-      group: {
-        id: 1,
-        name: "test",
-        status: GroupStatus.Active,
-        isolateMembers: true,
-        groupMembers: [],
-      },
-      formConfig: { mode: FormMode.edit },
-    };
-
-    component.ngOnInit();
-
-    expect(component.form.get("isolateMembers")?.value).toBe(true);
   });
 
   it("hydrates the household's icon and colour and sends them with the save", () => {

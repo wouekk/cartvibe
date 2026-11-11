@@ -48,8 +48,7 @@ func GetShoppingTrips(w http.ResponseWriter, r *http.Request) {
 		GroupPermissions: []string{permissions.GroupShoppingListsRead, permissions.GroupReceiptsRead},
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			token := structs.GetClaims(r)
-			trips, err := services.NewShoppingTripService(nil).GetTripsForList(listId, token.UserId)
+			trips, err := services.NewShoppingTripService(nil).GetTripsForList(listId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -62,8 +61,7 @@ func GetShoppingTrips(w http.ResponseWriter, r *http.Request) {
 }
 
 // AttachShoppingTripReceipt attaches an existing receipt to a list. Both the list's group and the
-// receipt are authorized (the receipt with its paid-by visibility), so an unknown or hidden receipt
-// is the same 403 as a denial.
+// receipt are authorized, so an unknown receipt is the same 403 as a denial.
 func AttachShoppingTripReceipt(w http.ResponseWriter, r *http.Request) {
 	listId, groupId, ok := resolveShoppingListGroupId(w, chi.URLParam(r, "listId"))
 	if !ok {
@@ -124,17 +122,6 @@ func UploadShoppingTripPhoto(w http.ResponseWriter, r *http.Request) {
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			token := structs.GetClaims(r)
-
-			// The photo is scanned later, with no one to ask for a comment, so a role that requires one
-			// has to use Quick Scan instead.
-			requirements, err := services.NewReceiptService(nil).ResolveReceiptRequirements(token.UserId, groupId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			if requirements.CommentRequired {
-				utils.WriteCustomErrorResponse(w, "Your role requires a comment on receipts; use Quick Scan for this receipt", http.StatusBadRequest)
-				return 0, nil
-			}
 
 			r.Body = http.MaxBytesReader(w, r.Body, constants.MultipartFormMaxSize)
 			file, header, err := r.FormFile("file")

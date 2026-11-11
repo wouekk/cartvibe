@@ -31,7 +31,6 @@ import (
 func tearDownReportTest() {
 	repositories.TruncateTestDb()
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 }
 
 // generateReportRequest builds a POST carrying the JSON command body and JWT
@@ -905,46 +904,6 @@ func TestGenerateReportFromTemplate_NotFoundForMissingId(t *testing.T) {
 	GenerateReportFromTemplate(w, r)
 
 	assertStatus(t, w, http.StatusNotFound)
-}
-
-func TestGetReportTemplateOptions_ReturnsOptionsUnderRolesRead(t *testing.T) {
-	defer tearDownReportTest()
-	// Gated on app.roles.read (the role editor), not a report permission.
-	grantAppPerms(t, 1, permissions.AppRolesRead)
-	seedReportTemplate(t, 1, "HTTP Report")
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/api/report/template/options", nil)
-	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}}))
-	GetReportTemplateOptions(w, r)
-
-	assertStatus(t, w, http.StatusOK)
-
-	var options []structs.ReportTemplateOption
-	if err := json.Unmarshal(w.Body.Bytes(), &options); err != nil {
-		t.Fatalf("decode options body: %v", err)
-	}
-	if len(options) != 1 || options[0].Name != "HTTP Report" {
-		t.Fatalf("options = %+v, want one HTTP Report option", options)
-	}
-	// The template was seeded over group 1, so the option carries it.
-	if len(options[0].GroupIds) != 1 || options[0].GroupIds[0] != 1 {
-		t.Errorf("option groupIds = %v, want [1]", options[0].GroupIds)
-	}
-}
-
-func TestGetReportTemplateOptions_ForbidsWithoutRolesRead(t *testing.T) {
-	defer tearDownReportTest()
-	grantAppPerms(t, 1, permissions.AppReportsRead)
-
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest("GET", "/api/report/template/options", nil)
-	r = r.WithContext(context.WithValue(r.Context(), jwtmiddleware.ContextKey{},
-		&validator.ValidatedClaims{CustomClaims: &structs.Claims{UserId: 1}}))
-	GetReportTemplateOptions(w, r)
-
-	assertStatus(t, w, http.StatusForbidden)
 }
 
 // --- Dashboard report-widget render endpoint ---

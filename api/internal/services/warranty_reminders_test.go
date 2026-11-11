@@ -61,13 +61,12 @@ func setLeadDays(t *testing.T, userId uint, days int) {
 
 func warrantyDay(s string) *string { return &s }
 
-// Everyone who can read the receipt gets one reminder at their own lead time; a member who cannot see it (member
-// isolation hides the payer) gets none.
-func TestSyncWarrantyRemindersPlansOnePerVisibleMember(t *testing.T) {
+// Everyone in the household gets one reminder at their own lead time, whoever paid for the receipt.
+func TestSyncWarrantyRemindersPlansOnePerMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
-	setLeadDays(t, fx.supervisorId, 0)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
+	setLeadDays(t, fx.ownerId, 0)
 
 	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay("2027-03-12"))
 	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
@@ -75,14 +74,14 @@ func TestSyncWarrantyRemindersPlansOnePerVisibleMember(t *testing.T) {
 	}
 
 	reminders := warrantyRemindersFor(t, receiptId)
-	if _, ok := reminders[fx.memberAId]; ok {
-		t.Errorf("member A cannot see B's receipt and must not be reminded")
+	if got := reminders[fx.memberAId].FireOn; got != "2027-02-10" {
+		t.Errorf("A (default 30 days) should be reminded of B's receipt on 2027-02-10, got %q", got)
 	}
 	if got := reminders[fx.memberBId].FireOn; got != "2027-02-10" {
 		t.Errorf("B (default 30 days) should be reminded on 2027-02-10, got %q", got)
 	}
-	if got := reminders[fx.supervisorId].FireOn; got != "2027-03-12" {
-		t.Errorf("the supervisor (0 days) should be reminded on the day, got %q", got)
+	if got := reminders[fx.ownerId].FireOn; got != "2027-03-12" {
+		t.Errorf("the owner (0 days) should be reminded on the day, got %q", got)
 	}
 	if reminders[fx.memberBId].Key != WarrantyReminderKey(receiptId) {
 		t.Errorf("unexpected key %q", reminders[fx.memberBId].Key)
@@ -94,16 +93,16 @@ func TestSyncWarrantyRemindersPlansOnePerVisibleMember(t *testing.T) {
 	}
 	var count int64
 	repositories.GetDB().Model(&models.WarrantyReminder{}).Where("receipt_id = ?", receiptId).Count(&count)
-	if count != 2 {
-		t.Errorf("expected 2 reminders after planning twice, got %d", count)
+	if count != 3 {
+		t.Errorf("expected 3 reminders after planning twice, got %d", count)
 	}
 }
 
 // Changing the lead time moves the person's pending reminders.
 func TestSyncWarrantyRemindersForUserFollowsTheLeadTime(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
 
 	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay("2027-03-12"))
 	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
@@ -122,8 +121,8 @@ func TestSyncWarrantyRemindersForUserFollowsTheLeadTime(t *testing.T) {
 // Clearing the date, a date in the past and deleting the receipt all cancel its reminders.
 func TestWarrantyRemindersAreCancelled(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
 
 	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay("2027-03-12"))
 	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
@@ -162,9 +161,10 @@ func TestWarrantyRemindersAreCancelled(t *testing.T) {
 // and again for a new date. It never shows the amount.
 func TestFireDueWarrantyRemindersFiresOncePerDate(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
-	setLeadDays(t, fx.supervisorId, 0)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
+	setLeadDays(t, fx.ownerId, 0)
+	setLeadDays(t, fx.memberAId, 0)
 
 	var pushed int
 	restore := SetWebPushSenderForTests(func([]byte, *webpush.Subscription, *webpush.Options) (int, error) {
@@ -173,7 +173,7 @@ func TestFireDueWarrantyRemindersFiresOncePerDate(t *testing.T) {
 	})
 	defer restore()
 
-	// Ends in 10 days: B's 30-day lead is already past, so B is reminded today; the supervisor on the day.
+	// Ends in 10 days: B's 30-day lead is already past, so B is reminded today; the owner and A on the day.
 	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay("2026-11-08"))
 	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
 		t.Fatal(err)
@@ -218,15 +218,15 @@ func TestFireDueWarrantyRemindersFiresOncePerDate(t *testing.T) {
 		t.Errorf("a new date should fire again, sent %d", sent)
 	}
 
-	// The supervisor's comes on the day, titled "today".
+	// The owner's and A's come on the day, titled "today".
 	onTheDay := time.Date(2026, 11, 9, 9, 30, 0, 0, time.UTC)
-	if sent, _ := FireDueWarrantyReminders(onTheDay); sent != 1 {
-		t.Errorf("expected the supervisor's reminder on the day, sent %d", sent)
+	if sent, _ := FireDueWarrantyReminders(onTheDay); sent != 2 {
+		t.Errorf("expected the owner's and A's reminders on the day, sent %d", sent)
 	}
-	var supervisorNotification models.Notification
-	repositories.GetDB().Where("user_id = ?", fx.supervisorId).Take(&supervisorNotification)
-	if supervisorNotification.Title != "Warranty ends today" {
-		t.Errorf("unexpected title %q", supervisorNotification.Title)
+	var ownerNotification models.Notification
+	repositories.GetDB().Where("user_id = ?", fx.ownerId).Take(&ownerNotification)
+	if ownerNotification.Title != "Warranty ends today" {
+		t.Errorf("unexpected title %q", ownerNotification.Title)
 	}
 
 	if pushed != 0 {
@@ -253,11 +253,11 @@ func TestValidatePushEndpoint(t *testing.T) {
 	}
 }
 
-// The Warranties list and tile count warranties that end today or later, and only receipts the viewer can see.
+// The Warranties list and tile count warranties that end today or later, the same for everyone in the household.
 func TestActiveWarrantiesCountFromTodayOn(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
 
 	today := time.Now().UTC()
 	seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 0, -1).Format(time.DateOnly)))
@@ -273,20 +273,20 @@ func TestActiveWarrantiesCountFromTodayOn(t *testing.T) {
 		t.Errorf("expected today's and next year's warranty, got %d", count)
 	}
 
-	hidden, err := NewGroupOverviewService(nil).countActiveWarranties(fx.memberAId, utils.UintToString(fx.groupId))
+	forAnotherMember, err := NewGroupOverviewService(nil).countActiveWarranties(fx.memberAId, utils.UintToString(fx.groupId))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if hidden != 0 {
-		t.Errorf("member A cannot see B's receipts, so counts none, got %d", hidden)
+	if forAnotherMember != 2 {
+		t.Errorf("member A counts B's warranties too, got %d", forAnotherMember)
 	}
 }
 
 // Ending soon: from today up to the bound, nearest first; later and expired warranties are left out.
 func TestWarrantiesEndingSoonFilter(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
 
 	today := time.Now().UTC()
 	inAMonth := seedWarrantyReceipt(t, fx.groupId, fx.memberBId, warrantyDay(today.AddDate(0, 1, 0).Format(time.DateOnly)))
@@ -302,7 +302,7 @@ func TestWarrantiesEndingSoonFilter(t *testing.T) {
 		},
 	}
 	receipts, count, err := repositories.NewReceiptRepository(nil).GetPagedReceiptsByGroupId(
-		fx.memberBId, utils.UintToString(fx.groupId), request, nil, nil, nil, nil, nil,
+		fx.memberBId, utils.UintToString(fx.groupId), request, nil, nil,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -315,16 +315,16 @@ func TestWarrantiesEndingSoonFilter(t *testing.T) {
 // Someone who joins the group after a warranty date was set is reminded of it once the group is planned again.
 func TestSyncWarrantyRemindersForGroupRemindsANewMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-	fx := seedIsolatedReceiptGroup(t)
+	clearRolePermissionCacheAll()
+	fx := seedHousehold(t)
 
-	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.supervisorId, warrantyDay("2027-03-12"))
+	receiptId := seedWarrantyReceipt(t, fx.groupId, fx.ownerId, warrantyDay("2027-03-12"))
 	if err := SyncWarrantyReminders(receiptId, warrantyNow); err != nil {
 		t.Fatal(err)
 	}
 
 	newcomer := makeUser(t, "warranty-newcomer")
-	seedIsoMember(t, fx.groupId, newcomer, &fx.supRoleId)
+	seedHouseholdMembership(t, fx.groupId, newcomer, &fx.ownerRoleId)
 	if _, ok := warrantyRemindersFor(t, receiptId)[newcomer]; ok {
 		t.Fatalf("not planned yet before the group is synced")
 	}

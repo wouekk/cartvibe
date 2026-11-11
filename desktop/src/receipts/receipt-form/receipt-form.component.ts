@@ -40,7 +40,6 @@ import { familyReceiptStatus } from "../../utils/receipt-status";
 import { downloadFile } from "../../utils/file";
 import { receiptImageFileUrl } from "../../utils/receipt-image-url";
 import { DEMO_MODE } from "../../demo/demo-runtime";
-import { missingReceiptRequirementsMessage, receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { ReceiptCommentsComponent } from "../receipt-comments/receipt-comments.component";
 
 import { UploadImageComponent } from "../upload-image/upload-image.component";
@@ -147,17 +146,6 @@ export class ReceiptFormComponent implements OnInit {
   // shows when the receipt is somehow elsewhere, so it can be moved back.
   public readonly showGroupPicker = computed(
     () => this.soleGroupId() === undefined || Number(this.currentGroupId()) !== this.soleGroupId()
-  );
-
-  private readonly requirementsByGroup = this.store.selectSignal(AuthState.groupReceiptRequirements);
-
-  /**
-   * The caller's role-required receipt fields in the form's current group,
-   * already resolved server-side (hidden-field and permission waivers applied).
-   * Re-evaluates when the group changes.
-   */
-  public readonly receiptRequirements = computed(() =>
-    receiptRequirementsFor(this.requirementsByGroup(), this.currentGroupId())
   );
 
   public editLink = "";
@@ -566,58 +554,7 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
     }
   }
 
-  /**
-   * Whether the group requires an image and the receipt has none. Add mode
-   * counts the queued uploads; edit mode the saved images, which update live
-   * as images are added and removed (falling back to the receipt's own list
-   * while they are still loading).
-   */
-  public isImageMissing(): boolean {
-    if (this.mode === FormMode.view || !this.receiptRequirements().imageRequired) {
-      return false;
-    }
-    return this.imageCount() === 0;
-  }
-
-  /**
-   * Whether the group requires a comment and the receipt has none. The comments
-   * child mirrors its list's length into a signal: queued comments in add mode,
-   * the receipt's saved comments (updated live) in edit mode.
-   */
-  public isCommentMissing(): boolean {
-    if (this.mode === FormMode.view || !this.receiptRequirements().commentRequired) {
-      return false;
-    }
-    return (this.receiptCommentsComponent()?.commentCount() ?? 0) === 0;
-  }
-
-  /** In edit mode the server refuses deleting the last required image. */
-  public isLastImageLocked(): boolean {
-    return (
-      this.mode === FormMode.edit &&
-      this.receiptRequirements().imageRequired &&
-      this.imageCount() <= 1
-    );
-  }
-
-  /** Passed to the comments child: in edit mode the last comment is kept. */
-  public isCommentDeletionLimited(): boolean {
-    return this.mode === FormMode.edit && this.receiptRequirements().commentRequired;
-  }
-
-  private imageCount(): number {
-    if (this.mode === FormMode.add) {
-      return this.filesToUpload().length;
-    }
-    return this.imagesLoading()
-      ? (this.originalReceipt?.imageFiles?.length ?? 0)
-      : this.images().length;
-  }
-
   public removeImage(): void {
-    if (this.isLastImageLocked()) {
-      return;
-    }
     const index = this.currentImageIndex;
 
     if (this.mode === FormMode.add) {
@@ -1013,15 +950,6 @@ this.receiptDone.set(DONE_STATUSES.includes(this.originalReceipt?.status ?? ""))
           shakeInvalid(this.host.nativeElement.querySelector(`[data-testid="receipt-${field}"]`));
         }
       }
-      return;
-    }
-
-    // Mirrors the server's role-required fields check, so the user is told
-    // before a round trip rather than by a 400.
-    const missingComment = this.isCommentMissing();
-    const missingImage = this.isImageMissing();
-    if (missingComment || missingImage) {
-      this.snackbarService.error(missingReceiptRequirementsMessage(missingComment, missingImage));
       return;
     }
 

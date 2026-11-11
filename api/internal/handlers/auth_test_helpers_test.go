@@ -24,7 +24,7 @@ func grantAppPerms(t *testing.T, userId uint, perms ...string) {
 	db := repositories.GetDB()
 
 	roleRepository := repositories.NewRoleRepository(nil)
-	role, err := roleRepository.CreateAppRole(fmt.Sprintf("Test App Role %d", userId), "", perms, false)
+	role, err := roleRepository.CreateAppRole(fmt.Sprintf("Test App Role %d", userId), "", perms)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
 	}
@@ -55,11 +55,10 @@ func grantGroupPerms(t *testing.T, userId uint, groupId uint, perms ...string) {
 	// so a fresh (grant-less) role here could otherwise resolve to another case's
 	// cached grants — and paid-by visibility now consults that cache on every
 	// receipt read (e.g. the pie chart), wrongly restricting this role's members.
-	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
 
 	roleRepository := repositories.NewRoleRepository(nil)
-	role, err := roleRepository.CreateGroupRole(fmt.Sprintf("Test Group Role %d-%d", userId, groupId), "", perms, nil, nil, nil, false, false)
+	role, err := roleRepository.CreateGroupRole(fmt.Sprintf("Test Group Role %d-%d", userId, groupId), "", perms)
 	if err != nil {
 		t.Fatalf("create group role: %v", err)
 	}

@@ -11,7 +11,6 @@ import (
 // Each starter template must actually run through the engine, not only validate.
 func TestStarterReportTemplatesRunThroughTheEngine(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))

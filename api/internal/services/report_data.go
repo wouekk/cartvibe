@@ -8,7 +8,6 @@ import (
 	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/utils"
 	"gorm.io/gorm"
 	"time"
 )
@@ -28,8 +27,8 @@ type ReportDataService struct {
 	// built; ReportService sets it so one report resolves the zone once.
 	Location *time.Location
 
-	// Translator is the language of the person the report is for: field labels,
-	// statuses and the (Restricted) marker read in it. The zero value is English.
+	// Translator is the language of the person the report is for: field labels
+	// and statuses read in it. The zero value is English.
 	Translator i18n.Translator
 }
 
@@ -41,16 +40,8 @@ func NewReportDataService(tx *gorm.DB) ReportDataService {
 	return service
 }
 
-// Rows fetches a group's receipts, applies the three reporting access controls,
-// and maps the survivors to engine rows, one per receipt. The controls run in the
-// order they must:
-//
-//   - the request filter is narrowed to what the caller may see, so a restricted
-//     caller cannot probe for hidden categories/tags through the filter;
-//   - paid-by visibility is enforced in the query, so a receipt the caller may
-//     not see is never fetched (whole-receipt hiding);
-//   - line categories/tags the caller may not see read as (Restricted), so their
-//     spend still counts toward the totals in its own bucket rather than vanishing.
+// Rows fetches a group's receipts and maps them to engine rows, one per receipt.
+// The All group is expanded to the households the caller may read reports in.
 //
 // The returned catalog carries every built-in field.
 func (service ReportDataService) Rows(userId uint, groupId string, filter commands.ReceiptPagedRequestFilter) (reporting.FieldCatalog, []reporting.Row, error) {
@@ -74,10 +65,6 @@ type ReportRowSet struct {
 // RowsWithLines is Rows reading Category, Tag, Health and Planned off the
 // receipts' product lines (receiptsource.Source.RowsWithLines). When the report
 // cuts by one of them, a receipt is divided by its lines' amounts.
-//
-// A hidden category or tag becomes (Restricted) on the line itself, so the
-// division is the same for every viewer: a visible category's share never
-// depends on who is looking, and (Restricted) receives exactly the hidden lines.
 func (service ReportDataService) RowsWithLines(
 	userId uint,
 	groupId string,
@@ -99,7 +86,7 @@ func (service ReportDataService) RowsWithLines(
 		return ReportRowSet{}, err
 	}
 
-	lines, err := service.reportLines(userId, receipts)
+	lines, err := service.reportLines(receipts)
 	if err != nil {
 		return ReportRowSet{}, err
 	}
@@ -114,10 +101,9 @@ func (service ReportDataService) RowsWithLines(
 }
 
 // reportLines loads the receipts' priced product lines as the report source reads
-// them, parallel to receipts: the category's current name, the tag names, and
-// (Restricted) for a category or tag the caller may not see in the receipt's
-// group. A line whose category was deleted reads as Uncategorized.
-func (service ReportDataService) reportLines(userId uint, receipts []models.Receipt) ([][]receiptsource.Line, error) {
+// them, parallel to receipts: the category's current name and the tag names. A
+// line whose category was deleted reads as Uncategorized.
+func (service ReportDataService) reportLines(receipts []models.Receipt) ([][]receiptsource.Line, error) {
 	lines := make([][]receiptsource.Line, len(receipts))
 	if len(receipts) == 0 {
 		return lines, nil
@@ -140,21 +126,10 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 		return nil, err
 	}
 
-	grantFilter, err := NewPermissionService(service.TX).newReceiptGrantFilter(userId)
-	if err != nil {
-		return nil, err
-	}
-
-	// A category or tag the caller may not see reads as (Restricted), in the reader's language.
-	restricted := service.Translator.T("(Restricted)")
 	for _, product := range products {
 		index, found := indexById[product.ReceiptId]
 		if !found || product.Amount == nil {
 			continue
-		}
-		grants, err := grantFilter.grantsForGroup(receipts[index].GroupId)
-		if err != nil {
-			return nil, err
 		}
 
 		line := receiptsource.Line{
@@ -164,20 +139,9 @@ func (service ReportDataService) reportLines(userId uint, receipts []models.Rece
 		}
 		if product.CategoryId != nil {
 			line.Category = categoryNames[*product.CategoryId]
-			if !grantFilter.bypassCategories && !grants.categoryUnrestricted {
-				if _, allowed := grants.categoryAllowed[*product.CategoryId]; !allowed {
-					line.Category = restricted
-				}
-			}
 		}
 		for _, tag := range product.Tags {
-			name := tag.Name
-			if !grantFilter.bypassTags && !grants.tagUnrestricted {
-				if _, allowed := grants.tagAllowed[tag.ID]; !allowed {
-					name = restricted
-				}
-			}
-			line.Tags = append(line.Tags, name)
+			line.Tags = append(line.Tags, tag.Name)
 		}
 
 		lines[index] = append(lines[index], line)
@@ -221,33 +185,19 @@ func (service ReportDataService) categoryNames(products []models.ReceiptProduct)
 // that lists them rather than reporting on them (the Report Builder's drill-in):
 // at most limit of them, newest first, plus the count of every receipt that
 // matched. Sharing fetchReceipts is what keeps the list and the report's count in
-// step. Where the two differ is presentation, and there it follows the receipts
-// list: user references are masked for member visibility.
+// step.
 func (service ReportDataService) Receipts(
 	userId uint,
 	groupId string,
 	filter commands.ReceiptPagedRequestFilter,
 	limit int,
 ) ([]models.Receipt, int64, error) {
-	permissionService := NewPermissionService(service.TX)
-
-	receipts, count, err := service.fetchReceipts(userId, groupId, filter, nil, limit)
-	if err != nil {
-		return nil, 0, err
-	}
-	if err := permissionService.MaskReceiptsForMemberVisibility(userId, receipts); err != nil {
-		return nil, 0, err
-	}
-	return receipts, count, nil
+	return service.fetchReceipts(userId, groupId, filter, nil, limit)
 }
 
-// fetchReceipts loads a group's receipts matching the filter, newest first, with
-// the two controls that decide which receipts a caller may see at all: the filter
-// is narrowed to the caller's category/tag grants, so a restricted caller cannot
-// probe for hidden ones through it, and paid-by visibility is enforced in the
-// query, so a receipt the caller may not see is never fetched. A limit above zero
-// loads only that many; the returned count is every receipt the query matched,
-// taken after both controls, so it holds either way. A limit of -1 loads them all.
+// fetchReceipts loads a group's receipts matching the filter, newest first. A
+// limit above zero loads only that many; the returned count is every receipt the
+// query matched, so it holds either way. A limit of -1 loads them all.
 func (service ReportDataService) fetchReceipts(
 	userId uint,
 	groupId string,
@@ -257,11 +207,6 @@ func (service ReportDataService) fetchReceipts(
 ) ([]models.Receipt, int64, error) {
 	receiptRepository := repositories.NewReceiptRepository(service.TX)
 	permissionService := NewPermissionService(service.TX)
-
-	uintGroupId, err := utils.StringToUint(groupId)
-	if err != nil {
-		return nil, 0, err
-	}
 
 	page := -1
 	if limit > 0 {
@@ -277,23 +222,14 @@ func (service ReportDataService) fetchReceipts(
 		Filter: filter,
 	}
 
-	if err := permissionService.IntersectReceiptFilterWithGrants(userId, uintGroupId, &pagedRequest.Filter); err != nil {
-		return nil, 0, err
-	}
-
 	// For the synthetic All group, gate expansion to the groups the caller may
-	// read reports in and scope any category/tag filter per group. Both resolvers
-	// must be passed together (GetPagedReceiptsByGroupId fails closed otherwise).
-	// Shared by Rows and Receipts, so both report paths get the same gate; a
-	// single-group read never consults them.
+	// read reports in. Shared by Rows and Receipts, so both report paths get the
+	// same gate; a single-group read never consults it.
 	return receiptRepository.GetPagedReceiptsByGroupId(
 		userId,
 		groupId,
 		pagedRequest,
 		associations,
-		permissionService.PaidByListResolver(userId),
-		nil,
 		permissionService.GroupPermissionResolver(userId, permissions.GroupReportsRead),
-		permissionService.CategoryTagVisibilityResolver(userId),
 	)
 }

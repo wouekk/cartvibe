@@ -7,28 +7,13 @@ import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rx
 import { UserValidators } from "src/validators/user-validators";
 import { FormMode } from "src/enums/form-mode.enum";
 import {
-  Category,
-  CategoryService,
-  GroupsService,
-  Permission,
   PermissionScope,
   Role,
   RoleService,
-  Tag,
-  TagService,
   User,
   UserService,
 } from "../../open-api";
 import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
-import { hasAll } from "../../utils/permission.utils";
-import { GrantSelection } from "../../shared-ui/grant-picker/grant-picker.component";
-import {
-  buildMemberGrantRows,
-  emptySelectionHint,
-  MemberGrantRow,
-  saveChangedMemberGrants,
-} from "../../shared-ui/grant-picker/member-grant-assignment";
-import { GroupState } from "../../store";
 import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dialog.component";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser } from "../../store";
@@ -61,18 +46,15 @@ export class UserFormComponent implements OnInit {
     private userValidators: UserValidators,
     private matDialog: AppDialog,
     private destroyRef: DestroyRef,
-    private categoryService: CategoryService,
-    private tagService: TagService,
-    private groupsService: GroupsService,
     public matDialogRef: AppDialogRef<UserFormComponent>
   ) {
-    // Pre-select the configured default app role on the add form once the roles
-    // resolve. Syncing a derived value into the reactive form is an imperative
-    // side effect, so an effect() is the sanctioned tool here.
+    // Pre-select the User role on the add form once the roles resolve. Syncing a
+    // derived value into the reactive form is an imperative side effect, so an
+    // effect() is the sanctioned tool here.
     effect(() => {
       const roles = this.roles();
       if (!this.user && this.form.get("appRoleId")?.value == null) {
-        // A new account is a family User (Phase 3 M4), else the configured default.
+        // A new account is a User, else whichever role the server marks as the default.
         const defaultRole =
           familyUserRole(roles, PermissionScope.App) ??
           roles.find((role) => role.scope === PermissionScope.App && role.isDefault);
@@ -96,9 +78,9 @@ export class UserFormComponent implements OnInit {
     { initialValue: [] as Role[] }
   );
   private readonly selectedAppRoleId = signal<number | null>(null);
-  // Admin and User only (Phase 3 M4), plus an older role the account holds or the form selected.
+  // The two app roles: Admin and User.
   public readonly appRoleOptions = computed<Role[]>(() =>
-    familyRoleOptions(this.roles(), PermissionScope.App, this.user?.appRoleId ?? this.selectedAppRoleId())
+    familyRoleOptions(this.roles(), PermissionScope.App)
   );
   // The role itself, not its relabelled option, so the preview shows its real name.
   public readonly selectedRole = computed<Role | null>(
@@ -108,80 +90,12 @@ export class UserFormComponent implements OnInit {
       ) ?? null
   );
 
-  // ----- Per-member category/tag assignment -----
-  // Only meaningful when editing an existing user: grants hang off a group
-  // MEMBERSHIP, and a user being created has none yet. The admin assigns them on
-  // a second pass, after the user exists.
-  public readonly categoryPool = signal<Category[]>([]);
-  public readonly tagPool = signal<Tag[]>([]);
-  private readonly groups = this.store.selectSignal(GroupState.groups);
-
-  private readonly groupPermissions = this.store.selectSignal(
-    AuthState.groupPermissions
-  );
-
-  /**
-   * One row per group the user belongs to, each carrying its role's ceiling —
-   * restricted to the groups this admin may actually write grants in.
-   *
-   * `group.members.grants.update` is group-scoped and deliberately separate from
-   * `group.members.update` (see `api/CLAUDE.md`), and its handler declares no
-   * app-level bypass. Rendering a picker for a group the caller lacks it in would
-   * only produce a rejected request. The section as a whole is keyed off this
-   * list's length, so it disappears when no group is writable. UI-only — the
-   * server re-checks on every request.
-   */
-  public readonly grantRows = computed<MemberGrantRow[]>(() => {
-    if (!this.user) {
-      return [];
-    }
-    const permissions = this.groupPermissions();
-    return buildMemberGrantRows(
-      this.user.id,
-      this.groups(),
-      this.roles().filter((role) => role.scope === PermissionScope.Group),
-    ).filter((row) =>
-      hasAll(permissions[row.groupId] ?? [], Permission.GroupMembersGrantsUpdate)
-    );
-  });
-
-  // Edits made in the pickers, keyed by group id. Only groups present here (and
-  // actually changed) are written on submit.
-  private readonly editedGrants = new Map<number, GrantSelection>();
-
-  /** Exposed for the template; see the helper for why the wording is shared. */
-  public readonly emptySelectionHint = emptySelectionHint;
-
   public ngOnInit(): void {
     this.initForm();
     this.listenToAppRoleChanges();
     if (!this.user) {
       this.listenToIsDummyChanges();
-    } else {
-      this.loadGrantPools();
     }
-  }
-
-  /**
-   * The category/tag pools the assignment pickers choose from. This form is
-   * admin-only, so the global lists are readable; degrade to empty rather than
-   * erroring if they are not.
-   */
-  private loadGrantPools(): void {
-    this.categoryService
-      .getAllCategories()
-      .pipe(take(1), catchError(() => of([] as Category[])), takeUntilDestroyed(this.destroyRef))
-      .subscribe((categories) => this.categoryPool.set(categories));
-    this.tagService
-      .getAllTags()
-      .pipe(take(1), catchError(() => of([] as Tag[])), takeUntilDestroyed(this.destroyRef))
-      .subscribe((tags) => this.tagPool.set(tags));
-  }
-
-  public onGrantsChange(groupId: number, selection: GrantSelection): void {
-    this.editedGrants.set(groupId, selection);
-    // The grants are not form controls, but they are something to save.
-    this.form.markAsDirty();
   }
 
   private listenToAppRoleChanges(): void {
@@ -257,22 +171,8 @@ export class UserFormComponent implements OnInit {
               })
             )
           ),
-          // Grants go through their own endpoint (and their own permission), so
-          // they are written after the user update rather than as part of it.
-          // Only changed groups are touched.
-          switchMap(() =>
-            saveChangedMemberGrants(
-              this.groupsService,
-              this.user!.id,
-              this.grantRows(),
-              this.editedGrants
-            )
-          ),
-          // Reported only once BOTH writes have landed. The grants are a separate
-          // request that can fail on its own (a 400 ceiling violation, a 403), so
-          // announcing success any earlier claims an assignment that never saved.
-          // It stays ahead of the token refresh below, which is session
-          // housekeeping rather than something this message speaks for.
+          // Ahead of the token refresh below, which is session housekeeping
+          // rather than something this message speaks for.
           tap(() => {
             this.snackbarService.success("User successfully updated");
           }),

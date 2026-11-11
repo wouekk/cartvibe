@@ -249,12 +249,12 @@ var tableSpecs = []tableSpec{
 	},
 	{
 		name:    "groups",
-		columns: []string{"id", "name", "is_default_group", "status", "isolate_members", "created_at", "created_by"},
+		columns: []string{"id", "name", "is_default_group", "status", "created_at", "created_by"},
 		write: func(state *exportState, table *tableWriter) error {
 			query := state.tx.Model(models.Group{}).Where("is_all_group = ?", false)
 			return eachInBatches(query, func(group models.Group) error {
 				return table.write(formatUint(group.ID), group.Name, formatBool(group.IsDefaultGroup), string(group.Status),
-					formatBool(group.IsolateMembers), formatInstant(group.CreatedAt), formatUintPtr(group.CreatedBy))
+					formatInstant(group.CreatedAt), formatUintPtr(group.CreatedBy))
 			})
 		},
 	},

@@ -6,7 +6,6 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
-	"cartvibe/api/internal/services"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 	"net/http"
@@ -43,16 +42,7 @@ func AddComment(w http.ResponseWriter, r *http.Request) {
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
 			commentRepository := repositories.NewCommentRepository(nil)
 
-			// Member isolation: a recipient who may not see the comment author IN THE
-			// RECEIPT'S GROUP must not receive an author-revealing notification.
-			// Resolve visibility per group from the recipient's side; unrestricted
-			// recipients always receive.
-			permissionService := services.NewPermissionService(nil)
-			authorVisibleTo := func(authorId uint, recipientId uint, groupId uint) (bool, error) {
-				return permissionService.UserVisibleInGroup(recipientId, authorId, groupId)
-			}
-
-			comment, err := commentRepository.AddComment(upsertCommentCommand, authorVisibleTo)
+			comment, err := commentRepository.AddComment(upsertCommentCommand)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -97,15 +87,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 			commentRepository := repositories.NewCommentRepository(nil)
 			token := structs.GetClaims(r)
 
-			allowed, err := enforceCommentDeleteKeepsRequired(w, token.UserId, comment.ReceiptId, commentId)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			if !allowed {
-				return 0, nil
-			}
-
-			err = commentRepository.DeleteComment(commentId, token.UserId)
+			err := commentRepository.DeleteComment(commentId, token.UserId)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}

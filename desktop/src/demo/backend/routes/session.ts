@@ -66,7 +66,6 @@ export function buildAppData(db: DemoDb): AppData {
     icons: ICONS,
     appPermissions: APP_PERMISSIONS,
     groupPermissions: groupMap(GROUP_PERMISSIONS),
-    groupReceiptRequirements: {},
     groupCategories: groupMap(db.categories),
     groupTags: groupMap(db.tags),
   };

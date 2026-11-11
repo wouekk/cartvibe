@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
 )
 
@@ -185,55 +184,6 @@ func (repository ReportTemplateRepository) GetAllTemplateGroupMappings() (map[ui
 	}
 
 	return mappings, nil
-}
-
-// GetAllTemplateOptions returns every template as a lightweight {id, name, groupIds}
-// option for the role-form access matrix, ordered by name. It joins the id/name with
-// the denormalized group index so the matrix can show each template's groups without
-// unmarshaling its configuration blob.
-func (repository ReportTemplateRepository) GetAllTemplateOptions() ([]structs.ReportTemplateOption, error) {
-	db := repository.GetDB()
-
-	var templates []models.ReportTemplate
-	err := db.Model(&models.ReportTemplate{}).Select("id", "name").Order("name asc").Find(&templates).Error
-	if err != nil {
-		return nil, err
-	}
-
-	mappings, err := repository.GetAllTemplateGroupMappings()
-	if err != nil {
-		return nil, err
-	}
-
-	options := make([]structs.ReportTemplateOption, 0, len(templates))
-	for _, template := range templates {
-		groupIds := mappings[template.ID]
-		if groupIds == nil {
-			groupIds = []uint{}
-		}
-		options = append(options, structs.ReportTemplateOption{
-			Id:       template.ID,
-			Name:     template.Name,
-			GroupIds: groupIds,
-		})
-	}
-
-	return options, nil
-}
-
-// CountByIds returns how many of the given template ids exist. Used to validate
-// that a role's report-template grants reference real templates. Duplicate ids in
-// the input are de-duplicated by the IN clause, so callers should pass a unique set.
-func (repository ReportTemplateRepository) CountByIds(ids []uint) (int64, error) {
-	db := repository.GetDB()
-
-	var count int64
-	err := db.Model(&models.ReportTemplate{}).Where("id IN ?", ids).Count(&count).Error
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
 }
 
 // DuplicateReportTemplate copies the source template into a new row owned by

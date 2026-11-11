@@ -5,14 +5,12 @@ const role = (id: number, name: string, scope: PermissionScope): Role => ({ id, 
 
 const roles: Role[] = [
   role(1, "Legacy Admin", PermissionScope.App),
-  role(2, "Legacy User", PermissionScope.App),
   role(3, "User", PermissionScope.App),
   role(1, "Legacy Owner", PermissionScope.Group),
-  role(2, "Legacy Viewer", PermissionScope.Group),
   role(3, "Member", PermissionScope.Group),
 ];
 
-describe("family roles (Phase 3 M4)", () => {
+describe("the fixed roles", () => {
   it("names the family roles Admin and User in each scope", () => {
     expect(familyRoleName(role(1, "Legacy Admin", PermissionScope.App))).toBe("Admin");
     expect(familyRoleName(role(3, "User", PermissionScope.App))).toBe("User");
@@ -26,15 +24,7 @@ describe("family roles (Phase 3 M4)", () => {
       [1, "Admin"],
       [3, "User"],
     ]);
-    expect(familyRoleOptions(roles, PermissionScope.Group, 3).map((option) => option.name)).toEqual(["Admin", "User"]);
-  });
-
-  it("keeps an older role someone already holds", () => {
-    expect(familyRoleOptions(roles, PermissionScope.App, 2).map((option) => option.name)).toEqual([
-      "Admin",
-      "User",
-      "Legacy User (older role)",
-    ]);
+    expect(familyRoleOptions(roles, PermissionScope.Group).map((option) => option.name)).toEqual(["Admin", "User"]);
   });
 
   it("finds the role a new account or member gets", () => {

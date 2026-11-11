@@ -138,10 +138,6 @@ export interface PagedDataDataInner {
      */
     isAllGroup: boolean;
     /**
-     * Whether member-presence isolation is enabled for the group. When on, members cannot discover other members unless they hold a group role flagged seesAllMembers. Defaults to false.
-     */
-    isolateMembers?: boolean;
-    /**
      * The household\'s icon: home, add_home, apartment, group, favorite, child_care, dog, cat, pets, directions_car, flight, shopping_cart, restaurant, local_cafe, work, school, park, sunny or star; \"\" shows the initial. Never set on the \"All\" group.
      */
     icon?: string;

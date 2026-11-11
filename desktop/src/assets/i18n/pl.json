@@ -4,7 +4,6 @@
     "\"{name}\" could not be added to the list.": "Nie udało się dodać do listy: „{name}”.",
     "\"{name}\" is complete.": "Lista „{name}” jest zakończona.",
     "(None)": "(Brak)",
-    "(Restricted)": "(Ograniczone)",
     "+ Set goal": "+ Ustaw cel",
     "+{amount} over goal": "+{amount} ponad cel",
     "0 of 0": "0 z 0",
@@ -40,7 +39,6 @@
     "Actions": "Akcje",
     "Actions for {name}": "Akcje dla: {name}",
     "Add": "Dodaj",
-    "Add & edit receipts": "Dodawanie i edycja paragonów",
     "Add 1 item": "Dodaj 1 pozycję",
     "Add AI API key": "Dodaj klucz API AI",
     "Add Category": "Dodaj kategorię",
@@ -85,7 +83,6 @@
     "Adding to the list": "Dodawanie do listy",
     "Additives": "Dodatki",
     "Admin": "Administrator",
-    "Administrator": "Administrator",
     "After": "Po",
     "After shopping, scan the receipt to see what you bought that was not on the list.": "Po zakupach zeskanuj paragon, aby zobaczyć, co kupiono poza listą.",
     "Agg": "Agr.",
@@ -108,7 +105,6 @@
     "Amount must be greater than 0": "Kwota musi być większa od 0",
     "An IANA time zone, e.g. America/New_York. Takes effect immediately, no restart required.": "Strefa czasowa IANA, np. Europe/Warsaw. Działa od razu, bez ponownego uruchamiania.",
     "An expression over other columns — recomputed each row": "Wyrażenie na innych kolumnach — liczone w każdym wierszu",
-    "An image is required, so the last one cannot be removed": "Obraz jest wymagany, więc nie można usunąć ostatniego",
     "Antioxidant": "Przeciwutleniacz",
     "Appearance": "Wygląd",
     "Application role": "Rola aplikacji",
@@ -178,12 +174,10 @@
     "Categories": "Kategorie",
     "Categories: {matched} already here, {created} new. Tags: {tagsMatched} already here, {tagsCreated} new.": "Kategorie: istniejące {matched}, nowe {created}. Tagi: istniejące {tagsMatched}, nowe {tagsCreated}.",
     "Category": "Kategoria",
-    "Category & tag access": "Dostęp do kategorii i tagów",
     "Category actions": "Działania dla kategorii",
     "Category created successfully": "Dodano kategorię",
     "Category successfully deleted": "Usunięto kategorię",
     "Category updated successfully": "Zaktualizowano kategorię",
-    "Category, tag, paid-by, member-visibility, and receipt requirement settings are only valid on group roles": "Ustawienia kategorii, tagów, płatnika, widoczności członków i wymagań dotyczących paragonów są dostępne tylko dla ról grupowych",
     "Change": "Zmień",
     "Changed: {fields}": "Zmieniono: {fields}",
     "Changes made without editing the receipt, such as bulk status updates, can also show here.": "Mogą się tu też pojawić zmiany wprowadzone bez edycji paragonu, np. zbiorcza zmiana statusu.",
@@ -245,8 +239,6 @@
     "Connected. Receipts will be read by this AI.": "Połączono. To AI będzie odczytywać paragony.",
     "Contains": "Zawiera",
     "Context size (optional)": "Rozmiar kontekstu (opcjonalnie)",
-    "Controls app-wide capabilities — users, settings, prompts and more.": "Decyduje, co można robić w całej aplikacji: użytkownicy, ustawienia i nie tylko.",
-    "Controls what a member can do inside a group — receipts, dashboards, activity.": "Decyduje, co członek może robić w grupie: paragony, pulpity, aktywność.",
     "Convert to normal user": "Zamień na zwykłego użytkownika",
     "Convert {name} to a normal user": "Zamień na zwykłego użytkownika: {name}",
     "Cookies": "Pliki cookie",
@@ -368,9 +360,6 @@
     "Drop them here or choose them. The AI reads each photo as its own receipt, one by one.": "Upuść je tutaj lub wybierz. AI odczytuje każde zdjęcie jako osobny paragon, jedno po drugim.",
     "Duplicate": "Duplikuj",
     "Duplicate Receipt": "Duplikuj paragon",
-    "Duplicate category grant": "Powtórzone uprawnienie do kategorii",
-    "Duplicate paid-by user grant": "Powtórzone uprawnienie do płatnika",
-    "Duplicate tag grant": "Powtórzone uprawnienie do tagu",
     "Each row is one receipt, so a dimension column shows that receipt's own value — it doesn't have to be something you group by. Aggregates and formulas read a single receipt per row, and still roll up across the subtotal and grand total rows.": "Każdy wiersz to jeden paragon, więc kolumna wymiaru pokazuje wartość tego paragonu i nie musi być polem grupowania. Agregaty i formuły czytają pojedynczy paragon w wierszu, a mimo to sumują się w wierszach podsumowań.",
     "Edit": "Edytuj",
     "Edit Group Member": "Edytuj członka grupy",
@@ -412,7 +401,6 @@
     "Events & Concerts": "Wydarzenia i koncerty",
     "Every panel is hidden. Switch some on in the panel list.": "Wszystkie panele są ukryte. Włącz któreś na liście paneli.",
     "Everything bought was on the list.": "Wszystko, co kupiono, było na liście.",
-    "Everything in the app": "Wszystko w aplikacji",
     "Everything the household bought, to check and look back on.": "Wszystko, co kupiło gospodarstwo — do sprawdzenia i przeglądu.",
     "Everything was planned": "Wszystko było zaplanowane",
     "Exchange rates": "Kursy wymiany",
@@ -483,7 +471,6 @@
     "Group Details": "Dane grupy",
     "Group ID is required to validate group permissions": "Do sprawdzenia uprawnień grupy potrzebny jest jej identyfikator",
     "Group Id is required": "Identyfikator grupy jest wymagany",
-    "Group Manager": "Zarządca grup",
     "Group Members": "Członkowie grupy",
     "Group Name": "Nazwa grupy",
     "Group Receipt Settings": "Ustawienia paragonów grupy",
@@ -547,7 +534,6 @@
     "Interface size": "Rozmiar interfejsu",
     "Intro / preamble": "Wstęp",
     "Is Dummy User?": "Użytkownik zastępczy?",
-    "Isolate members": "Członkowie nie widzą się nawzajem",
     "It is not the server backup. Keep backing up the sqlite and data folders as the FAQ describes; only that keeps everything.": "To nie jest kopia zapasowa serwera. Nadal kopiuj foldery sqlite i data tak, jak opisuje FAQ; tylko taka kopia zachowuje wszystko.",
     "Item actions": "Akcje produktu",
     "Its members, details and receipt settings.": "Jego członkowie, szczegóły i ustawienia paragonów.",
@@ -573,7 +559,6 @@
     "Leave Shop mode": "Wyjdź z trybu sklepu",
     "Leave a comment": "Dodaj komentarz",
     "Leave empty for no goal. The Dashboard compares each month with it.": "Zostaw puste, jeśli nie ma celu. Pulpit porównuje z nim każdy miesiąc.",
-    "Leave empty to give them everything their role allows.": "Zostaw puste, aby dać im wszystko, na co pozwala ich rola.",
     "Leave without saving your dashboard changes?": "Wyjść bez zapisywania zmian pulpitu?",
     "Legacy Admin": "Administrator (dawna rola)",
     "Legacy Owner": "Właściciel (dawna rola)",
@@ -582,8 +567,6 @@
     "Licence texts:": "Teksty licencji:",
     "Lighting": "Oświetlenie",
     "Lime": "Limonka",
-    "Limit this member to specific categories and tags. This narrows within what their group role already allows — it can never widen it.": "Ogranicz tego członka do wybranych kategorii i tagów. Zawęża to uprawnienia z roli w grupie, ale nigdy ich nie rozszerza.",
-    "Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.": "Ogranicz tego użytkownika do wybranych kategorii i tagów w poszczególnych grupach. To zawęża uprawnienia roli w grupie, nigdy ich nie rozszerza.",
     "List actions": "Akcje listy",
     "List copied to the clipboard.": "Skopiowano listę do schowka.",
     "List items": "Pozycje list",
@@ -610,7 +593,6 @@
     "Makes everything larger on this device. Browser zoom still works on top of it.": "Powiększa wszystko na tym urządzeniu. Powiększenie w przeglądarce nadal działa dodatkowo.",
     "Malformed report request": "Nieprawidłowe żądanie raportu",
     "Manage user accounts and the roles assigned to them.": "Zarządzaj kontami użytkowników i przypisanymi im rolami.",
-    "Manage users & keys": "Zarządzanie użytkownikami i kluczami",
     "Management": "Zarządzanie",
     "Mar": "mar",
     "March": "marzec",
@@ -750,8 +732,6 @@
     "Only a quick scan activity can be rerun.": "Można ponowić tylko aktywność szybkiego skanu.",
     "Only an admin can change your username.": "Tylko administrator systemu może zmienić Twoją nazwę użytkownika.",
     "Only arithmetic over columns is allowed": "Dozwolone są tylko działania arytmetyczne na kolumnach",
-    "Only the categories {name} allows ({count}).": "Tylko kategorie dozwolone w roli {name} ({count}).",
-    "Only the tags {name} allows ({count}).": "Tylko tagi dozwolone w roli {name} ({count}).",
     "Open": "Otwarte",
     "Open full receipt": "Otwórz cały paragon",
     "Open in builder": "Otwórz w kreatorze",
@@ -859,12 +839,10 @@
     "Rates changed: press Save changes to keep them.": "Kursy zmieniono: naciśnij „Zapisz zmiany”, aby je zachować.",
     "Raw Chat Completion Details": "Surowe szczegóły odpowiedzi czatu",
     "Raw OCR Processing Details": "Surowe szczegóły przetwarzania OCR",
-    "Read Only": "Tylko do odczytu",
     "Read again": "Odczytaj ponownie",
     "Read from the receipt by the AI, e.g. Auchan, Edeka, Rewe": "Odczytany z paragonu przez AI, np. Auchan, Edeka, Rewe",
     "Read products of older receipts": "Odczytaj produkty ze starszych paragonów",
     "Read with AI": "Odczytaj przez AI",
-    "Read-only access": "Dostęp tylko do odczytu",
     "Reading again is scripted in the demo: use Read again on a receipt.": "Ponowne odczytanie jest w demo oskryptowane: użyj „Odczytaj ponownie” na paragonie.",
     "Reading the barcode…": "Odczytywanie kodu…",
     "Reading the photo…": "Odczytywanie zdjęcia…",
@@ -873,7 +851,6 @@
     "Reads": "Odczyty",
     "Receipt": "Paragon",
     "Receipt Date": "Data paragonu",
-    "Receipt Editor": "Edytor paragonów",
     "Receipt Id": "Identyfikator paragonu",
     "Receipt Id is required": "Identyfikator paragonu jest wymagany",
     "Receipt Processing": "Przetwarzanie paragonów",
@@ -945,7 +922,6 @@
     "Report details": "Szczegóły raportu",
     "Report name": "Nazwa raportu",
     "Report preview": "Podgląd raportu",
-    "Report template grants are only valid on group roles": "Uprawnienia do szablonów raportów są dostępne tylko dla ról grupowych",
     "Report template not found": "Nie znaleziono szablonu raportu",
     "Report templates": "Szablony raportów",
     "Report templates with the same name as one here are replaced by the ones in the file.": "Szablony raportów o tej samej nazwie co tutaj zostaną zastąpione tymi z pliku.",
@@ -962,12 +938,10 @@
     "Retention": "Przechowywanie",
     "Review the background tasks the system has run and their results.": "Przeglądaj zadania w tle uruchomione przez system i ich wyniki.",
     "Role": "Rola",
-    "Role not found": "Nie znaleziono roli",
     "Rolled-up rows": "Wiersze zbiorcze",
     "Rose": "Róż",
     "Row Type": "Typ wiersza",
     "Rows per page": "Wierszy na stronie",
-    "Run groups & receipts": "Prowadzenie grup i paragonów",
     "Running": "W toku",
     "Runs under your group permissions": "Działa z uprawnieniami Twojej grupy",
     "SUM, COUNT, AVG… over a measure. Rolls up children": "SUM, COUNT, AVG… z miary. Sumuje wiersze podrzędne",
@@ -983,7 +957,6 @@
     "Save column configuration": "Zapisz konfigurację kolumn",
     "Save key": "Zapisz klucz",
     "Save the main AI first; the backup stands in for it.": "Najpierw zapisz główne AI — zapasowe tylko je zastępuje.",
-    "Saved immediately when you save this member.": "Zapisywane od razu przy zapisie tego członka.",
     "Saved report templates — open one in the builder, generate it, duplicate it, or delete it.": "Zapisane szablony raportów — otwórz w kreatorze, wygeneruj, zduplikuj lub usuń.",
     "Saved with your account, so CartVibe speaks it on every device.": "Zapisany na Twoim koncie, więc CartVibe używa go na każdym urządzeniu.",
     "Saving…": "Zapisywanie…",
@@ -993,7 +966,6 @@
     "Scanning needs an AI API key. Ask an admin to add one.": "Skanowanie wymaga klucza API AI. Poproś administratora, żeby go dodał.",
     "School": "Szkoła",
     "Scope is required": "Zakres jest wymagany",
-    "Scope must be either APP or GROUP": "Zakres musi mieć wartość APP lub GROUP",
     "Seafood": "Owoce morza",
     "Search receipts": "Szukaj paragonów",
     "Seasonal": "Sezonowe",
@@ -1052,7 +1024,6 @@
     "Sign-up": "Rejestracja",
     "Sign-up & session policy": "Rejestracja i sesje",
     "Single {format} file": "Jeden plik {format}",
-    "Skipping default group creation is only valid on application roles": "Pomijanie tworzenia grupy domyślnej jest dostępne tylko dla ról aplikacji",
     "Sky": "Błękit",
     "Slate": "Łupkowy",
     "Snacks": "Przekąski",
@@ -1082,7 +1053,6 @@
     "Start": "Początek",
     "Start Queue": "Uruchom kolejkę",
     "Start a new list from this": "Skopiuj tę listę",
-    "Start from scratch": "Zacznij od zera",
     "Start queue": "Uruchom kolejkę",
     "Start {label}": "Początek: {label}",
     "Started At": "Rozpoczęto",
@@ -1112,7 +1082,6 @@
     "Symbol Display": "Wyświetlanie symbolu",
     "Symbol Position": "Położenie symbolu",
     "System": "System",
-    "System Emails": "Poczta systemowa",
     "System Settings": "Ustawienia systemu",
     "System Tasks": "Zadania systemowe",
     "System settings updated successfully": "Zapisano ustawienia systemu",
@@ -1213,9 +1182,6 @@
     "The time zone will be set to the one in the file.": "Strefa czasowa zostanie ustawiona na tę z pliku.",
     "The total of a receipt in another currency can only be changed on its edit page": "Kwotę paragonu w innej walucie można zmienić tylko na stronie jego edycji",
     "The year so far: total spent, number of receipts and the average receipt each month, for {{period}}.": "Rok do tej pory: łączne wydatki, liczba paragonów i średni paragon w każdym miesiącu, za okres {{period}}.",
-    "Their role requires an individual assignment, so leaving these empty gives them no categories and no tags.": "Ich rola wymaga indywidualnego przypisania, więc puste pola oznaczają brak kategorii i brak tagów.",
-    "Their role requires an individual category assignment, so leaving categories empty gives them none. Leaving tags empty gives them every tag the role allows.": "Ich rola wymaga indywidualnego przypisania kategorii, więc puste kategorie oznaczają brak kategorii. Puste tagi dają wszystkie tagi dozwolone przez rolę.",
-    "Their role requires an individual tag assignment, so leaving tags empty gives them none. Leaving categories empty gives them every category the role allows.": "Ich rola wymaga indywidualnego przypisania tagów, więc puste tagi oznaczają brak tagów. Puste kategorie dają wszystkie kategorie dozwolone przez rolę.",
     "Theme": "Motyw",
     "There are no items in the shopping lists.": "Na listach zakupów nie ma produktów.",
     "There is no room to move {name} that way.": "Brak miejsca, aby przesunąć panel {name} w tę stronę.",
@@ -1296,7 +1262,6 @@
     "User": "Użytkownik",
     "User Details": "Dane użytkownika",
     "User Id is required": "Identyfikator użytkownika jest wymagany",
-    "User Manager": "Zarządca użytkowników",
     "User Preferences": "Preferencje użytkownika",
     "User Profile": "Profil użytkownika",
     "User Settings": "Ustawienia użytkownika",
@@ -1324,10 +1289,8 @@
     "View User Profile": "Zobacz profil użytkownika",
     "View changes": "Zobacz zmiany",
     "View full description": "Zobacz pełny opis",
-    "View settings only": "Tylko podgląd ustawień",
     "View {name}": "Podgląd: {name}",
     "View {name} {type}": "Podgląd: {name} ({type})",
-    "Viewer": "Przeglądający",
     "Violet": "Fiolet",
     "Waiting for the AI. Counted as planned until then.": "Czeka na AI. Do tego czasu liczy się jako zaplanowane.",
     "Waiting to be read by the AI. This usually takes a few minutes.": "Czeka na odczyt przez AI. Zwykle trwa to kilka minut.",
@@ -1353,7 +1316,6 @@
     "What the AI was sent and what it wrote, as each provider counted it. Providers bill by these numbers.": "Co wysłano do AI i co AI napisała, tak jak policzył to każdy dostawca. Dostawcy rozliczają według tych liczb.",
     "What the bottom rows are": "Czym są dolne wiersze",
     "What the household spent each month, split by category, for {{period}}.": "Ile gospodarstwo wydało w każdym miesiącu, z podziałem na kategorie, za okres {{period}}.",
-    "When on, members of this group can't see each other. Members with a role that can see all members remain visible to everyone.": "Po włączeniu członkowie tej grupy nie widzą się nawzajem. Członkowie z rolą widzącą wszystkich pozostają widoczni dla każdego.",
     "Where receipts are read. Claude, Gemini and ChatGPT run in the cloud; a local LM or Ollama runs on a computer at home.": "Gdzie czytane są paragony. Claude, Gemini i ChatGPT działają w chmurze; lokalny model lub Ollama działa na komputerze w domu.",
     "Where the household shops and how much goes to each shop, for {{period}}.": "Gdzie gospodarstwo robi zakupy i ile trafia do każdego sklepu, za okres {{period}}.",
     "Where the ingredients come from": "Źródło składników",
@@ -1386,12 +1348,6 @@
     "Your profile and preferences.": "Twój profil i preferencje.",
     "Your provider didn't ask you to sign in again. Sign out of it and try again.": "Dostawca nie poprosił o ponowne logowanie. Wyloguj się u niego i spróbuj ponownie.",
     "Your purchase at {shop}": "Twój zakup w sklepie: {shop}",
-    "Your role requires a comment on receipts; use Quick Scan for this receipt": "Twoja rola wymaga komentarza do paragonów; użyj szybkiego skanowania dla tego paragonu",
-    "Your role requires a comment on this group's receipts.": "Twoja rola wymaga komentarza przy paragonach tej grupy.",
-    "Your role requires an image and a comment on this group's receipts.": "Twoja rola wymaga zdjęcia i komentarza przy paragonach tej grupy.",
-    "Your role requires an image on this group's receipts.": "Twoja rola wymaga zdjęcia przy paragonach tej grupy.",
-    "Your role requires at least one comment on this group's receipts.": "Twoja rola wymaga co najmniej jednego komentarza do paragonów tej grupy.",
-    "Your role requires at least one image on this group's receipts.": "Twoja rola wymaga co najmniej jednego obrazu do paragonów tej grupy.",
     "Zinc": "Cynk",
     "Zoom In": "Powiększ",
     "Zoom Out": "Pomniejsz",
@@ -1573,6 +1529,9 @@
     }
   },
   "_orphaned": {
+    "(Restricted)": {
+      "value": "(Ograniczone)"
+    },
     "A Logo.dev publishable key starts with pk_": {
       "value": "Klucz publiczny Logo.dev zaczyna się od pk_",
       "closest": "A Logo.dev secret key starts with sk_"
@@ -1619,9 +1578,16 @@
     "API keys let scripts and other apps use CartVibe.": {
       "value": "Klucze API pozwalają skryptom i innym aplikacjom korzystać z CartVibe."
     },
+    "Add & edit receipts": {
+      "value": "Dodawanie i edycja paragonów",
+      "closest": "Add photos of your receipts"
+    },
     "Add API Key": {
       "value": "Dodaj klucz API",
       "closest": "Add AI API key"
+    },
+    "Administrator": {
+      "value": "Administrator"
     },
     "All API Keys": {
       "value": "Wszystkie klucze API"
@@ -1638,6 +1604,9 @@
       "value": "Od początku",
       "closest": "All"
     },
+    "An image is required, so the last one cannot be removed": {
+      "value": "Obraz jest wymagany, więc nie można usunąć ostatniego"
+    },
     "Are you sure you would like to delete the API key \"{name}\"? This action is irreversible and the API key will no longer be usable.": {
       "value": "Czy na pewno chcesz usunąć klucz API „{name}”? Tej operacji nie można cofnąć, a klucz przestanie działać.",
       "closest": "Are you sure you want to delete {name}? This action is irreversible and will remove this category from the receipts it is associated with."
@@ -1653,9 +1622,21 @@
     "Cannot delete API key: ID is missing": {
       "value": "Nie można usunąć klucza API: brak identyfikatora"
     },
+    "Category & tag access": {
+      "value": "Dostęp do kategorii i tagów"
+    },
+    "Category, tag, paid-by, member-visibility, and receipt requirement settings are only valid on group roles": {
+      "value": "Ustawienia kategorii, tagów, płatnika, widoczności członków i wymagań dotyczących paragonów są dostępne tylko dla ról grupowych"
+    },
+    "Controls app-wide capabilities — users, settings, prompts and more.": {
+      "value": "Decyduje, co można robić w całej aplikacji: użytkownicy, ustawienia i nie tylko."
+    },
     "Controls app-wide capabilities — users, settings, prompts, API keys and more.": {
       "value": "Decyduje, co można robić w całej aplikacji: użytkownicy, ustawienia, klucze API i nie tylko.",
       "closest": "Controls app-wide capabilities — users, settings, prompts and more."
+    },
+    "Controls what a member can do inside a group — receipts, dashboards, activity.": {
+      "value": "Decyduje, co członek może robić w grupie: paragony, pulpity, aktywność."
     },
     "Converted in your browser at the rate in your preferences": {
       "value": "Przeliczone w przeglądarce według kursu z Twoich ustawień"
@@ -1683,6 +1664,16 @@
       "value": "Usuń otwartą listę",
       "closest": "Adding to the list"
     },
+    "Duplicate category grant": {
+      "value": "Powtórzone uprawnienie do kategorii"
+    },
+    "Duplicate paid-by user grant": {
+      "value": "Powtórzone uprawnienie do płatnika",
+      "closest": "Default Paid By User"
+    },
+    "Duplicate tag grant": {
+      "value": "Powtórzone uprawnienie do tagu"
+    },
     "Each browser loads the logos straight from Logo.dev and keeps them for a day. Logo.dev sees which brands' logos are asked for, never your receipts. Nothing is stored on this server.": {
       "value": "Każda przeglądarka pobiera logo prosto z Logo.dev i przechowuje je przez jeden dzień. Logo.dev widzi, o logo których marek proszono, nigdy Twoje paragony. Na tym serwerze nic nie jest zapisywane."
     },
@@ -1704,6 +1695,10 @@
     "Enter API key name": {
       "value": "Nazwa klucza API",
       "closest": "AI API key needed"
+    },
+    "Everything in the app": {
+      "value": "Wszystko w aplikacji",
+      "closest": "Nothing in the log."
     },
     "Expires refresh tokens and reclaims temporary files": {
       "value": "Unieważnia stare tokeny odświeżania i usuwa pliki tymczasowe"
@@ -1735,6 +1730,10 @@
     "Give the Dashboard currency as three letters, like PLN, and your rate above 0, like 4,25.": {
       "value": "Podaj walutę Pulpitu jako trzy litery, np. PLN, oraz kurs większy niż 0, np. 4,25."
     },
+    "Group Manager": {
+      "value": "Zarządca grup",
+      "closest": "Add group"
+    },
     "Groups to View": {
       "value": "Grupy do wyświetlenia"
     },
@@ -1749,6 +1748,10 @@
       "value": "W panelu Logo.dev otwórz API keys i skopiuj klucz publiczny (publishable key).",
       "closest": "In the Logo.dev dashboard, open API keys and copy the secret key."
     },
+    "Isolate members": {
+      "value": "Członkowie nie widzą się nawzajem",
+      "closest": "Group Members"
+    },
     "Keep screen on": {
       "value": "Nie wygaszaj ekranu",
       "closest": "Could not keep the screen on."
@@ -1760,8 +1763,17 @@
       "value": "Zeszły miesiąc",
       "closest": "Last page"
     },
+    "Leave empty to give them everything their role allows.": {
+      "value": "Zostaw puste, aby dać im wszystko, na co pozwala ich rola."
+    },
     "Let the screen sleep": {
       "value": "Pozwól wygasić ekran"
+    },
+    "Limit this member to specific categories and tags. This narrows within what their group role already allows — it can never widen it.": {
+      "value": "Ogranicz tego członka do wybranych kategorii i tagów. Zawęża to uprawnienia z roli w grupie, ale nigdy ich nie rozszerza."
+    },
+    "Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.": {
+      "value": "Ogranicz tego użytkownika do wybranych kategorii i tagów w poszczególnych grupach. To zawęża uprawnienia roli w grupie, nigdy ich nie rozszerza."
     },
     "Logo.dev publishable key": {
       "value": "Klucz publiczny Logo.dev",
@@ -1782,6 +1794,9 @@
     "Manage Users": {
       "value": "Użytkownicy",
       "closest": "Manage users & keys"
+    },
+    "Manage users & keys": {
+      "value": "Zarządzanie użytkownikami i kluczami"
     },
     "My API Keys": {
       "value": "Moje klucze API"
@@ -1805,6 +1820,13 @@
     "No report templates yet": {
       "value": "Brak szablonów raportów",
       "closest": "No households yet."
+    },
+    "Only the categories {name} allows ({count}).": {
+      "value": "Tylko kategorie dozwolone w roli {name} ({count})."
+    },
+    "Only the tags {name} allows ({count}).": {
+      "value": "Tylko tagi dozwolone w roli {name} ({count}).",
+      "closest": "Correct the tags of {name}"
     },
     "Paste it below and save. Logos appear the next time a page loads.": {
       "value": "Wklej go poniżej i zapisz. Logo pojawią się przy następnym załadowaniu strony.",
@@ -1840,19 +1862,47 @@
       "value": "Odczyt",
       "closest": "Read Only"
     },
+    "Read Only": {
+      "value": "Tylko do odczytu",
+      "closest": "Changes only"
+    },
+    "Read-only access": {
+      "value": "Dostęp tylko do odczytu"
+    },
     "Read/Write": {
       "value": "Odczyt i zapis",
       "closest": "Read Only"
+    },
+    "Receipt Editor": {
+      "value": "Edytor paragonów",
+      "closest": "Add Receipt"
     },
     "Receipt Processing Settings": {
       "value": "Ustawienia przetwarzania paragonów",
       "closest": "Group Receipt Settings"
     },
+    "Report template grants are only valid on group roles": {
+      "value": "Uprawnienia do szablonów raportów są dostępne tylko dla ról grupowych"
+    },
     "Restart Task Server": {
       "value": "Uruchom ponownie serwer zadań"
     },
+    "Role not found": {
+      "value": "Nie znaleziono roli",
+      "closest": "Report template not found"
+    },
+    "Run groups & receipts": {
+      "value": "Prowadzenie grup i paragonów"
+    },
+    "Saved immediately when you save this member.": {
+      "value": "Zapisywane od razu przy zapisie tego członka."
+    },
     "Scope": {
       "value": "Zakres"
+    },
+    "Scope must be either APP or GROUP": {
+      "value": "Zakres musi mieć wartość APP lub GROUP",
+      "closest": "Comment must be {requiredLength} characters or fewer."
     },
     "Scope must be one of: r, w, rw": {
       "value": "Zakres musi być jednym z: r, w, rw"
@@ -1863,6 +1913,12 @@
     },
     "Shown in {code}": {
       "value": "Pokazano w {code}"
+    },
+    "Skipping default group creation is only valid on application roles": {
+      "value": "Pomijanie tworzenia grupy domyślnej jest dostępne tylko dla ról aplikacji"
+    },
+    "Start from scratch": {
+      "value": "Zacznij od zera"
     },
     "Starts with pk_, for example pk_A1b2C3d4E5f6. Leave it empty to show letters instead of logos.": {
       "value": "Zaczyna się od pk_, na przykład pk_A1b2C3d4E5f6. Zostaw puste, aby zamiast logo pokazywać litery.",
@@ -1879,6 +1935,10 @@
     },
     "System Clean Up": {
       "value": "Sprzątanie systemowe"
+    },
+    "System Emails": {
+      "value": "Poczta systemowa",
+      "closest": "System"
     },
     "Task Concurrency": {
       "value": "Współbieżność zadań"
@@ -1899,6 +1959,15 @@
     "The most tasks that run at once. 0 or a negative number uses every CPU core.": {
       "value": "Maksymalna liczba zadań uruchamianych równocześnie. 0 lub wartość ujemna oznacza wszystkie dostępne rdzenie procesora."
     },
+    "Their role requires an individual assignment, so leaving these empty gives them no categories and no tags.": {
+      "value": "Ich rola wymaga indywidualnego przypisania, więc puste pola oznaczają brak kategorii i brak tagów."
+    },
+    "Their role requires an individual category assignment, so leaving categories empty gives them none. Leaving tags empty gives them every tag the role allows.": {
+      "value": "Ich rola wymaga indywidualnego przypisania kategorii, więc puste kategorie oznaczają brak kategorii. Puste tagi dają wszystkie tagi dozwolone przez rolę."
+    },
+    "Their role requires an individual tag assignment, so leaving tags empty gives them none. Leaving categories empty gives them every category the role allows.": {
+      "value": "Ich rola wymaga indywidualnego przypisania tagów, więc puste tagi oznaczają brak tagów. Puste kategorie dają wszystkie kategorie dozwolone przez rolę."
+    },
     "This API key will only be shown once. Make sure to copy it now!": {
       "value": "Ten klucz API zostanie pokazany tylko raz. Skopiuj go teraz!"
     },
@@ -1917,8 +1986,22 @@
       "value": "Używaj klucza publicznego (pk_), nigdy tajnego (sk_): ten klucz trafia do każdej przeglądarki, która otwiera CartVibe.",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
     },
+    "User Manager": {
+      "value": "Zarządca użytkowników",
+      "closest": "Add User"
+    },
     "View API Keys": {
       "value": "Zobacz klucze API"
+    },
+    "View settings only": {
+      "value": "Tylko podgląd ustawień",
+      "closest": "View Group Receipt Settings"
+    },
+    "Viewer": {
+      "value": "Przeglądający"
+    },
+    "When on, members of this group can't see each other. Members with a role that can see all members remain visible to everyone.": {
+      "value": "Po włączeniu członkowie tej grupy nie widzą się nawzajem. Członkowie z rolą widzącą wszystkich pozostają widoczni dla każdego."
     },
     "Where receipts are read. Claude, Gemini and ChatGPT run in the cloud; a local LM runs on a computer at home.": {
       "value": "Gdzie czytane są paragony. Claude, Gemini i ChatGPT działają w chmurze, a lokalny model na komputerze w domu.",
@@ -1955,6 +2038,24 @@
     },
     "Your rate: 4,25 means 1 of the household currency is worth 4,25 of yours.": {
       "value": "Twój kurs: 4,25 oznacza, że 1 jednostka waluty gospodarstwa to 4,25 w Twojej walucie."
+    },
+    "Your role requires a comment on receipts; use Quick Scan for this receipt": {
+      "value": "Twoja rola wymaga komentarza do paragonów; użyj szybkiego skanowania dla tego paragonu"
+    },
+    "Your role requires a comment on this group's receipts.": {
+      "value": "Twoja rola wymaga komentarza przy paragonach tej grupy."
+    },
+    "Your role requires an image and a comment on this group's receipts.": {
+      "value": "Twoja rola wymaga zdjęcia i komentarza przy paragonach tej grupy."
+    },
+    "Your role requires an image on this group's receipts.": {
+      "value": "Twoja rola wymaga zdjęcia przy paragonach tej grupy."
+    },
+    "Your role requires at least one comment on this group's receipts.": {
+      "value": "Twoja rola wymaga co najmniej jednego komentarza do paragonów tej grupy."
+    },
+    "Your role requires at least one image on this group's receipts.": {
+      "value": "Twoja rola wymaga co najmniej jednego obrazu do paragonów tej grupy."
     },
     "by the previous update": {
       "value": "przez poprzednią zmianę",

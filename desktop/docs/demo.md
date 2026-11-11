@@ -86,6 +86,6 @@ The demo is a stand-in, not the API. Differences that do not change the seeded f
 receipt-level categories and tags on older data, "this month" includes days after today, a name filter always means
 "contains", there is no 100-row cap on a report drill-in; the report engine labels ("Total", "Unknown") are English, AVG
 averages lines rather than receipts, and lines adding up to more than a receipt are not scaled down; the PDF holds one
-page of plain text; `ReceiptProduct`-level category grants are not modelled; about twenty error messages for stale ids are
-English only; Reset asks nothing. Roles can only be read (the UI offers none to edit) and the sign-in-provider flows answer
+page of plain text; about twenty error messages for stale ids are
+English only; Reset asks nothing. Roles can only be read (as in the real API) and the sign-in-provider flows answer
 "switched off".

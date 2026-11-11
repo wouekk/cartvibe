@@ -15,7 +15,7 @@ const required = (name) => {
 
 const accounts = [
   { username: required("E2E_ADMIN_USERNAME"), password: required("E2E_ADMIN_PASSWORD"), displayName: "E2E Admin", role: "Legacy Admin" },
-  { username: required("E2E_USER_USERNAME"), password: required("E2E_USER_PASSWORD"), displayName: "E2E User", role: "Legacy User" },
+  { username: required("E2E_USER_USERNAME"), password: required("E2E_USER_PASSWORD"), displayName: "E2E User", role: "User" },
 ];
 
 async function call(token, method, path, body) {

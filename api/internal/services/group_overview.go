@@ -13,7 +13,6 @@ import (
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/structs"
-	"cartvibe/api/internal/utils"
 	"gorm.io/gorm"
 
 	"github.com/shopspring/decimal"
@@ -156,11 +155,6 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	grants, err := service.newOverviewGrants(userId, receipts)
-	if err != nil {
-		return structs.GroupOverview{}, err
-	}
-
 	productRepository := repositories.NewReceiptProductRepository(service.TX)
 	periodProducts, err := productRepository.GetPricedProductsForReceipts(receiptIdsInPeriod(receipts, period))
 	if err != nil {
@@ -170,7 +164,7 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
-	err = service.nameProductCategories(periodProducts, grants)
+	err = service.nameProductCategories(periodProducts)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
@@ -188,11 +182,7 @@ func (service GroupOverviewService) GetGroupOverviewForPeriod(userId uint, group
 		return structs.GroupOverview{}, err
 	}
 
-	tileGroupIds, err := service.dashboardGroupIds(userId, groupId)
-	if err != nil {
-		return structs.GroupOverview{}, err
-	}
-	overview.Tags, err = service.sumDashboardTags(receipts, period, previous, periodShares, previousShares, grants, tileGroupIds)
+	overview.Tags, err = service.sumDashboardTags(receipts, period, previous, periodShares, previousShares)
 	if err != nil {
 		return structs.GroupOverview{}, err
 	}
@@ -225,123 +215,14 @@ func (service GroupOverviewService) countActiveWarranties(userId uint, groupId s
 		groupId,
 		pagedRequest,
 		nil,
-		permissionService.PaidByListResolver(userId),
-		nil,
 		permissionService.GroupPermissionResolver(userId, permissions.GroupReceiptsRead),
-		permissionService.CategoryTagVisibilityResolver(userId),
 	)
 	return count, err
 }
 
-// overviewGrants answers whether the caller may see a category or tag on a receipt, in the receipt's own
-// group: the same role ceiling ∩ member grants (and app-level bypass) every other read applies, resolved
-// once per group. A receipt in the "All" view is judged in its real group.
-type overviewGrants struct {
-	filter        *receiptGrantFilter
-	receiptGroups map[uint]uint
-}
-
-func (service GroupOverviewService) newOverviewGrants(userId uint, receipts []models.Receipt) (overviewGrants, error) {
-	filter, err := NewPermissionService(service.TX).newReceiptGrantFilter(userId)
-	if err != nil {
-		return overviewGrants{}, err
-	}
-
-	receiptGroups := make(map[uint]uint, len(receipts))
-	for _, receipt := range receipts {
-		receiptGroups[receipt.ID] = receipt.GroupId
-	}
-	return overviewGrants{filter: filter, receiptGroups: receiptGroups}, nil
-}
-
-// categoryVisible reports whether the caller may see categoryId on the given receipt.
-func (grants overviewGrants) categoryVisible(receiptId uint, categoryId uint) (bool, error) {
-	if grants.filter.bypassCategories {
-		return true, nil
-	}
-	groupGrants, err := grants.filter.grantsForGroup(grants.receiptGroups[receiptId])
-	if err != nil || groupGrants.categoryUnrestricted {
-		return err == nil, err
-	}
-	_, allowed := groupGrants.categoryAllowed[categoryId]
-	return allowed, nil
-}
-
-// tagVisibleInGroup reports whether the caller may see tagId in a group.
-func (grants overviewGrants) tagVisibleInGroup(groupId uint, tagId uint) (bool, error) {
-	if grants.filter.bypassTags {
-		return true, nil
-	}
-	groupGrants, err := grants.filter.grantsForGroup(groupId)
-	if err != nil || groupGrants.tagUnrestricted {
-		return err == nil, err
-	}
-	_, allowed := groupGrants.tagAllowed[tagId]
-	return allowed, nil
-}
-
-// productMatchVisible reports whether a line picked by a category or tag drill-down may be listed: the
-// caller must see that category or tag in the line's receipt group. Other kinds pick by health or plan
-// and are always listed.
-func (grants overviewGrants) productMatchVisible(receiptId uint, filter repositories.ProductKindFilter) (bool, error) {
-	switch {
-	case filter.Kind == "FOODGROUP" && filter.CategoryId != nil:
-		return grants.categoryVisible(receiptId, *filter.CategoryId)
-	case filter.Kind == "TAG" && filter.TagId != nil:
-		return grants.tagVisible(receiptId, *filter.TagId)
-	}
-	return true, nil
-}
-
-// tagVisible reports whether the caller may see tagId on the given receipt.
-func (grants overviewGrants) tagVisible(receiptId uint, tagId uint) (bool, error) {
-	return grants.tagVisibleInGroup(grants.receiptGroups[receiptId], tagId)
-}
-
-// dashboardGroupIds are the real groups the Dashboard describes: the group itself, or for the "All"
-// group every real group the caller may read receipts in (the same gate the receipts list applies).
-func (service GroupOverviewService) dashboardGroupIds(userId uint, groupId string) ([]uint, error) {
-	uintGroupId, err := utils.StringToUint(groupId)
-	if err != nil {
-		return nil, err
-	}
-	groupRepository := repositories.NewGroupRepository(service.TX)
-	isAllGroup, err := groupRepository.IsAllGroup(uintGroupId)
-	if err != nil || !isAllGroup {
-		return []uint{uintGroupId}, err
-	}
-
-	memberGroupIds, err := repositories.NewGroupMemberRepository(service.TX).GetGroupIdsByUserId(utils.UintToString(userId))
-	if err != nil {
-		return nil, err
-	}
-
-	permissionService := NewPermissionService(service.TX)
-	groupIds := make([]uint, 0, len(memberGroupIds))
-	for _, memberGroupId := range memberGroupIds {
-		isAll, err := groupRepository.IsAllGroup(memberGroupId)
-		if err != nil {
-			return nil, err
-		}
-		if isAll {
-			continue
-		}
-		readable, err := permissionService.HasGroupPermissions(userId, memberGroupId, permissions.GroupReceiptsRead)
-		if err != nil {
-			return nil, err
-		}
-		if readable {
-			groupIds = append(groupIds, memberGroupId)
-		}
-	}
-	return groupIds, nil
-}
-
 // nameProductCategories puts each product's current category name in FoodGroup, so a renamed category
-// shows under its new name whatever the line still carries. A category the caller may not see in the
-// receipt's group becomes the (Restricted) slice, as on every other aggregation: its spend still counts,
-// its name does not show.
-func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct, grants overviewGrants) error {
+// shows under its new name whatever the line still carries.
+func (service GroupOverviewService) nameProductCategories(products []models.ReceiptProduct) error {
 	categories, err := repositories.NewCategoryRepository(service.TX).GetAllCategories("id, name")
 	if err != nil {
 		return err
@@ -363,15 +244,6 @@ func (service GroupOverviewService) nameProductCategories(products []models.Rece
 			continue
 		}
 
-		visible, err := grants.categoryVisible(products[i].ReceiptId, *products[i].CategoryId)
-		if err != nil {
-			return err
-		}
-		if !visible {
-			products[i].CategoryId = nil
-			products[i].FoodGroup = restrictedCategoryTagName
-			continue
-		}
 		products[i].FoodGroup = name
 	}
 	return nil
@@ -380,16 +252,12 @@ func (service GroupOverviewService) nameProductCategories(products []models.Rece
 // sumDashboardTags builds the tiles of the tags shown on the Dashboard: what the priced product lines
 // carrying each tag account for in the period and in the previous one, on the receipts the caller can see
 // (each line's share of its receipt, as in reports). A line with two such tags counts toward both tiles.
-// A tag gets a tile only when the caller may see it in one of the groups the Dashboard describes, and a
-// line counts toward it only where the caller may see the tag in the line's group.
 func (service GroupOverviewService) sumDashboardTags(
 	receipts []models.Receipt,
 	period OverviewPeriod,
 	previous OverviewPeriod,
 	periodShares map[uint]decimal.Decimal,
 	previousShares map[uint]decimal.Decimal,
-	grants overviewGrants,
-	groupIds []uint,
 ) ([]structs.GroupOverviewTag, error) {
 	tiles := []structs.GroupOverviewTag{}
 
@@ -402,19 +270,6 @@ func (service GroupOverviewService) sumDashboardTags(
 	tagIds := make([]uint, 0, len(tags))
 	index := make(map[uint]int, len(tags))
 	for _, tag := range tags {
-		visible := false
-		for _, groupId := range groupIds {
-			visible, err = grants.tagVisibleInGroup(groupId, tag.ID)
-			if err != nil {
-				return nil, err
-			}
-			if visible {
-				break
-			}
-		}
-		if !visible {
-			continue
-		}
 		tagIds = append(tagIds, tag.ID)
 		index[tag.ID] = len(tiles)
 		tiles = append(tiles, structs.GroupOverviewTag{TagId: tag.ID, Name: tag.Name, Total: decimal.Zero, PreviousTotal: decimal.Zero})
@@ -425,15 +280,8 @@ func (service GroupOverviewService) sumDashboardTags(
 
 	repository := repositories.NewReceiptProductRepository(service.TX)
 
-	add := func(rows []repositories.PricedProductTag, shares map[uint]decimal.Decimal, previousPeriod bool) error {
+	add := func(rows []repositories.PricedProductTag, shares map[uint]decimal.Decimal, previousPeriod bool) {
 		for _, row := range rows {
-			visible, err := grants.tagVisible(row.ReceiptId, row.TagId)
-			if err != nil {
-				return err
-			}
-			if !visible {
-				continue
-			}
 			share, found := shares[row.ReceiptProductId]
 			if !found {
 				share = row.Amount
@@ -445,24 +293,19 @@ func (service GroupOverviewService) sumDashboardTags(
 				tile.Total = tile.Total.Add(share)
 			}
 		}
-		return nil
 	}
 
 	rows, err := repository.GetPricedProductTags(receiptIdsInPeriod(receipts, period), tagIds)
 	if err != nil {
 		return nil, err
 	}
-	if err := add(rows, periodShares, false); err != nil {
-		return nil, err
-	}
+	add(rows, periodShares, false)
 
 	rows, err = repository.GetPricedProductTags(receiptIdsInPeriod(receipts, previous), tagIds)
 	if err != nil {
 		return nil, err
 	}
-	if err := add(rows, previousShares, true); err != nil {
-		return nil, err
-	}
+	add(rows, previousShares, true)
 
 	return tiles, nil
 }
@@ -589,23 +432,8 @@ func (service GroupOverviewService) GetOverviewProducts(userId uint, groupId str
 		return nil, err
 	}
 
-	grants, err := service.newOverviewGrants(userId, receipts)
-	if err != nil {
-		return nil, err
-	}
-
 	result := make([]structs.GroupOverviewProduct, 0, len(products))
 	for _, product := range products {
-		// A category or tag the caller may not see in the receipt's group lists nothing, as a list filter
-		// narrowed to the caller's grants does: the lines behind it never show, and an id cannot be probed.
-		visible, err := grants.productMatchVisible(product.ReceiptId, filter)
-		if err != nil {
-			return nil, err
-		}
-		if !visible {
-			continue
-		}
-
 		receipt := byId[product.ReceiptId]
 		name := product.DisplayName
 		if name == "" {
@@ -677,18 +505,8 @@ func (service GroupOverviewService) fetchReceipts(
 		groupId,
 		pagedRequest,
 		[]string{"Categories"},
-		permissionService.PaidByListResolver(userId),
-		nil,
 		permissionService.GroupPermissionResolver(userId, permissions.GroupReceiptsRead),
-		permissionService.CategoryTagVisibilityResolver(userId),
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	// Categories the caller may not see become a (Restricted) marker, so their spend shows as its
-	// own slice rather than hiding among uncategorized receipts, as on the pie chart widget.
-	err = permissionService.SubstituteRestrictedCategoriesTags(userId, receipts)
 	if err != nil {
 		return nil, err
 	}

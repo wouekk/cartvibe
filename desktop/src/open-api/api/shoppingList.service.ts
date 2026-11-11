@@ -823,7 +823,7 @@ export class ShoppingListService {
 
     /**
      * Get a shopping list\&#39;s trips
-     * This will return the list\&#39;s most recent trips (receipts attached to it), newest first, with what was bought that was not on the list [group.shopping-lists.read, group.receipts.read]. A receipt hidden from the caller by their paid-by visibility shows no details and no result.
+     * This will return the list\&#39;s most recent trips (receipts attached to it), newest first, with what was bought that was not on the list [group.shopping-lists.read, group.receipts.read].
      * @param listId Id of the shopping list
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

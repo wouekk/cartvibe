@@ -30,18 +30,9 @@ func seedReceipt(t *testing.T, name string, groupId uint, paidByUserId uint) mod
 	return receipt
 }
 
-// seedReceiptMember creates a group, a group role with the given permissions and
-// grants, and a member assigned to it. Returns the member's user id and group id.
-func seedReceiptMember(
-	t *testing.T,
-	username string,
-	roleName string,
-	perms []string,
-	categoryGrants []uint,
-	tagGrants []uint,
-	paidByGrants []uint,
-	includeOwn bool,
-) (uint, uint) {
+// seedReceiptMember creates a group, a group role with the given permissions,
+// and a member assigned to it. Returns the member's user id and group id.
+func seedReceiptMember(t *testing.T, username string, roleName string, perms []string) (uint, uint) {
 	t.Helper()
 	db := repositories.GetDB()
 
@@ -50,7 +41,7 @@ func seedReceiptMember(
 		t.Fatalf("seed group: %v", err)
 	}
 
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(roleName, "", perms, categoryGrants, tagGrants, paidByGrants, includeOwn, false)
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(roleName, "", perms)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}
@@ -65,14 +56,13 @@ func seedReceiptMember(
 	}
 
 	ClearRolePermissionCacheForTests()
-	ClearGroupRoleGrantCacheForTests()
 	return user.ID, group.ID
 }
 
 // giveAppRole assigns an app role with the given permissions to a user.
 func giveAppRole(t *testing.T, userId uint, roleName string, perms []string) {
 	t.Helper()
-	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole(roleName, "", perms)
 	if err != nil {
 		t.Fatalf("create app role: %v", err)
 	}
@@ -85,7 +75,7 @@ func giveAppRole(t *testing.T, userId uint, roleName string, perms []string) {
 func TestGetReceiptForUserReturnsReceiptForMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userId, groupId := seedReceiptMember(t, "getok", "getok-role", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false)
+	userId, groupId := seedReceiptMember(t, "getok", "getok-role", []string{permissions.GroupReceiptsRead})
 	receipt := seedReceipt(t, "Lunch", groupId, userId)
 
 	got, err := NewReceiptService(nil).GetReceiptForUser(userId, utils.UintToString(receipt.ID))
@@ -100,7 +90,7 @@ func TestGetReceiptForUserReturnsReceiptForMember(t *testing.T) {
 func TestGetReceiptForUserDeniesNonMember(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	ownerId, groupId := seedReceiptMember(t, "owner", "owner-role", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false)
+	ownerId, groupId := seedReceiptMember(t, "owner", "owner-role", []string{permissions.GroupReceiptsRead})
 	receipt := seedReceipt(t, "Lunch", groupId, ownerId)
 	outsider := makeUser(t, "outsider")
 
@@ -115,7 +105,7 @@ func TestGetReceiptForUserDeniesMemberWithoutReadPermission(t *testing.T) {
 
 	// A member whose group role lacks group.receipts.read is denied — proving the
 	// permission gate is enforced independently of group membership.
-	userId, groupId := seedReceiptMember(t, "noread", "noread-role", []string{}, nil, nil, nil, false)
+	userId, groupId := seedReceiptMember(t, "noread", "noread-role", []string{})
 	receipt := seedReceipt(t, "Lunch", groupId, userId)
 
 	_, err := NewReceiptService(nil).GetReceiptForUser(userId, utils.UintToString(receipt.ID))
@@ -124,47 +114,26 @@ func TestGetReceiptForUserDeniesMemberWithoutReadPermission(t *testing.T) {
 	}
 }
 
-func TestGetReceiptForUserDeniesPaidByHidden(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	allowedPayer := makeUser(t, "allowedpayer")
-	hiddenPayer := makeUser(t, "hiddenpayer")
-	// Restrict the member to receipts paid by allowedPayer only.
-	userId, groupId := seedReceiptMember(t, "pbviewer", "pb-role", []string{permissions.GroupReceiptsRead}, nil, nil, []uint{allowedPayer}, false)
-
-	visibleReceipt := seedReceipt(t, "allowed", groupId, allowedPayer)
-	hiddenReceipt := seedReceipt(t, "hidden", groupId, hiddenPayer)
-
-	if _, err := NewReceiptService(nil).GetReceiptForUser(userId, utils.UintToString(visibleReceipt.ID)); err != nil {
-		t.Fatalf("expected the allowed receipt to be visible: %v", err)
-	}
-	if _, err := NewReceiptService(nil).GetReceiptForUser(userId, utils.UintToString(hiddenReceipt.ID)); !errors.Is(err, ErrReceiptAccessDenied) {
-		t.Errorf("expected ErrReceiptAccessDenied for a paid-by-hidden receipt, got %v", err)
-	}
-}
-
-func TestGetReceiptForUserStripsCategoriesAndTagsToGrants(t *testing.T) {
+// Everyone in a household sees all of it: a receipt somebody else paid for, with every category and tag on it.
+func TestGetReceiptForUserShowsAnotherMembersReceiptWhole(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	db := repositories.GetDB()
 
-	allowedCategory := models.Category{Name: "allowed-cat"}
-	hiddenCategory := models.Category{Name: "hidden-cat"}
-	allowedTag := models.Tag{Name: "allowed-tag"}
-	hiddenTag := models.Tag{Name: "hidden-tag"}
-	for _, m := range []interface{}{&allowedCategory, &hiddenCategory, &allowedTag, &hiddenTag} {
+	category := models.Category{Name: "a-category"}
+	tag := models.Tag{Name: "a-tag"}
+	for _, m := range []interface{}{&category, &tag} {
 		if err := db.Create(m).Error; err != nil {
 			t.Fatalf("create fixture: %v", err)
 		}
 	}
 
-	// The role grants read plus exactly one category and one tag.
-	userId, groupId := seedReceiptMember(t, "stripper", "strip-role",
-		[]string{permissions.GroupReceiptsRead}, []uint{allowedCategory.ID}, []uint{allowedTag.ID}, nil, false)
-	receipt := seedReceipt(t, "with-cats-and-tags", groupId, userId)
-	if err := db.Model(&receipt).Association("Categories").Append([]models.Category{allowedCategory, hiddenCategory}); err != nil {
+	otherPayer := makeUser(t, "otherpayer")
+	userId, groupId := seedReceiptMember(t, "reader", "reader-role", []string{permissions.GroupReceiptsRead})
+	receipt := seedReceipt(t, "somebody-else-paid", groupId, otherPayer)
+	if err := db.Model(&receipt).Association("Categories").Append([]models.Category{category}); err != nil {
 		t.Fatalf("attach categories: %v", err)
 	}
-	if err := db.Model(&receipt).Association("Tags").Append([]models.Tag{allowedTag, hiddenTag}); err != nil {
+	if err := db.Model(&receipt).Association("Tags").Append([]models.Tag{tag}); err != nil {
 		t.Fatalf("attach tags: %v", err)
 	}
 
@@ -172,11 +141,14 @@ func TestGetReceiptForUserStripsCategoriesAndTagsToGrants(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetReceiptForUser returned error: %v", err)
 	}
-	if len(got.Categories) != 1 || got.Categories[0].ID != allowedCategory.ID {
-		t.Errorf("expected only the granted category, got %+v", got.Categories)
+	if got.PaidByUserID != otherPayer {
+		t.Errorf("expected the receipt paid by %d, got %d", otherPayer, got.PaidByUserID)
 	}
-	if len(got.Tags) != 1 || got.Tags[0].ID != allowedTag.ID {
-		t.Errorf("expected only the granted tag, got %+v", got.Tags)
+	if len(got.Categories) != 1 || got.Categories[0].ID != category.ID {
+		t.Errorf("expected the category on the receipt, got %+v", got.Categories)
+	}
+	if len(got.Tags) != 1 || got.Tags[0].ID != tag.ID {
+		t.Errorf("expected the tag on the receipt, got %+v", got.Tags)
 	}
 }
 
@@ -198,12 +170,12 @@ func TestSearchReceiptsForUserRequiresSearchPermission(t *testing.T) {
 	}
 }
 
-func TestSearchReceiptsForUserScopesAndAppliesPaidBy(t *testing.T) {
+func TestSearchReceiptsForUserScopesToTheUsersHouseholds(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	allowedPayer := makeUser(t, "spallowed")
-	hiddenPayer := makeUser(t, "sphidden")
-	userId, groupId := seedReceiptMember(t, "spsearcher", "sp-role", []string{permissions.GroupReceiptsRead}, nil, nil, []uint{allowedPayer}, false)
+	payerA := makeUser(t, "sppayera")
+	payerB := makeUser(t, "sppayerb")
+	userId, groupId := seedReceiptMember(t, "spsearcher", "sp-role", []string{permissions.GroupReceiptsRead})
 	giveAppRole(t, userId, "sp-app-role", []string{permissions.AppReceiptsSearch})
 
 	// A receipt in another group the user does not belong to must be excluded by scope.
@@ -212,26 +184,29 @@ func TestSearchReceiptsForUserScopesAndAppliesPaidBy(t *testing.T) {
 		t.Fatalf("create other group: %v", err)
 	}
 
-	seedReceipt(t, "Coffee allowed", groupId, allowedPayer)
-	seedReceipt(t, "Coffee hidden", groupId, hiddenPayer)
-	seedReceipt(t, "Coffee elsewhere", otherGroup.ID, allowedPayer)
+	seedReceipt(t, "Coffee one", groupId, payerA)
+	seedReceipt(t, "Coffee two", groupId, payerB)
+	seedReceipt(t, "Coffee elsewhere", otherGroup.ID, payerA)
 
 	results, err := NewReceiptService(nil).SearchReceiptsForUser(userId, "Coffee", 100)
 	if err != nil {
 		t.Fatalf("SearchReceiptsForUser returned error: %v", err)
 	}
-	if len(results) != 1 {
-		t.Fatalf("expected exactly 1 visible result, got %d (%+v)", len(results), results)
+	// Both receipts of the household, whoever paid, and nothing from the other one.
+	if len(results) != 2 {
+		t.Fatalf("expected the household's 2 receipts, got %d (%+v)", len(results), results)
 	}
-	if results[0].GroupID != groupId || results[0].PaidByUserId != allowedPayer {
-		t.Errorf("expected the allowed-payer receipt in the member's group, got %+v", results[0])
+	for _, result := range results {
+		if result.GroupID != groupId {
+			t.Errorf("expected only receipts of the member's household, got %+v", result)
+		}
 	}
 }
 
 func TestSearchReceiptsForUserBlankQueryReturnsEmpty(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	userId, groupId := seedReceiptMember(t, "blank", "blank-role", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false)
+	userId, groupId := seedReceiptMember(t, "blank", "blank-role", []string{permissions.GroupReceiptsRead})
 	giveAppRole(t, userId, "blank-app-role", []string{permissions.AppReceiptsSearch})
 	seedReceipt(t, "Coffee", groupId, userId)
 

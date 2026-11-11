@@ -29,28 +29,46 @@ func findRole(roles []structs.RoleView, name string) (structs.RoleView, bool) {
 	return structs.RoleView{}, false
 }
 
-func TestSeedSystemRolesCreatesSevenRoles(t *testing.T) {
+// fixedRoleSets is what each of the four roles holds, by the name of its row.
+func fixedRoleSets() map[string][]string {
+	return map[string][]string{
+		LegacyAdminRoleName:  permissions.LegacyAppAdminKeys(),
+		FamilyUserRoleName:   permissions.FamilyUserAppKeys(),
+		LegacyOwnerRoleName:  permissions.LegacyGroupOwnerKeys(),
+		FamilyMemberRoleName: permissions.FamilyMemberGroupKeys(),
+	}
+}
+
+func seededRoles(t *testing.T) []structs.RoleView {
+	t.Helper()
+
+	roles, err := NewRoleRepository(nil).GetAllRoles()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return roles
+}
+
+func TestSeedSystemRolesCreatesTheFourFixedRoles(t *testing.T) {
 	defer TruncateTestDb()
 
 	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
+		t.Fatal(err)
+	}
+
+	roles := seededRoles(t)
+	if len(roles) != 4 {
+		utils.PrintTestError(t, len(roles), 4)
 		return
 	}
 
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	scopes := map[string]permissions.Scope{
+		LegacyAdminRoleName:  permissions.ScopeApp,
+		FamilyUserRoleName:   permissions.ScopeApp,
+		LegacyOwnerRoleName:  permissions.ScopeGroup,
+		FamilyMemberRoleName: permissions.ScopeGroup,
 	}
-
-	if len(roles) != 7 {
-		utils.PrintTestError(t, len(roles), 7)
-		return
-	}
-
-	expectedNames := []string{"Legacy Admin", "Legacy User", "Legacy Viewer", "Legacy Editor", "Legacy Owner", "User", "Member"}
-	for _, name := range expectedNames {
+	for name, wantPerms := range fixedRoleSets() {
 		role, ok := findRole(roles, name)
 		if !ok {
 			utils.PrintTestError(t, "missing role "+name, "present")
@@ -59,61 +77,8 @@ func TestSeedSystemRolesCreatesSevenRoles(t *testing.T) {
 		if !role.IsSystem {
 			utils.PrintTestError(t, role.IsSystem, true)
 		}
-	}
-}
-
-func TestSeedSystemRolesIsIdempotent(t *testing.T) {
-	defer TruncateTestDb()
-
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	if len(roles) != 7 {
-		utils.PrintTestError(t, len(roles), 7)
-	}
-}
-
-func TestSeedSystemRolesPermissionSets(t *testing.T) {
-	defer TruncateTestDb()
-
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	expected := map[string][]string{
-		"Legacy Admin":  permissions.LegacyAppAdminKeys(),
-		"Legacy User":   permissions.LegacyAppUserKeys(),
-		"Legacy Viewer": permissions.LegacyGroupViewerKeys(),
-		"Legacy Editor": permissions.LegacyGroupEditorKeys(),
-		"Legacy Owner":  permissions.LegacyGroupOwnerKeys(),
-	}
-
-	for name, wantPerms := range expected {
-		role, ok := findRole(roles, name)
-		if !ok {
-			utils.PrintTestError(t, "missing role "+name, "present")
-			continue
+		if role.Scope != scopes[name] {
+			utils.PrintTestError(t, role.Scope, scopes[name])
 		}
 		if !equalKeySet(role.Permissions, wantPerms) {
 			utils.PrintTestError(t, role.Permissions, wantPerms)
@@ -121,270 +86,129 @@ func TestSeedSystemRolesPermissionSets(t *testing.T) {
 	}
 }
 
-func TestSeedSystemRolesScopeAndFlags(t *testing.T) {
+// The second boot runs every role through the reconcile branch. It must add nothing, remove nothing and
+// must not trip the (roleId, permission) unique index.
+func TestSeedSystemRolesIsIdempotent(t *testing.T) {
 	defer TruncateTestDb()
 
 	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
+	first := seededRoles(t)
 
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	if err := SeedSystemRoles(); err != nil {
+		t.Fatal(err)
 	}
+	second := seededRoles(t)
 
-	scopes := map[string]permissions.Scope{
-		"Legacy Admin":  permissions.ScopeApp,
-		"Legacy User":   permissions.ScopeApp,
-		"Legacy Viewer": permissions.ScopeGroup,
-		"Legacy Editor": permissions.ScopeGroup,
-		"Legacy Owner":  permissions.ScopeGroup,
+	if len(second) != 4 {
+		utils.PrintTestError(t, len(second), 4)
 	}
-	for name, wantScope := range scopes {
-		role, ok := findRole(roles, name)
+	for _, before := range first {
+		after, ok := findRole(second, before.Name)
 		if !ok {
-			utils.PrintTestError(t, "missing role "+name, "present")
+			utils.PrintTestError(t, "missing role "+before.Name, "present")
 			continue
 		}
-		if role.Scope != wantScope {
-			utils.PrintTestError(t, role.Scope, wantScope)
+		// The same row: the ids people are assigned by must never change.
+		if after.Id != before.Id {
+			utils.PrintTestError(t, after.Id, before.Id)
 		}
-	}
-
-	// Group roles must not be auto-assignable yet (IsDefault stays false).
-	var groupRoles []models.GroupRoleDefinition
-	if err := GetDB().Find(&groupRoles).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	for _, role := range groupRoles {
-		if role.IsDefault {
-			utils.PrintTestError(t, role.IsDefault, false)
+		if len(after.Permissions) != len(before.Permissions) || !equalKeySet(after.Permissions, before.Permissions) {
+			utils.PrintTestError(t, after.Permissions, before.Permissions)
 		}
 	}
 }
 
-func TestSeedSystemRolesReconcilesExistingRolePermissions(t *testing.T) {
+// An install seeded before a key existed picks it up at the next start. This is how the member-management
+// keys of GHSA-89mm-9qfv-cjg3 reached owners, and how any key added to the registry reaches admins.
+func TestSeedSystemRolesAddsTheKeysARoleLacks(t *testing.T) {
 	defer TruncateTestDb()
 
-	// Pre-create the Legacy Admin system role holding a single permission, as an
-	// install seeded before the admin permission set grew would have.
 	existing := models.AppRole{
-		Name:        "Legacy Admin",
+		Name:        LegacyAdminRoleName,
 		Description: "pre-existing",
 		IsSystem:    true,
 		Permissions: []models.AppRolePermission{{Permission: permissions.AppUsersRead}},
 	}
 	if err := GetDB().Create(&existing).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
 
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	if len(roles) != 7 {
-		utils.PrintTestError(t, len(roles), 7)
-	}
-
-	role, ok := findRole(roles, "Legacy Admin")
-	if !ok {
-		utils.PrintTestError(t, "missing role Legacy Admin", "present")
-		return
-	}
-
-	// The missing permissions were added: the role now holds the full admin set,
-	// and the permission it already had was neither dropped nor duplicated.
-	if !equalKeySet(role.Permissions, permissions.LegacyAppAdminKeys()) {
-		utils.PrintTestError(t, role.Permissions, permissions.LegacyAppAdminKeys())
-	}
-	// Reconciled in place — the same row, not dropped and recreated.
-	if role.Id != existing.ID {
-		utils.PrintTestError(t, role.Id, existing.ID)
-	}
-	// Still a protected system role.
-	if !role.IsSystem {
-		utils.PrintTestError(t, role.IsSystem, true)
-	}
-}
-
-func TestSeedSystemRolesReconcileIsAddOnly(t *testing.T) {
-	defer TruncateTestDb()
-
-	// Pre-create the Legacy Owner system role with the full owner set plus an
-	// extra permission that is not part of it.
-	const extra = "group.bogus.extra"
-	ownerKeys := permissions.LegacyGroupOwnerKeys()
-	seededPerms := make([]models.GroupRolePermission, 0, len(ownerKeys)+1)
-	for _, permission := range ownerKeys {
-		seededPerms = append(seededPerms, models.GroupRolePermission{Permission: permission})
-	}
-	seededPerms = append(seededPerms, models.GroupRolePermission{Permission: extra})
-
-	existing := models.GroupRoleDefinition{
-		Name:        "Legacy Owner",
-		Description: "pre-existing",
-		IsSystem:    true,
-		Permissions: seededPerms,
-	}
-	if err := GetDB().Create(&existing).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	role, ok := findRole(roles, "Legacy Owner")
-	if !ok {
-		utils.PrintTestError(t, "missing role Legacy Owner", "present")
-		return
-	}
-
-	// Add-only: the extra permission survives and every owner permission is present.
-	want := append(append([]string(nil), ownerKeys...), extra)
-	if !equalKeySet(role.Permissions, want) {
-		utils.PrintTestError(t, role.Permissions, want)
-	}
-}
-
-// TestSeedSystemRolesBackfillsGroupMemberPermissions pins the upgrade path for
-// GHSA-89mm-9qfv-cjg3: UpdateGroup now requires group.members.create/update/delete
-// to change a group's roster, so an install seeded before those keys existed must
-// pick them up on the next boot or its owners silently lose member management.
-// SeedSystemRoles' add-only reconciliation is what delivers them — there is no
-// dedicated data migration.
-func TestSeedSystemRolesBackfillsGroupMemberPermissions(t *testing.T) {
-	defer TruncateTestDb()
-
-	memberKeys := []string{
-		permissions.GroupMembersCreate,
-		permissions.GroupMembersUpdate,
-		permissions.GroupMembersDelete,
-	}
-
-	// Pre-create Legacy Owner as a pre-fix install had it: the full group scope
-	// except the member-management keys, which did not exist yet.
-	ownerKeys := permissions.LegacyGroupOwnerKeys()
-	seededPerms := make([]models.GroupRolePermission, 0, len(ownerKeys))
-	for _, permission := range ownerKeys {
-		if slices.Contains(memberKeys, permission) {
-			continue
-		}
-		seededPerms = append(seededPerms, models.GroupRolePermission{Permission: permission})
-	}
-	if len(seededPerms) != len(ownerKeys)-len(memberKeys) {
-		utils.PrintTestError(t, len(seededPerms), len(ownerKeys)-len(memberKeys))
-		return
-	}
-
-	existing := models.GroupRoleDefinition{
-		Name:        LegacyOwnerRoleName,
-		Description: "pre-existing",
-		IsSystem:    true,
-		Permissions: seededPerms,
-	}
-	if err := GetDB().Create(&existing).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	role, ok := findRole(roles, LegacyOwnerRoleName)
-	if !ok {
-		utils.PrintTestError(t, "missing role "+LegacyOwnerRoleName, "present")
-		return
-	}
-
-	// The three member permissions were back-filled...
-	for _, permission := range memberKeys {
-		if !slices.Contains(role.Permissions, permission) {
-			utils.PrintTestError(t, role.Permissions, permission)
+	memberKeys := []string{permissions.GroupMembersCreate, permissions.GroupMembersUpdate, permissions.GroupMembersDelete}
+	ownerPerms := make([]models.GroupRolePermission, 0)
+	for _, permission := range permissions.LegacyGroupOwnerKeys() {
+		if !slices.Contains(memberKeys, permission) {
+			ownerPerms = append(ownerPerms, models.GroupRolePermission{Permission: permission})
 		}
 	}
-	// ...and the role now holds the complete owner set.
-	if !equalKeySet(role.Permissions, ownerKeys) {
-		utils.PrintTestError(t, role.Permissions, ownerKeys)
+	owner := models.GroupRoleDefinition{Name: LegacyOwnerRoleName, IsSystem: true, Permissions: ownerPerms}
+	if err := GetDB().Create(&owner).Error; err != nil {
+		t.Fatal(err)
 	}
-	// Reconciled in place, so existing group members keep their role assignment.
-	if role.Id != existing.ID {
-		utils.PrintTestError(t, role.Id, existing.ID)
+
+	if err := SeedSystemRoles(); err != nil {
+		t.Fatal(err)
+	}
+
+	roles := seededRoles(t)
+	if len(roles) != 4 {
+		utils.PrintTestError(t, len(roles), 4)
+	}
+
+	admin, _ := findRole(roles, LegacyAdminRoleName)
+	if !equalKeySet(admin.Permissions, permissions.LegacyAppAdminKeys()) {
+		utils.PrintTestError(t, admin.Permissions, permissions.LegacyAppAdminKeys())
+	}
+	// Reconciled in place, so the people on the role keep it.
+	if admin.Id != existing.ID {
+		utils.PrintTestError(t, admin.Id, existing.ID)
+	}
+
+	seededOwner, _ := findRole(roles, LegacyOwnerRoleName)
+	if !equalKeySet(seededOwner.Permissions, permissions.LegacyGroupOwnerKeys()) {
+		utils.PrintTestError(t, seededOwner.Permissions, permissions.LegacyGroupOwnerKeys())
+	}
+	if seededOwner.Id != owner.ID {
+		utils.PrintTestError(t, seededOwner.Id, owner.ID)
 	}
 }
 
-func TestSeedSystemRolesReSeedAddsNoDuplicatePermissions(t *testing.T) {
+// The code is the source of truth: a key a role holds that is not on its list (one that left the registry,
+// or one taken off the User or Member list) is removed at the next start.
+func TestSeedSystemRolesRemovesTheKeysThatLeftTheList(t *testing.T) {
 	defer TruncateTestDb()
 
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	ownerPerms := []models.GroupRolePermission{{Permission: "group.members.grants.update"}}
+	for _, permission := range permissions.LegacyGroupOwnerKeys() {
+		ownerPerms = append(ownerPerms, models.GroupRolePermission{Permission: permission})
 	}
-	// The second boot runs every role through the reconcile branch. It must add
-	// nothing and must not trip the (roleId, permission) unique index.
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	if err := GetDB().Create(&models.GroupRoleDefinition{Name: LegacyOwnerRoleName, IsSystem: true, Permissions: ownerPerms}).Error; err != nil {
+		t.Fatal(err)
 	}
 
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	// A User that was once given more than a User holds.
+	userPerms := []models.AppRolePermission{{Permission: permissions.AppUsersDelete}, {Permission: "app.roles.update"}}
+	for _, permission := range permissions.FamilyUserAppKeys() {
+		userPerms = append(userPerms, models.AppRolePermission{Permission: permission})
+	}
+	if err := GetDB().Create(&models.AppRole{Name: FamilyUserRoleName, IsSystem: true, Permissions: userPerms}).Error; err != nil {
+		t.Fatal(err)
 	}
 
-	expected := map[string][]string{
-		"Legacy Admin":  permissions.LegacyAppAdminKeys(),
-		"Legacy User":   permissions.LegacyAppUserKeys(),
-		"Legacy Viewer": permissions.LegacyGroupViewerKeys(),
-		"Legacy Editor": permissions.LegacyGroupEditorKeys(),
-		"Legacy Owner":  permissions.LegacyGroupOwnerKeys(),
+	if err := SeedSystemRoles(); err != nil {
+		t.Fatal(err)
 	}
-	for name, wantPerms := range expected {
+
+	roles := seededRoles(t)
+	for name, wantPerms := range fixedRoleSets() {
 		role, ok := findRole(roles, name)
 		if !ok {
 			utils.PrintTestError(t, "missing role "+name, "present")
 			continue
 		}
-		// equalKeySet fails if a duplicate row lengthened the set; the explicit
-		// length check states the same intent directly.
-		if !equalKeySet(role.Permissions, wantPerms) {
+		if len(role.Permissions) != len(wantPerms) || !equalKeySet(role.Permissions, wantPerms) {
 			utils.PrintTestError(t, role.Permissions, wantPerms)
-		}
-		if len(role.Permissions) != len(wantPerms) {
-			utils.PrintTestError(t, len(role.Permissions), len(wantPerms))
 		}
 	}
 }
@@ -415,7 +239,7 @@ func TestMissingPermissions(t *testing.T) {
 			want:    []string{"a", "b"},
 		},
 		{
-			name:    "add-only: a permission only in have is never returned",
+			name:    "a permission only in have is never returned",
 			have:    []string{"x", "y"},
 			desired: []string{"a"},
 			want:    []string{"a"},
@@ -438,199 +262,81 @@ func TestMissingPermissions(t *testing.T) {
 	}
 }
 
-func TestEnsureDefaultRolesSetsLegacyDefaults(t *testing.T) {
-	defer TruncateTestDb()
+// defaultRoleNames returns the names of the roles flagged default, per scope.
+func defaultRoleNames(t *testing.T) (app []string, group []string) {
+	t.Helper()
 
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if err := EnsureDefaultRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	repository := NewRoleRepository(nil)
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	appDefaults := 0
-	groupDefaults := 0
-	for _, role := range roles {
+	for _, role := range seededRoles(t) {
 		if !role.IsDefault {
 			continue
 		}
 		if role.Scope == permissions.ScopeApp {
-			appDefaults++
-			if role.Name != LegacyUserRoleName {
-				utils.PrintTestError(t, role.Name, LegacyUserRoleName)
-			}
+			app = append(app, role.Name)
 		} else {
-			groupDefaults++
-			if role.Name != LegacyOwnerRoleName {
-				utils.PrintTestError(t, role.Name, LegacyOwnerRoleName)
-			}
+			group = append(group, role.Name)
 		}
 	}
-
-	if appDefaults != 1 {
-		utils.PrintTestError(t, appDefaults, 1)
-	}
-	if groupDefaults != 1 {
-		utils.PrintTestError(t, groupDefaults, 1)
-	}
+	return app, group
 }
 
-func TestEnsureDefaultRolesIsIdempotent(t *testing.T) {
+// A new account is a User, and the person who creates a household is its Owner.
+func TestEnsureDefaultRolesMarksUserAndOwner(t *testing.T) {
 	defer TruncateTestDb()
 
 	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
 	if err := EnsureDefaultRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
+	// A second start changes nothing.
 	if err := EnsureDefaultRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
 
-	var appDefaults int64
-	if err := GetDB().Model(&models.AppRole{}).Where("is_default = ?", true).Count(&appDefaults).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	app, group := defaultRoleNames(t)
+	if !slices.Equal(app, []string{FamilyUserRoleName}) {
+		utils.PrintTestError(t, app, []string{FamilyUserRoleName})
 	}
-	if appDefaults != 1 {
-		utils.PrintTestError(t, appDefaults, 1)
-	}
-	var groupDefaults int64
-	if err := GetDB().Model(&models.GroupRoleDefinition{}).Where("is_default = ?", true).Count(&groupDefaults).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if groupDefaults != 1 {
-		utils.PrintTestError(t, groupDefaults, 1)
+	if !slices.Equal(group, []string{LegacyOwnerRoleName}) {
+		utils.PrintTestError(t, group, []string{LegacyOwnerRoleName})
 	}
 }
 
-func TestEnsureDefaultRolesPreservesCustomDefault(t *testing.T) {
+// An install from before fixed roles had another default (Legacy User, or one an admin picked). The roles
+// are fixed now, so the default moves to User and Owner, and nothing else stays marked.
+func TestEnsureDefaultRolesMovesAnOlderDefault(t *testing.T) {
 	defer TruncateTestDb()
 
 	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
-
-	// An administrator picked a custom app role as the default before this runs.
-	repository := NewRoleRepository(nil)
-	custom, err := repository.CreateAppRole("Custom Default", "", []string{permissions.AppUsersRead}, false)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	if err := GetDB().Create(&models.AppRole{Name: "Legacy User", IsSystem: true, IsDefault: true}).Error; err != nil {
+		t.Fatal(err)
 	}
-	if err := repository.SetDefaultAppRole(custom.ID); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	if err := GetDB().Create(&models.GroupRoleDefinition{Name: "Legacy Editor", IsSystem: true, IsDefault: true}).Error; err != nil {
+		t.Fatal(err)
 	}
 
 	if err := EnsureDefaultRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+		t.Fatal(err)
 	}
 
-	roles, err := repository.GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
+	app, group := defaultRoleNames(t)
+	if !slices.Equal(app, []string{FamilyUserRoleName}) {
+		utils.PrintTestError(t, app, []string{FamilyUserRoleName})
 	}
-
-	// The custom default must be preserved; Legacy User must not be promoted.
-	customRole, ok := findRole(roles, "Custom Default")
-	if !ok || !customRole.IsDefault {
-		utils.PrintTestError(t, "Custom Default not default", "default preserved")
-	}
-	legacyUser, ok := findRole(roles, LegacyUserRoleName)
-	if !ok || legacyUser.IsDefault {
-		utils.PrintTestError(t, "Legacy User became default", "Legacy User not default")
+	if !slices.Equal(group, []string{LegacyOwnerRoleName}) {
+		utils.PrintTestError(t, group, []string{LegacyOwnerRoleName})
 	}
 }
 
-func TestEnsureDefaultRolesErrorsWhenLegacyRoleMissing(t *testing.T) {
+// No roles seeded: EnsureDefaultRoles must fail loudly rather than silently leave no default (which would
+// lock out every account created afterward).
+func TestEnsureDefaultRolesErrorsWhenTheRolesAreMissing(t *testing.T) {
 	defer TruncateTestDb()
 
-	// No roles seeded, so the legacy default roles do not exist. EnsureDefaultRoles
-	// must fail loudly rather than silently leaving no default (which would lock out
-	// every account created afterward).
 	if err := EnsureDefaultRoles(); err == nil {
-		utils.PrintTestError(t, "no error", "error: legacy role not found")
-	}
-}
-
-// Phase 3 M4: the family roles carry their sets, and a User manages the shared catalogs but never
-// users, roles, system settings or the AI.
-func TestSeedSystemRolesFamilyRoles(t *testing.T) {
-	defer TruncateTestDb()
-
-	if err := SeedSystemRoles(); err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	roles, err := NewRoleRepository(nil).GetAllRoles()
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-
-	user, ok := findRole(roles, FamilyUserRoleName)
-	if !ok || user.Scope != permissions.ScopeApp || !user.IsSystem {
-		utils.PrintTestError(t, user, "a system app role named User")
-		return
-	}
-	if !equalKeySet(user.Permissions, permissions.FamilyUserAppKeys()) {
-		utils.PrintTestError(t, user.Permissions, permissions.FamilyUserAppKeys())
-	}
-	for _, adminOnly := range []string{
-		permissions.AppUsersRead,
-		permissions.AppRolesRead,
-		permissions.AppSystemSettingsRead,
-		permissions.AppGroupsCreate,
-		permissions.AppReportsRead,
-		permissions.AppReportsGenerate,
-	} {
-		if slices.Contains(user.Permissions, adminOnly) {
-			utils.PrintTestError(t, adminOnly, "not granted to a family User")
-		}
-	}
-
-	// Any member sets the AI up (the AI page), but cannot delete its settings.
-	for _, granted := range []string{permissions.AppReceiptProcessingSettingsCreate, permissions.AppReceiptProcessingSettingsUpdate} {
-		if !slices.Contains(user.Permissions, granted) {
-			utils.PrintTestError(t, granted, "granted to a family User")
-		}
-	}
-	if slices.Contains(user.Permissions, permissions.AppReceiptProcessingSettingsDelete) {
-		utils.PrintTestError(t, permissions.AppReceiptProcessingSettingsDelete, "not granted to a family User")
-	}
-
-	member, ok := findRole(roles, FamilyMemberRoleName)
-	if !ok || member.Scope != permissions.ScopeGroup || !member.IsSystem {
-		utils.PrintTestError(t, member, "a system group role named Member")
-		return
-	}
-	for _, granted := range []string{permissions.GroupReceiptsDelete, permissions.GroupShoppingListsCreate} {
-		if !slices.Contains(member.Permissions, granted) {
-			utils.PrintTestError(t, granted, "granted to a family Member")
-		}
-	}
-	for _, adminOnly := range []string{permissions.GroupUpdate, permissions.GroupDelete, permissions.GroupMembersCreate, permissions.GroupReportsRead} {
-		if slices.Contains(member.Permissions, adminOnly) {
-			utils.PrintTestError(t, adminOnly, "not granted to a family Member")
-		}
+		utils.PrintTestError(t, "no error", "error: role not found")
 	}
 }

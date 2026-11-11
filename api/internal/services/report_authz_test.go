@@ -1,7 +1,6 @@
 package services
 
 import (
-	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
@@ -14,7 +13,6 @@ import (
 // database's reused role ids never return a prior case's cached data.
 func resetAuthzCaches() {
 	clearRolePermissionCacheAll()
-	ClearGroupRoleGrantCacheForTests()
 }
 
 // seedAppUser creates a user with an app role granting appPerms; returns the user id.
@@ -22,7 +20,7 @@ func seedAppUser(t *testing.T, username string, appPerms []string) uint {
 	t.Helper()
 	db := repositories.GetDB()
 
-	role, err := repositories.NewRoleRepository(nil).CreateAppRole("App "+username, "", appPerms, false)
+	role, err := repositories.NewRoleRepository(nil).CreateAppRole("App "+username, "", appPerms)
 	if err != nil {
 		t.Fatalf("seed app role: %v", err)
 	}
@@ -43,7 +41,7 @@ func joinGroup(t *testing.T, userId uint, groupName string, groupPerms []string)
 	if err := db.Create(&group).Error; err != nil {
 		t.Fatalf("seed group: %v", err)
 	}
-	role, err := repositories.NewRoleRepository(nil).CreateGroupRole("Role "+groupName, "", groupPerms, nil, nil, nil, false, false)
+	role, err := repositories.NewRoleRepository(nil).CreateGroupRole("Role "+groupName, "", groupPerms)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}
@@ -69,16 +67,6 @@ func seedTemplateInGroups(t *testing.T, name string, groupIds []uint) uint {
 		}
 	}
 	return template.ID
-}
-
-// setMatrix replaces a group role's report-template matrix and evicts caches so the
-// new grants take effect on the next resolution.
-func setMatrix(t *testing.T, roleId uint, matrix []commands.ReportTemplateGrantCommand) {
-	t.Helper()
-	if err := repositories.NewRoleRepository(nil).ReplaceGroupRoleReportTemplateGrants(roleId, matrix); err != nil {
-		t.Fatalf("set matrix: %v", err)
-	}
-	resetAuthzCaches()
 }
 
 func assertCanAct(t *testing.T, userId, templateId uint, action string, want bool) {
@@ -111,166 +99,58 @@ func otherActionThan(action string) string {
 	return "read"
 }
 
-// TestCanActOnTemplate_Matrix exhaustively exercises the access decision for EVERY
-// scopable action against EVERY permission state — the three axes (base app
-// permission, the "*All" bypass, the per-group ceiling, the per-template matrix) and
-// the multi-group / fail-closed edges. Each (action, state) is an isolated subtest.
-func TestCanActOnTemplate_Matrix(t *testing.T) {
-	states := []struct {
-		name  string
-		want  bool
-		setup func(t *testing.T, action string) (userId, templateId uint)
-	}{
-		{
-			// No report permission at all → denied regardless of group access.
-			name: "no_app_perm", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{permissions.AppAccountRead})
-				groupId, _ := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				return userId, seedTemplateInGroups(t, "A", []uint{groupId})
-			},
-		},
-		{
-			// Base action perm, member of the group, but the role lacks group.reports.read.
-			name: "base_no_ceiling", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, _ := joinGroup(t, userId, "g", []string{permissions.GroupView})
-				return userId, seedTemplateInGroups(t, "A", []uint{groupId})
-			},
-		},
-		{
-			// Base + ceiling + no matrix (unrestricted) → allowed.
-			name: "base_ceiling_unrestricted", want: true,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, _ := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				return userId, seedTemplateInGroups(t, "A", []uint{groupId})
-			},
-		},
-		{
-			// Base + ceiling, but the matrix grants a DIFFERENT template.
-			name: "matrix_other_template", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				templateId := seedTemplateInGroups(t, "A", []uint{groupId})
-				other := seedTemplateInGroups(t, "Other", []uint{groupId})
-				setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: other, Permissions: []string{action}}})
-				return userId, templateId
-			},
-		},
-		{
-			// Base + ceiling, matrix lists this template but a DIFFERENT action.
-			name: "matrix_missing_action", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				templateId := seedTemplateInGroups(t, "A", []uint{groupId})
-				setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{otherActionThan(action)}}})
-				return userId, templateId
-			},
-		},
-		{
-			// Base + ceiling, matrix lists this template AND this action → allowed
-			// (proves the matrix can GRANT every action, not only read).
-			name: "matrix_grants_action", want: true,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				templateId := seedTemplateInGroups(t, "A", []uint{groupId})
-				setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{action}}})
-				return userId, templateId
-			},
-		},
-		{
-			// "<action>All" bypass, no group membership, no matrix → allowed.
-			name: "all_bypass", want: true,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{allPermFor(action)})
-				owner := seedAppUser(t, "owner", []string{permissions.AppReportsRead})
-				groupId, _ := joinGroup(t, owner, "g", []string{permissions.GroupReportsRead})
-				return userId, seedTemplateInGroups(t, "A", []uint{groupId})
-			},
-		},
-		{
-			// Base action perm but NOT a member of the covered group → ceiling denies.
-			name: "non_member", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				owner := seedAppUser(t, "owner", []string{permissions.AppReportsRead})
-				groupId, _ := joinGroup(t, owner, "g", []string{permissions.GroupReportsRead})
-				return userId, seedTemplateInGroups(t, "A", []uint{groupId})
-			},
-		},
-		{
-			// Template covers g1+g2; group.reports.read in g1 only → most-restrictive-wins denies.
-			name: "multigroup_second_no_ceiling", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				g1, _ := joinGroup(t, userId, "g1", []string{permissions.GroupReportsRead})
-				g2, _ := joinGroup(t, userId, "g2", []string{permissions.GroupView})
-				return userId, seedTemplateInGroups(t, "A", []uint{g1, g2})
-			},
-		},
-		{
-			// Template covers g1+g2, ceiling passes in both; g1's matrix grants the
-			// (template, action) but g2's restricts to a DIFFERENT template → matrix
-			// intersection denies (guards against OR/first-match regressions).
-			name: "multigroup_matrix_second_denies", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				g1, role1 := joinGroup(t, userId, "g1", []string{permissions.GroupReportsRead})
-				g2, role2 := joinGroup(t, userId, "g2", []string{permissions.GroupReportsRead})
-				templateId := seedTemplateInGroups(t, "A", []uint{g1, g2})
-				other := seedTemplateInGroups(t, "Other", []uint{g2})
-				setMatrix(t, role1, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{action}}})
-				setMatrix(t, role2, []commands.ReportTemplateGrantCommand{{ReportTemplateId: other, Permissions: []string{action}}})
-				return userId, templateId
-			},
-		},
-		{
-			// Template covers g1+g2, ceiling passes in both, and BOTH roles' matrices
-			// grant the (template, action) → allowed (intersection is satisfied).
-			name: "multigroup_matrix_both_grant", want: true,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				g1, role1 := joinGroup(t, userId, "g1", []string{permissions.GroupReportsRead})
-				g2, role2 := joinGroup(t, userId, "g2", []string{permissions.GroupReportsRead})
-				templateId := seedTemplateInGroups(t, "A", []uint{g1, g2})
-				setMatrix(t, role1, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{action}}})
-				setMatrix(t, role2, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{action}}})
-				return userId, templateId
-			},
-		},
-		{
-			// Role opted into restriction, then its only granted template is deleted
-			// (cascade empties the matrix, restricted flag persists) → fail closed.
-			name: "fail_closed", want: false,
-			setup: func(t *testing.T, action string) (uint, uint) {
-				userId := seedAppUser(t, "u", []string{basePermFor(action)})
-				groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-				templateA := seedTemplateInGroups(t, "A", []uint{groupId})
-				templateB := seedTemplateInGroups(t, "B", []uint{groupId})
-				setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateA, Permissions: []string{action}}})
-				if err := repositories.GetDB().Where("id = ?", templateA).Delete(&models.ReportTemplate{}).Error; err != nil {
-					t.Fatalf("delete template A: %v", err)
-				}
-				resetAuthzCaches()
-				return userId, templateB
-			},
-		},
-	}
-
+// CanActOnTemplate for every action: the "*All" permission is enough on its own;
+// otherwise the action's own app permission and group.reports.read in every
+// household the template covers are both needed. A group role narrows nothing
+// further: there is no per-template matrix.
+func TestCanActOnTemplate_AppPermissionAndGroupCeiling(t *testing.T) {
 	for _, action := range reportScopableActions {
-		for _, state := range states {
-			t.Run(action+"/"+state.name, func(t *testing.T) {
-				defer repositories.TruncateTestDb()
-				resetAuthzCaches()
-				userId, templateId := state.setup(t, action)
-				assertCanAct(t, userId, templateId, action, state.want)
-			})
-		}
+		t.Run(action+"/all permission needs no household", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "all-"+action, []string{allPermFor(action)})
+			outsider := seedAppUser(t, "owner-"+action, nil)
+			groupId, _ := joinGroup(t, outsider, "elsewhere-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{groupId})
+
+			assertCanAct(t, userId, templateId, action, true)
+		})
+
+		t.Run(action+"/own permission and every household readable", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "base-"+action, []string{basePermFor(action)})
+			first, _ := joinGroup(t, userId, "first-"+action, []string{permissions.GroupReportsRead})
+			second, _ := joinGroup(t, userId, "second-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{first, second})
+
+			assertCanAct(t, userId, templateId, action, true)
+		})
+
+		t.Run(action+"/one household not readable", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "ceiling-"+action, []string{basePermFor(action)})
+			readable, _ := joinGroup(t, userId, "readable-"+action, []string{permissions.GroupReportsRead})
+			unreadable, _ := joinGroup(t, userId, "unreadable-"+action, []string{permissions.GroupReceiptsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{readable, unreadable})
+
+			assertCanAct(t, userId, templateId, action, false)
+		})
+
+		t.Run(action+"/another action's permission", func(t *testing.T) {
+			defer repositories.TruncateTestDb()
+			resetAuthzCaches()
+
+			userId := seedAppUser(t, "other-"+action, []string{basePermFor(otherActionThan(action))})
+			groupId, _ := joinGroup(t, userId, "group-"+action, []string{permissions.GroupReportsRead})
+			templateId := seedTemplateInGroups(t, "t-"+action, []uint{groupId})
+
+			assertCanAct(t, userId, templateId, action, false)
+		})
 	}
 }
 
@@ -297,33 +177,6 @@ func TestVisibleTemplateIds_ReadAllUnrestricted(t *testing.T) {
 	}
 	if !unrestricted || ids != nil {
 		utils.PrintTestError(t, ids, "unrestricted (nil ids)")
-	}
-}
-
-func TestVisibleTemplateIds_ScopedAndFiltered(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetAuthzCaches()
-
-	userId := seedAppUser(t, "scoped-list", []string{permissions.AppReportsRead})
-	groupId, roleId := joinGroup(t, userId, "g1", []string{permissions.GroupReportsRead})
-	visibleTemplate := seedTemplateInGroups(t, "Visible", []uint{groupId})
-	hiddenTemplate := seedTemplateInGroups(t, "Hidden", []uint{groupId})
-
-	// Restrict the role to only the visible template.
-	setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{
-		{ReportTemplateId: visibleTemplate, Permissions: []string{"read"}},
-	})
-
-	ids, unrestricted, err := NewPermissionService(nil).VisibleTemplateIds(userId)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if unrestricted {
-		utils.PrintTestError(t, unrestricted, false)
-	}
-	if !slices.Contains(ids, visibleTemplate) || slices.Contains(ids, hiddenTemplate) {
-		utils.PrintTestError(t, ids, "only the visible template")
 	}
 }
 
@@ -473,33 +326,6 @@ func TestVisibleTemplateIds_MultiGroupExcludedWhenAnyGroupUnreadable(t *testing.
 	}
 }
 
-func TestVisibleTemplateIds_FailClosedDropsRemaining(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetAuthzCaches()
-
-	userId := seedAppUser(t, "u", []string{permissions.AppReportsRead})
-	groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-	a := seedTemplateInGroups(t, "A", []uint{groupId})
-	b := seedTemplateInGroups(t, "B", []uint{groupId})
-	setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: a, Permissions: []string{"read"}}})
-
-	// Delete A: cascade empties the matrix, the restricted flag persists (fail closed).
-	if err := repositories.GetDB().Where("id = ?", a).Delete(&models.ReportTemplate{}).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	resetAuthzCaches()
-
-	ids, _, err := NewPermissionService(nil).VisibleTemplateIds(userId)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if slices.Contains(ids, b) {
-		utils.PrintTestError(t, ids, "restricted-then-emptied role sees nothing (fail closed)")
-	}
-}
-
 func TestAllowedActionsForTemplate_FullSetInOrder(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	resetAuthzCaches()
@@ -518,28 +344,6 @@ func TestAllowedActionsForTemplate_FullSetInOrder(t *testing.T) {
 	}
 	if !slices.Equal(actions, []string{"read", "generate", "update", "delete", "duplicate"}) {
 		utils.PrintTestError(t, actions, "all five actions in reportScopableActions order")
-	}
-}
-
-func TestAllowedActionsForTemplate_MatrixNarrows(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetAuthzCaches()
-
-	userId := seedAppUser(t, "u", []string{
-		permissions.AppReportsRead, permissions.AppReportsGenerate, permissions.AppReportsUpdate,
-		permissions.AppReportsDelete, permissions.AppReportsDuplicate,
-	})
-	groupId, roleId := joinGroup(t, userId, "g", []string{permissions.GroupReportsRead})
-	templateId := seedTemplateInGroups(t, "A", []uint{groupId})
-	setMatrix(t, roleId, []commands.ReportTemplateGrantCommand{{ReportTemplateId: templateId, Permissions: []string{"read"}}})
-
-	actions, err := NewPermissionService(nil).AllowedActionsForTemplate(userId, templateId)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-		return
-	}
-	if !slices.Equal(actions, []string{"read"}) {
-		utils.PrintTestError(t, actions, "only read (matrix narrows despite holding every base perm)")
 	}
 }
 

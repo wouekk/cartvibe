@@ -12,7 +12,7 @@
 /**
  * All permission keys the API recognizes.
  */
-export type Permission = 'app.users.create' | 'app.users.read' | 'app.users.update' | 'app.users.delete' | 'app.categories.create' | 'app.categories.read' | 'app.categories.update' | 'app.categories.delete' | 'app.tags.create' | 'app.tags.read' | 'app.tags.update' | 'app.tags.delete' | 'app.system-settings.read' | 'app.system-settings.update' | 'app.receipt-processing-settings.create' | 'app.receipt-processing-settings.read' | 'app.receipt-processing-settings.update' | 'app.receipt-processing-settings.delete' | 'app.system-tasks.read' | 'app.backup.export' | 'app.backup.import' | 'app.groups.create' | 'app.groups.read' | 'app.groups.update' | 'app.groups.delete' | 'app.oidc-providers.create' | 'app.oidc-providers.read' | 'app.oidc-providers.update' | 'app.oidc-providers.delete' | 'app.roles.create' | 'app.roles.read' | 'app.roles.update' | 'app.roles.delete' | 'app.notifications.read' | 'app.notifications.delete' | 'app.user-preferences.read' | 'app.user-preferences.update' | 'app.account.read' | 'app.account.update' | 'app.account.delete' | 'app.receipts.search' | 'app.reports.create' | 'app.reports.delete' | 'app.reports.duplicate' | 'app.reports.generate' | 'app.reports.read' | 'app.reports.update' | 'app.reports.readAll' | 'app.reports.createAll' | 'app.reports.updateAll' | 'app.reports.deleteAll' | 'app.reports.duplicateAll' | 'app.reports.generateAll' | 'group.view' | 'group.update' | 'group.delete' | 'group.members.create' | 'group.members.update' | 'group.members.delete' | 'group.members.grants.update' | 'group.receipts.create' | 'group.receipts.read' | 'group.receipts.update' | 'group.receipts.delete' | 'group.receipts.duplicate' | 'group.receipts.magic-fill' | 'group.receipts.quick-scan' | 'group.comments.create' | 'group.comments.delete' | 'group.reports.read' | 'group.activities.read' | 'group.activities.rerun' | 'group.shopping-lists.create' | 'group.shopping-lists.read' | 'group.shopping-lists.update' | 'group.shopping-lists.delete';
+export type Permission = 'app.users.create' | 'app.users.read' | 'app.users.update' | 'app.users.delete' | 'app.categories.create' | 'app.categories.read' | 'app.categories.update' | 'app.categories.delete' | 'app.tags.create' | 'app.tags.read' | 'app.tags.update' | 'app.tags.delete' | 'app.system-settings.read' | 'app.system-settings.update' | 'app.receipt-processing-settings.create' | 'app.receipt-processing-settings.read' | 'app.receipt-processing-settings.update' | 'app.receipt-processing-settings.delete' | 'app.system-tasks.read' | 'app.backup.export' | 'app.backup.import' | 'app.groups.create' | 'app.groups.read' | 'app.groups.update' | 'app.groups.delete' | 'app.oidc-providers.create' | 'app.oidc-providers.read' | 'app.oidc-providers.update' | 'app.oidc-providers.delete' | 'app.roles.read' | 'app.notifications.read' | 'app.notifications.delete' | 'app.user-preferences.read' | 'app.user-preferences.update' | 'app.account.read' | 'app.account.update' | 'app.account.delete' | 'app.receipts.search' | 'app.reports.create' | 'app.reports.delete' | 'app.reports.duplicate' | 'app.reports.generate' | 'app.reports.read' | 'app.reports.update' | 'app.reports.readAll' | 'app.reports.createAll' | 'app.reports.updateAll' | 'app.reports.deleteAll' | 'app.reports.duplicateAll' | 'app.reports.generateAll' | 'group.view' | 'group.update' | 'group.delete' | 'group.members.create' | 'group.members.update' | 'group.members.delete' | 'group.receipts.create' | 'group.receipts.read' | 'group.receipts.update' | 'group.receipts.delete' | 'group.receipts.duplicate' | 'group.receipts.magic-fill' | 'group.receipts.quick-scan' | 'group.comments.create' | 'group.comments.delete' | 'group.reports.read' | 'group.activities.read' | 'group.activities.rerun' | 'group.shopping-lists.create' | 'group.shopping-lists.read' | 'group.shopping-lists.update' | 'group.shopping-lists.delete';
 
 export const Permission = {
     AppUsersCreate: 'app.users.create' as Permission,
@@ -44,10 +44,7 @@ export const Permission = {
     AppOidcProvidersRead: 'app.oidc-providers.read' as Permission,
     AppOidcProvidersUpdate: 'app.oidc-providers.update' as Permission,
     AppOidcProvidersDelete: 'app.oidc-providers.delete' as Permission,
-    AppRolesCreate: 'app.roles.create' as Permission,
     AppRolesRead: 'app.roles.read' as Permission,
-    AppRolesUpdate: 'app.roles.update' as Permission,
-    AppRolesDelete: 'app.roles.delete' as Permission,
     AppNotificationsRead: 'app.notifications.read' as Permission,
     AppNotificationsDelete: 'app.notifications.delete' as Permission,
     AppUserPreferencesRead: 'app.user-preferences.read' as Permission,
@@ -74,7 +71,6 @@ export const Permission = {
     GroupMembersCreate: 'group.members.create' as Permission,
     GroupMembersUpdate: 'group.members.update' as Permission,
     GroupMembersDelete: 'group.members.delete' as Permission,
-    GroupMembersGrantsUpdate: 'group.members.grants.update' as Permission,
     GroupReceiptsCreate: 'group.receipts.create' as Permission,
     GroupReceiptsRead: 'group.receipts.read' as Permission,
     GroupReceiptsUpdate: 'group.receipts.update' as Permission,

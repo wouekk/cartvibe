@@ -102,8 +102,7 @@ func writeAvatarResponse(w http.ResponseWriter, savedAt *time.Time) (int, error)
 	return 0, nil
 }
 
-// GetUserAvatar serves a person's avatar photo to a signed-in viewer allowed to see that person. No photo, and a
-// person the viewer may not see, are both a 404.
+// GetUserAvatar serves a person's avatar photo to any signed-in viewer. No photo is a 404.
 func GetUserAvatar(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error getting the avatar.",
@@ -117,8 +116,7 @@ func GetUserAvatar(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			token := structs.GetClaims(r)
-			data, contentType, err := services.ReadUserAvatar(token.UserId, userId)
+			data, contentType, err := services.ReadUserAvatar(userId)
 			if errors.Is(err, services.ErrAvatarNotFound) {
 				w.WriteHeader(http.StatusNotFound)
 				return 0, nil

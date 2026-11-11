@@ -435,74 +435,20 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	groupPermissions := make(map[uint][]string, len(groups))
 	groupCategories := make(map[uint][]models.Category, len(groups))
 	groupTags := make(map[uint][]models.Tag, len(groups))
-	// The synthetic "All" group is a real membership where the caller holds an
-	// unrestricted role, so resolving its catalog directly would return the whole
-	// global pool and leak category/tag names the caller cannot see in any real
-	// group. Instead its catalog is the UNION of the caller's per-real-group
-	// visible sets, computed after the loop.
-	var allGroupIds []uint
-	unionCategoryIds := map[uint]struct{}{}
-	unionTagIds := map[uint]struct{}{}
+	// Categories and tags are the household's shared pool: every household a person is in sees all of them (the
+	// per-role and per-member grants that used to narrow a household's catalog went with fixed roles).
 	for _, group := range groups {
 		perms, err := permissionService.GetGroupPermissionsForUser(userId, group.ID)
 		if err != nil {
 			return appData, err
 		}
 		groupPermissions[group.ID] = perms
-
-		if group.IsAllGroup {
-			allGroupIds = append(allGroupIds, group.ID)
-			continue
-		}
-
-		// Per-group category/tag catalog filtered to the caller's grants
-		// (full pool when unrestricted). This is how non-admins receive
-		// categories/tags now that the flat lists are admin-only.
-		visibleCategories, err := permissionService.GetVisibleCategoriesForUser(userId, group.ID, categories)
-		if err != nil {
-			return appData, err
-		}
-		groupCategories[group.ID] = visibleCategories
-		for _, category := range visibleCategories {
-			unionCategoryIds[category.ID] = struct{}{}
-		}
-
-		visibleTags, err := permissionService.GetVisibleTagsForUser(userId, group.ID, tags)
-		if err != nil {
-			return appData, err
-		}
-		groupTags[group.ID] = visibleTags
-		for _, tag := range visibleTags {
-			unionTagIds[tag.ID] = struct{}{}
-		}
+		groupCategories[group.ID] = categories
+		groupTags[group.ID] = tags
 	}
 
-	// Materialize the All-group catalog from the union, preserving the global
-	// ordering of categories/tags (which still hold the full pool here; the flat
-	// lists are truncated for non-admins below).
-	if len(allGroupIds) > 0 {
-		unionCategories := make([]models.Category, 0, len(unionCategoryIds))
-		for _, category := range categories {
-			if _, ok := unionCategoryIds[category.ID]; ok {
-				unionCategories = append(unionCategories, category)
-			}
-		}
-		unionTags := make([]models.Tag, 0, len(unionTagIds))
-		for _, tag := range tags {
-			if _, ok := unionTagIds[tag.ID]; ok {
-				unionTags = append(unionTags, tag)
-			}
-		}
-		for _, allGroupId := range allGroupIds {
-			groupCategories[allGroupId] = unionCategories
-			groupTags[allGroupId] = unionTags
-		}
-	}
-
-	// The flat global category/tag lists are only for callers who may read the
-	// whole pool (app.categories.read / app.tags.read — admins, the category/tag
-	// management pages, the role editor). Everyone else receives an empty list
-	// and uses the per-group filtered catalogs above.
+	// The flat lists are for whoever may read the catalog pages (app.categories.read / app.tags.read, which both
+	// fixed roles hold); without that permission a caller gets them only through the households above.
 	canReadAllCategories, err := permissionService.HasAppPermissions(userId, permissions.AppCategoriesRead)
 	if err != nil {
 		return appData, err
@@ -518,34 +464,6 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	if !canReadAllTags {
 		tags = []models.Tag{}
 	}
-
-	// Resolved from the loop's permissions and the groups' preloaded receipt
-	// settings, so it costs one query regardless of group count. Must run before
-	// the isolation filter below, which only trims members.
-	groupReceiptRequirements, err := NewReceiptService(nil).ResolveReceiptRequirementsForGroups(userId, groups, groupPermissions)
-	if err != nil {
-		return appData, err
-	}
-
-	// Member-presence isolation: an isolated member receives only the users and
-	// co-members they are allowed to see (no-op for unrestricted viewers). Applied
-	// at this serialization boundary, NOT inside GetGroupsForUser / GetAllUserViews,
-	// because those feed internal accounting/processing that needs the full roster.
-	users, err = permissionService.FilterVisibleUserViews(userId, users)
-	if err != nil {
-		return appData, err
-	}
-	if err := permissionService.FilterGroupMembersForGroups(userId, groups); err != nil {
-		return appData, err
-	}
-
-	// Attach each surviving member's per-member category/tag grants. Loaded after
-	// the isolation filter so grants are never fetched for a member the caller
-	// cannot see. The fields are `gorm:"-"`, so nothing loads them implicitly.
-	if err := repositories.NewGroupMemberRepository(nil).LoadMemberGrantsForGroups(groups); err != nil {
-		return appData, err
-	}
-
 
 	appData.About = about
 	appData.Groups = groups
@@ -566,7 +484,6 @@ func GetAppData(userId uint, r *http.Request) (structs.AppData, error) {
 	appData.Icons = structs.Icons
 	appData.AppPermissions = appPermissions
 	appData.GroupPermissions = groupPermissions
-	appData.GroupReceiptRequirements = groupReceiptRequirements
 
 	if r != nil {
 		claims := structs.GetClaims(r)

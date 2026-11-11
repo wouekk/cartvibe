@@ -1,4 +1,4 @@
-import { Category, Claims, Icon, ReceiptRequirements, Tag } from "../open-api";
+import { Category, Claims, Icon, Tag } from "../open-api";
 import { UserPreferences } from "../open-api/model/userPreferences";
 
 export class SetAuthState {
@@ -24,10 +24,7 @@ export class SetPermissions {
 
   constructor(
     public appPermissions: string[],
-    public groupPermissions: { [groupId: number]: string[] },
-    // Delivered on AppData beside the permissions it depends on; absent = nothing
-    // required anywhere.
-    public groupReceiptRequirements: { [groupId: number]: ReceiptRequirements } = {}
+    public groupPermissions: { [groupId: number]: string[] }
   ) {}
 }
 

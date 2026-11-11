@@ -749,7 +749,7 @@ export class UserService {
 
     /**
      * Get a person\&#39;s avatar photo
-     * Serves a person\&#39;s avatar photo (JPEG, PNG, WebP or GIF) to a signed-in viewer allowed to see that person. A person without a photo, and one hidden from the viewer by member isolation, both answer 404. The web app adds ?v&#x3D;&lt;avatarUpdatedAt&gt; so a new photo is a new address.
+     * Serves a person\&#39;s avatar photo (JPEG, PNG, WebP or GIF) to any signed-in viewer. A person without a photo answers 404. The web app adds ?v&#x3D;&lt;avatarUpdatedAt&gt; so a new photo is a new address.
      * @param id Id of the person
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.

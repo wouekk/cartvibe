@@ -483,7 +483,6 @@ func seedReportUserInGroups(t *testing.T, username string, groupNames ...string)
 	role, err := roleRepository.CreateGroupRole(
 		"Report Role "+username, "",
 		[]string{permissions.GroupReportsRead, permissions.GroupReceiptsRead},
-		nil, nil, nil, false, false,
 	)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
@@ -533,7 +532,6 @@ func aggregateReportCommand(name string, groupIds []uint, formats []string) comm
 
 func TestReportService_Generate_MultiGroupCsv(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))
@@ -563,7 +561,6 @@ func TestReportService_Generate_MultiGroupCsv(t *testing.T) {
 
 func TestReportService_Generate_MultiFormatZips(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))
@@ -600,7 +597,6 @@ func TestReportService_Generate_MultiFormatZips(t *testing.T) {
 
 func TestReportService_Generate_InvalidSpecIsClientError(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-gen-bad", "Household")
@@ -624,7 +620,6 @@ func TestReportService_Generate_InvalidSpecIsClientError(t *testing.T) {
 // opaque, so this asserts the path runs and produces a document, not its text.
 func TestReportService_Generate_PdfDocument(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))
@@ -655,7 +650,6 @@ func TestReportService_Generate_PdfDocument(t *testing.T) {
 
 func TestReportService_Preview_RendersHtmlWithReceiptCount(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))
@@ -690,7 +684,6 @@ func TestReportService_Preview_RendersHtmlWithReceiptCount(t *testing.T) {
 // buildModel loads System Settings and the rendered preview HTML reflects it.
 func TestReportService_Preview_AppliesCustomCurrencyFormat(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))
@@ -726,7 +719,6 @@ func TestReportService_Preview_AppliesCustomCurrencyFormat(t *testing.T) {
 
 func TestReportService_Preview_InvalidSpecIsClientError(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "rpt-preview-bad", "Household")
@@ -747,7 +739,6 @@ func TestReportService_Preview_InvalidSpecIsClientError(t *testing.T) {
 // preview renders only a sample.
 func TestReportService_BuildModel_CapsRowsButReportsTrueCount(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	category := loadCategory(t, makeCategory(t, "Groceries"))

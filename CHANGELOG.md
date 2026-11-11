@@ -25,6 +25,13 @@ they are there, your folders refuse the container's own user, and this version w
 you want: set `PUID` and `PGID` to the user who owns the folders (the README's Synology steps show how), or add
 `ALLOW_ROOT=1` to keep running as root. If the words are not there, nothing changes for you.
 
+**Roles become two, and that cannot be taken back.** At its first start this version puts everyone on one of two
+roles, Admin or User, and in each household on Admin or User there too (see *Changed*). If you only ever used those
+two, nothing changes for you. If you had made roles of your own through the API, or limited someone to certain
+categories, tags or payers, those limits are gone after the update: everyone in a household sees all of it. Going
+back means restoring the copy of the database the server makes before it updates (`sqlite/backups`, a file named
+`app-upgrade-…`) and running the older version.
+
 Nothing else is needed by hand. The server copies its database before this version changes anything (see *Added*).
 Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed that setting),
 and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the server finish what
@@ -67,6 +74,13 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **Two roles, and a household that shares everything.** There is Admin and there is User, in the app and inside a
+  household, and nothing else: an Admin manages people, households, settings and reports; a User adds and changes
+  receipts, lists, categories and tags. Everyone in a household sees every receipt in it, whoever added it, with
+  all its categories, tags and comments. A new account is a User; whoever creates a household is its Admin. People
+  who were on an older role are moved: someone who could manage people becomes an Admin, everyone else a User; in
+  a household, someone who could change it or its members becomes its Admin, everyone else a User there
+  *(HH-09, ADM-01)*.
 - **Receipt photos open faster and are kept by the browser.** A photo used to travel as text inside the page's
   data, a third larger than the file, on every visit, and a HEIC or PDF was converted each time. The server now
   keeps a ready copy and the browser keeps it too, so opening a receipt again shows its photo at once *(RCPT-02)*.
@@ -178,6 +192,15 @@ it is doing.
   *(NOTE-01)*.
 
 ### Removed
+- **Limits on what a household member sees.** Gone from the person and member dialogs: *Category & tag access*
+  (limiting someone to chosen categories and tags). Gone from a household's edit page: *Isolate members*. Gone
+  with them, for anyone who had set them up through the API: roles of your own, a role that showed only receipts
+  paid by certain people, a role limited to certain report templates, and a role that required a comment or a
+  photo on every receipt. A household that wants a comment on each Quick Scan still has that switch in its
+  receipt settings *(HH-09)*.
+- **The role addresses of the API.** `POST /api/role`, `PUT` and `DELETE /api/role/{id}`,
+  `PUT /api/role/{id}/default`, `PUT /api/group/{id}/member/{userId}/grants` and
+  `GET /api/report/template/options` no longer exist; `GET /api/role` still lists the roles.
 - **The worker settings.** System Settings → Tasks & Storage no longer has *Task Concurrency*, the queue priorities
   or *Restart Task Server*: scans are read one at a time and the rest runs on its own timers, so there was nothing
   left to tune or restart. The tab keeps how long a failed upload is kept *(ADM-04)*.

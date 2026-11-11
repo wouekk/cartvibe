@@ -115,7 +115,6 @@ model/receiptPagedRequestFilter.ts
 model/receiptProcessingSettings.ts
 model/receiptProduct.ts
 model/receiptProductsView.ts
-model/receiptRequirements.ts
 model/receiptSearchMatch.ts
 model/receiptStatus.ts
 model/recipePreview.ts
@@ -128,8 +127,6 @@ model/reportPeriod.ts
 model/reportPreviewResponse.ts
 model/reportRequestCommand.ts
 model/reportTemplate.ts
-model/reportTemplateGrant.ts
-model/reportTemplateOption.ts
 model/resetPasswordCommand.ts
 model/role.ts
 model/setFoodClassificationCommand.ts
@@ -159,7 +156,6 @@ model/tag.ts
 model/tagView.ts
 model/tokenPair.ts
 model/updateDashboardLayoutCommand.ts
-model/updateGroupMemberGrantsCommand.ts
 model/updateGroupReceiptSettingsCommand.ts
 model/updateProfileCommand.ts
 model/upsertCategoryCommand.ts
@@ -170,7 +166,6 @@ model/upsertOidcProviderCommand.ts
 model/upsertReceiptCommand.ts
 model/upsertReceiptProcessingSettingsCommand.ts
 model/upsertReceiptProductCommand.ts
-model/upsertRoleCommand.ts
 model/upsertShoppingListCommand.ts
 model/upsertShoppingListItemCommand.ts
 model/upsertSystemSettingsCommand.ts

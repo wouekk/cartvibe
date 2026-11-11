@@ -128,8 +128,7 @@ func (repository SystemTaskRepository) applyRanByFilter(query *gorm.DB, field co
 
 	switch {
 	case includeSystem && len(userIds) > 0:
-		// Parenthesized explicitly, like applyActivityVisibilityDisjunction below:
-		// GORM does wrap an OR condition when AND-ing it onto the query today, but
+		// Parenthesized explicitly: GORM does wrap an OR condition when AND-ing it onto the query today, but
 		// an unparenthesized disjunction would bind as
 		// `(other AND a IS NULL) OR a IN (...)` and silently drop the other filters
 		// from the second branch.
@@ -189,16 +188,8 @@ func floatToInt64(value float64) (int64, bool) {
 	return int64(value), true
 }
 
-// ActivityVisibilityResolver reports, for a group, the ran-by user ids the caller may
-// see under member isolation, or unrestricted == true (see every actor). It is the
-// activity analogue of PaidByAllowedResolver: it lets the handler inject the service-layer
-// per-group visible set without the repository importing services. A nil resolver skips
-// isolation filtering (backward compatible).
-type ActivityVisibilityResolver func(groupId uint) (visibleUserIds []uint, unrestricted bool, err error)
-
 func (repository SystemTaskRepository) GetPagedActivities(
 	command commands.PagedActivityRequestCommand,
-	resolver ActivityVisibilityResolver,
 ) (
 	[]structs.Activity,
 	int64,
@@ -227,14 +218,6 @@ func (repository SystemTaskRepository) GetPagedActivities(
 		Where("group_id IN ?", command.GroupIds).
 		Not(db.Where("type = ? AND ran_by_user_id IS NULL", models.RECEIPT_UPLOADED))
 
-	// Member isolation: drop activities run by a user the caller may not see in that
-	// activity's group IN THE QUERY (before Count + pagination), so TotalCount and the
-	// returned page both reflect only visible rows and DB-side LIMIT/OFFSET is preserved.
-	query, err := repository.applyActivityVisibilityDisjunction(query, command.GroupIds, resolver)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	query.Count(&count)
 
 	query = repository.Sort(query, command.OrderBy, command.SortDirection)
@@ -243,53 +226,6 @@ func (repository SystemTaskRepository) GetPagedActivities(
 	query.Find(&results)
 
 	return results, count, nil
-}
-
-// applyActivityVisibilityDisjunction AND-s a per-group actor-visibility disjunction onto
-// the query, mirroring ReceiptRepository.ApplyPaidByDisjunction. A nil resolver adds no
-// predicate. For each group the caller sees every actor (unrestricted) the clause is just
-// group_id = G; otherwise it is group_id = G AND (ran_by_user_id IS NULL OR ran_by_user_id
-// IN <visible ids>) — so system actions (nil ran-by) stay visible and only visible
-// members' activities survive. Applied before Count so pagination stays consistent.
-func (repository SystemTaskRepository) applyActivityVisibilityDisjunction(
-	query *gorm.DB,
-	groupIds []uint,
-	resolver ActivityVisibilityResolver,
-) (*gorm.DB, error) {
-	if resolver == nil {
-		return query, nil
-	}
-	if len(groupIds) == 0 {
-		return query.Where("1 = 0"), nil
-	}
-
-	disjunction := repository.GetDB().Session(&gorm.Session{NewDB: true})
-	for _, groupId := range groupIds {
-		visibleIds, unrestricted, err := resolver(groupId)
-		if err != nil {
-			return nil, err
-		}
-		if unrestricted {
-			disjunction = disjunction.Or("group_id = ?", groupId)
-		} else {
-			groupCondition := repository.GetDB().Session(&gorm.Session{NewDB: true}).
-				Where("group_id = ?", groupId).
-				Where("(ran_by_user_id IS NULL OR ran_by_user_id IN ?)", activityInValues(visibleIds))
-			disjunction = disjunction.Or(groupCondition)
-		}
-	}
-
-	return query.Where(disjunction), nil
-}
-
-// activityInValues guards the IN clause against an empty visible set (a restricted set
-// always contains at least the caller's own id, but guard defensively): ran-by user ids
-// start at 1, so 0 matches no row, yielding "see nothing" rather than a malformed IN ().
-func activityInValues(visibleUserIds []uint) []uint {
-	if len(visibleUserIds) == 0 {
-		return []uint{0}
-	}
-	return visibleUserIds
 }
 
 func isColumnNameValid(columnName string) bool {

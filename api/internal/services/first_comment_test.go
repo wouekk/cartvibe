@@ -1,7 +1,6 @@
 package services
 
 import (
-	"slices"
 	"testing"
 	"time"
 
@@ -49,21 +48,21 @@ func firstCommentOf(receipt models.Receipt) string {
 	return *receipt.FirstComment
 }
 
-func TestLoadFirstVisibleComments_PicksTheEarliestComment(t *testing.T) {
+func TestLoadFirstComments_PicksTheEarliestComment(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
+	clearRolePermissionCacheAll()
 
-	fx := seedIsolatedReceiptGroup(t)
+	fx := seedHousehold(t)
 	service := NewPermissionService(nil)
 
-	commented := seedFirstCommentReceipt(t, fx.groupId, fx.supervisorId, "commented")
+	commented := seedFirstCommentReceipt(t, fx.groupId, fx.ownerId, "commented")
 	seedCommentAt(t, commented.ID, &fx.memberAId, "second", firstCommentTestTime.Add(time.Hour))
 	seedCommentAt(t, commented.ID, &fx.memberBId, "first", firstCommentTestTime)
-	bare := seedFirstCommentReceipt(t, fx.groupId, fx.supervisorId, "bare")
+	bare := seedFirstCommentReceipt(t, fx.groupId, fx.ownerId, "bare")
 
-	// The supervisor sees every member, so nothing is skipped.
+	// Whoever wrote it: the earliest comment is the first one.
 	receipts := []models.Receipt{commented, bare}
-	if err := service.LoadFirstVisibleComments(fx.supervisorId, receipts); err != nil {
+	if err := service.LoadFirstComments(receipts); err != nil {
 		t.Fatalf("load: %v", err)
 	}
 
@@ -75,74 +74,9 @@ func TestLoadFirstVisibleComments_PicksTheEarliestComment(t *testing.T) {
 	}
 }
 
-// An isolated member never sees a comment by a peer they cannot see — the list
-// falls through to the first comment they can, exactly as the sort does.
-func TestLoadFirstVisibleComments_SkipsAuthorsTheViewerCannotSee(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-
-	fx := seedIsolatedReceiptGroup(t)
+func TestLoadFirstComments_EmptyBatchIsANoop(t *testing.T) {
 	service := NewPermissionService(nil)
-
-	hiddenFirst := seedFirstCommentReceipt(t, fx.groupId, fx.memberAId, "hidden-first")
-	seedCommentAt(t, hiddenFirst.ID, &fx.memberBId, "from B", firstCommentTestTime)
-	seedCommentAt(t, hiddenFirst.ID, &fx.memberAId, "from A", firstCommentTestTime.Add(time.Hour))
-
-	onlyHidden := seedFirstCommentReceipt(t, fx.groupId, fx.memberAId, "only-hidden")
-	seedCommentAt(t, onlyHidden.ID, &fx.memberBId, "from B only", firstCommentTestTime)
-
-	authorless := seedFirstCommentReceipt(t, fx.groupId, fx.memberAId, "authorless")
-	seedCommentAt(t, authorless.ID, nil, "from the system", firstCommentTestTime)
-
-	supervised := seedFirstCommentReceipt(t, fx.groupId, fx.memberAId, "supervised")
-	seedCommentAt(t, supervised.ID, &fx.supervisorId, "from the supervisor", firstCommentTestTime)
-
-	receipts := []models.Receipt{hiddenFirst, onlyHidden, authorless, supervised}
-	if err := service.LoadFirstVisibleComments(fx.memberAId, receipts); err != nil {
-		t.Fatalf("load: %v", err)
-	}
-
-	want := []string{"from A", "<nil>", "from the system", "from the supervisor"}
-	for i, receipt := range receipts {
-		if got := firstCommentOf(receipt); got != want[i] {
-			t.Errorf("%s: expected %q, got %q", receipt.Name, want[i], got)
-		}
-	}
-}
-
-func TestLoadFirstVisibleComments_EmptyBatchIsANoop(t *testing.T) {
-	service := NewPermissionService(nil)
-	if err := service.LoadFirstVisibleComments(1, nil); err != nil {
+	if err := service.LoadFirstComments(nil); err != nil {
 		t.Fatalf("expected no error for an empty batch, got %v", err)
-	}
-}
-
-func TestCommentAuthorVisibilityResolver_RestrictsAnIsolatedMember(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	resetIsolationCaches()
-
-	fx := seedIsolatedReceiptGroup(t)
-	service := NewPermissionService(nil)
-
-	visible, unrestricted, err := service.CommentAuthorVisibilityResolver(fx.memberAId)(fx.groupId)
-	if err != nil {
-		t.Fatalf("resolve: %v", err)
-	}
-	if unrestricted {
-		t.Fatalf("expected an isolated member to be restricted")
-	}
-	if !slices.Contains(visible, fx.memberAId) || !slices.Contains(visible, fx.supervisorId) {
-		t.Errorf("expected self and the supervisor to be visible, got %v", visible)
-	}
-	if slices.Contains(visible, fx.memberBId) {
-		t.Errorf("expected the isolated peer to be hidden, got %v", visible)
-	}
-
-	_, unrestricted, err = service.CommentAuthorVisibilityResolver(fx.supervisorId)(fx.groupId)
-	if err != nil {
-		t.Fatalf("resolve: %v", err)
-	}
-	if !unrestricted {
-		t.Errorf("expected the supervisor to be unrestricted")
 	}
 }

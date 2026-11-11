@@ -25,7 +25,7 @@ func TestAuthorizeGroupMemberChanges(t *testing.T) {
 	}
 
 	mustRole := func(name string, perms []string) uint {
-		role, err := roleRepository.CreateGroupRole(name, "", perms, nil, nil, nil, false, false)
+		role, err := roleRepository.CreateGroupRole(name, "", perms)
 		if err != nil {
 			t.Fatalf("seed role %q: %v", name, err)
 		}

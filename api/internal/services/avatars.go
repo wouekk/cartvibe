@@ -96,21 +96,9 @@ func RemoveUserAvatarFile(userId uint) error {
 	return utils.RemoveDataPath(path)
 }
 
-// ReadUserAvatar returns a person's photo and its content type for a signed-in viewer. A person the viewer may not
-// see (member isolation) reads as having no photo, the same answer as someone without one, so nothing leaks.
-func ReadUserAvatar(viewerId uint, userId uint) ([]byte, string, error) {
-	if viewerId != userId {
-		visible, unrestricted, err := NewPermissionService(nil).GetVisibleUserIdsForUser(viewerId)
-		if err != nil {
-			return nil, "", err
-		}
-		if !unrestricted {
-			if _, ok := visible[userId]; !ok {
-				return nil, "", ErrAvatarNotFound
-			}
-		}
-	}
-
+// ReadUserAvatar returns a person's photo and its content type. Any signed-in person may see it: the people of an
+// install are one family, and everyone is in the user list the app loads.
+func ReadUserAvatar(userId uint) ([]byte, string, error) {
 	path, err := utils.BuildAvatarPathString(userId)
 	if err != nil {
 		return nil, "", err

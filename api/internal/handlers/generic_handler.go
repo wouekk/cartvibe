@@ -23,15 +23,12 @@ func HandleRequest(handler structs.Handler) {
 		handler.Writer.Header().Set("Content-Type", handler.ResponseType)
 	}
 
-	// Receipts resolved by id here also have their paid-by visibility checked once
-	// permissions pass, so a member cannot reach (read, edit, comment on, export, or
-	// download) a receipt hidden from them by their group role's paid-by filter.
-	var receiptsToCheck []models.Receipt
-
+	// A receipt named by id is judged in its own household: the group permissions
+	// the handler declares are checked there.
 	if len(handler.ReceiptId) > 0 {
 		var receipt models.Receipt
 		db := repositories.GetDB()
-		err := db.Model(models.Receipt{}).Where("id = ?", handler.ReceiptId).Select("group_id", "paid_by_user_id").First(&receipt).Error
+		err := db.Model(models.Receipt{}).Where("id = ?", handler.ReceiptId).Select("group_id").First(&receipt).Error
 		if err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
 			utils.WriteCustomErrorResponse(handler.Writer, unauthorizedEntityMessage, http.StatusForbidden)
@@ -39,13 +36,12 @@ func HandleRequest(handler structs.Handler) {
 		}
 
 		handler.GroupId = utils.UintToString(receipt.GroupId)
-		receiptsToCheck = append(receiptsToCheck, receipt)
 	}
 
 	if len(handler.ReceiptIds) > 0 {
 		var receipts []models.Receipt
 		db := repositories.GetDB()
-		err := db.Model(models.Receipt{}).Where("id IN (?)", handler.ReceiptIds).Select("group_id", "paid_by_user_id").Find(&receipts).Error
+		err := db.Model(models.Receipt{}).Where("id IN (?)", handler.ReceiptIds).Select("group_id").Find(&receipts).Error
 		if err != nil {
 			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
 			utils.WriteCustomErrorResponse(handler.Writer, unauthorizedEntityMessage, http.StatusForbidden)
@@ -55,14 +51,9 @@ func HandleRequest(handler structs.Handler) {
 		for _, receipt := range receipts {
 			handler.GroupIds = append(handler.GroupIds, utils.UintToString(receipt.GroupId))
 		}
-		receiptsToCheck = append(receiptsToCheck, receipts...)
 	}
 
 	if !enforcePermissions(handler) {
-		return
-	}
-
-	if !enforcePaidByVisibility(handler, receiptsToCheck) {
 		return
 	}
 
@@ -137,32 +128,6 @@ func enforcePermissions(handler structs.Handler) bool {
 				return denyUnauthorized(handler, err)
 			}
 		}
-	}
-
-	return true
-}
-
-// enforcePaidByVisibility denies (with 403) when any of the resolved receipts is
-// hidden from the caller by their group role's paid-by visibility filter. An
-// unrestricted caller, or a non-member (no group role), passes. This is the
-// single chokepoint for every receipt-by-id surface, since they all flow through
-// HandleRequest with ReceiptId/ReceiptIds set. FilterReceiptsByPaidBy resolves
-// each group's allowed set at most once, so a multi-id request costs O(distinct
-// groups) lookups rather than O(receipts); "any hidden" => fewer survive => deny.
-func enforcePaidByVisibility(handler structs.Handler, receipts []models.Receipt) bool {
-	if len(receipts) == 0 {
-		return true
-	}
-
-	token := structs.GetClaims(handler.Request)
-	permissionService := services.NewPermissionService(nil)
-
-	visible, err := permissionService.FilterReceiptsByPaidBy(token.UserId, receipts)
-	if err != nil {
-		return denyUnauthorized(handler, err)
-	}
-	if len(visible) != len(receipts) {
-		return denyUnauthorized(handler, nil)
 	}
 
 	return true

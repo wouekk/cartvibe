@@ -10,7 +10,6 @@ import (
 
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
-	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/reporting"
 	"cartvibe/api/internal/reporting/receiptsource"
 	"cartvibe/api/internal/repositories"
@@ -108,14 +107,13 @@ func boolValue(value bool) *bool { return &value }
 // categories and tags; the receipt's own (old schema) categories are not read.
 func TestReportDataService_RowsLabelWithTheLines(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")
 	fuel := makeCategory(t, "Fuel")
 	old := loadCategory(t, makeCategory(t, "Old"))
 	kids := makeTag(t, "Kids")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-label", nil, nil)
+	userId, groupId, _ := seedHouseholdMember(t, "lines-label")
 	receipt := createLineReceipt(t, "two", "100", userId, groupId,
 		testLine{amount: "60", categoryId: food, tagIds: []uint{kids}},
 		testLine{amount: "40", categoryId: fuel})
@@ -134,12 +132,11 @@ func TestReportDataService_RowsLabelWithTheLines(t *testing.T) {
 // leave over is the (None) row.
 func TestReportDataService_CutsByLineCategory(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")
 	fuel := makeCategory(t, "Fuel")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-cut", nil, nil)
+	userId, groupId, _ := seedHouseholdMember(t, "lines-cut")
 	createLineReceipt(t, "three", "100", userId, groupId,
 		testLine{amount: "30", categoryId: food},
 		testLine{amount: "10", categoryId: fuel},
@@ -160,11 +157,10 @@ func TestReportDataService_CutsByLineCategory(t *testing.T) {
 // A renamed category reports under its current name.
 func TestReportDataService_LineCategoryUsesTheCurrentName(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-rename", nil, nil)
+	userId, groupId, _ := seedHouseholdMember(t, "lines-rename")
 	createLineReceipt(t, "r", "10", userId, groupId, testLine{amount: "10", categoryId: food})
 	if err := repositories.GetDB().Model(&models.Category{}).Where("id = ?", food).Update("name", "Groceries").Error; err != nil {
 		t.Fatalf("rename: %v", err)
@@ -175,69 +171,6 @@ func TestReportDataService_LineCategoryUsesTheCurrentName(t *testing.T) {
 		t.Fatalf("Rows: %v", err)
 	}
 	assertSummary(t, rows, []string{"Groceries||10.00"})
-}
-
-// A line category the viewer may not see reads as (Restricted). The division is
-// by the lines, so a visible category's share is the same for every viewer and
-// (Restricted) receives exactly the hidden lines.
-func TestReportDataService_RestrictsHiddenLineCategories(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	visibleId := makeCategory(t, "Visible")
-	hiddenOne := makeCategory(t, "HiddenOne")
-	hiddenTwo := makeCategory(t, "HiddenTwo")
-	restrictedUser, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-restricted", []uint{visibleId}, nil)
-
-	unrestrictedRole, err := repositories.NewRoleRepository(nil).CreateGroupRole(
-		"Unrestricted lines role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false)
-	if err != nil {
-		t.Fatalf("seed role: %v", err)
-	}
-	unrestrictedUser := makeUser(t, "lines-unrestricted")
-	if err := repositories.GetDB().Create(&models.GroupMember{GroupID: groupId, UserID: unrestrictedUser, GroupRoleID: &unrestrictedRole.ID}).Error; err != nil {
-		t.Fatalf("seed member: %v", err)
-	}
-
-	createLineReceipt(t, "mixed", "60", restrictedUser, groupId,
-		testLine{amount: "10", categoryId: visibleId},
-		testLine{amount: "20", categoryId: hiddenOne},
-		testLine{amount: "30", categoryId: hiddenTwo})
-
-	dimensions := receiptsource.LineDimensions{Category: true}
-	restricted, err := NewReportDataService(nil).RowsWithLines(restrictedUser, groupIdString(groupId), commands.ReceiptPagedRequestFilter{}, dimensions)
-	if err != nil {
-		t.Fatalf("RowsWithLines (restricted): %v", err)
-	}
-	unrestricted, err := NewReportDataService(nil).RowsWithLines(unrestrictedUser, groupIdString(groupId), commands.ReceiptPagedRequestFilter{}, dimensions)
-	if err != nil {
-		t.Fatalf("RowsWithLines (unrestricted): %v", err)
-	}
-
-	assertSummary(t, restricted.Rows, []string{"Visible||10.00", "(Restricted)||50.00"})
-	assertSummary(t, unrestricted.Rows, []string{"Visible||10.00", "HiddenOne||20.00", "HiddenTwo||30.00"})
-}
-
-// A tag the viewer may not see reads as (Restricted) on the line too.
-func TestReportDataService_RestrictsHiddenLineTags(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
-	clearRolePermissionCacheAll()
-
-	alex := makeTag(t, "Alex")
-	sam := makeTag(t, "Sam")
-	userId, groupId, _ := seedMemberWithGroupRoleGrants(t, "lines-tags", nil, []uint{alex})
-	createLineReceipt(t, "r", "10", userId, groupId,
-		testLine{amount: "4", tagIds: []uint{alex}},
-		testLine{amount: "6", tagIds: []uint{sam}})
-
-	rowSet, err := NewReportDataService(nil).RowsWithLines(userId, groupIdString(groupId), commands.ReceiptPagedRequestFilter{},
-		receiptsource.LineDimensions{Tag: true})
-	if err != nil {
-		t.Fatalf("RowsWithLines: %v", err)
-	}
-	assertSummary(t, rowSet.Rows, []string{"|Alex|4.00", "|(Restricted)|6.00"})
 }
 
 // ---- lineDimensionsInUse / capRowsToReceipts --------------------------------
@@ -342,7 +275,6 @@ func bucketFigures(t *testing.T, rows []reporting.DetailRow, labelColumn string)
 // not rows.
 func TestReportService_BuildModel_CategoryBucketsFromLines(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")
@@ -376,7 +308,6 @@ func TestReportService_BuildModel_CategoryBucketsFromLines(t *testing.T) {
 // unhealthy lines cost.
 func TestReportService_BuildModel_GroupsByHealth(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	userId, groupIds := seedReportUserInGroups(t, "lines-health", "Household")
@@ -413,7 +344,6 @@ func TestReportService_BuildModel_GroupsByHealth(t *testing.T) {
 // part-way: all of its rows are in the one-receipt sample.
 func TestReportService_BuildModel_CapKeepsWholeReceipts(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")
@@ -444,7 +374,6 @@ func TestReportService_BuildModel_CapKeepsWholeReceipts(t *testing.T) {
 
 func TestReportService_Generate_LinesAcrossGroupsCsv(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	clearGroupRoleGrantCacheAll()
 	clearRolePermissionCacheAll()
 
 	food := makeCategory(t, "Food")

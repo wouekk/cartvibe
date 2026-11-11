@@ -1,27 +1,25 @@
 package repositories
 
 import (
-	"errors"
-	"fmt"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
+	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
-// SeedSystemRoles ensures the immutable system roles exist and carry their full
-// permission sets: the five legacy-equivalent roles, which reproduce the legacy
-// UserRole/GroupRole capabilities exactly so that upgrading installs see no
-// behavior change, and the two family roles (Phase 3 M4).
+// SeedSystemRoles writes the four fixed roles: Admin and User in the app, Owner
+// and Member in a household. The code is the source of truth for what each may
+// do: a role that is missing is created, and an existing one is brought to
+// exactly its list (a key it lacks is added, a key that left the list or the
+// registry is removed). That is how a permission added to the registry reaches
+// every admin, and one added to the User or Member list reaches every person,
+// at the next start.
 //
-// It is idempotent and self-reconciling: keyed on the role Name (a uniqueIndex
-// on both AppRole and GroupRoleDefinition), a missing role is created and an
-// existing one has any permissions it lacks added — add-only, so a permission
-// already on the role is never removed. This is what lets a permission added to
-// the registry later flow into an already-seeded Legacy Admin / Legacy Owner on
-// the next boot. It is safe to run on every startup, and a partially-seeded or
-// partially-reconciled database self-heals on the next boot. The roles are
-// seeded only — they are not assigned to any user or group member here.
+// Rows are keyed on the role Name (a uniqueIndex on both tables), so the ids
+// people are assigned by never change. It runs on every start and is safe to
+// run twice. It assigns nobody a role.
 func SeedSystemRoles() error {
 	db := GetDB()
 
@@ -30,9 +28,8 @@ func SeedSystemRoles() error {
 		description string
 		permissions []string
 	}{
-		{LegacyAdminRoleName, "Legacy administrator equivalent: full application access.", permissions.LegacyAppAdminKeys()},
-		{LegacyUserRoleName, "Legacy standard user equivalent.", permissions.LegacyAppUserKeys()},
-		{FamilyUserRoleName, "Household member: lists, receipts, categories, tags and reports.", permissions.FamilyUserAppKeys()},
+		{LegacyAdminRoleName, "Admin: everything in the app, including people, system settings and reports.", permissions.LegacyAppAdminKeys()},
+		{FamilyUserRoleName, "User: their own account, the shared categories and tags, and the AI page.", permissions.FamilyUserAppKeys()},
 	}
 	for _, role := range appRoles {
 		if err := seedAppRole(db, role.name, role.description, role.permissions); err != nil {
@@ -45,10 +42,8 @@ func SeedSystemRoles() error {
 		description string
 		permissions []string
 	}{
-		{LegacyViewerRoleName, "Legacy group viewer equivalent.", permissions.LegacyGroupViewerKeys()},
-		{LegacyEditorRoleName, "Legacy group editor equivalent.", permissions.LegacyGroupEditorKeys()},
-		{LegacyOwnerRoleName, "Legacy group owner equivalent: full group access.", permissions.LegacyGroupOwnerKeys()},
-		{FamilyMemberRoleName, "Household member: everything with receipts and shopping lists, but not the group's settings or members.", permissions.FamilyMemberGroupKeys()},
+		{LegacyOwnerRoleName, "Owner: everything in the household, including its settings, members and reports.", permissions.LegacyGroupOwnerKeys()},
+		{FamilyMemberRoleName, "Member: everything with receipts and shopping lists, but not the household's settings, members or reports.", permissions.FamilyMemberGroupKeys()},
 	}
 	for _, role := range groupRoles {
 		if err := seedGroupRole(db, role.name, role.description, role.permissions); err != nil {
@@ -60,8 +55,7 @@ func SeedSystemRoles() error {
 }
 
 // seedAppRole creates a system app role with the given permissions when no app
-// role with that name exists, or reconciles an existing one by adding any
-// permissions it is missing (add-only).
+// role with that name exists, or brings an existing one to exactly that list.
 func seedAppRole(db *gorm.DB, name string, description string, perms []string) error {
 	var existing models.AppRole
 	err := db.Preload("Permissions").Where("name = ?", name).First(&existing).Error
@@ -75,6 +69,13 @@ func seedAppRole(db *gorm.DB, name string, description string, perms []string) e
 	have := make([]string, 0, len(existing.Permissions))
 	for _, permission := range existing.Permissions {
 		have = append(have, permission.Permission)
+	}
+
+	if extra := missingPermissions(perms, have); len(extra) > 0 {
+		err = db.Where("app_role_id = ? AND permission IN ?", existing.ID, extra).Delete(&models.AppRolePermission{}).Error
+		if err != nil {
+			return err
+		}
 	}
 
 	missing := missingPermissions(have, perms)
@@ -108,8 +109,7 @@ func createAppRole(db *gorm.DB, name string, description string, perms []string)
 }
 
 // seedGroupRole creates a system group role with the given permissions when no
-// group role with that name exists, or reconciles an existing one by adding any
-// permissions it is missing (add-only).
+// group role with that name exists, or brings an existing one to exactly that list.
 func seedGroupRole(db *gorm.DB, name string, description string, perms []string) error {
 	var existing models.GroupRoleDefinition
 	err := db.Preload("Permissions").Where("name = ?", name).First(&existing).Error
@@ -123,6 +123,13 @@ func seedGroupRole(db *gorm.DB, name string, description string, perms []string)
 	have := make([]string, 0, len(existing.Permissions))
 	for _, permission := range existing.Permissions {
 		have = append(have, permission.Permission)
+	}
+
+	if extra := missingPermissions(perms, have); len(extra) > 0 {
+		err = db.Where("group_role_id = ? AND permission IN ?", existing.ID, extra).Delete(&models.GroupRolePermission{}).Error
+		if err != nil {
+			return err
+		}
 	}
 
 	missing := missingPermissions(have, perms)
@@ -156,9 +163,9 @@ func createGroupRole(db *gorm.DB, name string, description string, perms []strin
 	return db.Create(&role).Error
 }
 
-// missingPermissions returns the desired permissions not already present in
-// have, de-duplicated and in desired's order. Reconciliation is add-only: a
-// permission in have but absent from desired is left untouched, never removed.
+// missingPermissions returns the desired permissions not present in have,
+// de-duplicated and in desired's order. Called both ways round: (have, list)
+// gives what to add, (list, have) gives what to remove.
 func missingPermissions(have []string, desired []string) []string {
 	present := make(map[string]struct{}, len(have))
 	for _, permission := range have {
@@ -177,68 +184,36 @@ func missingPermissions(have []string, desired []string) []string {
 	return missing
 }
 
-// EnsureDefaultRoles guarantees that exactly one app role and one group role are
-// flagged as the default — the role newly-created accounts (app) and group
-// creators (group) are assigned. It is the single source of truth for "the
-// default role": the legacy-equivalent roles (Legacy User / Legacy Owner) are
-// the seeded defaults so upgrading installs behave exactly as before.
-//
-// It only acts when a scope has no default yet, so it is idempotent and never
-// overrides a default an administrator has set through the UI. Run on every boot
-// after SeedSystemRoles (a fresh database self-heals on the next boot, and an
-// existing dev database that predates the IsDefault column gets backfilled).
+// EnsureDefaultRoles marks the role a new account gets (User) and the role the
+// person who creates a household gets (Owner), and no other. The roles are
+// fixed, so nobody can pick another default; an install from before fixed roles
+// had Legacy User as its app default, and this is what moves it. Run on every
+// start after SeedSystemRoles.
 func EnsureDefaultRoles() error {
-	db := GetDB()
-
-	if err := ensureDefaultAppRole(db); err != nil {
-		return err
-	}
-
-	return ensureDefaultGroupRole(db)
+	return setDefaultRoles(GetDB())
 }
 
-// ensureDefaultAppRole sets the Legacy User role as the default app role when no
-// app role is currently flagged default.
-func ensureDefaultAppRole(db *gorm.DB) error {
-	var count int64
-	if err := db.Model(&models.AppRole{}).Where("is_default = ?", true).Count(&count).Error; err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
-
-	result := db.Model(&models.AppRole{}).
-		Where("name = ?", LegacyUserRoleName).
-		Update("is_default", true)
+// setDefaultRoles is EnsureDefaultRoles on the given connection, so the
+// fixed-roles data migration can run it inside its own transaction.
+func setDefaultRoles(db *gorm.DB) error {
+	result := db.Model(&models.AppRole{}).Where("name = ?", FamilyUserRoleName).Update("is_default", true)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("legacy app role %q not found; cannot set default", LegacyUserRoleName)
+		return fmt.Errorf("app role %q not found; cannot set default", FamilyUserRoleName)
 	}
-	return nil
-}
-
-// ensureDefaultGroupRole sets the Legacy Owner role as the default group role
-// when no group role is currently flagged default.
-func ensureDefaultGroupRole(db *gorm.DB) error {
-	var count int64
-	if err := db.Model(&models.GroupRoleDefinition{}).Where("is_default = ?", true).Count(&count).Error; err != nil {
+	err := db.Model(&models.AppRole{}).Where("name <> ? AND is_default = ?", FamilyUserRoleName, true).Update("is_default", false).Error
+	if err != nil {
 		return err
 	}
-	if count > 0 {
-		return nil
-	}
 
-	result := db.Model(&models.GroupRoleDefinition{}).
-		Where("name = ?", LegacyOwnerRoleName).
-		Update("is_default", true)
+	result = db.Model(&models.GroupRoleDefinition{}).Where("name = ?", LegacyOwnerRoleName).Update("is_default", true)
 	if result.Error != nil {
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		return fmt.Errorf("legacy group role %q not found; cannot set default", LegacyOwnerRoleName)
+		return fmt.Errorf("group role %q not found; cannot set default", LegacyOwnerRoleName)
 	}
-	return nil
+	return db.Model(&models.GroupRoleDefinition{}).Where("name <> ? AND is_default = ?", LegacyOwnerRoleName, true).Update("is_default", false).Error
 }

@@ -1024,7 +1024,7 @@ describe("ReceiptFormComponent", () => {
     });
   });
 
-  describe("role-required receipt fields", () => {
+  describe("creating with files and comments", () => {
     let store: Store;
     let receiptService: ReceiptService;
     let receiptImageService: ReceiptImageService;
@@ -1078,8 +1078,7 @@ describe("ReceiptFormComponent", () => {
           {
             7: [Permission.GroupReceiptsCreate, Permission.GroupReceiptsUpdate],
             8: [Permission.GroupReceiptsCreate, Permission.GroupReceiptsUpdate],
-          },
-          { 7: { commentRequired: true, imageRequired: true } }
+          }
         )
       );
 
@@ -1098,10 +1097,6 @@ describe("ReceiptFormComponent", () => {
     const openAddForm = (): void => {
       store.dispatch(new SetSelectedGroupId("7"));
       routeDataSubject.next({ mode: FormMode.add });
-    };
-
-    const openEditForm = (receipt: any): void => {
-      routeDataSubject.next({ mode: FormMode.edit, receipt });
     };
 
     it("creates with exactly one request carrying the files and comments", () => {
@@ -1135,8 +1130,8 @@ describe("ReceiptFormComponent", () => {
       httpMock.verify();
     });
 
-    it("still creates in one request when the group requires nothing", () => {
-      store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }, {}));
+    it("creates in one request without files or comments", () => {
+      store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }));
       const createSpy = vi
         .spyOn(receiptService, "createReceiptWithFiles")
         .mockReturnValue(of(new HttpResponse({ body: { id: 5 } })) as any);
@@ -1152,106 +1147,6 @@ describe("ReceiptFormComponent", () => {
         true
       );
     });
-
-    it("blocks an add-mode submit without the required image", () => {
-      const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
-      openAddForm();
-      fillValidForm();
-      queueComment("Has a comment");
-
-      component.submit();
-
-      expect(component.isImageMissing()).toBe(true);
-      expect(component.isCommentMissing()).toBe(false);
-      expect(snackbarError).toHaveBeenCalledWith(
-        "Your role requires an image on this group's receipts."
-      );
-      expect(createSpy).not.toHaveBeenCalled();
-    });
-
-    it("blocks an add-mode submit without the required comment", () => {
-      const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
-      openAddForm();
-      fillValidForm();
-      component.filesToUpload.set([{ file: pngFile("a.png"), receiptId: 0 }]);
-
-      component.submit();
-
-      expect(snackbarError).toHaveBeenCalledWith(
-        "Your role requires a comment on this group's receipts."
-      );
-      expect(createSpy).not.toHaveBeenCalled();
-    });
-
-    it("renders the inline hints while the required fields are missing", () => {
-      openAddForm();
-      fillValidForm();
-      fixture.detectChanges();
-
-      const el: HTMLElement = fixture.nativeElement;
-      expect(el.querySelector('[data-testid="receipt-image-required-hint"]')).toBeTruthy();
-      expect(el.querySelector('[data-testid="receipt-comment-required-hint"]')).toBeTruthy();
-    });
-
-    it("re-evaluates the requirements when the group changes", () => {
-      openAddForm();
-      fillValidForm();
-      expect(component.isImageMissing()).toBe(true);
-
-      component.form.get("groupId")?.setValue(8);
-
-      expect(component.receiptRequirements()).toEqual({
-        commentRequired: false,
-        imageRequired: false,
-      });
-      expect(component.isImageMissing()).toBe(false);
-      expect(component.isCommentMissing()).toBe(false);
-    });
-
-    it("checks the saved images and comments in edit mode", () => {
-      const updateSpy = vi.spyOn(receiptService, "updateReceipt");
-      openEditForm({ id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7 });
-      component.images.set([]);
-
-      component.submit();
-
-      expect(snackbarError).toHaveBeenCalledWith(
-        "Your role requires an image and a comment on this group's receipts."
-      );
-      expect(updateSpy).not.toHaveBeenCalled();
-    });
-
-    it("locks removing the last image in edit mode when an image is required", () => {
-      const deleteSpy = vi.spyOn(receiptImageService, "deleteReceiptImageById");
-      openEditForm({ id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7 });
-      component.images.set([{ id: 11 } as any]);
-
-      expect(component.isLastImageLocked()).toBe(true);
-      component.removeImage();
-      expect(deleteSpy).not.toHaveBeenCalled();
-
-      component.images.set([{ id: 11 } as any, { id: 12 } as any]);
-      expect(component.isLastImageLocked()).toBe(false);
-    });
-
-    it("limits comment deletion only in edit mode when a comment is required", () => {
-      openEditForm({ id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7 });
-      expect(component.isCommentDeletionLimited()).toBe(true);
-
-      component.form.get("groupId")?.setValue(8);
-      expect(component.isCommentDeletionLimited()).toBe(false);
-    });
-
-    it("requires nothing in view mode", () => {
-      routeDataSubject.next({
-        mode: FormMode.view,
-        receipt: { id: 3, name: "R", amount: "1.00", groupId: 7 },
-      });
-
-      expect(component.isImageMissing()).toBe(false);
-      expect(component.isCommentMissing()).toBe(false);
-      expect(component.isLastImageLocked()).toBe(false);
-    });
   });
 
   // A receipt's date and DATE custom fields are calendar days: stored as
@@ -1263,9 +1158,8 @@ describe("ReceiptFormComponent", () => {
     beforeEach(() => {
       receiptService = TestBed.inject(ReceiptService);
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-      // The store persists across this file; clear any role requirement an
-      // earlier describe left on group 7 so submit reaches the request.
-      TestBed.inject(Store).dispatch(new SetPermissions([], {}, {}));
+      // The store persists across this file; start from no permissions.
+      TestBed.inject(Store).dispatch(new SetPermissions([], {}));
       Object.defineProperty(component, "shareListComponent", {
         value: () => ({ userExpansionPanels: () => [] }),
       });

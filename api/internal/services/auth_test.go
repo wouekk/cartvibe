@@ -183,7 +183,7 @@ func TestShouldLogInUserCorrectly(t *testing.T) {
 	// (the modern replacement for the removed UserRole == ADMIN check), so the
 	// user must hold an admin role for the firstAdminToLogin path to be exercised.
 	roleRepository := repositories.NewRoleRepository(nil)
-	adminRole, err := roleRepository.CreateAppRole("Login Admin Role", "", []string{permissions.AppUsersRead}, false)
+	adminRole, err := roleRepository.CreateAppRole("Login Admin Role", "", []string{permissions.AppUsersRead})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -512,70 +512,6 @@ func TestGetAppData_PopulatesFields(t *testing.T) {
 	}
 }
 
-// GetAppData applies member isolation at the serialization boundary: a plain member of
-// an isolated group sees neither a peer's user-directory entry nor the peer in that
-// group's roster, while self + the supervisor remain.
-func TestGetAppData_IsolationHidesPeerFromDirectoryAndRoster(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	clearRolePermissionCacheAll()
-
-	group := seedIsoGroup(t, "appdata-iso", true)
-	supRole := seedIsoRole(t, "appdata-iso-sup", true)
-	memberRole := seedIsoRole(t, "appdata-iso-mem", false)
-
-	viewer := seedIsoUser(t, "appdata-iso-viewer")
-	supervisor := seedIsoUser(t, "appdata-iso-sup-user")
-	peer := seedIsoUser(t, "appdata-iso-peer")
-	seedIsoMember(t, group.ID, viewer.ID, &memberRole.ID)
-	seedIsoMember(t, group.ID, supervisor.ID, &supRole.ID)
-	seedIsoMember(t, group.ID, peer.ID, &memberRole.ID)
-
-	appData, err := GetAppData(viewer.ID, nil)
-	if err != nil {
-		t.Fatalf("GetAppData: %v", err)
-	}
-
-	// Directory (appData.Users): peer absent; self + supervisor present.
-	inUsers := func(id uint) bool {
-		for _, u := range appData.Users {
-			if u.ID == id {
-				return true
-			}
-		}
-		return false
-	}
-	if inUsers(peer.ID) {
-		t.Errorf("peer should be hidden from appData.Users for an isolated member")
-	}
-	if !inUsers(viewer.ID) || !inUsers(supervisor.ID) {
-		t.Errorf("self + supervisor should remain in appData.Users")
-	}
-
-	// Roster of the isolated group: peer absent; self + supervisor present.
-	var isoRoster []uint
-	for _, g := range appData.Groups {
-		if g.ID == group.ID {
-			for _, m := range g.GroupMembers {
-				isoRoster = append(isoRoster, m.UserID)
-			}
-		}
-	}
-	contains := func(ids []uint, id uint) bool {
-		for _, x := range ids {
-			if x == id {
-				return true
-			}
-		}
-		return false
-	}
-	if contains(isoRoster, peer.ID) {
-		t.Errorf("peer should be hidden from the isolated group's roster, got %v", isoRoster)
-	}
-	if !contains(isoRoster, viewer.ID) || !contains(isoRoster, supervisor.ID) {
-		t.Errorf("self + supervisor should remain in the isolated group's roster, got %v", isoRoster)
-	}
-}
-
 // GetAppData with non-nil request that carries ValidatedClaims — Claims
 // should be populated on the AppData.
 func TestGetAppData_WithRequestPopulatesClaims(t *testing.T) {
@@ -624,7 +560,7 @@ func TestGetAppData_PopulatesPermissions(t *testing.T) {
 	roleRepository := repositories.NewRoleRepository(nil)
 
 	appPerms := []string{permissions.AppUsersRead, permissions.AppUsersCreate}
-	appRole, err := roleRepository.CreateAppRole("AppData App Role", "", appPerms, false)
+	appRole, err := roleRepository.CreateAppRole("AppData App Role", "", appPerms)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -635,7 +571,7 @@ func TestGetAppData_PopulatesPermissions(t *testing.T) {
 	}
 
 	groupPerms := []string{permissions.GroupReceiptsRead, permissions.GroupReceiptsUpdate}
-	groupRole, err := roleRepository.CreateGroupRole("AppData Group Role", "", groupPerms, nil, nil, nil, false, false)
+	groupRole, err := roleRepository.CreateGroupRole("AppData Group Role", "", groupPerms)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -666,23 +602,22 @@ func TestGetAppData_PopulatesPermissions(t *testing.T) {
 	}
 }
 
-// GetAppData filters the per-group category catalog to the caller's grants and
-// withholds the flat global list from a non-admin (no app.categories.read).
-func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
+// GetAppData gives a member the whole category pool as the household's catalog,
+// and withholds the flat global list from someone without app.categories.read.
+func TestGetAppData_GroupCatalogHoldsEveryCategory(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
-	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
 	roleRepository := repositories.NewRoleRepository(nil)
 
-	grantedCategory := models.Category{Name: "Groceries"}
-	db.Create(&grantedCategory)
-	hiddenCategory := models.Category{Name: "Salary"}
-	db.Create(&hiddenCategory)
+	groceries := models.Category{Name: "Groceries"}
+	db.Create(&groceries)
+	salary := models.Category{Name: "Salary"}
+	db.Create(&salary)
 
-	// Legacy-User-like app role: create but not read.
-	appRole, err := roleRepository.CreateAppRole("AppData User Role", "", []string{permissions.AppCategoriesCreate}, false)
+	// An app role that may create categories but not read the global list.
+	appRole, err := roleRepository.CreateAppRole("AppData User Role", "", []string{permissions.AppCategoriesCreate})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -691,7 +626,7 @@ func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	groupRole, err := roleRepository.CreateGroupRole("AppData Restricted Role", "", []string{permissions.GroupReceiptsRead}, []uint{grantedCategory.ID}, nil, nil, false, false)
+	groupRole, err := roleRepository.CreateGroupRole("AppData Reader Role", "", []string{permissions.GroupReceiptsRead})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -709,8 +644,8 @@ func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
 	}
 
 	visible := appData.GroupCategories[group.ID]
-	if len(visible) != 1 || visible[0].ID != grantedCategory.ID {
-		utils.PrintTestError(t, visible, []uint{grantedCategory.ID})
+	if len(visible) != 2 {
+		utils.PrintTestError(t, visible, []uint{groceries.ID, salary.ID})
 	}
 
 	// A non-admin gets no flat global list.
@@ -719,95 +654,11 @@ func TestGetAppData_GroupCategoriesFilteredByGrants(t *testing.T) {
 	}
 }
 
-// GetAppData's per-group catalog honours a narrowing that comes from the
-// MEMBERSHIP rather than the group role, and carries each member's own grant ids
-// on the roster so the desktop forms can render them.
-//
-// AppData is the delivery surface the receipt-form pickers read from, so this is
-// where the two grant layers have to compose correctly in practice.
-func TestGetAppData_MemberGrantsNarrowGroupCatalog(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	ClearRolePermissionCacheForTests()
-	ClearGroupRoleGrantCacheForTests()
-
-	db := repositories.GetDB()
-	roleRepository := repositories.NewRoleRepository(nil)
-
-	assignedCategory := models.Category{Name: "Child A"}
-	roleOnlyCategory := models.Category{Name: "Child B"}
-	db.Create(&assignedCategory)
-	db.Create(&roleOnlyCategory)
-
-	// A non-admin: no app.categories.read, so no grant bypass. Personal-group
-	// creation is left on (false) — this test is about the category catalog.
-	appRole, err := roleRepository.CreateAppRole("AppData Member Grant App Role", "", []string{}, false)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	user := models.User{Username: "appdata-member-grant-user", Password: "password", AppRoleID: &appRole.ID}
-	if err := db.Create(&user).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-
-	// The ROLE allows both categories; the member is assigned only one.
-	groupRole, err := roleRepository.CreateGroupRole(
-		"AppData Member Grant Role", "", []string{permissions.GroupReceiptsRead},
-		[]uint{assignedCategory.ID, roleOnlyCategory.ID}, nil, nil, false, false,
-	)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	group := models.Group{Name: "appdata-member-grant-group"}
-	if err := db.Create(&group).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	if err := db.Create(&models.GroupMember{GroupID: group.ID, UserID: user.ID, GroupRoleID: &groupRole.ID}).Error; err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	err = repositories.NewGroupMemberRepository(nil).
-		ReplaceMemberGrants(user.ID, group.ID, []uint{assignedCategory.ID}, nil)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-
-	appData, err := GetAppData(user.ID, nil)
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-
-	// Intersection: the role's second category must not reach the catalog.
-	visible := appData.GroupCategories[group.ID]
-	if len(visible) != 1 || visible[0].ID != assignedCategory.ID {
-		utils.PrintTestError(t, visible, []uint{assignedCategory.ID})
-	}
-
-	// The roster carries the member's own assignment for the admin forms.
-	var member *models.GroupMember
-	for i := range appData.Groups {
-		if appData.Groups[i].ID != group.ID {
-			continue
-		}
-		for j := range appData.Groups[i].GroupMembers {
-			if appData.Groups[i].GroupMembers[j].UserID == user.ID {
-				member = &appData.Groups[i].GroupMembers[j]
-			}
-		}
-	}
-	if member == nil {
-		utils.PrintTestError(t, "member missing from appData roster", user.ID)
-		return
-	}
-	if len(member.CategoryGrants) != 1 || member.CategoryGrants[0] != assignedCategory.ID {
-		utils.PrintTestError(t, member.CategoryGrants, []uint{assignedCategory.ID})
-	}
-}
-
 // GetAppData gives an admin (app.categories.read) the flat global list, and an
 // unrestricted group's catalog contains every category.
 func TestGetAppData_AdminGetsFlatCategoriesUnrestrictedGroup(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
-	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
 	roleRepository := repositories.NewRoleRepository(nil)
@@ -815,7 +666,7 @@ func TestGetAppData_AdminGetsFlatCategoriesUnrestrictedGroup(t *testing.T) {
 	db.Create(&models.Category{Name: "Groceries"})
 	db.Create(&models.Category{Name: "Salary"})
 
-	appRole, err := roleRepository.CreateAppRole("AppData Admin Role", "", []string{permissions.AppCategoriesRead, permissions.AppTagsRead}, false)
+	appRole, err := roleRepository.CreateAppRole("AppData Admin Role", "", []string{permissions.AppCategoriesRead, permissions.AppTagsRead})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -824,7 +675,7 @@ func TestGetAppData_AdminGetsFlatCategoriesUnrestrictedGroup(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	groupRole, err := roleRepository.CreateGroupRole("AppData Open Role", "", []string{permissions.GroupReceiptsRead}, nil, nil, nil, false, false)
+	groupRole, err := roleRepository.CreateGroupRole("AppData Open Role", "", []string{permissions.GroupReceiptsRead})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -1032,25 +883,22 @@ func TestLoginUserAllowsLinkedAccountWithItsOwnPassword(t *testing.T) {
 	}
 }
 
-// The synthetic "All" group's catalog in AppData must be the UNION of the
-// caller's per-real-group visible categories — never the full global pool. A
-// category the caller is grant-restricted from in their only real group must not
-// appear under the All-group key. Regression guard for the All-group catalog leak.
-func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
+// The synthetic "All" group carries the same catalog as a real household: the
+// whole pool.
+func TestGetAppData_AllGroupCatalogHoldsEveryCategory(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	ClearRolePermissionCacheForTests()
-	ClearGroupRoleGrantCacheForTests()
 
 	db := repositories.GetDB()
 	roleRepository := repositories.NewRoleRepository(nil)
 
-	allowedCategory := models.Category{Name: "AllGroup-Allowed"}
-	hiddenCategory := models.Category{Name: "AllGroup-Hidden"}
-	db.Create(&allowedCategory)
-	db.Create(&hiddenCategory)
+	first := models.Category{Name: "AllGroup-First"}
+	second := models.Category{Name: "AllGroup-Second"}
+	db.Create(&first)
+	db.Create(&second)
 
 	// App role without app.categories.read, so no global-pool bypass.
-	appRole, err := roleRepository.CreateAppRole("AllGroup Union User Role", "", []string{permissions.AppCategoriesCreate}, false)
+	appRole, err := roleRepository.CreateAppRole("AllGroup Union User Role", "", []string{permissions.AppCategoriesCreate})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -1059,8 +907,7 @@ func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	// Real group where the user is restricted to allowedCategory only.
-	groupRole, err := roleRepository.CreateGroupRole("AllGroup Union Restricted Role", "", []string{permissions.GroupReceiptsRead}, []uint{allowedCategory.ID}, nil, nil, false, false)
+	groupRole, err := roleRepository.CreateGroupRole("AllGroup Reader Role", "", []string{permissions.GroupReceiptsRead})
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
@@ -1072,7 +919,7 @@ func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	// The user's own unrestricted "All" group.
+	// The user's own "All" group.
 	allGroup := models.Group{Name: "allgroup-union-all", IsAllGroup: true}
 	if err := db.Create(&allGroup).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
@@ -1087,12 +934,7 @@ func TestGetAppData_AllGroupCatalogIsUnionOfRealGroups(t *testing.T) {
 	}
 
 	allCatalog := appData.GroupCategories[allGroup.ID]
-	if len(allCatalog) != 1 || allCatalog[0].ID != allowedCategory.ID {
-		utils.PrintTestError(t, allCatalog, []uint{allowedCategory.ID})
-	}
-	for _, category := range allCatalog {
-		if category.ID == hiddenCategory.ID {
-			utils.PrintTestError(t, "hidden category leaked into All-group catalog", "no hidden category")
-		}
+	if len(allCatalog) != 2 {
+		utils.PrintTestError(t, allCatalog, []uint{first.ID, second.ID})
 	}
 }

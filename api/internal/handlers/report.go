@@ -227,8 +227,6 @@ func GetReportReceipts(w http.ResponseWriter, r *http.Request) {
 
 // DeleteReportTemplate removes a saved report template by id. Access is resolved by
 // CanActOnTemplate (delete): a missing id maps to 404, an unauthorized caller to 403.
-// On success the grant cache is flushed, since the deleted template's grant rows
-// cascade out of every role's matrix.
 func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error deleting report template",
@@ -241,13 +239,10 @@ func DeleteReportTemplate(w http.ResponseWriter, r *http.Request) {
 				return 0, nil
 			}
 
-			// The template is deleted, and the cell's grant cache flushed, through the same handle.
 			err := repositories.NewReportTemplateRepository(nil).DeleteReportTemplateById(utils.UintToString(template.ID))
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
-
-			services.EvictAllGroupRoleGrants()
 
 			w.WriteHeader(http.StatusOK)
 			return 0, nil
@@ -366,7 +361,7 @@ func GetReportTemplate(w http.ResponseWriter, r *http.Request) {
 // DuplicateReportTemplate copies a saved report template and returns the new copy.
 // Access to the source is resolved by CanActOnTemplate (duplicate); a missing source
 // id maps to 404, an unauthorized caller to 403. The copy is owned by the caller,
-// its name suffixed " duplicate", and it starts unrestricted (no grant rows).
+// its name suffixed " duplicate".
 func DuplicateReportTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error duplicating report template",
@@ -536,10 +531,9 @@ func UpdateReportTemplate(w http.ResponseWriter, r *http.Request) {
 
 // GenerateReportFromTemplate generates a saved template by id and streams the file.
 // Unlike the ad-hoc /generate (which carries a live config and no template id), this
-// path enforces the per-template generate grant: it loads the stored configuration
-// server-side (so the caller cannot tamper with it), checks CanActOnTemplate(generate)
-// — the generate/generateAll app permission, the per-group ceiling, and the matrix —
-// then reuses the same engine path as GenerateReport.
+// path loads the stored configuration server-side (so the caller cannot tamper
+// with it), checks CanActOnTemplate(generate) — the generate/generateAll app
+// permission and the per-group ceiling — then reuses the same engine path as GenerateReport.
 func GenerateReportFromTemplate(w http.ResponseWriter, r *http.Request) {
 	handler := structs.Handler{
 		ErrorMessage: "Error generating report from template",
@@ -571,37 +565,6 @@ func GenerateReportFromTemplate(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Disposition", "attachment; filename=\""+report.Filename+"\"")
 			w.WriteHeader(http.StatusOK)
 			w.Write(report.Bytes)
-			return 0, nil
-		},
-	}
-
-	HandleRequest(handler)
-}
-
-// GetReportTemplateOptions returns every report template as a lightweight
-// {id, name, groupIds} option for the role-form access matrix. It is gated on
-// app.roles.read (the admin role editor), NOT app.reports.read: the admin building a
-// role may not personally hold report permissions, exactly like GET /permission.
-func GetReportTemplateOptions(w http.ResponseWriter, r *http.Request) {
-	handler := structs.Handler{
-		ErrorMessage:   "Error getting report template options",
-		Writer:         w,
-		Request:        r,
-		ResponseType:   constants.ApplicationJson,
-		AppPermissions: []string{permissions.AppRolesRead},
-		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			options, err := repositories.NewReportTemplateRepository(nil).GetAllTemplateOptions()
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			bytes, err := utils.MarshalResponseData(options)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-
-			w.WriteHeader(http.StatusOK)
-			w.Write(bytes)
 			return 0, nil
 		},
 	}

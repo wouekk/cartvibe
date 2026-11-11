@@ -374,55 +374,24 @@ func (repository ReceiptRepository) GetReceiptById(receiptId string) (models.Rec
 	return receipt, nil
 }
 
-// PaidByAllowedResolver returns the paid_by_user_id values a user may see in a
-// group, and whether they are unrestricted (see every payer). It lets the receipt
-// repository apply the role-based "paid by" visibility filter without importing
-// the service layer that resolves grants. Pass a nil resolver to
-// GetPagedReceiptsByGroupId to skip paid-by filtering entirely (internal/system
-// callers).
-type PaidByAllowedResolver func(groupId uint) (allowedUserIds []uint, unrestricted bool, err error)
-
-// CommentAuthorVisibilityResolver returns the comment authors a user may see in a
-// group under member isolation, or unrestricted == true (see every author). It is
-// what keeps a sort by first comment from ordering receipts by a comment the
-// caller is never shown. Pass nil to GetPagedReceiptsByGroupId to skip it
-// (internal/system callers), exactly like a nil PaidByAllowedResolver.
-type CommentAuthorVisibilityResolver func(groupId uint) (visibleUserIds []uint, unrestricted bool, err error)
-
 // GroupReadableResolver reports whether a user may read receipts in a group.
 // It lets the receipt repository gate the synthetic "All group" expansion by the
-// caller's per-group permission without importing the service layer — each caller
+// caller's per-group permission without importing the service layer: each caller
 // supplies a closure bound to the permission its direct single-group path
 // requires. Pass nil to GetPagedReceiptsByGroupId to skip the gate
-// (internal/system callers), exactly like a nil PaidByAllowedResolver.
+// (internal/system callers).
+//
+// It is the only visibility rule on a receipt read: a member of a household sees
+// all of its receipts. Paid-by visibility, the category and tag grants and member
+// isolation, which each had a resolver here, went with fixed roles (2026-11).
 type GroupReadableResolver func(groupId uint) (bool, error)
-
-// CategoryTagVisibility is one group's resolved category/tag grant sets. An
-// *Unrestricted flag (with a nil/empty set) means "see every id of that resource
-// in this group" and folds in the app-level catalog bypass.
-type CategoryTagVisibility struct {
-	CategoryAllowed      map[uint]struct{}
-	CategoryUnrestricted bool
-	TagAllowed           map[uint]struct{}
-	TagUnrestricted      bool
-}
-
-// CategoryTagVisibilityResolver returns a group's category/tag visibility. It is
-// used to narrow a category/tag FILTER per group in the All-group view, so a
-// filter on an id only matches receipts in groups where that id is visible to the
-// caller. Pass nil to GetPagedReceiptsByGroupId to skip per-group filter narrowing
-// (internal/system callers), exactly like a nil PaidByAllowedResolver.
-type CategoryTagVisibilityResolver func(groupId uint) (CategoryTagVisibility, error)
 
 func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	userId uint,
 	groupId string,
 	pagedRequest commands.ReceiptPagedRequestCommand,
 	associations []string,
-	paidByResolver PaidByAllowedResolver,
-	commentAuthorResolver CommentAuthorVisibilityResolver,
 	readableResolver GroupReadableResolver,
-	categoryTagResolver CategoryTagVisibilityResolver,
 ) ([]models.Receipt, int64, error) {
 	var receipts []models.Receipt
 	var count int64
@@ -437,35 +406,8 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		return nil, 0, err
 	}
 
-	// The All-group read gate and the per-group category/tag narrowing must move
-	// as a pair: readableResolver drops groups the caller can't read, and
-	// categoryTagResolver scopes the category/tag filter per group. Supplying
-	// only one silently reopens a cross-group leak — a readable resolver without
-	// the category/tag one lets a category/tag filter fall through to
-	// BuildGormFilterQuery's flat, group-unscoped subquery (matching restricted
-	// ids across groups), and the reverse expands the read set to groups the
-	// caller can't read. Fail closed and loud so a half-wired caller trips here
-	// instead of leaking. Single-group reads pass neither (both nil is allowed).
-	if isAllGroup && (readableResolver == nil) != (categoryTagResolver == nil) {
-		return nil, 0, errors.New("all-group read requires both readable and category/tag resolvers")
-	}
-
-	// For the All-group view, apply the per-group category/tag FILTER as a
-	// disjunction below instead of the flat, group-unscoped subquery
-	// BuildGormFilterQuery emits — otherwise a caller could filter by a category
-	// id they can't see in a group and still match that group's receipts. Build
-	// the base filter WITHOUT the category/tag terms in that case (on a copy, so
-	// the caller's command is untouched); the real per-group narrowing is added
-	// after the group scope.
-	perGroupCatTag := isAllGroup && categoryTagResolver != nil
-	filterForBuild := pagedRequest
-	if perGroupCatTag {
-		filterForBuild.Filter.Categories = commands.PagedRequestField{}
-		filterForBuild.Filter.Tags = commands.PagedRequestField{}
-	}
-
 	// Apply filter
-	query, err := repository.BuildGormFilterQuery(filterForBuild)
+	query, err := repository.BuildGormFilterQuery(pagedRequest)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -480,9 +422,9 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		}
 
 		// Gate the All-group expansion by the caller's per-group read permission.
-		// The All group is a real membership where the caller holds an
-		// unrestricted role, so without this a member could read receipts in every
-		// group they belong to — including groups whose role denies receipt read.
+		// The All group is a real membership where the caller holds the default
+		// role, so without this a member could read receipts in every group they
+		// belong to — including groups whose role denies receipt read.
 		if readableResolver != nil {
 			readable := make([]uint, 0, len(memberGroupIds))
 			for _, gid := range memberGroupIds {
@@ -502,8 +444,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		query = query.Where("group_id = ?", groupId)
 	}
 
-	// Free-text search. The id list only narrows the group scope above, so it can never show a
-	// receipt the paid-by and category/tag rules below would hide; it sits before the count so
+	// Free-text search. The id list only narrows the group scope above; it sits before the count so
 	// totalCount matches the rows returned.
 	searchQuery := utils.NewFuzzyQuery(pagedRequest.Filter.Search)
 	if !searchQuery.Empty() {
@@ -519,26 +460,6 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 		query = query.Where("receipts.id IN ?", matchedIds)
 	}
 
-	// Apply role-based "paid by" visibility, AND-ed with the group scope above and
-	// BEFORE the count below so totalCount matches the rows actually returned (a
-	// post-fetch filter would corrupt pagination).
-	if paidByResolver != nil {
-		query, err = repository.applyPaidByVisibility(query, uintGroupId, isAllGroup, memberGroupIds, paidByResolver)
-		if err != nil {
-			return nil, 0, err
-		}
-	}
-
-	// Apply the per-group category/tag filter disjunction for the All-group view
-	// (see perGroupCatTag above). AND-ed before the count so pagination/totalCount
-	// stay correct, exactly like the paid-by disjunction.
-	if perGroupCatTag {
-		query, err = repository.applyAllGroupCategoryTagFilter(query, memberGroupIds, pagedRequest.Filter, categoryTagResolver)
-		if err != nil {
-			return nil, 0, err
-		}
-	}
-
 	// Set order by
 	if len(pagedRequest.OrderBy) == 0 {
 		pagedRequest.OrderBy = constants.DEFAULT_RECEIPT_ORDER_BY
@@ -549,14 +470,7 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	}
 
 	if pagedRequest.OrderBy == constants.FIRST_COMMENT_ORDER_BY {
-		groupIds := []uint{uintGroupId}
-		if isAllGroup {
-			groupIds = memberGroupIds
-		}
-		query, err = repository.orderByFirstComment(query, groupIds, commentAuthorResolver, pagedRequest.SortDirection)
-		if err != nil {
-			return nil, 0, err
-		}
+		query = repository.orderByFirstComment(query, pagedRequest.SortDirection)
 	} else if repository.isTrustedValue(pagedRequest) {
 		orderBy := pagedRequest.OrderBy
 		if orderBy == "shop_name" {
@@ -593,195 +507,6 @@ func (repository ReceiptRepository) GetPagedReceiptsByGroupId(
 	}
 
 	return receipts, count, nil
-}
-
-// applyPaidByVisibility narrows query to the receipts a user may see by the
-// "paid by" user, using resolver to look up each group's allowed set. For a
-// single group it adds a simple paid_by_user_id IN (...) constraint; for the
-// all-group view it builds a per-group disjunction so each group applies its own
-// allowed set (a member may hold a different group role per group). The whole
-// disjunction is AND-ed onto query, preserving the existing group scope and
-// keeping the row count correct.
-func (repository ReceiptRepository) applyPaidByVisibility(
-	query *gorm.DB,
-	uintGroupId uint,
-	isAllGroup bool,
-	memberGroupIds []uint,
-	resolver PaidByAllowedResolver,
-) (*gorm.DB, error) {
-	if !isAllGroup {
-		allowed, unrestricted, err := resolver(uintGroupId)
-		if err != nil {
-			return nil, err
-		}
-		if unrestricted {
-			return query, nil
-		}
-		return query.Where("paid_by_user_id IN ?", paidByInValues(allowed)), nil
-	}
-
-	return repository.ApplyPaidByDisjunction(query, memberGroupIds, resolver)
-}
-
-// ApplyPaidByDisjunction AND-s a per-group "paid by" visibility disjunction onto
-// query across memberGroupIds: each group contributes either `group_id = G`
-// (unrestricted) or `(group_id = G AND paid_by_user_id IN (allowed))`, OR-ed
-// together. It is shared by the all-group paged read and by search — both scope
-// receipts to a member's groups and must apply each group's own paid-by role in
-// SQL, BEFORE any LIMIT, so visible rows are not lost to a pre-filter row cap.
-func (repository ReceiptRepository) ApplyPaidByDisjunction(
-	query *gorm.DB,
-	memberGroupIds []uint,
-	resolver PaidByAllowedResolver,
-) (*gorm.DB, error) {
-	// memberGroupIds is the caller's member groups. With none, there is nothing to
-	// see — fail closed explicitly rather than leave the (empty) disjunction as a
-	// silent no-op that adds no predicate, mirroring the single-group IN (0) guard.
-	if len(memberGroupIds) == 0 {
-		return query.Where("1 = 0"), nil
-	}
-
-	disjunction := repository.GetDB().Session(&gorm.Session{NewDB: true})
-	for _, groupId := range memberGroupIds {
-		allowed, unrestricted, err := resolver(groupId)
-		if err != nil {
-			return nil, err
-		}
-		if unrestricted {
-			disjunction = disjunction.Or("group_id = ?", groupId)
-		} else {
-			groupCondition := repository.GetDB().Session(&gorm.Session{NewDB: true}).
-				Where("group_id = ?", groupId).
-				Where("paid_by_user_id IN ?", paidByInValues(allowed))
-			disjunction = disjunction.Or(groupCondition)
-		}
-	}
-
-	return query.Where(disjunction), nil
-}
-
-// paidByInValues guards the IN clause against an empty restricted set: paid-by
-// user ids start at 1, so 0 matches no receipt, yielding "see nothing" rather
-// than a malformed IN (). A restricted role normally always has at least one id
-// (a grant or the resolved self id), but a role whose only granted user was
-// deleted lands here.
-func paidByInValues(allowedUserIds []uint) []uint {
-	if len(allowedUserIds) == 0 {
-		return []uint{0}
-	}
-	return allowedUserIds
-}
-
-// applyAllGroupCategoryTagFilter AND-s per-group category/tag filter disjunctions
-// onto query for the all-group view, so a filter on a category/tag id matches
-// receipts only in the groups where that id is visible to the caller. It is a
-// no-op when no CONTAINS category/tag filter is supplied (the plain group scope
-// then stands). Mirrors ApplyPaidByDisjunction and is AND-ed before the count so
-// totalCount/pagination stay correct.
-func (repository ReceiptRepository) applyAllGroupCategoryTagFilter(
-	query *gorm.DB,
-	memberGroupIds []uint,
-	filter commands.ReceiptPagedRequestFilter,
-	resolver CategoryTagVisibilityResolver,
-) (*gorm.DB, error) {
-	categoryIds := containsFilterIds(filter.Categories)
-	tagIds := containsFilterIds(filter.Tags)
-	if len(categoryIds) == 0 && len(tagIds) == 0 {
-		return query, nil
-	}
-	if len(memberGroupIds) == 0 {
-		return query.Where("1 = 0"), nil
-	}
-
-	// Resolve each group's visibility at most once (shared across category + tag).
-	vis := make(map[uint]CategoryTagVisibility, len(memberGroupIds))
-	for _, gid := range memberGroupIds {
-		v, err := resolver(gid)
-		if err != nil {
-			return nil, err
-		}
-		vis[gid] = v
-	}
-
-	if len(categoryIds) > 0 {
-		query = query.Where(repository.resourceFilterDisjunction(
-			memberGroupIds, categoryIds, "receipt_categories", "category_id", vis,
-			func(v CategoryTagVisibility) (map[uint]struct{}, bool) {
-				return v.CategoryAllowed, v.CategoryUnrestricted
-			}))
-	}
-	if len(tagIds) > 0 {
-		query = query.Where(repository.resourceFilterDisjunction(
-			memberGroupIds, tagIds, "receipt_tags", "tag_id", vis,
-			func(v CategoryTagVisibility) (map[uint]struct{}, bool) {
-				return v.TagAllowed, v.TagUnrestricted
-			}))
-	}
-	return query, nil
-}
-
-// resourceFilterDisjunction builds an OR-of-branches, one per member group: a
-// receipt in group G matches only via the requested ids that are visible to the
-// caller in G. A group where none of the requested ids are visible contributes
-// `group_id = G AND 1 = 0` (no rows) — this is what closes the "filter probe" on
-// a restricted category/tag.
-func (repository ReceiptRepository) resourceFilterDisjunction(
-	memberGroupIds []uint,
-	requestedIds []uint,
-	joinTable string,
-	idColumn string,
-	vis map[uint]CategoryTagVisibility,
-	pick func(CategoryTagVisibility) (map[uint]struct{}, bool),
-) *gorm.DB {
-	disjunction := repository.GetDB().Session(&gorm.Session{NewDB: true})
-	for _, gid := range memberGroupIds {
-		allowed, unrestricted := pick(vis[gid])
-		branch := repository.GetDB().Session(&gorm.Session{NewDB: true}).Where("group_id = ?", gid)
-
-		effective := requestedIds
-		if !unrestricted {
-			effective = intersectIds(requestedIds, allowed)
-		}
-		if len(effective) == 0 {
-			branch = branch.Where("1 = 0")
-		} else {
-			sub := repository.GetDB().Session(&gorm.Session{NewDB: true}).
-				Table(joinTable).Select("receipt_id").
-				Where(idColumn+" IN ?", effective)
-			branch = branch.Where("id IN (?)", sub)
-		}
-		disjunction = disjunction.Or(branch)
-	}
-	return disjunction
-}
-
-// containsFilterIds returns a CONTAINS filter field's ids as uint, or nil when the
-// field is unset or is not a non-empty CONTAINS list.
-func containsFilterIds(field commands.PagedRequestField) []uint {
-	if field.Operation != commands.CONTAINS || field.Value == nil {
-		return nil
-	}
-	values, ok := field.Value.([]interface{})
-	if !ok || len(values) == 0 {
-		return nil
-	}
-	out := make([]uint, 0, len(values))
-	for _, v := range values {
-		if id, ok := utils.FilterValueToUint(v); ok {
-			out = append(out, id)
-		}
-	}
-	return out
-}
-
-func intersectIds(requested []uint, allowed map[uint]struct{}) []uint {
-	out := make([]uint, 0, len(requested))
-	for _, id := range requested {
-		if _, ok := allowed[id]; ok {
-			out = append(out, id)
-		}
-	}
-	return out
 }
 
 func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.ReceiptPagedRequestCommand) (*gorm.DB, error) {
@@ -915,19 +640,7 @@ func (repository ReceiptRepository) BuildGormFilterQuery(pagedRequest commands.R
 // orderByFirstComment orders query by the text of each receipt's first comment
 // (firstCommentOrder), read with a correlated subquery: a receipt has many
 // comments, and a join would multiply its rows and corrupt the count and pagination.
-//
-// Only a comment the caller may see is a candidate. Member isolation drops a
-// comment by an author the caller cannot see from every response, so sorting on
-// it would order the table by text that is never shown - and would leak it, one
-// comparison at a time. groupIds is the set of groups the query spans (one, or
-// the caller's member groups for the All group), so each receipt is judged by its
-// own group's visibility.
-func (repository ReceiptRepository) orderByFirstComment(
-	query *gorm.DB,
-	groupIds []uint,
-	resolver CommentAuthorVisibilityResolver,
-	sortDirection commands.SortDirection,
-) (*gorm.DB, error) {
+func (repository ReceiptRepository) orderByFirstComment(query *gorm.DB, sortDirection commands.SortDirection) *gorm.DB {
 	commentQuery := repository.GetDB().
 		Model(&models.Comment{}).
 		Select("comments.comment").
@@ -935,58 +648,7 @@ func (repository ReceiptRepository) orderByFirstComment(
 		Order(firstCommentOrder).
 		Limit(1)
 
-	visibility, err := repository.commentAuthorVisibility(groupIds, resolver)
-	if err != nil {
-		return nil, err
-	}
-	if visibility != nil {
-		commentQuery = commentQuery.Where(visibility)
-	}
-
-	return repository.orderBySubquery(query, commentQuery, sortDirection), nil
-}
-
-// commentAuthorVisibility builds the predicate restricting a first-comment
-// subquery to authors the caller may see, as a per-group disjunction on the outer
-// receipt's group mirroring SystemTaskRepository.applyActivityVisibilityDisjunction:
-// an unrestricted group contributes `receipts.group_id = G`, a restricted one
-// `receipts.group_id = G AND (comments.user_id IS NULL OR comments.user_id IN (visible))`.
-// A comment with no author names no one, so it stays visible - as it does in
-// PermissionService's filterComments. Returns nil, adding no predicate at all, when
-// there is no resolver or no group restricts the caller, which is every
-// non-isolated install.
-func (repository ReceiptRepository) commentAuthorVisibility(
-	groupIds []uint,
-	resolver CommentAuthorVisibilityResolver,
-) (*gorm.DB, error) {
-	if resolver == nil {
-		return nil, nil
-	}
-
-	disjunction := repository.GetDB().Session(&gorm.Session{NewDB: true})
-	restricted := false
-	for _, groupId := range groupIds {
-		visibleIds, unrestricted, err := resolver(groupId)
-		if err != nil {
-			return nil, err
-		}
-		if unrestricted {
-			disjunction = disjunction.Or("receipts.group_id = ?", groupId)
-			continue
-		}
-
-		restricted = true
-		groupCondition := repository.GetDB().Session(&gorm.Session{NewDB: true}).
-			Where("receipts.group_id = ?", groupId).
-			// User ids start at 1, so paidByInValues' IN (0) guard applies unchanged.
-			Where("(comments.user_id IS NULL OR comments.user_id IN ?)", paidByInValues(visibleIds))
-		disjunction = disjunction.Or(groupCondition)
-	}
-
-	if !restricted {
-		return nil, nil
-	}
-	return disjunction, nil
+	return repository.orderBySubquery(query, commentQuery, sortDirection)
 }
 
 // orderBySubquery orders query by the value valueQuery - a correlated subquery
@@ -1082,24 +744,22 @@ func (repository ReceiptRepository) GetFullyLoadedReceiptById(id string) (models
 // SearchReceiptsByGroupIds returns receipts within the given groups whose name
 // matches nameQuery (a substring match; an empty nameQuery matches all),
 // ordered by most recent date first and capped at limit. Scoping to the
-// caller's group ids is the caller's responsibility. The paidByResolver applies
-// the caller's paid-by visibility in SQL BEFORE the limit, so hidden receipts
-// can't push visible matches out of the capped result set.
-func (repository ReceiptRepository) SearchReceiptsByGroupIds(groupIds []uint, nameQuery string, limit int, paidByResolver PaidByAllowedResolver) ([]models.Receipt, error) {
+// caller's group ids is the caller's responsibility.
+func (repository ReceiptRepository) SearchReceiptsByGroupIds(groupIds []uint, nameQuery string, limit int) ([]models.Receipt, error) {
 	db := repository.GetDB()
 	var receipts []models.Receipt
+
+	// With no household there is nothing to see.
+	if len(groupIds) == 0 {
+		return receipts, nil
+	}
 
 	query := db.Model(models.Receipt{}).Where("group_id IN ?", groupIds)
 	if len(nameQuery) > 0 {
 		query = query.Where("name LIKE ?", "%"+nameQuery+"%")
 	}
 
-	query, err := repository.ApplyPaidByDisjunction(query, groupIds, paidByResolver)
-	if err != nil {
-		return nil, err
-	}
-
-	err = query.Order("date desc").Limit(limit).Find(&receipts).Error
+	err := query.Order("date desc").Limit(limit).Find(&receipts).Error
 	if err != nil {
 		return nil, err
 	}

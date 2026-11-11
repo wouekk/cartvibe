@@ -1,4 +1,4 @@
-import { ReportRequestCommand, ReportTemplate, ReportTemplateOption } from "../../../open-api";
+import { ReportRequestCommand, ReportTemplate } from "../../../open-api";
 import { csv, pdf, xlsx, zipStore } from "../files";
 import { DemoDb, nextId } from "../db";
 import { DemoContext, DemoResponse, body, idParam, notFound, ok } from "../http";
@@ -63,13 +63,6 @@ function saveTemplate(db: DemoDb, template: ReportTemplate | undefined, command:
 
 export function registerReports(router: DemoRouter): void {
   router.post("/report/template/list", (ctx) => paginate(ctx.db.reportTemplates, body<PagedRequest>(ctx), "name"));
-  router.get("/report/template/options", ({ db }) =>
-    db.reportTemplates.map((template): ReportTemplateOption => ({
-      id: template.id,
-      name: template.name,
-      groupIds: (template.configuration.groupIds ?? []).map(Number),
-    })),
-  );
   router.post("/report/template/:id/duplicate", (ctx) => {
     const original = findTemplate(ctx);
     if (!original) {

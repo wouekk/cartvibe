@@ -24,7 +24,6 @@ import (
 func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.GroupReceiptSettings) (uint, uint) {
 	t.Helper()
 	services.ClearRolePermissionCacheForTests()
-	services.ClearGroupRoleGrantCacheForTests()
 	db := repositories.GetDB()
 
 	group := models.Group{Name: "quick-scan-comment-group"}
@@ -58,7 +57,7 @@ func seedQuickScanCommenter(t *testing.T, canComment bool, settings models.Group
 	}
 
 	role, err := repositories.NewRoleRepository(nil).CreateGroupRole(
-		"Quick Scan Commenter", "", rolePermissions, nil, nil, nil, false, false)
+		"Quick Scan Commenter", "", rolePermissions)
 	if err != nil {
 		t.Fatalf("seed group role: %v", err)
 	}

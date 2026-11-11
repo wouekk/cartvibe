@@ -120,19 +120,8 @@ func GetActivitiesForGroups(w http.ResponseWriter, r *http.Request) {
 			}
 
 			systemTaskRepository := repositories.NewSystemTaskRepository(nil)
-			token := structs.GetClaims(r)
 
-			// Member isolation: activities run by a user the caller may not see in that
-			// activity's group are filtered IN THE QUERY (before Count + pagination), so
-			// TotalCount and the returned page both reflect only visible rows and DB-side
-			// LIMIT/OFFSET is preserved. See applyActivityVisibilityDisjunction (mirrors
-			// the paid-by disjunction).
-			permissionService := services.NewPermissionService(nil)
-			resolver, err := permissionService.ActivityVisibilityResolver(token.UserId, command.GroupIds)
-			if err != nil {
-				return http.StatusInternalServerError, err
-			}
-			activities, count, err := systemTaskRepository.GetPagedActivities(command, resolver)
+			activities, count, err := systemTaskRepository.GetPagedActivities(command)
 			if err != nil {
 				return http.StatusInternalServerError, err
 			}
@@ -184,13 +173,6 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 		GroupId:          groupId,
 		GroupPermissions: []string{permissions.GroupActivitiesRerun},
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			// Same member-isolation rule as the source-file routes: holding
-			// group.activities.rerun in an isolated group must not let a plain member
-			// re-run an activity the list hid from them.
-			if denied := enforceActivityActorVisible(w, r, systemTask, errorMsg); denied {
-				return 0, nil
-			}
-
 			// The task type is checked here rather than before the handler is built,
 			// so it stays behind the gate: a caller who may not reach this activity
 			// must not learn from a 400 that it is of a rerunnable type.
@@ -280,7 +262,7 @@ func GetSystemTaskSourceFile(w http.ResponseWriter, r *http.Request) {
 		GroupPermissions: []string{permissions.GroupActivitiesRead},
 		ResponseType:     constants.ApplicationJson,
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			sourceFile, ok := authorizeAndResolveSourceFile(w, r, systemTask, errorMsg)
+			sourceFile, ok := resolveSourceFile(w, systemTask, errorMsg)
 			if !ok {
 				return 0, nil
 			}
@@ -348,7 +330,7 @@ func DownloadSystemTaskSourceFile(w http.ResponseWriter, r *http.Request) {
 		// Deliberately unset so http.ServeFile derives the Content-Type itself.
 		ResponseType: "",
 		HandlerFunction: func(w http.ResponseWriter, r *http.Request) (int, error) {
-			sourceFile, ok := authorizeAndResolveSourceFile(w, r, systemTask, errorMsg)
+			sourceFile, ok := resolveSourceFile(w, systemTask, errorMsg)
 			if !ok {
 				return 0, nil
 			}
@@ -377,9 +359,8 @@ func DownloadSystemTaskSourceFile(w http.ResponseWriter, r *http.Request) {
 	HandleRequest(handler)
 }
 
-// activityAccessDeniedMessage is deliberately the same for "no such activity", "you
-// are not in this group" and "this activity was run by someone you cannot see", so no
-// answer distinguishes another.
+// activityAccessDeniedMessage is deliberately the same for "no such activity" and "you
+// are not in this group", so neither answer distinguishes the other.
 //
 // It is HandleRequest's own denial body rather than wording of its own, because the
 // group gate writes that one and these helpers cannot: a caller comparing a denial
@@ -438,21 +419,15 @@ func loadSystemTaskForSourceFile(
 	return systemTask, utils.UintToString(*systemTask.GroupId), false
 }
 
-// authorizeAndResolveSourceFile applies the member-isolation rule and then locates the
-// upload, in that order. It reports false when it has already written a response.
+// resolveSourceFile locates the upload behind an activity. It reports false when it has
+// already written a response.
 //
-// It runs INSIDE the handler function, so the group permission has already been checked:
-// the remaining question is whether this caller may see the member who ran the activity.
-func authorizeAndResolveSourceFile(
+// It runs INSIDE the handler function, so the group permission has already been checked.
+func resolveSourceFile(
 	w http.ResponseWriter,
-	r *http.Request,
 	systemTask models.SystemTask,
 	errorMsg string,
 ) (jobs.SystemTaskSourceFile, bool) {
-	if denied := enforceActivityActorVisible(w, r, systemTask, errorMsg); denied {
-		return jobs.SystemTaskSourceFile{}, false
-	}
-
 	sourceFile, err := jobs.ResolveSystemTaskSourceFile(systemTask)
 	if err != nil {
 		if errors.Is(err, jobs.ErrSourceFileUnsupportedTask) {
@@ -471,47 +446,4 @@ func authorizeAndResolveSourceFile(
 	}
 
 	return sourceFile, true
-}
-
-// enforceActivityActorVisible applies to a single task the member-isolation rule
-// GetActivitiesForGroups already enforces in SQL (applyActivityVisibilityDisjunction), so
-// a per-task endpoint cannot hand back what the list deliberately hid. Without it, a plain
-// member of an isolated group holds group.activities.read and could name a hidden
-// co-member's task id to fetch their upload. It reports true when it has written a
-// response.
-//
-// A nil RanByUserId is a system action and stays visible — which is every EMAIL_UPLOAD,
-// since email is polled rather than run by a user. That matches the SQL clause exactly:
-// ran_by_user_id IS NULL OR ran_by_user_id IN <visible>.
-func enforceActivityActorVisible(
-	w http.ResponseWriter,
-	r *http.Request,
-	systemTask models.SystemTask,
-	errorMsg string,
-) bool {
-	if systemTask.RanByUserId == nil {
-		return false
-	}
-
-	if systemTask.GroupId == nil {
-		utils.WriteCustomErrorResponse(w, activityAccessDeniedMessage, http.StatusForbidden)
-		return true
-	}
-
-	token := structs.GetClaims(r)
-	permissionService := services.NewPermissionService(nil)
-
-	visible, err := permissionService.UserVisibleInGroup(token.UserId, *systemTask.RanByUserId, *systemTask.GroupId)
-	if err != nil {
-		logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
-		utils.WriteCustomErrorResponse(w, errorMsg, http.StatusInternalServerError)
-		return true
-	}
-
-	if !visible {
-		utils.WriteCustomErrorResponse(w, activityAccessDeniedMessage, http.StatusForbidden)
-		return true
-	}
-
-	return false
 }

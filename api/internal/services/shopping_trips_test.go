@@ -216,7 +216,7 @@ func TestATripOnAnEmptyListMarksEverythingUnplanned(t *testing.T) {
 		t.Fatalf("expected the trip done without asking the AI, got %+v", done)
 	}
 
-	views, err := service.GetTripsForList(list.ID, 1)
+	views, err := service.GetTripsForList(list.ID)
 	if err != nil || len(views) != 1 {
 		t.Fatalf("expected one trip, got %+v (%v)", views, err)
 	}

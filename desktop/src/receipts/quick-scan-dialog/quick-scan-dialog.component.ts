@@ -14,7 +14,6 @@ import { AuthState, GroupState } from "../../store";
 import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { QuickScanFieldConfig, resolveQuickScanFieldConfig } from "./quick-scan-field-config";
-import { receiptRequirementsFor } from "../../utils/receipt-requirements";
 import { marker } from "../../i18n/marker";
 import { buttonVariants } from "@spartan-ng/helm/button";
 import { finePointerSignal } from "../../utils/fine-pointer";
@@ -187,10 +186,6 @@ export class QuickScanDialogComponent implements OnInit {
     return resolveQuickScanFieldConfig(this.settingsForIndex(index), {
       hasGroup: this.hasGroupAt(index),
       canCreateComments: this.canCommentForIndex(index),
-      roleRequiresComment: receiptRequirementsFor(
-        this.store.selectSnapshot(AuthState.groupReceiptRequirements),
-        this.groupIds.at(index)?.value
-      ).commentRequired,
     });
   }
 

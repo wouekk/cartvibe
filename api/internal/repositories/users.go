@@ -24,21 +24,6 @@ func NewUserRepository(tx *gorm.DB) UserRepository {
 	return repository
 }
 
-// CountByIds returns how many of the given user ids exist. Used to validate that
-// a group role's paid-by user grants reference real users. Duplicate ids in the
-// input are de-duplicated by the IN clause, so callers should pass a unique set.
-func (repository UserRepository) CountByIds(ids []uint) (int64, error) {
-	db := repository.GetDB()
-
-	var count int64
-	err := db.Model(&models.User{}).Where("id IN ?", ids).Count(&count).Error
-	if err != nil {
-		return 0, err
-	}
-
-	return count, nil
-}
-
 func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (models.User, error) {
 	db := repository.GetDB()
 	user := models.User{
@@ -93,48 +78,36 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 			return err
 		}
 
-		// An app role may opt its users out of the personal "My Receipts" group, for
-		// accounts that are only ever meant to live in specific shared groups. The
-		// virtual "All" group is always created, so the account still has a working
-		// dashboard.
-		skipDefaultGroup, err := repository.appRoleSkipsDefaultGroup(tx, user.AppRoleID)
+		// Phase 3 M5: one shared Household group. A later account joins it; the first account
+		// of an install creates it (named Household); an install that predates it keeps
+		// handing out personal groups.
+		joined, err := repository.joinHouseholdGroup(tx, user.ID)
 		if err != nil {
 			repository.ClearTransaction()
 			return err
 		}
 
-		if !skipDefaultGroup {
-			// Phase 3 M5: one shared Household group. A later account joins it; the first account
-			// of an install creates it (named Household); an install that predates it keeps
-			// handing out personal groups.
-			joined, err := repository.joinHouseholdGroup(tx, user.ID)
+		if !joined {
+			groupName := "My Receipts"
+			if isFirstUser {
+				groupName = HouseholdGroupName
+			}
+
+			groupCommand := commands.UpsertGroupCommand{
+				Name:           groupName,
+				IsDefaultGroup: true,
+			}
+
+			created, err := groupRepository.CreateGroup(groupCommand, user.ID)
 			if err != nil {
 				repository.ClearTransaction()
 				return err
 			}
-
-			if !joined {
-				groupName := "My Receipts"
-				if isFirstUser {
-					groupName = HouseholdGroupName
-				}
-
-				groupCommand := commands.UpsertGroupCommand{
-					Name:           groupName,
-					IsDefaultGroup: true,
-				}
-
-				created, err := groupRepository.CreateGroup(groupCommand, user.ID)
+			if isFirstUser {
+				err = tx.Model(&models.Group{}).Where("id = ?", created.ID).Update("is_household", true).Error
 				if err != nil {
 					repository.ClearTransaction()
 					return err
-				}
-				if isFirstUser {
-					err = tx.Model(&models.Group{}).Where("id = ?", created.ID).Update("is_household", true).Error
-					if err != nil {
-						repository.ClearTransaction()
-						return err
-					}
 				}
 			}
 		}
@@ -163,32 +136,9 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 	return user, nil
 }
 
-// appRoleSkipsDefaultGroup reports whether a newly-created user's app role opts
-// out of the personal "My Receipts" group. Best-effort in the same way as
-// resolveAppRoleId: an unassigned (nil) or missing role falls back to creating
-// the group rather than failing user creation. Any *other* lookup error
-// propagates and rolls the creation back — a transient DB failure must not
-// silently decide which groups an account is created with.
-func (repository UserRepository) appRoleSkipsDefaultGroup(tx *gorm.DB, appRoleId *uint) (bool, error) {
-	if appRoleId == nil {
-		return false, nil
-	}
-
-	skip, err := NewRoleRepository(tx).AppRoleSkipsDefaultGroup(*appRoleId)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-
-	return skip, nil
-}
-
-// resolveAppRoleId picks the modern app role for a newly-created user: the
-// Legacy Admin role for an administrator (the first/bootstrap user, so it is
-// never assigned the configurable default and locked out of administration) and
-// the configurable default app role for everyone else. Returns nil when the role
+// resolveAppRoleId picks the app role for a newly-created user: Admin (the
+// Legacy Admin row) for the first/bootstrap user, so the install is never left
+// without an administrator, and the default app role (User) for everyone else. Returns nil when the role
 // can't be resolved (e.g. an unseeded test database), leaving the user without a
 // modern role rather than failing creation.
 func (repository UserRepository) resolveAppRoleId(tx *gorm.DB, isAdmin bool) (*uint, error) {

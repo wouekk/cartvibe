@@ -5,7 +5,7 @@ Purpose: how to run `desktop/e2e/` and what each group of specs relies on. The r
 
 ## State of the suite
 
-About 40 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers, fresh database, `run-docker.sh`):
+About 30 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers, fresh database, `run-docker.sh`):
 - 2026-10-30 (devstack): 217 tests, 45 passed, 90 failed, 82 did not run.
 - 2026-11-01 round 1: 193 tests, 113 passed, 39 failed, 41 did not run.
 - 2026-11-01 round 2: 187 tests, 129 passed, 22 failed, 2 skipped (`test.fixme`), 34 did not run (a `beforeAll` failed).
@@ -14,8 +14,16 @@ About 40 specs plus `auth.setup.ts`. Full runs in Docker (built image, 2 workers
   spec fixes had 2 reds (the report-template-list delete case, and an unpolled settings read), and the runs before that were
   red for the app races listed below.
 
-`e2e:smoke` is `auth.spec`, `dashboard-charts`, `generate-password`, `report-template-list` and `member-grant-security` (green three
-runs in a row, 7 seconds), and since 2026-11-10 `shopping-list.spec`, `quick-scan-dialog.spec` and `receipts.spec`, so CI
+**The fixed roles changed the suite (2026-11-11), and no full run has been made since.** With four roles and no way
+to make another, a spec can no longer build a role that lacks one permission. Twelve specs whose subject is gone
+were deleted (the list is under *Retired*); `shopping-list`, `group-delete-any`, `user-visibility` (was
+`legacy-user-visibility`) and `household-member-visibility` (was `group-viewer-visibility`) were rewritten for
+Admin, User, Owner and Member; `e2e-user` is a User now, where it was a Legacy User. Of the rewritten ones only
+`shopping-list` runs in CI. The other three type-check and are listed by Playwright, and that is all that is known
+about them: run them in Docker before trusting them. The run figures above are from before this change.
+
+`e2e:smoke` is `auth.spec`, `dashboard-charts`, `generate-password` and `report-template-list`, and since
+2026-11-10 `shopping-list.spec`, `quick-scan-dialog.spec` and `receipts.spec`, so CI
 touches a list, the scan dialog and a receipt. `report-template-list` is serial now: its delete case used to hit the wrong row when a parallel test
 added a template under a pending click. More files join smoke only after three green runs; one that turns flaky in CI leaves the list again.
 
@@ -58,9 +66,10 @@ What was wrong, by cause (fixed unless marked open):
   project logs in again on every invocation).
 - **Secure context.** The page must be on `http://localhost` (the runner shares the app's network namespace), otherwise
   `navigator.clipboard` is missing and `generate-password` fails.
-- **Role editor and custom-role pickers are gone.** `createRole`, `createUserWithRole` and `createGroupWithMember` now call the
-  admin API with the same option names (presets map to the Legacy roles, toggles to permission keys). The household member
-  dialog only offers the family roles, so a custom group role can only be assigned through the API.
+- **There are four roles and nothing makes another.** `createUserWithRole` takes `'Legacy Admin'` or `'User'`,
+  `createGroupWithMember` takes `'Legacy Owner'` or `'Member'` (the names of the rows; the app shows them as Admin and
+  User), both through the admin API. A negative-permission case is a User or a Member against something only an
+  Admin or an Owner may do.
 - **Landing is `/overview/group/<id>`**, not `/dashboard/...`; a denied route lands on the Dashboard, the receipts list or `/`.
 - **`e2e-admin` must own the Household** to have `group.reports.read` (a new account is a Member there): `seed-accounts.mjs`
   does it, otherwise the report builder's "Add a group" lists nothing.
@@ -82,14 +91,12 @@ Round 3 changes in how the suite is run and written:
   rare empty table after a failed request.
 - A single-select or chip autocomplete opens its option list when you type, not on a bare click: `fill(...)`, then pick.
 
-Specs rewritten for the current UI: `group-viewer-visibility` (provisions through the API, a denied route lands on the Dashboard or
-the receipts list), `shopping-list` (list cards, not tabs; the Legacy Viewer base can edit lists, so the read-only role switches
-those off; one case cuts the connection with `context.setOffline(true)`, adds and crosses off, reconnects and reads the list
+Specs rewritten for the current UI: `household-member-visibility` (provisions through the API, a denied route lands on the Dashboard or
+the receipts list), `shopping-list` (list cards, not tabs; a Member uses the Owner's list; one case cuts the connection with
+`context.setOffline(true)`, adds and crosses off, reconnects and reads the list
 back through the admin API, since the page alone shows its own copy; an add is done once `shopping-list-item-pending` is
-gone, not when the row appears), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `skip-default-group` (a new account joins
-"Household"; `createUserWithRole({ createdWithRole: true })` creates it on the role at once), `chip-select-close-on-select` (the
-Categories picker of the receipts filter dialog), `member-grant-visibility` (the product line's category menu on the receipt
-form), `member-grant-assignment`, `receipt-comment-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
+gone, not when the row appears), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `chip-select-close-on-select` (the
+Categories picker of the receipts filter dialog), `receipt-comment-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
 `system-task-filter`, `single-group-default` (still true: a new account has exactly one real group, Household).
 `receipt-quick-date-filter` is now `receipt-period-filter` (the period picker: This month by default, a typed From/To range, the
 date chip).
@@ -97,8 +104,15 @@ date chip).
 Retired, because the behaviour they guarded is gone:
 - `receipt-quick-date-filter`: the month stepper, its "date field" menu (Receipt Date / Settled on), the "Custom" fallback label and the
   month panel's keyboard, Escape and year paging tests. The period picker and the date chip are covered by `receipt-period-filter`.
-- `member-grant-assignment` "the role form authors a ceiling and rehydrates it": it drove `/roles`, removed with the role editor, and
-  no other page edits a role. Its rule (an untouched save keeps the grants) is not tested anywhere in the browser now.
+- With the fixed roles (2026-11-11), the specs of what was removed: `member-grant-assignment`, `member-grant-security`,
+  `member-grant-visibility` (category and tag access per member), `paid-by-visibility`, `receipt-role-requirements`
+  (a role that required a comment or a photo), `report-template-access` (the per-template matrix) and
+  `skip-default-group` (a role that skipped the personal group).
+- With them, the specs that needed a role one permission short of another, which no role is any more:
+  `comment-gating`, `receipt-feature-gating`, `receipt-action-gating`, `report-template-gating` and
+  `report-template-action-gating`. The gates they pressed on are still in the app and the API (a hidden control per
+  permission, a 403 on the server) and are covered by the Vitest specs of the directives and by the Go handler tests;
+  no browser test reaches them, because no account can lack just one of those permissions.
 - `group-delete-any` browser cases: the Management list no longer has an all-groups view (its filter button is gone, so a group a
   person is not in cannot be reached), so the rule is proved on the server (403 without `app.groups.delete`, 200 with it) and the
   row action's gate stays in the group table's Vitest spec.
@@ -117,8 +131,7 @@ Real app problems found (not hidden by the specs):
 5. (Fixed in round 3) A read-only `app-select` (the locked Field of a grouping column) had no accessible name.
 6. (Fixed in round 3) The receipts table and the report template list could paint a slower earlier response over a newer one (the period
    picker asks for its page on mount while the first load is still out; a delete refetch after a slow list). The newest request wins now.
-7. Not bugs, found while looking: `comment-gating` (the Legacy Editor base grants `group.comments.delete`; the control is gated and the server
-   answers 403) and `quick-scan-config` (Save works, the settings page simply stays on `/edit`).
+7. Not a bug, found while looking: `quick-scan-config` (Save works, the settings page simply stays on `/edit`).
 8. Open question for the product (not changed): a new admin joins the Household as Member and cannot report on it until made Owner; the first-start `admin` is Owner.
    Also: a bare click on a chip or single autocomplete shows no options until the first keystroke.
 
@@ -139,8 +152,8 @@ Needs Docker Desktop only. From `desktop/` in Git Bash (the script sets `MSYS_NO
 
 1. Install the browser once: `npm run e2e:install` (in the cloud sandbox see `sandbox.md` instead).
 2. Create the two accounts once with `node e2e/seed-accounts.mjs` (after step 3's variables; `API_URL` defaults to
-   `http://localhost:8081`). It signs in as the first-start `admin` / `admin`, creates `e2e-admin` (Legacy Admin, display
-   name `E2E Admin`) and `e2e-user` (Legacy User, display name exactly **`E2E User`**: the provisioning helpers pick the
+   `http://localhost:8081`). It signs in as the first-start `admin` / `admin`, creates `e2e-admin` (Admin, display
+   name `E2E Admin`) and `e2e-user` (User, display name exactly **`E2E User`**: the provisioning helpers pick the
    member by that option text) through the API, and switches their welcome dialog off. It leaves existing accounts alone.
 3. Export the `E2E_*` variables each run: `source api/dev/switch-to-sqlite.sh` (SQLite is the only engine).
 4. Start the Go API yourself; Playwright's `webServer` only starts `npm start`, and only when `E2E_BASE_URL` is
@@ -155,14 +168,13 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
 
 - `auth.ts`: `creds`, `loginViaUi` (asserts the `/overview/group/<id>` landing), `stubTokenRefresh`.
 - `provisioning.ts`: `uniqueName`; API-as-someone `withApiAsCreds(username, password, fn)` and its wrappers
-  `withApiAs('admin' | 'user')` / `withAdminApi`; creators `apiCreateRole`, `apiUpdateRole`, `apiCreateGroup`,
+  `withApiAs('admin' | 'user')` / `withAdminApi`; creators `apiCreateGroup`,
   `apiCreateReceipt`, `apiCreateComment`, `apiCreateCategory`, `apiCreateTag`, `apiCreateReportTemplate`,
-  `apiSetMemberGrants` (returns the raw response so specs assert 200/400/403/404), `apiSetGroupRoster`,
-  `apiPatchSystemSettings`, `apiQuickScan`; readers `apiMemberCatalog`,
+  `apiSetGroupRoster`, `apiPatchSystemSettings`, `apiQuickScan`; readers
   `apiGetGroupMembers`, `apiGroupNames`, `apiPagedSystemTasks`, `apiWaitForFailedQuickScan`; teardown
-  `apiDeleteUserByName`, `apiDeleteGroupById`, `apiDeleteRoleByName`, `apiDeleteCategoryById`, `apiDeleteTagById`,
-  `apiDeleteReportTemplateById`, `apiDeleteProcessingSettings`. `createRole`, `createUserWithRole` and
-  `createGroupWithMember` keep the old UI-flow names but call the admin API (the role editor is gone).
+  `apiDeleteUserByName`, `apiDeleteGroupById`, `apiDeleteCategoryById`, `apiDeleteTagById`,
+  `apiDeleteReportTemplateById`, `apiDeleteProcessingSettings`. `createUserWithRole` and
+  `createGroupWithMember` keep the old UI-flow names but call the admin API, with one of the fixed roles.
 - `quick-scan.ts`: `injectQuickScanAppData`, `openQuickScanDialog`, `uploadQuickScanImages`, `selectImageGroup`,
   `parseMultipartFields`.
 - `ui.ts`: `comboboxNamed` (a combobox by label), `setAppCheckbox` (toggle an `app-checkbox` through its label).
@@ -172,11 +184,9 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
 
 ## Patterns the specs share
 
-- **Provision, then tear down through the API.** Negative-permission tests need an account or role that lacks the
-  permission, which no seeded account has: an admin context provisions it in `beforeAll` and deletes it through the API
-  in `afterAll`, best effort in `try/catch`. Order: user/group first, then the role (a role in use cannot be deleted);
-  group → role → categories/tags for grant specs. Categories and tags are global with unique names, so mint
-  `uniqueName`-suffixed ones and delete them.
+- **Provision, then tear down through the API.** A spec that needs its own account or household has an admin context
+  provision it in `beforeAll` and delete it through the API in `afterAll`, best effort in `try/catch`. Categories and
+  tags are global with unique names, so mint `uniqueName`-suffixed ones and delete them.
 - **A custom user's session** is captured to a git-ignored `e2e/.auth/<name>.json` after waiting for the held
   permission in `localStorage.auth`, and removed in `afterAll`. A group membership added after the saved session still
   works without re-login: AppData is re-fetched on navigation.
@@ -201,22 +211,13 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
   name "Generate password" also matches.
 - `chip-select-close-on-select.spec.ts`: provisions its own account because the preference is per user and global;
   asserts the input blur before the hidden panel (the panel closes on selection by itself).
-- `member-grant-{visibility,security,assignment}.spec.ts`: `e2e-user` with custom group roles (its default app role
-  lacks `app.categories.read` / `app.tags.read`, so it gets no admin bypass). Assertions read `apiMemberCatalog`, the
-  same per-group catalog the pickers render. The group-member dialog's submit is `dispatchEvent('click')`: adding a chip
-  grows the dialog and it re-centres, so the button never passes Playwright's stability check. The roster is editable
-  only on `/groups/:id/details/edit`.
-- `paid-by-visibility.spec.ts`, `comment-gating.spec.ts`, `receipt-action-gating.spec.ts`,
-  `legacy-user-visibility.spec.ts`, `group-delete-any.spec.ts`: hidden controls plus the API 403 that proves server
-  enforcement. The receipts-table edit action is not template-gated; its route is, so that denial is asserted on the
-  route. `group-viewer-visibility.spec.ts` has a known failing serial block (a Legacy User cannot load `/groups`), so
-  new tests do not go into it.
-- `receipt-feature-gating.spec.ts`: Quick Scan / Magic Fill for a viewer vs an editor, with the flag injected.
+- `user-visibility.spec.ts`, `household-member-visibility.spec.ts`, `group-delete-any.spec.ts`: what a User or a
+  Member is held back from (people, system settings, creating or changing a household), as a redirected route or a
+  hidden control plus the API 403 that proves server enforcement. Rewritten for the fixed roles and not run since
+  (above). The roster is editable only on `/groups/:id/details/edit`.
 - `single-group-default.spec.ts` and `receipts.spec.ts`: a single-select autocomplete shows its value in a box with a Clear button
   (`data-testid="autocomplete-clear"`) once filled. A new account belongs to exactly one real group (Household) and the forms hide
   the Group; `e2e-user` gets more groups while other specs run, so `receipts.spec` picks Household when the Group field is there.
-- `receipt-role-requirements.spec.ts`: create is one `POST /api/receipt/withFiles` with no `/receiptImage` upload; last
-  image/comment refused in edit (UI and 400).
 - `quick-scan-config.spec.ts`, `quick-scan-dialog*.spec.ts`: config checkboxes use `quick-scan-<field>-show/-require`
   test ids (the labels collide). To change an image's group, clear the autocomplete first (`selectImageGroup` does).
 - `receipt-period-filter.spec.ts`: the period picker is typed into (`overview-custom-from/-to`, DD/MM/YYYY); the table always
