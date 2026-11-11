@@ -77,7 +77,7 @@ type importRun struct {
 	options   ImportOptions
 	archive   *Archive
 
-	users, groups, categories, tags, lists, items, receipts, products, comments, templates idMap
+	users, groups, categories, tags, lists, items, receipts, products, templates idMap
 	// carried are the people whose own settings (goal, language, Dashboard) the import writes: the
 	// name-only people it creates and the importer when they are one of the people in the export.
 	carried map[uint]bool
@@ -98,7 +98,7 @@ func Import(db *gorm.DB, archive *Archive, household *Household, options ImportO
 	run := &importRun{
 		household: household, options: options, archive: archive,
 		users: idMap{}, groups: idMap{}, categories: idMap{}, tags: idMap{}, lists: idMap{}, items: idMap{},
-		receipts: idMap{}, products: idMap{}, comments: idMap{}, templates: idMap{},
+		receipts: idMap{}, products: idMap{}, templates: idMap{},
 		carried: map[uint]bool{}, staged: map[string]string{},
 	}
 
@@ -205,7 +205,7 @@ func (run *importRun) write() error {
 
 	steps := []func() error{
 		run.writeHouseholdSettings, run.writeUsers, run.writeGroups, run.writeCategoriesAndTags, run.writeLists,
-		run.writeReceipts, run.writeProducts, run.writeComments, run.writeFiles, run.writeTrips, run.writeSmallTables,
+		run.writeReceipts, run.writeProducts, run.writeFiles, run.writeTrips, run.writeSmallTables,
 		run.writeTemplates, run.writePersonalSettings,
 	}
 	for _, step := range steps {
@@ -358,8 +358,8 @@ func (run *importRun) writeGroups() error {
 		}
 		run.groups[group.ID] = created.ID
 		if !hasSettings {
-			settings = models.GroupReceiptSettings{QuickScanPaidByEnabled: true, QuickScanPaidByRequired: true,
-				QuickScanStatusEnabled: true, QuickScanStatusRequired: true}
+			// A household the export says nothing about gets a new household's settings.
+			settings = models.GroupReceiptSettings{}
 		}
 		if err := run.writeGroupSettings(created.ID, settings, false); err != nil {
 			return err
@@ -528,7 +528,8 @@ func (run *importRun) writeReceipts() error {
 		rows[i] = models.Receipt{Name: receipt.Name, ShopName: receipt.ShopName, Amount: receipt.Amount,
 			OriginalAmount: receipt.OriginalAmount, OriginalCurrency: receipt.OriginalCurrency, ExchangeRate: receipt.ExchangeRate,
 			Date: utils.CalendarDayUTC(receipt.Date), WarrantyUntil: receipt.WarrantyUntil, ResolvedDate: receipt.ResolvedDate,
-			PaidByUserID: run.users[receipt.PaidByUserID], Status: receipt.Status, GroupId: run.groups[receipt.GroupId]}
+			PaidByUserID: run.users[receipt.PaidByUserID], Status: receipt.Status, GroupId: run.groups[receipt.GroupId],
+			Note: receipt.Note}
 		rows[i].CreatedAt = receipt.CreatedAt
 		rows[i].CreatedBy = run.users.ptr(receipt.CreatedBy)
 	}
@@ -586,35 +587,6 @@ func (run *importRun) writeProducts() error {
 		return err
 	}
 	run.count("receipt_products", len(rows))
-	return nil
-}
-
-// writeComments writes parents before their replies, however deep the thread.
-func (run *importRun) writeComments() error {
-	pending := run.household.Comments
-	for len(pending) > 0 {
-		var later []models.Comment
-		for _, comment := range pending {
-			if comment.CommentId != nil {
-				if _, ready := run.comments[*comment.CommentId]; !ready {
-					later = append(later, comment)
-					continue
-				}
-			}
-			created := models.Comment{ReceiptId: run.receipts[comment.ReceiptId], UserId: run.users.ptr(comment.UserId),
-				CommentId: run.comments.ptr(comment.CommentId), Comment: comment.Comment, AdditionalInfo: comment.AdditionalInfo}
-			created.CreatedAt = comment.CreatedAt
-			if err := run.tx.Omit(clause.Associations).Create(&created).Error; err != nil {
-				return err
-			}
-			run.comments[comment.ID] = created.ID
-		}
-		if len(later) == len(pending) {
-			return errors.New("comments.csv: replies form a loop")
-		}
-		pending = later
-	}
-	run.count("comments", len(run.household.Comments))
 	return nil
 }
 
@@ -904,16 +876,16 @@ func (run *importRun) writePersonalSettings() error {
 			"warranty_period_years":         preferences.WarrantyPeriodYears,
 			"warranty_reminder_lead_days":   preferences.WarrantyReminderLeadDays,
 		}
-		var existing models.UserPrefernces
-		if err := run.tx.Model(models.UserPrefernces{}).Where("user_id = ?", userId).Limit(1).Find(&existing).Error; err != nil {
+		var existing models.UserPreferences
+		if err := run.tx.Model(models.UserPreferences{}).Where("user_id = ?", userId).Limit(1).Find(&existing).Error; err != nil {
 			return err
 		}
 		if existing.ID == 0 {
-			if err := run.tx.Create(&models.UserPrefernces{UserId: userId}).Error; err != nil {
+			if err := run.tx.Create(&models.UserPreferences{UserId: userId}).Error; err != nil {
 				return err
 			}
 		}
-		if err := run.tx.Model(&models.UserPrefernces{}).Where("user_id = ?", userId).Updates(updates).Error; err != nil {
+		if err := run.tx.Model(&models.UserPreferences{}).Where("user_id = ?", userId).Updates(updates).Error; err != nil {
 			return err
 		}
 	}

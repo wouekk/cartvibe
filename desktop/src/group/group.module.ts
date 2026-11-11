@@ -3,14 +3,14 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 
 import { CheckboxModule } from "src/checkbox/checkbox.module";
-import { PipesModule } from "src/pipes/pipes.module";
+
 import { SelectModule } from "src/select/select.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.module";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
-import { DirectivesModule } from "../directives";
+
 import { InputModule } from "../input";
 import { GroupDetailsComponent } from "./group-details/group-details.component";
 import { GroupFormComponent } from "./group-form/group-form.component";
@@ -29,24 +29,13 @@ import { AvatarModule } from "../avatar";
 import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.component";
 
 @NgModule({
-  declarations: [
-    GroupTableComponent,
-    GroupFormComponent,
-    GroupMemberFormComponent,
-    GroupTabsComponent,
-    GroupDetailsComponent,
-    GroupTableEditButtonPipe,
-    GroupReceiptSettingsComponent,
-  ],
-  imports: [
+    imports: [
     ButtonModule,
     ReceiptProductBackfillComponent,
     CheckboxModule,
     CommonModule,
-    DirectivesModule,
     GroupRoutingModule,
     InputModule,
-    PipesModule,
     ReactiveFormsModule,
     SelectModule,
     SharedUiModule,
@@ -59,7 +48,14 @@ import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.compon
     GroupLookPickerComponent,
     AvatarModule,
     RowActionsComponent,
-  ],
-  exports: [GroupTableComponent],
+    GroupTableComponent,
+    GroupFormComponent,
+    GroupMemberFormComponent,
+    GroupTabsComponent,
+    GroupDetailsComponent,
+    GroupTableEditButtonPipe,
+    GroupReceiptSettingsComponent,
+],
+    exports: [GroupTableComponent],
 })
 export class GroupsModule {}

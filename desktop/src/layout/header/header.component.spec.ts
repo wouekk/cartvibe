@@ -4,12 +4,10 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { Location } from "@angular/common";
 import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
-import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
@@ -40,12 +38,9 @@ describe("HeaderComponent", () => {
     localStorage.clear();
 
     await TestBed.configureTestingModule({
-    declarations: [HeaderComponent],
     imports: [TranslatePipe, ApiModule,
-        DirectivesModule,
         OverlayModule,
-        StoreModule,
-    ],
+        StoreModule, HeaderComponent,],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
@@ -152,11 +147,4 @@ describe("HeaderComponent", () => {
     expect(component.notificationCount()).toBe(3);
   });
 
-  it("keeps an in-app shortcut under the app's base (the demo) and leaves other addresses alone", () => {
-    vi.spyOn(TestBed.inject(Location), "prepareExternalUrl").mockImplementation((url) => `/demo/#${url}`);
-
-    expect(component.shortcutHref("/receipts")).toBe("/demo/#/receipts");
-    expect(component.shortcutHref("https://example.com/x")).toBe("https://example.com/x");
-    expect(component.shortcutHref("//example.com/x")).toBe("//example.com/x");
-  });
 });

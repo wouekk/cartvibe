@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule, Store } from "@ngxs/store";
 import { ShoppingListService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { ShoppingListFormDialogComponent } from "./shopping-list-form-dialog.component";
 
@@ -13,15 +12,14 @@ describe("ShoppingListFormDialogComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ShoppingListFormDialogComponent],
-      imports: [NgxsModule.forRoot([SystemSettingsState]), PipesModule, ReactiveFormsModule],
-      providers: [
+    imports: [NgxsModule.forRoot([SystemSettingsState]), ReactiveFormsModule, ShoppingListFormDialogComponent],
+    providers: [
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: { close: vi.fn() } },
         { provide: ShoppingListService, useValue: {} },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     const store = TestBed.inject(Store);
     store.reset({ ...store.snapshot(), systemSettings: { timeZone: "Europe/Amsterdam" } });

@@ -5,10 +5,7 @@ import { AuthState } from "../store/auth.state";
 import { SetPermissions } from "../store/auth.state.actions";
 import { HasAppPermissionDirective } from "./has-app-permission.directive";
 
-@Component({
-  template: `<span *hasAppPermission="permission" data-testid="gated">gated</span>`,
-  standalone: false,
-})
+@Component({ template: `<span *hasAppPermission="permission" data-testid="gated">gated</span>`, imports: [HasAppPermissionDirective] })
 class HostComponent {
   permission = "app.users.read";
 }
@@ -21,10 +18,9 @@ describe("HasAppPermissionDirective", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HostComponent, HasAppPermissionDirective],
-      imports: [NgxsModule.forRoot([AuthState])],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [NgxsModule.forRoot([AuthState]), HostComponent, HasAppPermissionDirective],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(HostComponent);

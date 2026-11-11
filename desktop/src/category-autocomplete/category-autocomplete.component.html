@@ -1,4 +1,4 @@
-<app-autocomlete
+<app-autocomplete
   class="w-full"
   [label]="'Categories' | t"
   optionFilterKey="name"
@@ -11,7 +11,7 @@
   [multiple]="true"
   [creatable]="creatable()"
   [readonly]="readonly()"
-></app-autocomlete>
+></app-autocomplete>
 
 <ng-template #categoryOptionTemplate let-option="option"
 >{{ option.name }}

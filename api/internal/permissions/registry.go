@@ -105,9 +105,6 @@ const (
 	GroupReceiptsMagicFill = "group.receipts.magic-fill"
 	GroupReceiptsQuickScan = "group.receipts.quick-scan"
 
-	GroupCommentsCreate = "group.comments.create"
-	GroupCommentsDelete = "group.comments.delete"
-
 	GroupReportsRead = "group.reports.read"
 
 	GroupActivitiesRead  = "group.activities.read"
@@ -205,8 +202,6 @@ var registry = []Descriptor{
 	{GroupReceiptsMagicFill, "Magic Fill Receipts", "Run AI-powered data extraction on a receipt image to pre-fill receipt fields.", "Receipts", ScopeGroup},
 	{GroupReceiptsQuickScan, "Quick Scan Receipts", "Use the Quick Scan flow to rapidly capture and create receipts.", "Receipts", ScopeGroup},
 
-	{GroupCommentsCreate, "Create Comments", "Add comments to receipts.", "Receipts", ScopeGroup},
-	{GroupCommentsDelete, "Delete Comments", "Remove comments.", "Receipts", ScopeGroup},
 
 	{GroupReportsRead, "Read Reports", "Generate and download reports over the group's receipts.", "Reports", ScopeGroup},
 

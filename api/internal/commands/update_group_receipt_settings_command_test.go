@@ -3,6 +3,7 @@ package commands
 import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"encoding/json"
 	"testing"
 )
 
@@ -12,61 +13,30 @@ func TestUpdateGroupReceiptSettingsCommand_Validate_ValidInputs(t *testing.T) {
 	tests := map[string]struct {
 		command UpdateGroupReceiptSettingsCommand
 	}{
-		"paid by and status shown+required need no defaults": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:  true,
-				QuickScanPaidByRequired: true,
-				QuickScanStatusEnabled:  true,
-				QuickScanStatusRequired: true,
-			},
+		// Quick Scan asks for nothing and nothing is required, so no default has to be set.
+		"everything off, no defaults": {
+			command: UpdateGroupReceiptSettingsCommand{},
 		},
-		// Unlike paid-by/status, a comment can legitimately be empty, so requiring it needs no
-		// configured default.
-		"comment shown+required needs no default": {
+		"the person scanning pays by default": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:   true,
-				QuickScanPaidByRequired:  true,
-				QuickScanStatusEnabled:   true,
-				QuickScanStatusRequired:  true,
-				QuickScanCommentEnabled:  true,
-				QuickScanCommentRequired: true,
-			},
-		},
-		"paid by optional with uploader default": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     true,
-				QuickScanPaidByRequired:    false,
 				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
-				QuickScanStatusEnabled:     true,
-				QuickScanStatusRequired:    true,
 			},
 		},
-		"paid by optional with specific user default": {
+		"a named member pays by default": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     true,
-				QuickScanPaidByRequired:    false,
 				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
 				QuickScanDefaultPaidById:   &userId,
-				QuickScanStatusEnabled:     true,
-				QuickScanStatusRequired:    true,
 			},
 		},
-		"paid by hidden with uploader default": {
+		"a default status": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     false,
-				QuickScanPaidByRequired:    false,
-				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
-				QuickScanStatusEnabled:     true,
-				QuickScanStatusRequired:    true,
+				QuickScanDefaultStatus: models.RESOLVED,
 			},
 		},
-		"status optional with default status": {
+		"the note hidden while Quick Scan would ask for it": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:  true,
-				QuickScanPaidByRequired: true,
-				QuickScanStatusEnabled:  true,
-				QuickScanStatusRequired: false,
-				QuickScanDefaultStatus:  models.OPEN,
+				HideNote:             true,
+				QuickScanNoteEnabled: true,
 			},
 		},
 	}
@@ -89,52 +59,28 @@ func TestUpdateGroupReceiptSettingsCommand_Validate_InvalidInputs(t *testing.T) 
 		command     UpdateGroupReceiptSettingsCommand
 		expectedKey string
 	}{
-		"paid by optional with no default type": {
+		"a named member without the member": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:  true,
-				QuickScanPaidByRequired: false,
-				QuickScanStatusEnabled:  true,
-				QuickScanStatusRequired: true,
+				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
+			},
+			expectedKey: "quickScanDefaultPaidById",
+		},
+		"a named member with a zero id": {
+			command: UpdateGroupReceiptSettingsCommand{
+				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
+				QuickScanDefaultPaidById:   &zero,
+			},
+			expectedKey: "quickScanDefaultPaidById",
+		},
+		"an unknown kind of default payer": {
+			command: UpdateGroupReceiptSettingsCommand{
+				QuickScanDefaultPaidByType: models.QuickScanDefaultPaidByType("SOMEONE"),
 			},
 			expectedKey: "quickScanDefaultPaidByType",
 		},
-		"paid by optional type user without id": {
+		"an unknown default status": {
 			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     true,
-				QuickScanPaidByRequired:    false,
-				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
-				QuickScanStatusEnabled:     true,
-				QuickScanStatusRequired:    true,
-			},
-			expectedKey: "quickScanDefaultPaidById",
-		},
-		"paid by optional type user with zero id": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     true,
-				QuickScanPaidByRequired:    false,
-				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
-				QuickScanDefaultPaidById:   &zero,
-				QuickScanStatusEnabled:     true,
-				QuickScanStatusRequired:    true,
-			},
-			expectedKey: "quickScanDefaultPaidById",
-		},
-		"status optional with no default": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:  true,
-				QuickScanPaidByRequired: true,
-				QuickScanStatusEnabled:  true,
-				QuickScanStatusRequired: false,
-			},
-			expectedKey: "quickScanDefaultStatus",
-		},
-		"status optional with invalid default": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:  true,
-				QuickScanPaidByRequired: true,
-				QuickScanStatusEnabled:  true,
-				QuickScanStatusRequired: false,
-				QuickScanDefaultStatus:  models.ReceiptStatus("NOT_A_STATUS"),
+				QuickScanDefaultStatus: models.ReceiptStatus("NOT_A_STATUS"),
 			},
 			expectedKey: "quickScanDefaultStatus",
 		},
@@ -148,5 +94,22 @@ func TestUpdateGroupReceiptSettingsCommand_Validate_InvalidInputs(t *testing.T) 
 				utils.PrintTestError(t, vErr.Errors, test.expectedKey)
 			}
 		})
+	}
+}
+
+// What an older settings page still sends is read, not refused: a status removed in 2026-11 as what it became,
+// and the switches that no longer exist are ignored.
+func TestUpdateGroupReceiptSettingsCommand_ReadsWhatAnOlderPageSends(t *testing.T) {
+	command := UpdateGroupReceiptSettingsCommand{}
+	body := []byte(`{"quickScanDefaultStatus":"NEEDS_ATTENTION","quickScanPaidByEnabled":true,"quickScanPaidByRequired":true,"hideComments":true}`)
+	if err := json.Unmarshal(body, &command); err != nil {
+		t.Fatal(err)
+	}
+
+	if command.QuickScanDefaultStatus != models.OPEN {
+		t.Errorf("NEEDS_ATTENTION should read OPEN, got %q", command.QuickScanDefaultStatus)
+	}
+	if vErr := command.Validate(); len(vErr.Errors) > 0 {
+		t.Errorf("unexpected errors: %v", vErr.Errors)
 	}
 }

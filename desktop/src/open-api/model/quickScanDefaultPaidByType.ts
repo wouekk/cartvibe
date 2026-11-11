@@ -10,7 +10,7 @@
 
 
 /**
- * How the default paid-by is resolved for optional quick-scan paid-by
+ * Who paid when a Quick Scan does not say. UPLOADER, or empty, is the person scanning; USER is the member named by quickScanDefaultPaidById.
  */
 export type QuickScanDefaultPaidByType = 'UPLOADER' | 'USER' | '';
 

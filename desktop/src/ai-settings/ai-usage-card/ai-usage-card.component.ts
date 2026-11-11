@@ -4,9 +4,10 @@ import { catchError, of, take } from "rxjs";
 import { AiType } from "../../constants/ai-type";
 import { TranslationService } from "../../i18n/translation.service";
 import { AiUsageMonth, ReceiptProcessingSettingsService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { providerName } from "../ai-settings-shared";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 interface UsageRow {
   key: string;
@@ -27,7 +28,7 @@ interface UsageRow {
   host: { class: "block" },
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DecimalPipe, PipesModule, SharedUiModule],
+  imports: [DecimalPipe, TranslatePipe, SharedUiModule],
   template: `
     @if (rows().length > 0) {
       <app-settings-section

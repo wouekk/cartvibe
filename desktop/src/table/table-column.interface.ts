@@ -9,7 +9,7 @@ export type TablePhoneRole = "title" | "subtitle" | "aside" | "meta" | "actions"
 
 export interface TableColumn {
   columnHeader: string;
-  matColumnDef: string;
+  columnDef: string;
   sortable: boolean;
   elementKey?: string;
   template?: TemplateRef<any>;

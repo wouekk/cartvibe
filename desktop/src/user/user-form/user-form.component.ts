@@ -1,6 +1,6 @@
 import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
@@ -17,14 +17,24 @@ import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dialog.component";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser } from "../../store";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { InputComponent } from "../../input/input/input.component";
+import { NgIf } from "@angular/common";
+import { SelectComponent } from "../../select/select/select.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
+import { SubmitButtonComponent } from "../../shared-ui/submit-button/submit-button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-user-form",
-  host: { class: "block max-h-[85vh] overflow-y-auto" },
+    host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./user-form.component.html",
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, ButtonComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe]
 })
 export class UserFormComponent implements OnInit {
   @Input() public user?: User;
@@ -44,9 +54,9 @@ export class UserFormComponent implements OnInit {
     private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
     private userValidators: UserValidators,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private destroyRef: DestroyRef,
-    public matDialogRef: AppDialogRef<UserFormComponent>
+    public dialogRef: AppDialogRef<UserFormComponent>
   ) {
     // Pre-select the User role on the add form once the roles resolve. Syncing a
     // derived value into the reactive form is an imperative side effect, so an
@@ -153,7 +163,7 @@ export class UserFormComponent implements OnInit {
   public previewRole(): void {
     const role = this.selectedRole();
     if (role) {
-      openRolePreviewDialog(this.matDialog, role);
+      openRolePreviewDialog(this.dialog, role);
     }
   }
 
@@ -185,7 +195,7 @@ export class UserFormComponent implements OnInit {
               of(undefined)
             )
           ),
-          tap(() => this.matDialogRef.close(true)),
+          tap(() => this.dialogRef.close(true)),
           catchError(() => {
             // The interceptor surfaces the failure; keep the dialog open so the
             // admin can correct the input rather than losing it.
@@ -201,7 +211,7 @@ export class UserFormComponent implements OnInit {
           switchMap((u) => this.store.dispatch(new AddUser(u))),
           tap(() => {
             this.snackbarService.success("User successfully created");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           }),
           catchError((err) => {
             // Closing here would report a create that never happened and discard
@@ -220,6 +230,6 @@ export class UserFormComponent implements OnInit {
   }
 
   public closeModal(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

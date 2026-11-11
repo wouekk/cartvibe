@@ -15,19 +15,18 @@ describe("ReportGenerateBarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ReportGenerateBarComponent],
-      // The real ButtonModule renders the Save/Generate app-buttons as real <button>s
-      // whose rendered/disabled state the DOM assertions below can inspect. The bar no
-      // longer gates on permissions itself — the parent passes resolved booleans.
-      imports: [TranslatePipe, ButtonModule],
-      providers: [
+    // The real ButtonModule renders the Save/Generate app-buttons as real <button>s
+    // whose rendered/disabled state the DOM assertions below can inspect. The bar no
+    // longer gates on permissions itself — the parent passes resolved booleans.
+    imports: [TranslatePipe, ButtonModule, ReportGenerateBarComponent],
+    providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     const formBuilder = new FormBuilder();
     form = formBuilder.group({

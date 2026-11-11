@@ -7,8 +7,7 @@ import { HlmTextareaImports } from "@spartan-ng/helm/textarea";
 import { TextareaComponent } from "./textarea/textarea.component";
 
 @NgModule({
-  declarations: [TextareaComponent],
-  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, TextFieldModule, ...HlmTextareaImports],
-  exports: [TextareaComponent],
+    imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, TextFieldModule, ...HlmTextareaImports, TextareaComponent],
+    exports: [TextareaComponent],
 })
 export class TextareaModule {}

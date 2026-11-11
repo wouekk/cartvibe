@@ -19,10 +19,9 @@ describe("CategoriesListComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [CategoryTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([CategoryTableState])],
+        NgxsModule.forRoot([CategoryTableState]), CategoryTableComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(CategoryTableComponent);

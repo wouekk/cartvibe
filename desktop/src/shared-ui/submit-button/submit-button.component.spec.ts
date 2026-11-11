@@ -9,13 +9,13 @@ import { ButtonModule } from "../../button";
 import { SubmitButtonComponent } from "./submit-button.component";
 
 @Component({
-  template: `
+    template: `
     <form [formGroup]="form">
       <input formControlName="name" />
       <app-submit-button [mode]="mode()" [highlightUnsaved]="highlight()"></app-submit-button>
     </form>
   `,
-  standalone: false,
+    imports: [ButtonModule, ReactiveFormsModule, SubmitButtonComponent],
 })
 class HostComponent {
   public readonly form = new FormGroup({ name: new FormControl("Milk") });
@@ -29,16 +29,15 @@ describe("SubmitButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubmitButtonComponent, HostComponent],
-      imports: [ButtonModule, ReactiveFormsModule, NgxsModule.forRoot([LayoutState])],
-      providers: [
+    imports: [ButtonModule, ReactiveFormsModule, NgxsModule.forRoot([LayoutState]), SubmitButtonComponent, HostComponent],
+    providers: [
         provideZonelessChangeDetection(),
         {
-          provide: ActivatedRoute,
-          useValue: {},
+            provide: ActivatedRoute,
+            useValue: {},
         },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(SubmitButtonComponent);
     component = fixture.componentInstance;

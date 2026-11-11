@@ -1,11 +1,12 @@
 import { Component, HostBinding, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormMode } from "src/enums/form-mode.enum";
+import { NgIf, NgClass } from "@angular/common";
 
 @Component({
     selector: "app-form-button-bar",
-    templateUrl: "./form-button-bar.component.html",
+    templateUrl: "./form-button-bar.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgClass]
 })
 export class FormButtonBarComponent {
   public readonly mode = input<FormMode>();

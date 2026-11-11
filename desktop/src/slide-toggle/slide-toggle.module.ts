@@ -5,8 +5,7 @@ import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { SlideToggleComponent } from './slide-toggle/slide-toggle.component';
 
 @NgModule({
-  declarations: [SlideToggleComponent],
-  imports: [CommonModule, ...HlmSwitchImports],
-  exports: [SlideToggleComponent],
+    imports: [CommonModule, ...HlmSwitchImports, SlideToggleComponent],
+    exports: [SlideToggleComponent],
 })
 export class SlideToggleModule {}

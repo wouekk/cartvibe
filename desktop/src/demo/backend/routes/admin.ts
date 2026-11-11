@@ -54,7 +54,7 @@ export function registerAdmin(router: DemoRouter): void {
     ],
     fileCount: db.receipts.reduce((sum, receipt) => sum + (receipt.imageFiles?.length ?? 0), 0),
     fileBytes: 0,
-    formatVersion: 1,
+    formatVersion: 2,
   }));
   router.get("/backup/export", () => badRequest(NOT_IN_DEMO));
   router.get("/backup/import", () => []);

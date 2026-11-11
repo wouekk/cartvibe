@@ -1,5 +1,4 @@
-import { comboboxNamed } from './helpers/ui';
-import { expect, type Route, test } from '@playwright/test';
+import { expect, type Page, type Route, test } from '@playwright/test';
 import { creds, stubTokenRefresh } from './helpers/auth';
 import {
   apiCreateGroup,
@@ -16,14 +15,10 @@ import {
   uploadQuickScanImages,
 } from './helpers/quick-scan';
 
-// Deeper Quick Scan DIALOG behavior, complementing quick-scan-dialog.spec.ts
-// (which asserts a single static config snapshot). Everything is driven by
-// client-side AppData injection (see helpers/quick-scan.ts) so no server config
-// is mutated. The two SUBMIT specs mock POST /receipt/quickScan: the backend
-// validates each group's PERSISTED config (which we intentionally don't touch),
-// so a real submit would 400 — capturing the request instead lets us assert the
-// exact multipart the client builds (the "falls off the submission" half the
-// mobile suite can't observe, since its queued receipt has no id).
+// What a Quick Scan sends, complementing quick-scan-dialog.spec.ts (what the dialog shows). Everything is driven
+// by client-side AppData injection (see helpers/quick-scan.ts) so no server config is mutated, and POST
+// /receipt/quickScan is answered by a stub: with no AI configured the server would refuse the scan, and capturing
+// the request is the only way to read the exact multipart the client builds.
 
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
@@ -50,29 +45,9 @@ test.describe('Quick scan dialog behavior', () => {
   test.beforeEach(async ({ page }) => {
     await stubTokenRefresh(page);
   });
-  // The comment field: shown per config AND the caller's group.comments.create,
-  // required blocks the submit, and the typed text rides the multipart.
-  test('a required comment blocks submit until filled, then rides the multipart', async ({
-    page,
-  }) => {
-    await injectQuickScanAppData(page, {
-      groupConfigs: [
-        {
-          groupId: groupA.id,
-          config: {
-            quickScanPaidByEnabled: false,
-            quickScanStatusEnabled: false,
-            quickScanDefaultStatus: 'OPEN',
-            quickScanCategoriesEnabled: false,
-            quickScanTagsEnabled: false,
-            quickScanCommentEnabled: true,
-            quickScanCommentRequired: true,
-          },
-        },
-      ],
-      groupPermissions: { [groupA.id]: ['group.receipts.quick-scan', 'group.comments.create'] },
-    });
 
+  /** Answers every scan with 200 and keeps what was sent. */
+  async function captureScans(page: Page): Promise<{ body: Buffer | null; contentType: string }[]> {
     const requests: { body: Buffer | null; contentType: string }[] = [];
     await page.route('**/api/receipt/quickScan', async (route: Route) => {
       const req = route.request();
@@ -82,100 +57,90 @@ test.describe('Quick scan dialog behavior', () => {
       });
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
+    return requests;
+  }
+
+  // The person's own defaults are cleared so the multipart below does not depend on what the admin account
+  // happens to have stored.
+  const noPersonalDefaults = { quickScanDefaultStatus: '', quickScanDefaultPaidById: null };
+
+  test('a note rides the multipart, beside the scanner as the payer and nothing else chosen', async ({ page }) => {
+    await injectQuickScanAppData(page, {
+      groupConfigs: [{ groupId: groupA.id, config: { quickScanNoteEnabled: true } }],
+      userPreferences: noPersonalDefaults,
+    });
+    const requests = await captureScans(page);
 
     const dialog = await openQuickScanDialog(page, groupA.id);
     await uploadQuickScanImages(dialog, 1);
     await selectImageGroup(page, dialog, groupA.name);
 
-    const comment = dialog.getByTestId('quick-scan-comment').getByRole('textbox');
-    await expect(comment).toBeVisible();
+    const note = dialog.getByTestId('quick-scan-note').getByRole('textbox');
+    await expect(note).toBeVisible();
+    await note.fill('Birthday dinner, the big table');
 
-    // Empty + required → the submit is refused and nothing is sent.
-    await dialog.getByTestId('dialog-submit-button').click();
-    await expect(page.getByText('Please fill in all required fields', { exact: false })).toBeVisible();
-    expect(requests).toHaveLength(0);
-
-    await comment.fill('Client dinner, reimbursable');
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
 
     expect(requests).toHaveLength(1);
     const fields = parseMultipartFields(requests[0].body!, requests[0].contentType);
-    expect(fields.get('comments')).toEqual(['Client dinner, reimbursable']);
+    expect(fields.get('groupIds')).toEqual([String(groupA.id)]);
+    // Whoever scans paid; the empty status leaves it to the household's default, then "To check".
+    expect(fields.get('paidByUserIds')).toEqual([String(adminId)]);
+    expect(fields.get('statuses')).toEqual(['']);
+    expect(fields.get('categoryIds')).toEqual(['']);
+    expect(fields.get('tagIds')).toEqual(['']);
+    expect(fields.get('notes')).toEqual(['Birthday dinner, the big table']);
+    // The field the server read before the note replaced comments is not sent any more.
+    expect(fields.has('comments')).toBe(false);
   });
 
-  // Without group.comments.create the field is hidden even when the group enables
-  // AND requires it — otherwise a member who cannot comment could never quick scan.
-  test('the comment field is hidden without group.comments.create and does not block submit', async ({
-    page,
-  }) => {
+  test('the note is not asked for while the household hides the note', async ({ page }) => {
     await injectQuickScanAppData(page, {
-      groupConfigs: [
-        {
-          groupId: groupA.id,
-          config: {
-            quickScanPaidByEnabled: false,
-            quickScanStatusEnabled: false,
-            quickScanDefaultStatus: 'OPEN',
-            quickScanCategoriesEnabled: false,
-            quickScanTagsEnabled: false,
-            quickScanCommentEnabled: true,
-            quickScanCommentRequired: true,
-          },
-        },
-      ],
-      groupPermissions: { [groupA.id]: ['group.receipts.quick-scan'] },
+      groupConfigs: [{ groupId: groupA.id, config: { quickScanNoteEnabled: true, hideNote: true } }],
+      userPreferences: noPersonalDefaults,
     });
-
-    const requests: { body: Buffer | null; contentType: string }[] = [];
-    await page.route('**/api/receipt/quickScan', async (route: Route) => {
-      const req = route.request();
-      requests.push({
-        body: req.postDataBuffer(),
-        contentType: req.headers()['content-type'] ?? '',
-      });
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
-    });
+    const requests = await captureScans(page);
 
     const dialog = await openQuickScanDialog(page, groupA.id);
     await uploadQuickScanImages(dialog, 1);
     await selectImageGroup(page, dialog, groupA.name);
 
-    await expect(dialog.getByTestId('quick-scan-comment')).toHaveCount(0);
+    await expect(dialog.getByTestId('quick-scan-note')).toHaveCount(0);
 
     await dialog.getByTestId('dialog-submit-button').click();
     await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
     expect(requests).toHaveLength(1);
     const fields = parseMultipartFields(requests[0].body!, requests[0].contentType);
-    expect(fields.get('comments')).toEqual(['']);
+    expect(fields.get('notes')).toEqual(['']);
   });
 
-  // hideComments hides the whole group's comments, so it hides the quick-scan
-  // comment field too, without the config being changed.
-  test('the comment field is hidden when the group hides comments', async ({ page }) => {
+  // The note follows the photo's household: one typed for a household that asks is not carried to one that
+  // does not when the photo is moved.
+  test('a note typed for one household is not sent to another that does not ask for one', async ({ page }) => {
     await injectQuickScanAppData(page, {
       groupConfigs: [
-        {
-          groupId: groupA.id,
-          config: {
-            quickScanPaidByEnabled: false,
-            quickScanStatusEnabled: false,
-            quickScanDefaultStatus: 'OPEN',
-            quickScanCategoriesEnabled: false,
-            quickScanTagsEnabled: false,
-            quickScanCommentEnabled: true,
-            quickScanCommentRequired: true,
-            hideComments: true,
-          },
-        },
+        { groupId: groupA.id, config: { quickScanNoteEnabled: true } },
+        { groupId: groupB.id, config: { quickScanNoteEnabled: false } },
       ],
-      groupPermissions: { [groupA.id]: ['group.receipts.quick-scan', 'group.comments.create'] },
+      userPreferences: noPersonalDefaults,
     });
+    const requests = await captureScans(page);
 
     const dialog = await openQuickScanDialog(page, groupA.id);
     await uploadQuickScanImages(dialog, 1);
     await selectImageGroup(page, dialog, groupA.name);
+    await dialog.getByTestId('quick-scan-note').getByRole('textbox').fill('meant for the first household');
 
-    await expect(dialog.getByTestId('quick-scan-comment')).toHaveCount(0);
+    await selectImageGroup(page, dialog, groupB.name);
+    await expect(dialog.getByTestId('quick-scan-note')).toHaveCount(0);
+
+    await dialog.getByTestId('dialog-submit-button').click();
+    await expect(page.getByText('Receipts uploaded', { exact: false })).toBeVisible();
+
+    expect(requests).toHaveLength(1);
+    const fields = parseMultipartFields(requests[0].body!, requests[0].contentType);
+    expect(fields.get('groupIds')).toEqual([String(groupB.id)]);
+    expect(fields.get('notes')).toEqual(['']);
   });
 });

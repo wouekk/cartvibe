@@ -24,7 +24,7 @@ contract are in `../../api/CLAUDE.md` → "8. Reporting" and `api/internal/repor
   `toFieldOptions`). `models/report-command.mapper.ts` maps the form to the generated `ReportRequestCommand`.
 - Structural lists (scope, grouping, columns) mutate their `FormArray` and bump a `revision` signal so the `@for`s
   repaint under zoneless CD (dialog-driven changes run outside a template event).
-- Multi-select filter controls (categories, tags, paid by) are `FormArray`s, because `app-autocomlete` pushes onto
+- Multi-select filter controls (categories, tags, paid by) are `FormArray`s, because `app-autocomplete` pushes onto
   them.
 
 ## Open in builder (hydration)
@@ -65,7 +65,7 @@ value lands on `"date"` too.
 
 `report-filters` uses the shared `buildReceiptFilterForm` and `OperationsPipe`, so it produces the same
 `ReceiptPagedRequestFilter` as the receipts filter. Category and tag options are the union of the user's group
-catalogs. The one divergence is paid by: an `app-autocomlete` over `paidByOptions()`, which prepends "Whoever
+catalogs. The one divergence is paid by: an `app-autocomplete` over `paidByOptions()`, which prepends "Whoever
 generates the report" (`REPORT_GENERATOR_PAID_BY_ID = -1`); the control stores plain ids, so a saved template carries
 `-1` and the server resolves it to the generating user.
 

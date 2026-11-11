@@ -213,14 +213,13 @@ func userDisplayName(user models.User) string {
 	return user.Username
 }
 
-// statusLabel is a status as a family reads it, the same two words the app shows: OPEN,
-// NEEDS_ATTENTION and DRAFT are "To check", RESOLVED and DECLINED "Settled". An empty or unknown
-// status stays as it is, so nothing is hidden.
+// statusLabel is a status as a family reads it, the same two words the app shows: OPEN is "To check",
+// RESOLVED "Settled". An empty or unknown status stays as it is, so nothing is hidden.
 func statusLabel(status models.ReceiptStatus, tr i18n.Translator) string {
 	switch status {
-	case models.OPEN, models.NEEDS_ATTENTION, models.DRAFT:
+	case models.OPEN:
 		return tr.T("To check")
-	case models.RESOLVED, models.DECLINED:
+	case models.RESOLVED:
 		return tr.T("Settled")
 	default:
 		return string(status)

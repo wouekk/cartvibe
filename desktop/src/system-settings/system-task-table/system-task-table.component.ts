@@ -1,5 +1,5 @@
 import { TranslationService } from "../../i18n/translation.service";
-import { DatePipe } from "@angular/common";
+import { DatePipe, NgIf } from "@angular/common";
 import { Component, DestroyRef, OnInit, TemplateRef, computed, inject, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
@@ -24,19 +24,25 @@ import { applyFormCommand } from "../../utils/form.utils";
 import { buildSystemTaskFilterChips, SystemTaskFilterChip } from "../../utils/system-task-filter-chips";
 import { buildSystemTaskFilterForm } from "../../utils/system-task-filter";
 import { SystemTaskFilterComponent } from "../system-task-filter/system-task-filter.component";
+import { SettingsSectionComponent } from "../../shared-ui/settings/settings-section.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { HlmBadge } from "../../ui/badge/lib/hlm-badge";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ReceiptProcessingSettingsChildSystemTaskAccordionComponent } from "../../receipt-processing-settings/receipt-processing-settings-child-system-task-accordion/receipt-processing-settings-child-system-task-accordion.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
-  selector: "app-system-task-table",
-  templateUrl: "./system-task-table.component.html",
-  providers: [
-    {
-      provide: TABLE_SERVICE_INJECTION_TOKEN,
-      useClass: SystemTaskTableService
-    },
-    DatePipe,
-  ],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-system-task-table",
+    templateUrl: "./system-task-table.component.html",
+    providers: [
+        {
+            provide: TABLE_SERVICE_INJECTION_TOKEN,
+            useClass: SystemTaskTableService
+        },
+        DatePipe,
+    ],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [SettingsSectionComponent, ButtonComponent, NgIf, HlmBadge, AppIconComponent, TaskTableComponent, ReceiptProcessingSettingsChildSystemTaskAccordionComponent, TranslatePipe]
 })
 export class SystemTaskTableComponent implements OnInit {
   public readonly expandedRowTemplate = viewChild.required<TemplateRef<any>>("expandedRowTemplate");
@@ -78,7 +84,7 @@ export class SystemTaskTableComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private datePipe: DatePipe,
     private translation: TranslationService
   ) {}
@@ -92,7 +98,7 @@ export class SystemTaskTableComponent implements OnInit {
   }
 
   public filterButtonClicked(): void {
-    const dialogRef = this.matDialog.open(SystemTaskFilterComponent, {
+    const dialogRef = this.dialog.open(SystemTaskFilterComponent, {
       ...DEFAULT_DIALOG_CONFIG,
       minWidth: "75%",
       maxWidth: "100%",

@@ -9,8 +9,7 @@ import { downscaleImageForUpload } from "../../utils/downscale-image";
     selector: "app-upload-image",
     templateUrl: "./upload-image.component.html",
     styleUrls: ["./upload-image.component.scss"],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class UploadImageComponent {
   readonly uploadInput = viewChild.required<any>("uploadInput");

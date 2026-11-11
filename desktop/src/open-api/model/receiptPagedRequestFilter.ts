@@ -51,7 +51,7 @@ export interface ReceiptPagedRequestFilter {
      */
     createdAt?: object;
     /**
-     * Free-text, typo-tolerant phrase matched against a receipt\'s name, shop, comments and product lines. Every word of the phrase must match.
+     * Free-text, typo-tolerant phrase matched against a receipt\'s name, shop, note and product lines. Every word of the phrase must match.
      */
     search?: string;
     /**

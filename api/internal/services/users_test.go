@@ -1,13 +1,13 @@
 package services
 
 import (
-	"errors"
-	"net/http"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/repositories"
 	"cartvibe/api/internal/utils"
+	"errors"
+	"net/http"
 	"testing"
 	"time"
 
@@ -60,37 +60,6 @@ func makeUserAdmin(t *testing.T, userId uint) {
 		t.Fatalf("assign admin role: %v", err)
 	}
 	clearRolePermissionCacheAll()
-}
-
-func createTestReceiptForDeletion(t *testing.T, name string, paidByUserId uint, groupId uint) models.Receipt {
-	t.Helper()
-	db := repositories.GetDB()
-	receipt := models.Receipt{
-		Name:         name,
-		Amount:       decimal.NewFromFloat(10.00),
-		Date:         time.Now(),
-		PaidByUserID: paidByUserId,
-		GroupId:      groupId,
-		Status:       models.OPEN,
-	}
-	if err := db.Create(&receipt).Error; err != nil {
-		t.Fatalf("failed to create receipt: %v", err)
-	}
-	return receipt
-}
-
-func createTestCommentForDeletion(t *testing.T, receiptId uint, userId uint, text string) models.Comment {
-	t.Helper()
-	db := repositories.GetDB()
-	comment := models.Comment{
-		Comment:   text,
-		ReceiptId: receiptId,
-		UserId:    &userId,
-	}
-	if err := db.Create(&comment).Error; err != nil {
-		t.Fatalf("failed to create comment: %v", err)
-	}
-	return comment
 }
 
 func createTestRefreshTokenForDeletion(t *testing.T, userId uint) models.RefreshToken {
@@ -252,14 +221,14 @@ func TestDeleteUser_WithPreferencesAndShortcuts(t *testing.T) {
 	user := createUserForDeletion(t, "prefuser")
 
 	// UserPreferences are auto-created by CreateUser, so just verify they get deleted
-	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 1, "preferences should exist before deletion")
+	assertCount(t, &models.UserPreferences{}, "user_id = ?", []interface{}{user.ID}, 1, "preferences should exist before deletion")
 
 	err := DeleteUser(utils.UintToString(user.ID))
 	if err != nil {
 		t.Fatalf("DeleteUser failed: %v", err)
 	}
 
-	assertCount(t, &models.UserPrefernces{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
+	assertCount(t, &models.UserPreferences{}, "user_id = ?", []interface{}{user.ID}, 0, "preferences should be deleted")
 }
 
 func TestDeleteUser_ReferencedInOtherPreferences(t *testing.T) {
@@ -268,14 +237,14 @@ func TestDeleteUser_ReferencedInOtherPreferences(t *testing.T) {
 	otherUser := createUserForDeletion(t, "otherprefuser")
 
 	db := repositories.GetDB()
-	db.Model(&models.UserPrefernces{}).Where("user_id = ?", otherUser.ID).Update("quick_scan_default_paid_by_id", user.ID)
+	db.Model(&models.UserPreferences{}).Where("user_id = ?", otherUser.ID).Update("quick_scan_default_paid_by_id", user.ID)
 
 	err := DeleteUser(utils.UintToString(user.ID))
 	if err != nil {
 		t.Fatalf("DeleteUser failed: %v", err)
 	}
 
-	var prefs models.UserPrefernces
+	var prefs models.UserPreferences
 	db.Where("user_id = ?", otherUser.ID).First(&prefs)
 	if prefs.QuickScanDefaultPaidById != nil {
 		t.Errorf("QuickScanDefaultPaidById should be nullified, got %v", *prefs.QuickScanDefaultPaidById)
@@ -358,32 +327,6 @@ func TestDeleteUser_RemovesOidcRecords(t *testing.T) {
 	assertCount(t, &models.OidcAuthSession{}, "link_user_id = ?", []interface{}{user.ID}, 0, "pending link sessions for the deleted user should be gone")
 	assertCount(t, &models.OidcDeleteConfirmation{}, "user_id = ?", []interface{}{user.ID}, 0, "delete confirmations for the deleted user should be gone")
 	assertCount(t, &models.OidcIdentity{}, "user_id = ?", []interface{}{other.ID}, 1, "another user's identity should survive")
-}
-
-func TestDeleteUser_WithCommentsOnOtherReceipts(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "commentuser")
-	otherUser := createUserForDeletion(t, "othercommentuser")
-	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
-
-	receipt := createTestReceiptForDeletion(t, "other receipt", otherUser.ID, otherGroup.ID)
-	comment := createTestCommentForDeletion(t, receipt.ID, user.ID, "my comment")
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	// Comment should still exist but with nullified UserId
-	db := repositories.GetDB()
-	var updatedComment models.Comment
-	db.First(&updatedComment, comment.ID)
-	if updatedComment.UserId != nil {
-		t.Errorf("Comment.UserId should be nil, got %v", *updatedComment.UserId)
-	}
-	if updatedComment.Comment != "my comment" {
-		t.Errorf("Comment text should be preserved, got %s", updatedComment.Comment)
-	}
 }
 
 func TestDeleteUser_WithSystemTasks(t *testing.T) {
@@ -671,80 +614,4 @@ func TestDeleteAccountForUser_PasswordAccountIgnoresAConfirmationCode(t *testing
 	}
 
 	assertCount(t, &models.User{}, "id = ?", []interface{}{user.ID}, 1, "the account should survive")
-}
-
-func TestDeleteUser_WithCommentsHavingReplies(t *testing.T) {
-	defer repositories.TruncateTestDb()
-	user := createUserForDeletion(t, "replycommentuser")
-	otherUser := createUserForDeletion(t, "otherreplycommentuser")
-
-	db := repositories.GetDB()
-	otherGroup := getNonAllGroupForUser(t, otherUser.ID)
-
-	receipt := createTestReceiptForDeletion(t, "reply receipt", otherUser.ID, otherGroup.ID)
-
-	// User's comment with a reply from other user
-	comment := createTestCommentForDeletion(t, receipt.ID, user.ID, "parent from deleted user")
-	reply := models.Comment{
-		Comment:   "reply from other user",
-		ReceiptId: receipt.ID,
-		UserId:    &otherUser.ID,
-		CommentId: &comment.ID,
-	}
-	db.Create(&reply)
-
-	// Other user's comment with a reply from user being deleted
-	otherComment := createTestCommentForDeletion(t, receipt.ID, otherUser.ID, "parent from other user")
-	userReply := models.Comment{
-		Comment:   "reply from deleted user",
-		ReceiptId: receipt.ID,
-		UserId:    &user.ID,
-		CommentId: &otherComment.ID,
-	}
-	db.Create(&userReply)
-
-	err := DeleteUser(utils.UintToString(user.ID))
-	if err != nil {
-		t.Fatalf("DeleteUser failed: %v", err)
-	}
-
-	// Parent comment by deleted user should still exist with nullified user_id
-	var updatedComment models.Comment
-	db.First(&updatedComment, comment.ID)
-	if updatedComment.UserId != nil {
-		t.Errorf("parent comment UserId should be nil, got %v", *updatedComment.UserId)
-	}
-	if updatedComment.Comment != "parent from deleted user" {
-		t.Errorf("parent comment text should be preserved, got %s", updatedComment.Comment)
-	}
-
-	// Reply from other user should be intact
-	var updatedReply models.Comment
-	db.First(&updatedReply, reply.ID)
-	if updatedReply.UserId == nil || *updatedReply.UserId != otherUser.ID {
-		t.Errorf("reply UserId should be %d, got %v", otherUser.ID, updatedReply.UserId)
-	}
-	if updatedReply.CommentId == nil || *updatedReply.CommentId != comment.ID {
-		t.Errorf("reply should still reference parent comment %d", comment.ID)
-	}
-
-	// Other user's comment should be intact
-	var updatedOtherComment models.Comment
-	db.First(&updatedOtherComment, otherComment.ID)
-	if updatedOtherComment.UserId == nil || *updatedOtherComment.UserId != otherUser.ID {
-		t.Errorf("other comment UserId should be %d", otherUser.ID)
-	}
-
-	// Reply from deleted user should still exist with nullified user_id
-	var updatedUserReply models.Comment
-	db.First(&updatedUserReply, userReply.ID)
-	if updatedUserReply.UserId != nil {
-		t.Errorf("user reply UserId should be nil, got %v", *updatedUserReply.UserId)
-	}
-	if updatedUserReply.Comment != "reply from deleted user" {
-		t.Errorf("user reply text should be preserved, got %s", updatedUserReply.Comment)
-	}
-	if updatedUserReply.CommentId == nil || *updatedUserReply.CommentId != otherComment.ID {
-		t.Errorf("user reply should still reference parent comment %d", otherComment.ID)
-	}
 }

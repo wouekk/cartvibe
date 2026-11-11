@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-const withFilesReceiptJson = `{"name":"Lunch","amount":"12.5","date":"2026-09-01T00:00:00Z","groupId":3,"paidByUserId":7,"status":"OPEN","comments":[{"comment":"Team lunch","userId":7}]}`
+const withFilesReceiptJson = `{"name":"Lunch","amount":"12.5","date":"2026-09-01T00:00:00Z","groupId":3,"paidByUserId":7,"status":"OPEN","note":"Team lunch"}`
 
 type withFilesPart struct {
 	receiptValue    *string // written as a plain form value when non-nil
@@ -82,8 +82,8 @@ func assertParsedReceipt(t *testing.T, command CreateReceiptWithFilesCommand, wa
 	if command.Receipt.Amount.String() != "12.5" {
 		t.Errorf("amount = %s, want 12.5", command.Receipt.Amount.String())
 	}
-	if len(command.Receipt.Comments) != 1 || command.Receipt.Comments[0].Comment != "Team lunch" {
-		t.Errorf("comments = %+v, want the one submitted", command.Receipt.Comments)
+	if command.Receipt.Note == nil || *command.Receipt.Note != "Team lunch" {
+		t.Errorf("note = %v, want the one submitted", command.Receipt.Note)
 	}
 }
 

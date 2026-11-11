@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 
 /**
  * The card every report-builder config section shares: a hairline `cv-card` with a
@@ -7,11 +8,10 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
  * body. Token colours only, so it reads right in both themes.
  */
 @Component({
-  selector: "app-report-section",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: "block" },
-  template: `
+    selector: "app-report-section",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    host: { class: "block" },
+    template: `
     <section class="cv-card">
       <header class="flex items-start gap-3 px-5 pb-3 pt-4">
         <span
@@ -35,6 +35,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
       </div>
     </section>
   `,
+    imports: [AppIconComponent],
 })
 export class ReportSectionComponent {
   public readonly icon = input<string>("");

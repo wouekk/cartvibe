@@ -7,9 +7,8 @@ import { TableColumn } from "../../table/table-column.interface";
 
 @Component({
     selector: "app-base-table",
-    template: "", // a base class: subclasses bring their own template
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class BaseTableComponent<T> {
   public columns: TableColumn[] = [];
@@ -24,7 +23,7 @@ export class BaseTableComponent<T> {
 
   public setInitialSortedColumn(state: PagedTableInterface, columns: TableColumn[]): void {
     if (state.orderBy) {
-      const column = columns.find((c) => c.matColumnDef === state.orderBy);
+      const column = columns.find((c) => c.columnDef === state.orderBy);
       if (column) {
         column.defaultSortDirection = state.sortDirection;
       }

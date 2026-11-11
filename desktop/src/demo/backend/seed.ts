@@ -89,7 +89,7 @@ interface ReceiptSpec {
   /** An amount the lines do not add up to: the rest shows as Uncategorized, like an unsplit total. */
   extra?: string;
   tags?: Tag[];
-  comment?: string;
+  note?: string;
   warrantyDaysFromToday?: number;
   warrantyProducts?: string[];
 }
@@ -103,7 +103,7 @@ const SPECS: ReceiptSpec[] = [
     paidBy: 1,
     status: ReceiptStatus.Open,
     tags: [TAGS.weekly],
-    comment: "Remember to check the milk date next time.",
+    note: "Remember to check the milk date next time.",
     lines: [
       line("Whole milk 1 l", "1.19", "Dairy", "HEALTHY", { quantity: "2", planned: true }),
       line("Sourdough bread", "2.49", "Bakery", "MEDIUM", { planned: true }),
@@ -360,10 +360,7 @@ export function buildReceipts(today: string): { receipts: Receipt[]; products: R
       status: spec.status,
       categories: [],
       tags: [],
-      comments: spec.comment
-        ? [{ id: receiptId, receiptId, userId: 2, comment: spec.comment, createdAt: instantOn(day, 18) }]
-        : [],
-      firstComment: spec.comment,
+      note: spec.note ?? "",
       imageFiles: [0, 1, 3].includes(receiptId - 1)
         ? [{ id: receiptId, receiptId, name: `receipt-${receiptId}.svg`, fileType: "image/svg+xml", size: 2048, createdAt: instantOn(day, 9) }]
         : [],
@@ -550,19 +547,10 @@ function groupReceiptSettings(): GroupReceiptSettings {
     hideImages: false,
     hideReceiptCategories: true,
     hideReceiptTags: true,
-    hideComments: false,
-    quickScanPaidByEnabled: false,
-    quickScanPaidByRequired: false,
+    hideNote: false,
+    quickScanNoteEnabled: false,
     quickScanDefaultPaidByType: "UPLOADER",
-    quickScanStatusEnabled: false,
-    quickScanStatusRequired: false,
     quickScanDefaultStatus: ReceiptStatus.Open,
-    quickScanCategoriesEnabled: false,
-    quickScanCategoriesRequired: false,
-    quickScanTagsEnabled: false,
-    quickScanTagsRequired: false,
-    quickScanCommentEnabled: false,
-    quickScanCommentRequired: false,
   };
 }
 
@@ -666,7 +654,6 @@ export function createDemoDb(today: string): DemoDb {
       region: "",
       warrantyPeriodYears: 0,
       warrantyReminderLeadDays: 14,
-      userShortcuts: [],
     },
     settings: {
       id: 1,

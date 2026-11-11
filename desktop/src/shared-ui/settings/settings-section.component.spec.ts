@@ -8,10 +8,9 @@ describe("SettingsSectionComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [SettingsSectionComponent],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [TranslatePipe, SettingsSectionComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
     fixture = TestBed.createComponent(SettingsSectionComponent);
   });
 

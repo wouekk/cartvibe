@@ -8,6 +8,12 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 
 - `/overview/group/:groupId` is the landing page (`GroupState.overviewLink`); `overviewReadGuard`
   (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
+- **Panels as components.** A panel is a `section[app-overview-…-panel]` the page places in its grid, with the
+  `cv-panel` class and its `aria-labelledby` on the host: the shopping list (which also loads and writes for
+  itself), the receipts of the period and the warranties ending soon (both given their rows by the page, because a
+  tile counts the same data). Still inside the page's own template: the tiles and the two chart panels (categories,
+  trend). Their markup reads about twenty of the page's members (chart options, hover and focus, the goal, the
+  exports), so each moves together with its state and its specs, not as markup alone.
 - **Receipt photos are files, not JSON.** The receipt page shows each image from `GET /receiptImage/{id}/file`
   (`utils/receipt-image-url.ts`): the browser fetches it with the session cookie and keeps it for good. The demo has
   no server to fetch from, so there `ReceiptFormComponent.getImageFiles` still reads base64 through the client
@@ -22,6 +28,10 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   beside the search (`filterButtons` template, drawn there or in the period row by `isHandset()`), and hides the
   subtitle. `skin.css` gives every `app-table-header h1` a full row on a phone; this page undoes that with
   `max-md:[&_h1]:flex-1`. In an arbitrary Tailwind variant `_` is a space, so `[&_.a__b]` never matches a BEM class.
+- **The summary sentence** (`overview-summary`, `monthSummary()` in `overview-summary.ts`): above the panels while
+  a goal is set and the period is the running calendar month (today in the app time zone inside it). Days left
+  count today; the daily amount is what is left of the goal over those days, rounded down to the cent, and money
+  is compared in cents. Three texts: under the goal, reached, over (no daily amount). Hidden while customising.
 - Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy,
   Warranties (`warrantyCount`, opens `/warranties/group/:groupId`), one per tag marked "Show on the Dashboard".
 - **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two
@@ -87,13 +97,23 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   first, with days left. Return dates are deliberately not tracked.
 
 - **Table:** Receipt Date (default sort `DEFAULT_RECEIPT_ORDER_BY = "date"`), Shop (`shop_name`: the AI-read shop, else
-  the name; sorts that way on the API), Amount, Status, Added by, Comment (opt-in, `first_comment`, the first comment
-  only). Saved layouts are reconciled with the defaults (`reconcileColumns`); a removed column drops out and a new one
-  joins with its default visibility. Row actions: Mark as settled (`receipt-mark-done`), Read with AI. The `⋮` menu
+  the name; sorts that way on the API), Amount, Status, Added by, Note (opt-in, `note`; left out for a household that
+  hides the note). Saved layouts are reconciled with the defaults (`reconcileColumns`); a removed column drops out, a
+  new one joins with its default visibility, and a renamed one keeps its place, its visibility and a sort on it under
+  the new key (`currentColumnKey`: `first_comment` is read as `note`). Row actions: Mark as settled (`receipt-mark-done`), Read with AI. The `⋮` menu
   (`receipts-overflow-menu`) holds Quick Scan, export, Configure Columns and selection actions as plain items.
-- **Statuses** (`src/utils/receipt-status.ts`): OPEN / NEEDS_ATTENTION / DRAFT read "To check", RESOLVED / DECLINED
-  "Settled". `toStatusWireFilter` widens a status filter where the request is built. `app-status-chip` maps them onto
-  `open` / `resolved` classes and theme tokens; `customStatusColor` drives it for system-task status.
+- **Statuses** (`src/utils/receipt-status.ts`): there are two, OPEN ("To check") and RESOLVED ("Settled"); the API
+  turns the three older ones into these wherever it reads one. `app-status-chip` maps them onto `open` /
+  `resolved` classes and theme tokens; `customStatusColor` drives it for system-task status.
+- **The review of a to-check receipt** (`receipt-products`): the page passes `canSettle` (view mode, may edit,
+  not settled) and the card then ends with `receipt-review`: a hint (`linesWithoutAmount`) and *Looks right*
+  (`receipt-looks-right`), whose `settle` output runs the page's `markDone()` (a status change through the bulk
+  update, no edit form). While `canSettle`, `orderedProducts` lists the lines without an amount first; the rest,
+  and every line of a settled receipt, keep the order they were read in. Hidden while the AI is reading.
+- **The note:** one text field of the receipt (`receipt-note`, up to `RECEIPT_NOTE_MAX_LENGTH` characters counted
+  with `codePointMaxLengthValidator`, like the server), saved with the receipt and cleared by saving it empty. A
+  household's *Hide the note* takes the field off the form and the column off the list; the stored note is kept and
+  sent back unchanged.
 - **Filtering:** the period picker writes the Receipt Date filter (not counted in the Filter badge); the dialog
   (`app-receipt-filter`) and chips share `ReceiptTableState.filter`. Field keys/labels are in
   `RECEIPT_FILTER_FIELDS`, but the dialog authors its own row labels, so a rename touches both the constant and
@@ -124,9 +144,8 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   Uploads go through `downscaleImageForUpload` (over 1.5 MB → JPEG ≤ 3072px; returns the file unchanged when it cannot
   improve it).
 - **Magic Fill** (`magicFill()` → `patchMagicValues`) patches the AI's parsed receipt into the form for review. A field
-  counts as filled only when it changes the form. Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the
-  patch; comments go through `ReceiptCommentsComponent.addMagicFilledComments()` (queued in add mode, POSTed in edit
-  mode, since a receipt update does not persist comments).
+  counts as filled only when it changes the form. Paid by needs `AutocompleteComponent.syncSingleDisplay()` after the
+  patch. It never writes the note: that is the household's own text.
 - **Quick Scan pickers:** the dialog has two native `<label>`s around hidden file inputs. **Take a photo**
   (`capture="environment"`, `quick-scan-take-photo`) opens the back camera and is shown on touch devices only
   (`finePointerSignal()` is false); **Upload photos** (`quick-scan-upload`, several files, images, PDF and HEIC) is
@@ -136,11 +155,13 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   `aiPoweredReceipts` it opens the dialog; without it an admin holding `app.receipt-processing-settings.update` gets a
   confirmation leading to `/ai`, anyone else a hint. The dialog lists photos as attachment rows with per-photo fields
   (`UploadImageComponent.processFiles` is the one entry for picked and dropped files) and closes right after upload;
-  the API notifies per scan. Field rules come from `resolveQuickScanFieldConfig(settings, { hasGroup, … })`: until a
-  group is chosen only the Group field shows; `configureImages()` clears hidden values only when a group is chosen
-  (otherwise it would wipe the `quickScanDefault*` prefills), but recomputes requiredness always. Resolve config per
-  index on each call (removing an image shifts indexes). The comment uses `codePointMaxLengthValidator(500)` and
-  `trimmedRequiredValidator()` (module-level singletons, because `removeValidators` matches by reference).
+  the API notifies per scan. A scan asks for the photo and its household (the picker shows only to someone in
+  several) and nothing else: `buildScan()` sends the person scanning as the payer, their own default status or an
+  empty one (the server then applies the household's default, then OPEN), and one empty category and tag entry per
+  photo. The one field a household can add is the note (`quick-scan-note`, never required):
+  `quickScanAsksForNote(settings, hasGroup)` is true when *Ask for a note* is on and the note is not hidden, and is
+  resolved per photo index on each call (removing a photo shifts indexes). A note travels only where its photo's
+  household asks for one, so one typed before the photo moved to another household is not sent to it.
 - **Quick Scan without a connection** (`QueuedScanService`, created at app start): an upload that never reached the
   server (`status === 0`, nothing else) is kept as one `quick-scan:<time>` entry in `OfflineStorageService`, files and
   per-photo fields exactly as they were being sent, and the dialog closes with a note. It goes up when the server can
@@ -151,8 +172,11 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   receiptId)` listens on the household's stream for `RECEIPT_READ` and the section reloads on it, and once on every
   open of that stream. The half-minute timer (`REFRESH_INTERVAL_MS`, 20 tries) runs only until the stream has opened,
   for someone without `group.shopping-lists.read` (the stream's permission), and after the stream gives up.
-- **Group receipt settings → Quick Scan:** comment toggles are disabled, not cleared, while `hideComments` is on
-  (`applyQuickScanDerivedState` with `emitEvent: false`, edit mode only); submit reads `getRawValue()`.
+- **Household receipt settings** (`group-receipt-settings`): *Hide Images*, *Hide the note*, and under Quick Scan
+  *Ask for a note* plus the two defaults a scan falls back on (who paid: the person scanning, or always the same
+  member; the status of a new scan). Both defaults also apply to a receipt made from a shopping trip photo. *Ask for
+  a note* is disabled, not cleared, while the note is hidden (`applyDerivedState` with `emitEvent: false`, edit
+  mode only); submit reads `getRawValue()`, and the member is sent only for "Always the same person".
 - **Form Cancel:** an `app-cancel-button` (neutral outline) (`receipt-form-cancel`) sits left of Save in add and edit modes (not in the
   next/previous queue): add goes to the receipts list (`receiptListLink`), edit back to the receipt's view. No
   confirmation, since nothing is written.
@@ -496,10 +520,15 @@ The long form of points the guide states briefly.
   keep the previous value while they reload (and use `null` for "failed"), so they stay on `toSignal`. `@defer` was
   measured and left out: the Dashboard panels sit in a DOM-measured drag grid, the shopping panel and the report
   preview are a few kB inside lazy modules, and `@zxing` and `chart.js` are already dynamic imports.
-- **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
-  `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
-  standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22
-  migration touched are pinned to `ChangeDetectionStrategy.Eager` (22's default is OnPush); either is fine for new code.
+- **Modules:** every component, directive and pipe is standalone since 2026-11-11 (Angular's standalone migration,
+  then repairs by hand). 28 feature and shared NgModules remain (plus 12 routing modules) as bundles of imports and
+  exports and as the targets of the lazy routes; `PipesModule`, `DirectivesModule`, `FormModule` and
+  `BaseInputModule` are gone. The migration got three things wrong, which is what to look for if it is ever run
+  again: it deleted the whole `importProvidersFrom(...)` block of `app.config.ts` (one deleted module was named in
+  it), it gave the select and the autocomplete each other's `optionDisplay` pipe, and it did not carry module
+  providers over (`OptionDisplayPipe` is `providedIn: "root"` now, `CurrencyPipe` is provided in `app.config.ts`).
+  Components the Angular 22 migration touched are pinned to `ChangeDetectionStrategy.Eager` (22's default is OnPush);
+  either is fine for new code.
 - **Toasts:** `SnackbarService` (over `ToastService`): `success`, `info`, `hint`, `error`. **Menus:** spartan dropdown
 - **Required fields shake:** `shakeInvalid()` / `shakeElement()` (`src/utils/shake.ts`) is the one way to say an empty
   required box was the problem.
@@ -514,7 +543,7 @@ The long form of points the guide states briefly.
   `confirmText = marker("Delete")`, a removal `marker("Remove")`; those two (`DESTRUCTIVE_CONFIRM_TEXTS`) turn the
   button red through `app-dialog-footer [submitDestructive]`. The dialog starts the focus on the question
   (`cdkFocusInitial`), not on Cancel, whose tooltip would pop open.
-- **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
+- **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   has no `push()` and the picker silently does nothing); clear with `FormArray.clear()`. A single-select goes
   `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain
   strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthState`,
@@ -526,7 +555,7 @@ The long form of points the guide states briefly.
   resolve through the `src/*` path) and `skipLibCheck` is on.
 - **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
   AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService` (its claims-only
+  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService` (its claims-only
   update must not wipe permissions). The matcher `src/utils/permission.utils.ts` is a port of the Go matcher, wildcards
   included. Selectors: `AuthState.hasAppPermission`, `hasAnyAppPermission`, `hasGroupPermission(groupId, perm, orApp)`
   (applies the app-scoped override first). Directives `*hasAppPermission` / `*hasGroupPermission` are effect-driven, so
@@ -540,8 +569,7 @@ The long form of points the guide states briefly.
   handlers). A filter write dispatches, then `SetPage(1)`, then refetches; refreshes go through one `switchMap` with
   `catchError(() => EMPTY)` on the inner observable.
 - **Receipt create is one call:** `ReceiptService.createReceiptWithFiles(form.value, files)` (`POST /receipt/withFiles`,
-  multipart, comments in the body). Role requirements (`AuthState.receiptRequirements(groupId)`, already waived by the
-  server) block submit for a missing comment or image and lock the last one in edit mode.
+  multipart, the note in the receipt's own JSON).
 - **Durations are hours on the wire;** the unit select is presentation only. `src/utils/duration.utils.ts`
   (`splitHours`, `toHours`, `maxForUnit`, `minForUnit`) and `durationValueValidator` (whole numbers, message as the
   error value). Convert a floor with `minForUnit` (rounds up), never `maxForUnit` (floors 1 hour to 0 days). Each

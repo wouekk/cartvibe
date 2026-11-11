@@ -6,7 +6,6 @@ import { Observable } from "rxjs";
 import { ReceiptTableState } from "src/store/receipt-table.state";
 import { RECEIPT_DATE_FILTER_KEYS } from "../constants/receipt-filter-fields.constant";
 import { toDateWireFilter } from "../utils/date-wire-filter";
-import { toStatusWireFilter } from "../utils/receipt-status";
 import { PagedData, ReceiptPagedRequestCommand, ReceiptService } from "../open-api";
 
 @Injectable({
@@ -82,8 +81,7 @@ export class ReceiptFilterService {
     // the request, never in the persisted filter: see toDateWireFilter.
     return {
       ...filterData,
-      // "To check" and "Done" stand for several statuses (Phase 3 C6).
-      filter: toStatusWireFilter(toDateWireFilter(filterData.filter, RECEIPT_DATE_FILTER_KEYS)),
+      filter: toDateWireFilter(filterData.filter, RECEIPT_DATE_FILTER_KEYS),
     };
   }
 }

@@ -30,7 +30,21 @@ import {
 } from "../delete-account-dialog/delete-account-dialog.component";
 import { marker } from "../../i18n/marker";
 import { GROUP_COLORS } from "../../constants/group-look";
-import { ColorSwatch } from "../../shared-ui/color-swatches/color-swatches.component";
+import { ColorSwatch, ColorSwatchesComponent } from "../../shared-ui/color-swatches/color-swatches.component";
+import { AvatarPhotoComponent } from "../avatar-photo/avatar-photo.component";
+import { FormComponent } from "../../shared-ui/form/form.component";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { InputComponent } from "../../input/input/input.component";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
+import { SettingsSectionComponent } from "../../shared-ui/settings/settings-section.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 /** The household colours as avatar swatches: the same menu, stored as hex (the token keeps a hex colour). */
 const AVATAR_SWATCHES: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
@@ -45,7 +59,7 @@ const AVATAR_SWATCHES: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
     selector: "app-user-profile",
     templateUrl: "./user-profile.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [AvatarPhotoComponent, FormComponent, FormSectionComponent, InputComponent, BrnTooltip, HlmTooltip, ColorSwatchesComponent, SettingsSectionComponent, BrnButton, HlmButton, AppIconComponent, HasAppPermissionDirective, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserProfileComponent implements OnInit {
 
@@ -96,7 +110,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private claimsService: ClaimsService,
     private formBuilder: FormBuilder,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private route: ActivatedRoute,
     private router: Router,
     private snackbarService: SnackbarService,
@@ -329,7 +343,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   public deleteAccount(): void {
-    const dialogRef = this.matDialog.open<
+    const dialogRef = this.dialog.open<
       DeleteAccountDialogComponent,
       DeleteAccountDialogData,
       DeleteAccountDialogResult
@@ -387,8 +401,6 @@ export class UserProfileComponent implements OnInit {
 
   private readonly translation = inject(TranslationService);
 
-  private readonly dialog = inject(AppDialog);
-
   /** True from the confirmation until the server answered, so the button cannot fire twice. */
   public readonly signingOutEverywhere = signal(false);
 
@@ -398,7 +410,7 @@ export class UserProfileComponent implements OnInit {
    * would stay signed in, so a failure leaves this browser signed in too (the interceptor says what went wrong).
    */
   public signOutEverywhere(): void {
-    const ref = this.matDialog.open(ConfirmationDialogComponent);
+    const ref = this.dialog.open(ConfirmationDialogComponent);
     ref.componentInstance.headerText = marker("Sign out everywhere");
     ref.componentInstance.dialogContent = marker(
       "You will be signed out on every device, this one included, and connected assistants will have to connect again. Continue?"

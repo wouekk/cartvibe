@@ -3,6 +3,11 @@ import { ImageViewerComponent } from "src/shared-ui/image-viewer/image-viewer.co
 import { FormMode } from "src/enums/form-mode.enum";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { FileDataView } from "../../open-api";
+import { NgTemplateOutlet } from "@angular/common";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 @Component({
     selector: "app-carousel",
@@ -10,7 +15,7 @@ import { FileDataView } from "../../open-api";
     styleUrls: ["./carousel.component.scss"],
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgTemplateOutlet, ImageViewerComponent, AppIconComponent, ButtonComponent, TranslatePipe, InputReadonlyPipe]
 })
 export class CarouselComponent implements OnChanges {
   public readonly images = input<FileDataView[]>([]);

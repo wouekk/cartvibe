@@ -1,11 +1,12 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { HlmSwitch } from '../../ui/switch/lib/hlm-switch';
 
 @Component({
     selector: 'app-slide-toggle',
     templateUrl: './slide-toggle.component.html',
     styleUrls: ['./slide-toggle.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [HlmSwitch]
 })
 export class SlideToggleComponent {
   public readonly color = input<string>('');

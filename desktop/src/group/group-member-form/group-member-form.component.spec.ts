@@ -18,12 +18,13 @@ import {
   Tag,
   TagService,
 } from "../../open-api";
-import { DirectivesModule } from "../../directives/directives.module";
-import { PipesModule } from "../../pipes";
 import { AuthState } from "../../store";
 import { GroupMemberFormComponent } from "./group-member-form.component";
 
 import type { Mock } from "vitest";
+import { renderShallow } from "../../testing/render-shallow";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 describe("GroupMemberFormComponent", () => {
   const defaultGroupRole: Role = {
     id: 10,
@@ -86,32 +87,32 @@ describe("GroupMemberFormComponent", () => {
     dialogRefMock = { close: vi.fn() };
     getGroupByIdMock = vi.fn().mockReturnValue(of({ id: 5, groupMembers: [] } as unknown as Group));
     updateGrantsMock = vi.fn().mockReturnValue(of({}));
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(GroupMemberFormComponent, [ReactiveFormsModule, TranslatePipe, FormGetPipe]);
     await TestBed.configureTestingModule({
-      declarations: [GroupMemberFormComponent],
-      imports: [
+    imports: [
         NgxsModule.forRoot([AuthState]),
-        DirectivesModule,
-        PipesModule,
         ReactiveFormsModule,
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
+        GroupMemberFormComponent,
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: dialogRefMock },
         { provide: RoleService, useValue: { getRoles: getRolesMock } },
         {
-          provide: GroupsService,
-          useValue: {
-            getGroupById: (...args: unknown[]) => getGroupByIdMock(...args),
-            updateGroupMemberGrants: (...args: unknown[]) => updateGrantsMock(...args),
-          },
+            provide: GroupsService,
+            useValue: {
+                getGroupById: (...args: unknown[]) => getGroupByIdMock(...args),
+                updateGroupMemberGrants: (...args: unknown[]) => updateGrantsMock(...args),
+            },
         },
         { provide: CategoryService, useValue: { getAllCategories: () => of(categoryPool) } },
         { provide: TagService, useValue: { getAllTags: () => of([] as Tag[]) } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     TestBed.inject(Store).reset({ auth: { userId: "1" } });
   });

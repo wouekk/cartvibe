@@ -14,9 +14,9 @@ describe("StatusPipe", () => {
     expect(result).toEqual("Open");
   });
 
-  it("should return Needs Attention", () => {
+  it("should space out a status of several words", () => {
     const pipe = new StatusPipe();
-    const result = pipe.transform(ReceiptStatus.NeedsAttention);
+    const result = pipe.transform("NEEDS_ATTENTION");
 
     expect(result).toEqual("Needs Attention");
   });
@@ -26,20 +26,6 @@ describe("StatusPipe", () => {
     const result = pipe.transform(ReceiptStatus.Resolved);
 
     expect(result).toEqual("Resolved");
-  });
-
-  it("should return Resolved", () => {
-    const pipe = new StatusPipe();
-    const result = pipe.transform(ReceiptStatus.Draft);
-
-    expect(result).toEqual("Draft");
-  });
-
-  it("should return Declined", () => {
-    const pipe = new StatusPipe();
-    const result = pipe.transform(ReceiptStatus.Declined);
-
-    expect(result).toEqual("Declined");
   });
 
   it("should return empty string", () => {

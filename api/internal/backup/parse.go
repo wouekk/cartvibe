@@ -1,6 +1,7 @@
 package backup
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strconv"
@@ -21,27 +22,29 @@ const maxProblems = 50
 type Household struct {
 	Manifest Manifest
 
-	Users          []models.User
-	UserRoles      map[uint]string
-	Groups         []models.Group
-	Members        []SourceMember
-	Categories     []models.Category
-	Tags           []models.Tag
-	Lists          []models.ShoppingList
-	Items          []models.ShoppingListItem
-	Receipts       []models.Receipt
-	ReceiptCats    []IdPair
-	ReceiptTags    []IdPair
-	Products       []models.ReceiptProduct
-	ProductTags    []IdPair
-	Comments       []models.Comment
+	Users       []models.User
+	UserRoles   map[uint]string
+	Groups      []models.Group
+	Members     []SourceMember
+	Categories  []models.Category
+	Tags        []models.Tag
+	Lists       []models.ShoppingList
+	Items       []models.ShoppingListItem
+	Receipts    []models.Receipt
+	ReceiptCats []IdPair
+	ReceiptTags []IdPair
+	Products    []models.ReceiptProduct
+	ProductTags []IdPair
+	// OldComments are the rows of comments.csv, which only an export made before 2026-11 has (a receipt had a
+	// thread of comments then). Parse joins them into each receipt's Note; nothing else reads them.
+	OldComments    []SourceComment
 	Files          []SourceFile
 	Trips          []SourceTrip
 	Overrides      []models.ProductClassificationOverride
 	Rates          []models.ExchangeRate
 	Templates      []models.ReportTemplate
 	TemplateGroups []IdPair
-	Preferences    []models.UserPrefernces
+	Preferences    []models.UserPreferences
 	Layouts        []models.DashboardLayout
 	GroupSettings  []models.GroupReceiptSettings
 
@@ -64,6 +67,15 @@ type IdPair struct {
 type SourceFile struct {
 	models.FileData
 	Entry string
+}
+
+// SourceComment is one comment of an older export.
+type SourceComment struct {
+	ID        uint
+	ReceiptId uint
+	UserId    *uint
+	Text      string
+	CreatedAt time.Time
 }
 
 type SourceTrip struct {
@@ -160,8 +172,9 @@ func Parse(archive *Archive) (*Household, error) {
 			receipt := models.Receipt{BaseModel: c.base(), GroupId: c.id("group_id"), Name: c.text("name"), ShopName: c.text("shop_name"),
 				Date: c.day("date"), Amount: c.decimal("amount"), OriginalAmount: c.decimalPtr("original_amount"),
 				OriginalCurrency: c.text("original_currency"), ExchangeRate: c.decimalPtr("exchange_rate"),
-				WarrantyUntil: c.dayTextPtr("warranty_until"), Status: models.ReceiptStatus(c.text("status")),
-				ResolvedDate: c.instantPtr("resolved_date"), PaidByUserID: c.id("paid_by_user_id")}
+				// A file from before the two statuses may name a removed one.
+				WarrantyUntil: c.dayTextPtr("warranty_until"), Status: models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("status"))),
+				ResolvedDate: c.instantPtr("resolved_date"), PaidByUserID: c.id("paid_by_user_id"), Note: c.text("note")}
 			if receipt.Status == "" {
 				receipt.Status = models.OPEN
 			}
@@ -186,9 +199,10 @@ func Parse(archive *Archive) (*Household, error) {
 		{"receipt_product_tags", func(c cells) {
 			household.ProductTags = append(household.ProductTags, IdPair{c.id("receipt_product_id"), c.id("tag_id")})
 		}},
+		// Only in an export from before a receipt had a note; see Household.OldComments.
 		{"comments", func(c cells) {
-			household.Comments = append(household.Comments, models.Comment{BaseModel: c.base(), ReceiptId: c.id("receipt_id"),
-				CommentId: c.idPtr("comment_id"), UserId: c.idPtr("user_id"), Comment: c.text("comment"), AdditionalInfo: c.text("additional_info")})
+			household.OldComments = append(household.OldComments, SourceComment{ID: c.id("id"), ReceiptId: c.id("receipt_id"),
+				UserId: c.idPtr("user_id"), Text: c.text("comment"), CreatedAt: c.instant("created_at")})
 		}},
 		{"files", func(c cells) {
 			file := SourceFile{FileData: models.FileData{BaseModel: c.base(), ReceiptId: c.id("receipt_id"), Name: c.text("name"),
@@ -222,9 +236,9 @@ func Parse(archive *Archive) (*Household, error) {
 			household.TemplateGroups = append(household.TemplateGroups, IdPair{c.id("report_template_id"), c.id("group_id")})
 		}},
 		{"user_preferences", func(c cells) {
-			household.Preferences = append(household.Preferences, models.UserPrefernces{UserId: c.id("user_id"),
+			household.Preferences = append(household.Preferences, models.UserPreferences{UserId: c.id("user_id"),
 				QuickScanDefaultGroupId: c.idPtr("quick_scan_default_group_id"), QuickScanDefaultPaidById: c.idPtr("quick_scan_default_paid_by_id"),
-				QuickScanDefaultStatus: models.ReceiptStatus(c.text("quick_scan_default_status")),
+				QuickScanDefaultStatus:  models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status"))),
 				CloseChipSelectOnSelect: c.boolean("close_chip_select_on_select"), MonthlySpendingGoal: c.decimalPtr("monthly_spending_goal"),
 				Language: c.text("language"), AiLanguage: c.text("ai_language"), Region: c.text("region"), OnboardingPending: c.boolean("onboarding_pending"),
 				WarrantyPeriodYears: c.intPtr("warranty_period_years"), WarrantyReminderLeadDays: c.intPtr("warranty_reminder_lead_days")})
@@ -233,17 +247,17 @@ func Parse(archive *Archive) (*Household, error) {
 			household.Layouts = append(household.Layouts, models.DashboardLayout{UserId: c.id("user_id"), Layout: c.text("layout")})
 		}},
 		{"group_receipt_settings", func(c cells) {
-			household.GroupSettings = append(household.GroupSettings, models.GroupReceiptSettings{GroupId: c.id("group_id"),
+			// An export from before 2026-11 names the note's two switches after the comments, and carries the
+			// upstream Quick Scan matrix (a "show" and a "require" column per field), which is not read.
+			settings := models.GroupReceiptSettings{GroupId: c.id("group_id"),
 				HideImages: c.boolean("hide_images"), HideReceiptCategories: c.boolean("hide_receipt_categories"),
-				HideReceiptTags: c.boolean("hide_receipt_tags"), HideComments: c.boolean("hide_comments"),
-				QuickScanPaidByEnabled: c.boolean("quick_scan_paid_by_enabled"), QuickScanPaidByRequired: c.boolean("quick_scan_paid_by_required"),
+				HideReceiptTags:            c.boolean("hide_receipt_tags"),
+				HideNote:                   c.boolean("hide_note") || c.boolean("hide_comments"),
+				QuickScanNoteEnabled:       c.boolean("quick_scan_note_enabled") || c.boolean("quick_scan_comment_enabled"),
 				QuickScanDefaultPaidByType: models.QuickScanDefaultPaidByType(c.text("quick_scan_default_paid_by_type")),
-				QuickScanDefaultPaidById: c.idPtr("quick_scan_default_paid_by_id"),
-				QuickScanStatusEnabled: c.boolean("quick_scan_status_enabled"), QuickScanStatusRequired: c.boolean("quick_scan_status_required"),
-				QuickScanDefaultStatus: models.ReceiptStatus(c.text("quick_scan_default_status")),
-				QuickScanCategoriesEnabled: c.boolean("quick_scan_categories_enabled"), QuickScanCategoriesRequired: c.boolean("quick_scan_categories_required"),
-				QuickScanTagsEnabled: c.boolean("quick_scan_tags_enabled"), QuickScanTagsRequired: c.boolean("quick_scan_tags_required"),
-				QuickScanCommentEnabled: c.boolean("quick_scan_comment_enabled"), QuickScanCommentRequired: c.boolean("quick_scan_comment_required")})
+				QuickScanDefaultPaidById:   c.idPtr("quick_scan_default_paid_by_id"),
+				QuickScanDefaultStatus:     models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status")))}
+			household.GroupSettings = append(household.GroupSettings, settings)
 		}},
 	}
 
@@ -254,7 +268,47 @@ func Parse(archive *Archive) (*Household, error) {
 	}
 
 	household.checkReferences()
+	household.joinOldComments()
 	return household, nil
+}
+
+// joinOldComments gives each receipt of an older export its comments as its note, oldest first, the way the
+// data migration comments-to-note-v1 does for a database. A receipt that already has a note keeps it.
+func (household *Household) joinOldComments() {
+	if len(household.OldComments) == 0 {
+		return
+	}
+
+	names := make(map[uint]string, len(household.Users))
+	for _, user := range household.Users {
+		names[user.ID] = user.DisplayName
+		if names[user.ID] == "" {
+			names[user.ID] = user.Username
+		}
+	}
+
+	comments := slices.Clone(household.OldComments)
+	slices.SortStableFunc(comments, func(a, b SourceComment) int {
+		if order := a.CreatedAt.Compare(b.CreatedAt); order != 0 {
+			return order
+		}
+		return cmp.Compare(a.ID, b.ID)
+	})
+
+	entries := map[uint][]models.NoteEntry{}
+	for _, comment := range comments {
+		author := ""
+		if comment.UserId != nil {
+			author = names[*comment.UserId]
+		}
+		entries[comment.ReceiptId] = append(entries[comment.ReceiptId], models.NoteEntry{Author: author, Text: comment.Text})
+	}
+
+	for i := range household.Receipts {
+		if household.Receipts[i].Note == "" {
+			household.Receipts[i].Note = models.JoinCommentsIntoNote(entries[household.Receipts[i].ID])
+		}
+	}
 }
 
 // checkReferences reports rows pointing at a row the export does not have, so the import never
@@ -275,7 +329,6 @@ func (household *Household) checkReferences() {
 	items := ids(len(household.Items), func(i int) uint { return household.Items[i].ID })
 	receipts := ids(len(household.Receipts), func(i int) uint { return household.Receipts[i].ID })
 	products := ids(len(household.Products), func(i int) uint { return household.Products[i].ID })
-	comments := ids(len(household.Comments), func(i int) uint { return household.Comments[i].ID })
 	templates := ids(len(household.Templates), func(i int) uint { return household.Templates[i].ID })
 
 	missing := func(table string, row int, column string, set map[uint]bool, id *uint) {
@@ -316,9 +369,8 @@ func (household *Household) checkReferences() {
 		missing("receipt_product_tags", i, "receipt_product_id", products, &pair.Left)
 		missing("receipt_product_tags", i, "tag_id", tags, &pair.Right)
 	}
-	for i, comment := range household.Comments {
+	for i, comment := range household.OldComments {
 		missing("comments", i, "receipt_id", receipts, &comment.ReceiptId)
-		missing("comments", i, "comment_id", comments, comment.CommentId)
 		missing("comments", i, "user_id", users, comment.UserId)
 	}
 	for i, file := range household.Files {

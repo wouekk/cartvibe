@@ -305,14 +305,14 @@ var tableSpecs = []tableSpec{
 	{
 		name: "receipts",
 		columns: []string{"id", "group_id", "name", "shop_name", "date", "amount", "original_amount", "original_currency",
-			"exchange_rate", "warranty_until", "status", "resolved_date", "paid_by_user_id", "created_at", "created_by"},
+			"exchange_rate", "warranty_until", "status", "resolved_date", "paid_by_user_id", "note", "created_at", "created_by"},
 		write: func(state *exportState, table *tableWriter) error {
 			return eachInBatches(state.tx.Model(models.Receipt{}), func(receipt models.Receipt) error {
 				return table.write(formatUint(receipt.ID), formatUint(receipt.GroupId), receipt.Name, receipt.ShopName,
 					formatDay(receipt.Date), receipt.Amount.String(), formatDecimalPtr(receipt.OriginalAmount),
 					receipt.OriginalCurrency, formatDecimalPtr(receipt.ExchangeRate), formatStringPtr(receipt.WarrantyUntil),
 					string(receipt.Status), formatInstantPtr(receipt.ResolvedDate), formatUint(receipt.PaidByUserID),
-					formatInstant(receipt.CreatedAt), formatUintPtr(receipt.CreatedBy))
+					receipt.Note, formatInstant(receipt.CreatedAt), formatUintPtr(receipt.CreatedBy))
 			})
 		},
 	},
@@ -335,16 +335,6 @@ var tableSpecs = []tableSpec{
 		},
 	},
 	joinTableSpec("receipt_product_tags", "receipt_product_id", "tag_id"),
-	{
-		name:    "comments",
-		columns: []string{"id", "receipt_id", "comment_id", "user_id", "comment", "additional_info", "created_at"},
-		write: func(state *exportState, table *tableWriter) error {
-			return eachInBatches(state.tx.Model(models.Comment{}), func(comment models.Comment) error {
-				return table.write(formatUint(comment.ID), formatUint(comment.ReceiptId), formatUintPtr(comment.CommentId),
-					formatUintPtr(comment.UserId), comment.Comment, comment.AdditionalInfo, formatInstant(comment.CreatedAt))
-			})
-		},
-	},
 	{
 		name:    "files",
 		columns: []string{"id", "receipt_id", "name", "file_type", "size", "file", "created_at"},
@@ -446,7 +436,7 @@ var tableSpecs = []tableSpec{
 			"close_chip_select_on_select", "monthly_spending_goal", "language", "ai_language", "region", "onboarding_pending",
 			"warranty_period_years", "warranty_reminder_lead_days"},
 		write: func(state *exportState, table *tableWriter) error {
-			return eachInBatches(state.tx.Model(models.UserPrefernces{}), func(preferences models.UserPrefernces) error {
+			return eachInBatches(state.tx.Model(models.UserPreferences{}), func(preferences models.UserPreferences) error {
 				return table.write(formatUint(preferences.UserId), formatUintPtr(preferences.QuickScanDefaultGroupId),
 					formatUintPtr(preferences.QuickScanDefaultPaidById), string(preferences.QuickScanDefaultStatus),
 					formatBool(preferences.CloseChipSelectOnSelect), formatDecimalPtr(preferences.MonthlySpendingGoal),
@@ -466,24 +456,18 @@ var tableSpecs = []tableSpec{
 	},
 	{
 		name: "group_receipt_settings",
-		columns: []string{"group_id", "hide_images", "hide_receipt_categories", "hide_receipt_tags", "hide_comments",
-			"quick_scan_paid_by_enabled", "quick_scan_paid_by_required", "quick_scan_default_paid_by_type",
-			"quick_scan_default_paid_by_id", "quick_scan_status_enabled", "quick_scan_status_required",
-			"quick_scan_default_status", "quick_scan_categories_enabled", "quick_scan_categories_required",
-			"quick_scan_tags_enabled", "quick_scan_tags_required", "quick_scan_comment_enabled", "quick_scan_comment_required"},
+		columns: []string{"group_id", "hide_images", "hide_receipt_categories", "hide_receipt_tags", "hide_note",
+			"quick_scan_note_enabled", "quick_scan_default_paid_by_type", "quick_scan_default_paid_by_id",
+			"quick_scan_default_status"},
 		write: func(state *exportState, table *tableWriter) error {
 			query := state.tx.Model(models.GroupReceiptSettings{}).
 				Where("group_id IN (?)", state.tx.Model(models.Group{}).Select("id").Where("is_all_group = ?", false))
 			return eachInBatches(query, func(settings models.GroupReceiptSettings) error {
 				return table.write(formatUint(settings.GroupId), formatBool(settings.HideImages),
 					formatBool(settings.HideReceiptCategories), formatBool(settings.HideReceiptTags),
-					formatBool(settings.HideComments), formatBool(settings.QuickScanPaidByEnabled),
-					formatBool(settings.QuickScanPaidByRequired), string(settings.QuickScanDefaultPaidByType),
-					formatUintPtr(settings.QuickScanDefaultPaidById), formatBool(settings.QuickScanStatusEnabled),
-					formatBool(settings.QuickScanStatusRequired), string(settings.QuickScanDefaultStatus),
-					formatBool(settings.QuickScanCategoriesEnabled), formatBool(settings.QuickScanCategoriesRequired),
-					formatBool(settings.QuickScanTagsEnabled), formatBool(settings.QuickScanTagsRequired),
-					formatBool(settings.QuickScanCommentEnabled), formatBool(settings.QuickScanCommentRequired))
+					formatBool(settings.HideNote), formatBool(settings.QuickScanNoteEnabled),
+					string(settings.QuickScanDefaultPaidByType), formatUintPtr(settings.QuickScanDefaultPaidById),
+					string(settings.QuickScanDefaultStatus))
 			})
 		},
 	},

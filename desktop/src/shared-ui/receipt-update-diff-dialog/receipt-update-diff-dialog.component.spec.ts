@@ -45,15 +45,14 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
   const create = async (snapshots: ReceiptUpdateSnapshots) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      declarations: [ReceiptUpdateDiffDialogComponent],
-      imports: [TranslatePipe, AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState])],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
+    imports: [TranslatePipe, AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState]), ReceiptUpdateDiffDialogComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
         provideZonelessChangeDetection(),
         { provide: AppDialogRef, useValue: dialogRef },
         { provide: APP_DIALOG_DATA, useValue: { snapshots } satisfies ReceiptUpdateDiffDialogData },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ReceiptUpdateDiffDialogComponent);
     component = fixture.componentInstance;

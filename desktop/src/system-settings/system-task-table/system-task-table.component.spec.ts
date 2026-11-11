@@ -27,23 +27,22 @@ describe("SystemTaskTableComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SystemTaskTableComponent, ButtonComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [TranslatePipe, SharedUiModule,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
         NgxsModule.forRoot([SystemTaskTableState, UserState]),
-        TableModule],
-      providers: [{
-        provide: ActivatedRoute,
-        useValue: {
-          snapshot: {
-            data: {
-              allReceiptProcessingSettings: []
+        TableModule, SystemTaskTableComponent, ButtonComponent],
+    providers: [{
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {
+                        allReceiptProcessingSettings: []
+                    }
+                }
             }
-          }
-        }
-      }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-    })
+        }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
       .compileComponents();
 
     store = TestBed.inject(Store);

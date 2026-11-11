@@ -7,7 +7,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
@@ -74,9 +73,8 @@ describe("ShoppingListsPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ShoppingListsPageComponent],
-      imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), PipesModule],
-      providers: [
+    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -88,12 +86,12 @@ describe("ShoppingListsPageComponent", () => {
         { provide: SnackbarService, useValue: snackbarService },
         { provide: ScreenWakeLockService, useValue: wakeLock },
         {
-          provide: AppDialog,
-          useValue: { open: vi.fn().mockImplementation(() => ({ componentInstance: {}, afterClosed: () => of(confirmed) })) },
+            provide: AppDialog,
+            useValue: { open: vi.fn().mockImplementation(() => ({ componentInstance: {}, afterClosed: () => of(confirmed) })) },
         },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     store.reset({

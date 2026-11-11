@@ -2,13 +2,19 @@ import { AfterViewInit, Component, TemplateRef, input, viewChild, ChangeDetectio
 import { SystemTask, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { AccordionPanel } from "../../shared-ui/accordion/accordion-panel.interface";
 import { marker } from "../../i18n/marker";
+import { AccordionComponent } from "../../shared-ui/accordion/accordion.component";
+import { NgTemplateOutlet } from "@angular/common";
+import { PrettyJsonComponent } from "../../shared-ui/pretty-json/pretty-json.component";
+import { StatusIconComponent } from "../../shared-ui/status-icon/status-icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 @Component({
     selector: "app-receipt-processing-settings-child-system-task-accordion",
     templateUrl: "./receipt-processing-settings-child-system-task-accordion.component.html",
     styleUrl: "./receipt-processing-settings-child-system-task-accordion.component.scss",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [AccordionComponent, NgTemplateOutlet, PrettyJsonComponent, StatusIconComponent, TranslatePipe, AppDatePipe]
 })
 export class ReceiptProcessingSettingsChildSystemTaskAccordionComponent implements AfterViewInit {
 

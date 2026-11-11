@@ -1,12 +1,12 @@
 import { TranslationService } from "../../i18n/translation.service";
-import { CurrencyPipe, DatePipe } from "@angular/common";
+import { CurrencyPipe, DatePipe, NgTemplateOutlet, NgIf } from "@angular/common";
 import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
-import { DONE_STATUSES } from "../../utils/receipt-status";
+import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
@@ -37,12 +37,13 @@ import {
 import { SnackbarService } from "../../services";
 import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
+  currentColumnKey,
   reconcileColumns,
   RECEIPT_COLUMN_DISPLAY_NAMES,
 } from "../../utils/index";
@@ -53,23 +54,56 @@ import { QuickScanLauncher } from "../quick-scan-dialog/quick-scan-launcher.serv
 import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-update-dialog.component";
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
 import { marker } from "../../i18n/marker";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { HlmInputGroup } from "../../ui/input-group/lib/hlm-input-group";
+import { HlmInputGroupAddon } from "../../ui/input-group/lib/hlm-input-group-addon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { BrnFieldControl, BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { BrnInput } from "@spartan-ng/brain/input";
+import { HlmInput } from "../../ui/input/lib/hlm-input";
+import { HlmInputGroupInput } from "../../ui/input-group/lib/hlm-input-group-input";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { HlmInputGroupButton } from "../../ui/input-group/lib/hlm-input-group-button";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { QueueStartMenuComponent } from "../../shared-ui/queue-start-menu/queue-start-menu.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { PeriodPickerComponent } from "../../overview/period-picker/period-picker.component";
+import { HlmBadge } from "../../ui/badge/lib/hlm-badge";
+import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { ReceiptCurrencyNoteComponent } from "../receipt-currency-note/receipt-currency-note.component";
+import { StatusChipComponent } from "../../shared-ui/status-chip/status-chip.component";
+import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.component";
+import { HasGroupPermissionDirective } from "../../directives/has-group-permission.directive";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { NamePipe } from "../../pipes/name.pipe";
+import { UserPipe } from "../../pipes/user.pipe";
 
 @Component({
-  selector: "app-receipts-table",
-  templateUrl: "./receipts-table.component.html",
-  host: DEFAULT_HOST_CLASS,
-  // The chip labels are built in TS rather than the template, so the formatting
-  // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs
-  // CurrencyPipe, neither of which is providedIn: "root".
-  providers: [CurrencyPipe, CustomCurrencyPipe, DatePipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-receipts-table",
+    templateUrl: "./receipts-table.component.html",
+    host: DEFAULT_HOST_CLASS,
+    // The chip labels are built in TS rather than the template, so the formatting
+    // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs
+    // CurrencyPipe, neither of which is providedIn: "root".
+    providers: [CurrencyPipe, CustomCurrencyPipe, DatePipe],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, ButtonComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private groupsService: GroupsService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private receiptExportService: ReceiptExportService,
     private receiptFilterService: ReceiptFilterService,
     private receiptService: ReceiptService,
@@ -99,7 +133,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   readonly resolvedDateCell = viewChild.required<TemplateRef<any>>("resolvedDateCell");
 
-  readonly firstCommentCell = viewChild.required<TemplateRef<any>>("firstCommentCell");
+  readonly noteCell = viewChild.required<TemplateRef<any>>("noteCell");
 
   readonly actionsCell = viewChild.required<TemplateRef<any>>("actionsCell");
 
@@ -284,7 +318,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       reconciled.length !== persisted.length ||
       reconciled.some(
         (column, index) =>
-          column.matColumnDef !== persisted[index].matColumnDef ||
+          column.columnDef !== persisted[index].columnDef ||
           column.visible !== persisted[index].visible ||
           column.order !== persisted[index].order
       );
@@ -294,8 +328,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     }
 
     const filterData = this.store.selectSnapshot(ReceiptTableState.filterData);
+    // A sort kept from before a column changed its key follows it (the Note column was first_comment).
+    const orderBy = currentColumnKey(filterData.orderBy ?? "");
     const isKnownColumn = reconciled.some(
-      (column) => column.matColumnDef === filterData.orderBy
+      (column) => column.columnDef === orderBy
     );
 
     if (!isKnownColumn) {
@@ -306,6 +342,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
           sortDirection: DEFAULT_RECEIPT_SORT_DIRECTION,
         })
       );
+    } else if (orderBy !== filterData.orderBy) {
+      this.store.dispatch(new SetReceiptFilterData({ ...filterData, orderBy }));
     }
   }
 
@@ -360,7 +398,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     const allColumns = [
       {
         columnHeader: "Receipt Date",
-        matColumnDef: "date",
+        columnDef: "date",
         phone: "subtitle",
         template: this.dateCell(),
         sortable: true,
@@ -369,7 +407,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // The clickable Shop: the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI, or
         // the receipt's name when none was read. It sorts the same way (shop_name on the API).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
-        matColumnDef: "shop_name",
+        columnDef: "shop_name",
         phone: "title",
         template: this.shopCell(),
         sortable: true,
@@ -377,66 +415,67 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         // Who added the receipt (the paid by user, which a family does not distinguish).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["paid_by_user_id"],
-        matColumnDef: "paid_by_user_id",
+        columnDef: "paid_by_user_id",
         template: this.addedByCell(),
         sortable: true,
       },
       {
         columnHeader: "Amount",
-        matColumnDef: "amount",
+        columnDef: "amount",
         phone: "aside",
         template: this.amountCell(),
         sortable: true,
       },
       {
         columnHeader: "Categories",
-        matColumnDef: "categories",
+        columnDef: "categories",
         template: this.categoryCell(),
         sortable: false,
       },
       {
         columnHeader: "Tags",
-        matColumnDef: "tags",
+        columnDef: "tags",
         template: this.tagCell(),
         sortable: false,
       },
       {
         columnHeader: "Status",
-        matColumnDef: "status",
+        columnDef: "status",
         phone: "aside",
         template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Settled on",
-        matColumnDef: "resolved_date",
+        columnDef: "resolved_date",
         template: this.resolvedDateCell(),
         sortable: true,
       },
       {
-        // The receipt's first comment, which the API both returns
-        // (firstComment) and sorts on under this same key.
-        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["first_comment"],
-        matColumnDef: "first_comment",
-        template: this.firstCommentCell(),
+        // The receipt's note, which the API returns and sorts on under this same key.
+        columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["note"],
+        columnDef: "note",
+        template: this.noteCell(),
         sortable: true,
       },
     ] as TableColumn[];
 
 
     // Filter and order columns based on configuration
+    // A household that hides the note hides its column too, whatever the saved layout says.
+    const noteHidden = !!this.group?.groupReceiptSettings?.hideNote;
     const visibleColumnConfigs = currentColumnConfig
-      .filter(config => config.visible)
+      .filter(config => config.visible && !(noteHidden && config.columnDef === "note"))
       .sort((a, b) => a.order - b.order);
 
     const columns = visibleColumnConfigs
-      .map(config => allColumns.find(col => col.matColumnDef === config.matColumnDef))
+      .map(config => allColumns.find(col => col.columnDef === config.columnDef))
       .filter(col => col !== undefined) as TableColumn[];
 
     if (this.canEdit) {
       columns.push({
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       });
@@ -445,11 +484,11 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     // Derived from the columns that actually resolved, never from the stored
     // configuration: mat-table throws on a displayed id it has no definition for,
     // and a configuration naming a since-removed column is ordinary.
-    const displayColumns = ["select", ...columns.map(col => col.matColumnDef)];
+    const displayColumns = ["select", ...columns.map(col => col.columnDef)];
 
     const filter = this.store.selectSnapshot(ReceiptTableState.filterData);
     const orderByIndex = columns.findIndex(
-      (c) => c.matColumnDef === filter.orderBy
+      (c) => c.columnDef === filter.orderBy
     );
 
     if (orderByIndex >= 0) {
@@ -486,7 +525,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public filterButtonClicked(): void {
     const filter = this.store.selectSnapshot(ReceiptTableState.filterData).filter as any;
 
-    const dialogRef = this.matDialog.open(ReceiptFilterComponent, {
+    const dialogRef = this.dialog.open(ReceiptFilterComponent, {
       minWidth: "75%",
       maxWidth: "100%",
     });
@@ -632,7 +671,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public configureColumnsButtonClicked(): void {
     const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
 
-    const dialogRef = this.matDialog.open(ColumnConfigurationDialogComponent, {
+    const dialogRef = this.dialog.open(ColumnConfigurationDialogComponent, {
       ...DEFAULT_DIALOG_CONFIG,
       data: {
         currentColumns: currentColumnConfig,
@@ -690,7 +729,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public deleteReceipt(row: Receipt): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Delete Receipt");
     dialogRef.componentInstance.confirmText = marker("Delete");
@@ -786,7 +825,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   /** A receipt that reads as "Done" needs no check mark (Phase 3 2e). */
   public isDone(row: Receipt): boolean {
-    return DONE_STATUSES.includes(row.status);
+    return isSettled(row.status);
   }
 
   /** The "V" on a row: sets the receipt to Done (RESOLVED) in one tap, without opening it. */
@@ -805,7 +844,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
             }
           });
           this.dataSource.set(new TableDataSource(newReceipts));
-          this.snackbarService.success("Marked as done");
+          this.snackbarService.success("Marked as settled");
         })
       )
       .subscribe();
@@ -820,7 +859,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public duplicateReceipt(row: Receipt): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: row.name });
@@ -857,7 +896,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public showStatusUpdateDialog(): void {
-    const ref = this.matDialog.open(
+    const ref = this.dialog.open(
       BulkStatusUpdateComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -867,23 +906,15 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap(
-          (
-            commentForm:
-              | {
-              comment: string;
-              status: ReceiptStatus;
-            }
-              | undefined
-          ) => {
+          (picked: { status: ReceiptStatus } | undefined) => {
             const table = this.table();
-            if (table.selection.hasValue() && commentForm) {
+            if (table.selection.hasValue() && picked) {
               const receiptIds = (
                 table.selection.selected as Receipt[]
               ).map((r) => r.id as number);
 
               const bulkResolve: BulkStatusUpdateCommand = {
-                comment: commentForm?.comment ?? "",
-                status: commentForm?.status,
+                status: picked.status,
                 receiptIds: receiptIds,
               };
               this.receiptService

@@ -115,8 +115,6 @@ func TestMemberKeys(t *testing.T) {
 		GroupReceiptsDuplicate,
 		GroupReceiptsQuickScan,
 		GroupReceiptsMagicFill,
-		GroupCommentsCreate,
-		GroupCommentsDelete,
 		GroupActivitiesRead,
 		GroupActivitiesRerun,
 		GroupShoppingListsCreate,

@@ -7,13 +7,14 @@ import { DatepickerModule } from "../../datepicker/datepicker.module";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
 import { Receipt, ReceiptService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SnackbarService } from "../../services/snackbar.service";
 import { WebPushService } from "../../services/web-push.service";
 import { AuthState } from "../../store";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { calendarDayToLocalDate, todayInZone } from "../../utils/app-time-zone";
 import { addWarrantyYears, daysBetween, effectiveRegion, warrantyYears } from "../../utils/warranty-period";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 /**
  * A receipt's warranty date, on its view and edit page. "Add warranty date" opens the picker at the receipt day plus
@@ -25,7 +26,7 @@ import { addWarrantyYears, daysBetween, effectiveRegion, warrantyYears } from ".
   selector: "app-receipt-warranty",
   templateUrl: "./receipt-warranty.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatepickerModule, HlmButton, PipesModule, TranslatePipe, PluralPipe],
+  imports: [DatepickerModule, HlmButton, AppDatePipe, TranslatePipe, PluralPipe],
 })
 export class ReceiptWarrantyComponent {
   private readonly receiptService = inject(ReceiptService);

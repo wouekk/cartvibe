@@ -19,11 +19,10 @@ describe("ReportPreviewPanelComponent", () => {
   beforeEach(async () => {
     dialog = { open: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [ReportPreviewPanelComponent],
-      providers: [provideZonelessChangeDetection(), FormBuilder, { provide: AppDialog, useValue: dialog }],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    imports: [TranslatePipe, ReportPreviewPanelComponent],
+    providers: [provideZonelessChangeDetection(), FormBuilder, { provide: AppDialog, useValue: dialog }],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     const destroyRef = TestBed.inject(DestroyRef);
     form = buildReportForm(TestBed.inject(FormBuilder), destroyRef);

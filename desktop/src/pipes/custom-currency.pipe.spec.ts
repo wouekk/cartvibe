@@ -13,13 +13,12 @@ describe("CustomCurrencyPipe", () => {
   beforeEach(() => {
 
     TestBed.configureTestingModule({
-      declarations: [CustomCurrencyPipe],
-      imports: [NgxsModule.forRoot([SystemSettingsState])],
-      providers: [
+    imports: [NgxsModule.forRoot([SystemSettingsState]), CustomCurrencyPipe],
+    providers: [
         CurrencyPipe,
         CustomCurrencyPipe
-      ]
-    });
+    ]
+});
 
     pipe = TestBed.inject(CustomCurrencyPipe);
     store = TestBed.inject(Store);

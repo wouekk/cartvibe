@@ -1,12 +1,15 @@
 import { Component, Input, OnInit, TemplateRef, input, ChangeDetectionStrategy } from "@angular/core";
+import { NgClass, NgIf, NgTemplateOutlet } from "@angular/common";
+import { AppIconComponent } from "../icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-form-section",
     templateUrl: "./form-section.component.html",
     styleUrls: ["./form-section.component.scss"],
-    standalone: false,
     changeDetection: ChangeDetectionStrategy.Eager,
-    host: { "[class.cv-section]": "panel()", "[class.mb-4]": "panel()", "[class.block]": "panel()" }
+    host: { "[class.cv-section]": "panel()", "[class.mb-4]": "panel()", "[class.block]": "panel()" },
+    imports: [NgClass, AppIconComponent, NgIf, NgTemplateOutlet, TranslatePipe]
 })
 export class FormSectionComponent implements OnInit {
   public readonly headerText = input<string>("");

@@ -18,7 +18,7 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { AvatarModule } from "src/avatar";
 import { DatepickerModule } from "src/datepicker/datepicker.module";
-import { PipesModule } from "src/pipes/pipes.module";
+
 import { RadioGroupModule } from "src/radio-group/radio-group.module";
 import { SelectModule } from "src/select/select.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -30,7 +30,7 @@ import { ButtonModule } from "../button";
 import { CarouselModule as ReceiptCarousel } from "../carousel/carousel.module";
 import { CategoryAutocompleteComponent } from "../category-autocomplete/category-autocomplete.component";
 import { CheckboxModule } from "../checkbox/checkbox.module";
-import { DirectivesModule } from "../directives";
+
 import { InputModule } from "../input";
 import { PeriodPickerComponent } from "../overview/period-picker/period-picker.component";
 import { ReceiptCurrencyNoteComponent } from "./receipt-currency-note/receipt-currency-note.component";
@@ -40,7 +40,6 @@ import { BulkStatusUpdateComponent } from "./bulk-resolve-dialog/bulk-status-upd
 import { ColumnConfigurationDialogComponent } from "./column-configuration-dialog/column-configuration-dialog.component";
 
 import { QuickScanDialogComponent } from "./quick-scan-dialog/quick-scan-dialog.component";
-import { ReceiptCommentsComponent } from "./receipt-comments/receipt-comments.component";
 import { ReceiptFormComponent } from "./receipt-form/receipt-form.component";
 import { ReceiptWarrantyComponent } from "./receipt-warranty/receipt-warranty.component";
 import { RenameReceiptDialogComponent } from "./rename-receipt-dialog/rename-receipt-dialog.component";
@@ -50,17 +49,7 @@ import { UploadImageComponent } from "./upload-image/upload-image.component";
 import { ReceiptProductsComponent } from "./receipt-products/receipt-products.component";
 
 @NgModule({
-  declarations: [
-    BulkStatusUpdateComponent,
-    ColumnConfigurationDialogComponent,
-    RenameReceiptDialogComponent,
-    ReceiptCommentsComponent,
-    ReceiptFormComponent,
-    ReceiptsTableComponent,
-    UploadImageComponent,
-    QuickScanDialogComponent,
-  ],
-  imports: [
+    imports: [
     ReceiptWarrantyComponent,
     UploadProgressComponent,
     AutocompleteModule,
@@ -69,7 +58,6 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     CategoryAutocompleteComponent,
     CommonModule,
     DatepickerModule,
-    DirectivesModule,
     DragDropModule,
     InputModule,
     HlmBadge,
@@ -83,7 +71,6 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     ...HlmDropdownMenuImports,
     ...HlmInputGroupImports,
     ...HlmTooltipImports,
-    PipesModule,
     RadioGroupModule,
     ReactiveFormsModule,
     ReceiptCarousel,
@@ -97,13 +84,19 @@ import { ReceiptProductsComponent } from "./receipt-products/receipt-products.co
     UserAutocompleteModule,
     FilteredStatefulMenuComponent,
     CheckboxModule,
-   
     PeriodPickerComponent,
     ReceiptCurrencyNoteComponent,
     ReceiptProductsComponent,
-  ],
-  exports: [
-    UploadImageComponent
-  ]
+    BulkStatusUpdateComponent,
+    ColumnConfigurationDialogComponent,
+    RenameReceiptDialogComponent,
+    ReceiptFormComponent,
+    ReceiptsTableComponent,
+    UploadImageComponent,
+    QuickScanDialogComponent,
+],
+    exports: [
+        UploadImageComponent
+    ]
 })
 export class ReceiptsModule {}

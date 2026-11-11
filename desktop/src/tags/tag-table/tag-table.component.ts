@@ -1,5 +1,5 @@
 import { AuthState } from "../../store";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -17,13 +17,19 @@ import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/
 import { TagFormComponent } from "../tag-form/tag-form.component";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-tags-list",
     templateUrl: "./tag-table.component.html",
     styleUrls: ["./tag-table.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
@@ -70,7 +76,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   }
 
   constructor(
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
     private tagService: TagService
@@ -154,25 +160,25 @@ export class TagTableComponent implements OnInit, AfterViewInit {
     const columns = [
       {
         columnHeader: "Name",
-        matColumnDef: "name",
+        columnDef: "name",
         template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Products"),
-        matColumnDef: "numberOfProducts",
+        columnDef: "numberOfProducts",
         template: this.numberOfReceiptsCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
-        matColumnDef: "description",
+        columnDef: "description",
         template: this.descriptionCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       },
@@ -180,7 +186,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
 
     const state = this.store.selectSnapshot(TagTableState.state);
     if (state.orderBy) {
-      const column = columns.find((c) => c.matColumnDef === state.orderBy);
+      const column = columns.find((c) => c.columnDef === state.orderBy);
       if (column) {
         column.defaultSortDirection = state.sortDirection;
       }
@@ -196,7 +202,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   }
 
   public openEditDialog(tagView: PagedDataDataInner): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       TagFormComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -218,7 +224,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   }
 
   public openAddDialog(): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       TagFormComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -239,7 +245,7 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   }
 
   public openDeleteConfirmationDialog(tagView: PagedDataDataInner) {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ConfirmationDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );

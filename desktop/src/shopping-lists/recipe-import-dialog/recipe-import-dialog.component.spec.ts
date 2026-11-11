@@ -19,7 +19,6 @@ import {
   ShoppingListItem,
   ShoppingListService,
 } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SelectModule } from "../../select/select.module";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -121,21 +120,20 @@ describe("RecipeImportDialogComponent", () => {
     snackbar = { success: vi.fn() };
 
     await TestBed.configureTestingModule({
-      declarations: [RecipeImportDialogComponent],
-      imports: [
+    imports: [
         NgxsModule.forRoot([ShoppingListState, LayoutState, SystemSettingsState]),
         HlmButton,
         HlmCheckbox,
         HlmSpinner,
         AppIconComponent,
         InputModule,
-        PipesModule,
         ReactiveFormsModule,
         SelectModule,
         SharedUiModule,
         TextareaModule,
-      ],
-      providers: [
+        RecipeImportDialogComponent,
+    ],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -144,8 +142,8 @@ describe("RecipeImportDialogComponent", () => {
         { provide: APP_DIALOG_DATA, useFactory: () => dialogData },
         { provide: ShoppingListService, useValue: service },
         { provide: SnackbarService, useValue: snackbar },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     store = TestBed.inject(Store);
   });

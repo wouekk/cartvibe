@@ -1,4 +1,4 @@
-import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, DestroyRef, OnInit, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -27,7 +27,7 @@ export const LOG_LEVEL_FILTERS = [
   templateUrl: "./logs-page.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [SharedUiModule, TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
+  imports: [SharedUiModule, TranslatePipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class LogsPageComponent implements OnInit {
   private readonly systemSettingsService = inject(SystemSettingsService);

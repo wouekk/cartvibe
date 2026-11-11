@@ -26,8 +26,9 @@
       [inputFormControl]="form | formGet: 'hideImages'"
     ></app-checkbox>
     <app-checkbox
-      [label]="'Hide Comments' | t"
-      [inputFormControl]="form | formGet: 'hideComments'"
+      [label]="'Hide the note' | t"
+      data-testid="receipt-settings-hide-note"
+      [inputFormControl]="form | formGet: 'hideNote'"
     ></app-checkbox>
     </div>
   </app-form-section>
@@ -35,116 +36,52 @@
   <app-form-section
     [panel]="true"
     [headerText]="'Quick Scan' | t"
-    subtitle="Choose which fields appear in quick scan and which are required. Paid by and status always resolve to a value, so set a default for when they are optional."
+    subtitle="A Quick Scan is a photo and nothing else: whoever scans paid, and the receipt is to check until the AI has read it. You can add a note to it, and change what a scan falls back on."
   >
-    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
-      <strong class="text-sm">{{ 'Paid By' | t }}</strong>
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <app-checkbox
-          [label]="'Show' | t"
-          data-testid="quick-scan-paidby-show"
-          [inputFormControl]="form | formGet: 'quickScanPaidByEnabled'"
-        ></app-checkbox>
-        <app-checkbox
-          [label]="'Require' | t"
-          data-testid="quick-scan-paidby-require"
-          [inputFormControl]="form | formGet: 'quickScanPaidByRequired'"
-        ></app-checkbox>
-      </div>
-      @if (showPaidByDefault) {
-        <app-select
-          class="w-full"
-          [label]="'Default Paid By' | t"
-          optionValueKey="value"
-          optionDisplayKey="display"
-          [options]="paidByTypeOptions"
-          [inputFormControl]="form | formGet: 'quickScanDefaultPaidByType'"
-        ></app-select>
+    <div class="flex flex-col gap-1.5">
+      <app-checkbox
+        [label]="'Ask for a note' | t"
+        data-testid="quick-scan-note-show"
+        [inputFormControl]="form | formGet: 'quickScanNoteEnabled'"
+      ></app-checkbox>
+      @if (noteHidden) {
+        <small class="block text-muted-foreground" data-testid="quick-scan-note-hidden-hint">
+          {{ 'Off while "Hide the note" is on. Your choice is kept and applies again when the note is shown.' | t }}
+        </small>
+      } @else {
+        <small class="block text-muted-foreground">
+          {{ 'Adds a note field under each photo. It can be left empty.' | t }}
+        </small>
       }
-      @if (showPaidByUserDefault) {
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2">
+      <app-select
+        class="w-full"
+        [label]="'Paid by, when a scan does not say' | t"
+        optionValueKey="value"
+        optionDisplayKey="display"
+        data-testid="quick-scan-default-paid-by-type"
+        [options]="paidByTypeOptions"
+        [inputFormControl]="form | formGet: 'quickScanDefaultPaidByType'"
+      ></app-select>
+      @if (showPaidByUser) {
         <app-user-autocomplete
-          [label]="'Default Paid By User' | t"
+          [label]="'Person' | t"
           [inputFormControl]="form | formGet: 'quickScanDefaultPaidById'"
           [groupId]="originalGroup.id.toString()"
           [selectGroupMembersOnly]="true"
         ></app-user-autocomplete>
       }
+      <app-status-select
+        [label]="'Status of a new scan' | t"
+        data-testid="quick-scan-default-status"
+        [inputFormControl]="form | formGet: 'quickScanDefaultStatus'"
+        [addBlankOption]="true"
+      ></app-status-select>
     </div>
-
-    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
-      <strong class="text-sm">{{ 'Status' | t }}</strong>
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <app-checkbox
-          [label]="'Show' | t"
-          data-testid="quick-scan-status-show"
-          [inputFormControl]="form | formGet: 'quickScanStatusEnabled'"
-        ></app-checkbox>
-        <app-checkbox
-          [label]="'Require' | t"
-          data-testid="quick-scan-status-require"
-          [inputFormControl]="form | formGet: 'quickScanStatusRequired'"
-        ></app-checkbox>
-      </div>
-      @if (showStatusDefault) {
-        <app-status-select
-          [label]="'Default Status' | t"
-          [inputFormControl]="form | formGet: 'quickScanDefaultStatus'"
-          [addBlankOption]="true"
-        ></app-status-select>
-      }
-    </div>
-
-    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
-      <strong class="text-sm">{{ 'Categories' | t }}</strong>
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <app-checkbox
-          [label]="'Show' | t"
-          data-testid="quick-scan-categories-show"
-          [inputFormControl]="form | formGet: 'quickScanCategoriesEnabled'"
-        ></app-checkbox>
-        <app-checkbox
-          [label]="'Require' | t"
-          data-testid="quick-scan-categories-require"
-          [inputFormControl]="form | formGet: 'quickScanCategoriesRequired'"
-        ></app-checkbox>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
-      <strong class="text-sm">{{ 'Tags' | t }}</strong>
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <app-checkbox
-          [label]="'Show' | t"
-          data-testid="quick-scan-tags-show"
-          [inputFormControl]="form | formGet: 'quickScanTagsEnabled'"
-        ></app-checkbox>
-        <app-checkbox
-          [label]="'Require' | t"
-          data-testid="quick-scan-tags-require"
-          [inputFormControl]="form | formGet: 'quickScanTagsRequired'"
-        ></app-checkbox>
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2 border-b border-border/60 pb-4 last:border-b-0 last:pb-0">
-      <strong class="text-sm">{{ 'Comment' | t }}</strong>
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
-        <app-checkbox
-          [label]="'Show' | t"
-          data-testid="quick-scan-comment-show"
-          [inputFormControl]="form | formGet: 'quickScanCommentEnabled'"
-        ></app-checkbox>
-        <app-checkbox
-          [label]="'Require' | t"
-          data-testid="quick-scan-comment-require"
-          [inputFormControl]="form | formGet: 'quickScanCommentRequired'"
-        ></app-checkbox>
-      </div>
-      @if (form.get('hideComments')?.value) {
-        <small class="text-muted-foreground block">
-          {{ 'Disabled while "Hide Comments" is on. Your selection is kept and applies again when Hide Comments is turned off.' | t }}
-        </small>
-      }
-    </div>
+    <small class="block text-muted-foreground">
+      {{ 'These two also apply to a receipt made from a shopping trip photo. Left empty, a scan starts as to check.' | t }}
+    </small>
   </app-form-section>
 </ng-template>

@@ -8,8 +8,8 @@ describe('ReceiptListIconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ReceiptListIconComponent ]
-    })
+    imports: [ReceiptListIconComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(ReceiptListIconComponent);

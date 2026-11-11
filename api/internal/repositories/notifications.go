@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"fmt"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -15,7 +15,7 @@ type NotificationRepository struct {
 func NewNotificationRepository(tx *gorm.DB) NotificationRepository {
 	repository := NotificationRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -133,6 +133,6 @@ func BuildNotificationForGroup(groupId uint, title string, body string, notifica
 	return notifications, nil
 }
 
-func BuildParamaterisedString(idType string, id uint, displayKey string, typeOfData string) string {
+func BuildParameterisedString(idType string, id uint, displayKey string, typeOfData string) string {
 	return fmt.Sprintf("${%s:%s.%s:%s}", idType, utils.UintToString(id), displayKey, typeOfData)
 }

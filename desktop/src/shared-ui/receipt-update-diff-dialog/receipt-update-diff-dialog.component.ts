@@ -12,6 +12,13 @@ import {
 import { FilterTab } from "../filter-bar/filter-tab.interface";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { DialogComponent } from "../dialog/dialog.component";
+import { NgClass, NgTemplateOutlet } from "@angular/common";
+import { ButtonComponent } from "../../button/button/button.component";
+import { FilterBarComponent } from "../filter-bar/filter-bar.component";
+import { CopyButtonComponent } from "../copy-button/copy-button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 export interface ReceiptUpdateDiffDialogData {
   snapshots: ReceiptUpdateSnapshots;
@@ -36,11 +43,20 @@ export interface ReceiptDiffRow {
  * highlighted. "Changes only" collapses the unchanged lines around each change.
  */
 @Component({
-  selector: "app-receipt-update-diff-dialog",
-  templateUrl: "./receipt-update-diff-dialog.component.html",
-  styleUrl: "./receipt-update-diff-dialog.component.scss",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-receipt-update-diff-dialog",
+    templateUrl: "./receipt-update-diff-dialog.component.html",
+    styleUrl: "./receipt-update-diff-dialog.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        DialogComponent,
+        NgClass,
+        NgTemplateOutlet,
+        ButtonComponent,
+        FilterBarComponent,
+        CopyButtonComponent,
+        TranslatePipe,
+        AppDatePipe,
+    ],
 })
 export class ReceiptUpdateDiffDialogComponent {
   private readonly translation = inject(TranslationService);

@@ -21,8 +21,18 @@ import { ResetPasswordComponent } from "../reset-password/reset-password.compone
 import { UserFormComponent } from "../user-form/user-form.component";
 import { UserTableService } from "./user-table.service";
 import { marker } from "../../i18n/marker";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { TranslationService } from "../../i18n/translation.service";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { NgIf } from "@angular/common";
+import { ButtonComponent } from "../../button/button/button.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { RoleNamePipe } from "../../pipes/role-name.pipe";
 
 @Component({
     selector: "app-user-list",
@@ -36,7 +46,7 @@ import { TranslationService } from "../../i18n/translation.service";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, ButtonComponent, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
   private readonly translation = inject(TranslationService);
@@ -135,7 +145,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
 
   constructor(
     public override baseTableService: BaseTableService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService
@@ -153,38 +163,38 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     this.columns = [
       {
         columnHeader: "Username",
-        matColumnDef: "username",
+        columnDef: "username",
         template: this.usernameCell(),
         sortable: true,
       },
 
       {
         columnHeader: "Display Name",
-        matColumnDef: "display_name",
+        columnDef: "display_name",
         template: this.displaynameCell(),
         sortable: true,
       },
       {
         columnHeader: "Role",
-        matColumnDef: "app_role",
+        columnDef: "app_role",
         template: this.appRoleCell(),
         sortable: false,
       },
       {
         columnHeader: marker("Created At"),
-        matColumnDef: "created_at",
+        columnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Updated At"),
-        matColumnDef: "updated_at",
+        columnDef: "updated_at",
         template: this.updatedAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       },
@@ -219,7 +229,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openUserFormDialog(user?: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       UserFormComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -234,7 +244,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openResetPasswordDialog(user: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ResetPasswordComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -243,7 +253,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openDummyUserConversionDialog(user: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       DummyUserConversionDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -257,7 +267,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     const user = users[index];
 
     if (user.id.toString() !== userId) {
-      const dialogRef = this.matDialog.open(
+      const dialogRef = this.dialog.open(
         ConfirmationDialogComponent,
         DEFAULT_DIALOG_CONFIG
       );
@@ -295,7 +305,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
       return;
     }
 
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ConfirmationDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );

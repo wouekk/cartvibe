@@ -15,6 +15,15 @@ import { DescriptionViewerDialogComponent, DescriptionViewerDialogData } from ".
 import { ReceiptUpdateDiffDialogComponent, ReceiptUpdateDiffDialogData } from "../receipt-update-diff-dialog/receipt-update-diff-dialog.component";
 import { SourceFileViewerDialogComponent, SourceFileViewerDialogData } from "../source-file-viewer-dialog/source-file-viewer-dialog.component";
 import { marker } from "../../i18n/marker";
+import { TableComponent } from "../../table/table/table.component";
+import { StatusIconComponent } from "../status-icon/status-icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { NgIf, AsyncPipe } from "@angular/common";
+import { PrettyJsonComponent } from "../pretty-json/pretty-json.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { UserPipe } from "../../pipes/user.pipe";
+import { SystemTaskTypePipe } from "./system-task-type.pipe";
 
 interface ReceiptUpdateRow {
   snapshots: ReceiptUpdateSnapshots;
@@ -22,10 +31,10 @@ interface ReceiptUpdateRow {
 }
 
 @Component({
-  selector: "app-task-table",
-  templateUrl: "./task-table.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-task-table",
+    templateUrl: "./task-table.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TableComponent, StatusIconComponent, ButtonComponent, NgIf, PrettyJsonComponent, TranslatePipe, AsyncPipe, AppDatePipe, UserPipe, SystemTaskTypePipe]
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {
   public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");
@@ -232,37 +241,37 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
     this.columns = [
       {
         columnHeader: "Type",
-        matColumnDef: "type",
+        columnDef: "type",
         template: this.typeCell(),
         sortable: true,
       },
       {
         columnHeader: "Started At",
-        matColumnDef: "started_at",
+        columnDef: "started_at",
         template: this.startedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Ended At",
-        matColumnDef: "ended_at",
+        columnDef: "ended_at",
         template: this.endedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Status",
-        matColumnDef: "status",
+        columnDef: "status",
         template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
-        matColumnDef: "result_description",
+        columnDef: "result_description",
         template: this.resultDescriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Ran By",
-        matColumnDef: "ran_by_user_id",
+        columnDef: "ran_by_user_id",
         template: this.ranByUserIdCell(),
         sortable: true,
       }
@@ -273,7 +282,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
     if (this.showSourceFileActions()) {
       this.columns.push({
         columnHeader: marker("Source File"),
-        matColumnDef: "source_file",
+        columnDef: "source_file",
         template: this.sourceFileCell(),
         sortable: false,
       });

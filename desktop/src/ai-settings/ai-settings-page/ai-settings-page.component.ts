@@ -15,7 +15,7 @@ import {
   SystemSettingsService,
   UpsertSystemSettingsCommand,
 } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SnackbarService } from "../../services";
 import { TranslationService } from "../../i18n/translation.service";
 import { SetFeatureConfig } from "../../store";
@@ -35,6 +35,7 @@ import {
   watchProviderRules,
 } from "../ai-settings-shared";
 import { marker } from "../../i18n/marker";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 export { AI_SETTINGS_NAME, describeConnection } from "../ai-settings-shared";
 export type { ConnectionResult } from "../ai-settings-shared";
@@ -59,9 +60,9 @@ export type { ConnectionResult } from "../ai-settings-shared";
     CommonModule,
     HlmButton,
     AppIconComponent,
-    PipesModule,
-    ReactiveFormsModule,
-  ],
+    TranslatePipe,
+    ReactiveFormsModule
+],
 })
 export class AiSettingsPageComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

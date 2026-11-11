@@ -11,9 +11,8 @@ describe('RadioGroupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RadioGroupComponent],
-      imports: [TranslatePipe, ...HlmRadioGroupImports, ReactiveFormsModule],
-    }).compileComponents();
+    imports: [TranslatePipe, ...HlmRadioGroupImports, ReactiveFormsModule, RadioGroupComponent],
+}).compileComponents();
 
     fixture = TestBed.createComponent(RadioGroupComponent);
     component = fixture.componentInstance;

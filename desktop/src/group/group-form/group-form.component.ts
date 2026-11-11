@@ -20,7 +20,21 @@ import {AddGroup, AuthState, UpdateGroup} from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
+import { FormComponent } from "../../shared-ui/form/form.component";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { NgTemplateOutlet, NgIf } from "@angular/common";
+import { AuditDetailSectionComponent } from "../../shared-ui/audit-detail-section/audit-detail-section.component";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { InputComponent } from "../../input/input/input.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { GroupLookPickerComponent } from "../group-look-picker/group-look-picker.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
+import { RoleNamePipe } from "../../pipes/role-name.pipe";
+import { UserPipe } from "../../pipes/user.pipe";
 
 @Component({
     selector: "app-create-group-form",
@@ -28,7 +42,7 @@ import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
     styleUrls: ["./group-form.component.scss"],
     host: DEFAULT_HOST_CLASS,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormComponent, SettingsPageComponent, NgTemplateOutlet, AuditDetailSectionComponent, FormSectionComponent, InputComponent, SelectComponent, GroupLookPickerComponent, TableComponent, NgIf, ButtonComponent, RowActionsComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe, RoleNamePipe, UserPipe]
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
   protected readonly PermissionScope = PermissionScope;
@@ -90,7 +104,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     private router: Router,
     private store: Store,
     private activatedRoute: ActivatedRoute,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private sortByDisplayName: SortByDisplayName,
     private appInitService: AppInitService
   ) {
@@ -147,19 +161,19 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     this.columns = [
       {
         columnHeader: "Name",
-        matColumnDef: "name",
+        columnDef: "name",
         template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Group Role"),
-        matColumnDef: "role",
+        columnDef: "role",
         template: this.roleCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: true,
       },
@@ -227,7 +241,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   }
 
   public addGroupMemberClicked(): void {
-    const dialogRef = this.matDialog.open(GroupMemberFormComponent);
+    const dialogRef = this.dialog.open(GroupMemberFormComponent);
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
     dialogRef.componentInstance.headerText = marker("Add Group Member");
@@ -244,7 +258,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
 
   public editGroupMemberClicked(index: number): void {
     const groupMember = this.groupMembers.at(index).value;
-    const dialogRef = this.matDialog.open(GroupMemberFormComponent);
+    const dialogRef = this.dialog.open(GroupMemberFormComponent);
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
     dialogRef.componentInstance.groupMember = groupMember;

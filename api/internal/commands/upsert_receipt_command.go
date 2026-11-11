@@ -9,6 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
+	"unicode/utf8"
 )
 
 type UpsertReceiptCommand struct {
@@ -27,8 +28,10 @@ type UpsertReceiptCommand struct {
 	Status           models.ReceiptStatus    `json:"status"`
 	Categories       []UpsertCategoryCommand `json:"categories"`
 	Tags             []UpsertTagCommand      `json:"tags"`
-	Comments         []UpsertCommentCommand  `json:"comments"`
-	CreatedByString  string                  `json:"createdByString"`
+	// Note is the receipt's free-text note. A pointer, because a client that does not send the key (an older
+	// one, the AI's answer) must leave the stored note alone, while "" clears it.
+	Note            *string `json:"note"`
+	CreatedByString string  `json:"createdByString"`
 }
 
 func (receipt *UpsertReceiptCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {
@@ -85,12 +88,9 @@ func (receipt *UpsertReceiptCommand) Validate(tokenUserId uint, isCreate bool) s
 		}
 	}
 
-	for i, comment := range receipt.Comments {
-		basePath := "comments." + fmt.Sprintf("%d", i)
-		commentErrors := comment.Validate(tokenUserId, isCreate)
-		for key, value := range commentErrors.Errors {
-			errors[basePath+"."+key] = value
-		}
+	// Counted in characters, not bytes, so a note in Polish or Cyrillic gets the same room.
+	if receipt.Note != nil && utf8.RuneCountInString(*receipt.Note) > models.MaxReceiptNoteLength {
+		errors["note"] = fmt.Sprintf("Note must be %d characters or fewer", models.MaxReceiptNoteLength)
 	}
 
 	vErr.Errors = errors

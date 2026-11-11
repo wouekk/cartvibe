@@ -14,10 +14,9 @@ describe("AvatarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AvatarComponent],
-      imports: [...HlmTooltipImports, AppIconComponent, NgxsModule.forRoot([UserState])],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [...HlmTooltipImports, AppIconComponent, NgxsModule.forRoot([UserState]), AvatarComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     fixture = TestBed.createComponent(AvatarComponent);
   });

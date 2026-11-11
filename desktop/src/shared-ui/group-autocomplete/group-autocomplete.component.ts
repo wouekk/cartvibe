@@ -3,13 +3,15 @@ import { FormControl } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { Group } from "../../open-api";
 import { GroupState } from "../../store";
+import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocomplete.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-group-autocomplete",
     templateUrl: "./group-autocomplete.component.html",
     styleUrls: ["./group-autocomplete.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [AutocompleteComponent, TranslatePipe]
 })
 export class GroupAutocompleteComponent {
   public readonly inputFormControl = input.required<FormControl>();

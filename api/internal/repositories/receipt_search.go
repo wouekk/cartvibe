@@ -9,7 +9,7 @@ import (
 const maxSearchMatchesPerReceipt = 3
 
 // fuzzySearchReceiptIds returns the ids of the receipts in groupIds that match the phrase on their
-// name, shop, a comment or a product line. The matching is done in Go over three narrow reads of
+// name, shop, note or a product line. The matching is done in Go over two narrow reads of
 // the group's texts, because the engines differ (SQLite has no trigram index) and a household's
 // receipts are few. The caller still applies every visibility rule to the ids it gets back, so this
 // can only narrow a result, never widen it. An empty result is {0}, the no-match sentinel an
@@ -26,35 +26,18 @@ func (repository ReceiptRepository) fuzzySearchReceiptIds(groupIds []uint, query
 		Id       uint
 		Name     string
 		ShopName string
+		Note     string
 	}{}
 	err := db.Table("receipts").
-		Select("id", "name", "shop_name").
+		Select("id", "name", "shop_name", "note").
 		Where("group_id IN ?", groupIds).
 		Find(&receiptTexts).Error
 	if err != nil {
 		return nil, err
 	}
 	for _, text := range receiptTexts {
-		if query.Matches(text.Name) || query.Matches(text.ShopName) {
+		if query.Matches(text.Name) || query.Matches(text.ShopName) || query.Matches(text.Note) {
 			matched[text.Id] = true
-		}
-	}
-
-	commentTexts := []struct {
-		ReceiptId uint
-		Comment   string
-	}{}
-	err = db.Table("comments").
-		Select("comments.receipt_id AS receipt_id", "comments.comment AS comment").
-		Joins("JOIN receipts ON receipts.id = comments.receipt_id").
-		Where("receipts.group_id IN ?", groupIds).
-		Find(&commentTexts).Error
-	if err != nil {
-		return nil, err
-	}
-	for _, text := range commentTexts {
-		if !matched[text.ReceiptId] && query.Matches(text.Comment) {
-			matched[text.ReceiptId] = true
 		}
 	}
 
@@ -90,7 +73,7 @@ func (repository ReceiptRepository) fuzzySearchReceiptIds(groupIds []uint, query
 
 // GetProductSearchMatches returns, per receipt, the product lines that match the phrase (at most
 // three, in receipt order) so the list can say why a receipt was found. A receipt that matched only
-// on its name, shop or a comment has no entry.
+// on its name, shop or note has no entry.
 func (repository ReceiptRepository) GetProductSearchMatches(receiptIds []uint, query utils.FuzzyQuery) (map[uint][]models.ReceiptSearchMatch, error) {
 	matches := map[uint][]models.ReceiptSearchMatch{}
 	if len(receiptIds) == 0 || query.Empty() {

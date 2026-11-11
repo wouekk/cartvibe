@@ -8,7 +8,6 @@ import { of } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
@@ -44,18 +43,17 @@ describe("ShoppingListsPageComponent recipe import", () => {
     service = { getShoppingListsForGroup: vi.fn().mockReturnValue(of(options.lists ?? lists())) };
 
     await TestBed.configureTestingModule({
-      declarations: [ShoppingListsPageComponent],
-      imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), PipesModule],
-      providers: [
+    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
-          provide: ActivatedRoute,
-          useValue: {
-            paramMap: of(new Map([["groupId", "1"]]) as never),
-            snapshot: { queryParamMap: convertToParamMap(options.query ?? {}) },
-          },
+            provide: ActivatedRoute,
+            useValue: {
+                paramMap: of(new Map([["groupId", "1"]]) as never),
+                snapshot: { queryParamMap: convertToParamMap(options.query ?? {}) },
+            },
         },
         { provide: Router, useValue: { navigate } },
         { provide: ShoppingListService, useValue: service },
@@ -63,9 +61,9 @@ describe("ShoppingListsPageComponent recipe import", () => {
         { provide: ShoppingListSyncService, useValue: { stalled: signal(false), drained: vi.fn().mockResolvedValue(true) } },
         { provide: SnackbarService, useValue: snackbar },
         { provide: AppDialog, useValue: { open } },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     const store = TestBed.inject(Store);
     store.reset({

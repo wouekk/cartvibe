@@ -9,31 +9,33 @@ import { NgxsModule } from "@ngxs/store";
 import { AuthState, GroupState } from "../../store/index";
 
 import { GroupDetailsComponent } from "./group-details.component";
+import { renderShallow } from "../../testing/render-shallow";
 
 describe("GroupDetailsComponent", () => {
   let component: GroupDetailsComponent;
   let fixture: ComponentFixture<GroupDetailsComponent>;
 
   beforeEach(async () => {
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(GroupDetailsComponent);
     await TestBed.configureTestingModule({
-      declarations: [GroupDetailsComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ReactiveFormsModule, CommonModule, NgxsModule.forRoot([GroupState, AuthState])],
-      providers: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [ReactiveFormsModule, CommonModule, NgxsModule.forRoot([GroupState, AuthState]), GroupDetailsComponent],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-                group: { id: 1 },
-              },
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {
+                        group: { id: 1 },
+                    },
+                },
             },
-          },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    })
+    ]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(GroupDetailsComponent);

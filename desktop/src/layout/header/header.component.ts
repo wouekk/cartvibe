@@ -1,6 +1,5 @@
-import { ConnectedPosition } from "@angular/cdk/overlay";
+import { ConnectedPosition, CdkOverlayOrigin, CdkConnectedOverlay } from "@angular/cdk/overlay";
 import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
-import { Location } from "@angular/common";
 import { Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
@@ -9,6 +8,16 @@ import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
 import { AuthState, GroupState } from "../../store";
 import { shownHousehold } from "../../utils/shown-household";
+import { AvatarComponent } from "../../avatar/avatar/avatar.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { HlmSidebarTrigger } from "../../ui/sidebar/lib/hlm-sidebar-trigger";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { ButtonComponent } from "../../button/button/button.component";
+import { NgTemplateOutlet } from "@angular/common";
+import { CartVibeLogoComponent } from "../../shared-ui/cartvibe-logo/cartvibe-logo.component";
+import { NotificationsListComponent } from "../../notifications/notifications-list/notifications-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /** The logo's scale on a phone: 30% of its full size, so it sits compactly in the top bar. */
 export const HANDSET_LOGO_SCALE = 0.3;
@@ -17,7 +26,7 @@ export const HANDSET_LOGO_SCALE = 0.3;
     selector: "app-header",
     templateUrl: "./header.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, ButtonComponent, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe]
 })
 export class HeaderComponent {
   public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
@@ -27,8 +36,6 @@ export class HeaderComponent {
   public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
 
   public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
-
-  public userPreferences = this.store.selectSignal(AuthState.userPreferences);
 
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
@@ -69,21 +76,9 @@ export class HeaderComponent {
     private notificationsService: NotificationsService,
     private router: Router,
     private store: Store,
-    private viewportService: ViewportService,
-    private location: Location
+    private viewportService: ViewportService
   ) {
     this.listenForLoggedInUser();
-  }
-
-  /**
-   * An in-app shortcut ("/receipts") goes through the location strategy, so it keeps the base href and the hash
-   * (the demo lives under /demo/#/); the app itself is unchanged. Other addresses are left alone.
-   */
-  public shortcutHref(url: string | undefined): string {
-    if (!url) {
-      return "";
-    }
-    return url.startsWith("/") && !url.startsWith("//") ? this.location.prepareExternalUrl(url) : url;
   }
 
   private listenForLoggedInUser(): void {

@@ -16,7 +16,7 @@ import (
 )
 
 // runQuickScanKeepingThePhoto seeds the receipt-image pipeline, categories 1-3 and tags 1-2, answers the AI call
-// with aiJSON and runs QuickScanKeepingThePhoto with status NEEDS_ATTENTION, paid by the seeded user.
+// with aiJSON and runs QuickScanKeepingThePhoto with status RESOLVED, paid by the seeded user.
 func runQuickScanKeepingThePhoto(
 	t *testing.T,
 	aiJSON string,
@@ -40,7 +40,7 @@ func runQuickScanKeepingThePhoto(
 		Token:            &structs.Claims{UserId: user.ID},
 		PaidByUserId:     user.ID,
 		GroupId:          group.ID,
-		Status:           models.NEEDS_ATTENTION,
+		Status:           models.RESOLVED,
 		CategoryIds:      categoryPicks,
 		TagIds:           []uint{},
 		TempPath:         tempPath,
@@ -87,7 +87,7 @@ func TestQuickScanKeepingThePhoto_SavesTheReceiptWhenTheAiCannotReadIt(t *testin
 	if !receipt.Amount.IsZero() {
 		t.Errorf("expected no total, got %s", receipt.Amount)
 	}
-	if receipt.Status != models.NEEDS_ATTENTION || receipt.PaidByUserID != user.ID {
+	if receipt.Status != models.RESOLVED || receipt.PaidByUserID != user.ID {
 		t.Errorf("expected the configured status and payer, got %s paid by %d", receipt.Status, receipt.PaidByUserID)
 	}
 	if len(receipt.Categories) != 1 || !hasCategoryId(receipt.Categories, 2) {

@@ -10,17 +10,15 @@ import { HlmInput } from "@spartan-ng/helm/input";
 import { InputComponent } from "./input/input.component";
 
 @NgModule({
-  declarations: [InputComponent],
-  imports: [TranslatePipe, PluralPipe, 
-    CommonModule,
-    HlmButton,
-    HlmInput,
-    AppIconComponent,
-    ...HlmTooltipImports,
-    NgxMaskDirective,
-    ReactiveFormsModule,
-  ],
-  exports: [InputComponent],
-  providers: [provideNgxMask()],
+    imports: [TranslatePipe, PluralPipe,
+        CommonModule,
+        HlmButton,
+        HlmInput,
+        AppIconComponent,
+        ...HlmTooltipImports,
+        NgxMaskDirective,
+        ReactiveFormsModule, InputComponent,],
+    exports: [InputComponent],
+    providers: [provideNgxMask()],
 })
 export class InputModule {}

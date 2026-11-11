@@ -88,13 +88,13 @@
         <li class="flex min-h-11 items-center gap-2 border-b border-border/60 py-1 last:border-b-0">
           <span class="inline-flex size-6 flex-none items-center justify-center rounded-md bg-muted text-xs font-semibold tabular-nums text-muted-foreground">{{ level.index + 1 }}</span>
           <span class="min-w-0 flex-1 truncate text-sm font-medium text-foreground" data-testid="report-grouping-label">{{ level.label }}</span>
-          <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="level.isFirst"
+          <app-button buttonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="level.isFirst"
             (clicked)="moveGroupBy(level.index, -1)" data-testid="report-grouping-up"></app-button>
-          <app-button matButtonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="level.isLast"
+          <app-button buttonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="level.isLast"
             (clicked)="moveGroupBy(level.index, 1)" data-testid="report-grouping-down"></app-button>
-          <app-button matButtonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
+          <app-button buttonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
             (clicked)="openGroupingLabelPicker(level.index)" data-testid="report-grouping-edit"></app-button>
-          <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
+          <app-button buttonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
             (clicked)="removeGroupBy(level.index)" data-testid="report-grouping-remove"></app-button>
         </li>
       }
@@ -166,13 +166,13 @@
             }
           </div>
           <app-badge [text]="column.kindLabel" [tone]="column.kindTone"></app-badge>
-          <app-button matButtonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="column.isFirst"
+          <app-button buttonType="iconButton" icon="arrow_upward" [tooltip]="'Move up' | t" [disabled]="column.isFirst"
             (clicked)="moveColumn(column.index, -1)" data-testid="report-column-up"></app-button>
-          <app-button matButtonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="column.isLast"
+          <app-button buttonType="iconButton" icon="arrow_downward" [tooltip]="'Move down' | t" [disabled]="column.isLast"
             (clicked)="moveColumn(column.index, 1)" data-testid="report-column-down"></app-button>
-          <app-button matButtonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
+          <app-button buttonType="iconButton" icon="edit" [tooltip]="'Edit' | t"
             (clicked)="openColumnPicker(column.index)" data-testid="report-column-edit"></app-button>
-          <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
+          <app-button buttonType="iconButton" icon="close" color="warn" [tooltip]="'Remove' | t"
             (clicked)="removeColumn(column.index)" data-testid="report-column-remove"></app-button>
         </li>
       }

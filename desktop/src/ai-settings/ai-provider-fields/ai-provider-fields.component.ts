@@ -6,7 +6,7 @@ import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { AiType } from "../../constants/ai-type";
 import { InputModule } from "../../input/input.module";
 import { ReceiptProcessingSettings } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SelectModule } from "../../select/select.module";
 import { AiModelFieldComponent } from "../ai-model-field/ai-model-field.component";
 import {
@@ -17,6 +17,7 @@ import {
   needsNewKey,
   providerOptions,
 } from "../ai-settings-shared";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The fields of one AI provider: the provider dropdown (Claude, Gemini, ChatGPT, Local LM), then what that provider
@@ -29,7 +30,7 @@ import {
   templateUrl: "./ai-provider-fields.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [AiModelFieldComponent, CheckboxModule, InputModule, PipesModule, ReactiveFormsModule, SelectModule],
+  imports: [AiModelFieldComponent, CheckboxModule, InputModule, TranslatePipe, ReactiveFormsModule, SelectModule],
 })
 export class AiProviderFieldsComponent {
   public readonly controls = input.required<AiProviderControls>();

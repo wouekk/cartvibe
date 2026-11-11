@@ -14,9 +14,8 @@ describe("NotificationsListComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [NotificationsListComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, ApiModule],
+    imports: [TranslatePipe, ApiModule, NotificationsListComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
 

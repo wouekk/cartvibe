@@ -42,15 +42,48 @@ import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
+import { ShoppingListComponent } from "../shopping-list/shopping-list.component";
+import { ShoppingTripsComponent } from "../shopping-trips/shopping-trips.component";
+import { NgTemplateOutlet } from "@angular/common";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 const SENDING = marker("Sending: {count}");
 const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
 
 @Component({
-  selector: "app-shopping-lists-page",
-  templateUrl: "./shopping-lists-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-shopping-lists-page",
+    templateUrl: "./shopping-lists-page.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        TableHeaderComponent,
+        AddButtonComponent,
+        AppIconComponent,
+        BrnButton,
+        HlmButton,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmDropdownMenuSeparator,
+        ShoppingListComponent,
+        ShoppingTripsComponent,
+        NgTemplateOutlet,
+        TranslatePipe,
+    ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   private readonly translation = inject(TranslationService);
@@ -229,7 +262,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private shoppingListService: ShoppingListService,
     private shoppingListStreamService: ShoppingListStreamService,
     private snackbarService: SnackbarService
@@ -416,7 +449,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   private openRecipeImport(list: ShoppingList, extra: Partial<RecipeImportDialogData>): void {
     // The lists still being shopped, plus the open one in case it is a finished list.
     const lists = activeLists(this.lists());
-    this.matDialog.open(RecipeImportDialogComponent, {
+    this.dialog.open(RecipeImportDialogComponent, {
       width: "min(calc(100vw - 2rem), 36rem)",
       // The field is what a person came to fill in; the first tabbable thing is the mode tab above it.
       autoFocus: '[data-testid="recipe-import-url"] input, [data-testid="recipe-import-text"] textarea',
@@ -430,7 +463,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   }
 
   public addList(): void {
-    const dialogRef = this.matDialog.open(ShoppingListFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
 
     dialogRef
@@ -549,13 +582,13 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   }
 
   public renameList(list: ShoppingList): void {
-    const dialogRef = this.matDialog.open(ShoppingListFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.list = list;
   }
 
   public deleteList(list: ShoppingList): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Delete List");
     dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Delete \"{name}\" and all of its items?", { name: list.name });

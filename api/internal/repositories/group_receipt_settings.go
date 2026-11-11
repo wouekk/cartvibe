@@ -23,6 +23,7 @@ func NewGroupReceiptSettingsRepository(tx *gorm.DB) GroupReceiptSettingsReposito
 func (repository GroupReceiptSettingsRepository) CreateGroupReceiptSettings(groupId uint) (models.GroupReceiptSettings, error) {
 	db := repository.GetDB()
 
+	// A new household hides nothing and its Quick Scan asks for nothing beside the photo.
 	groupReceiptSettingsToCreate := models.GroupReceiptSettings{
 		GroupId: groupId,
 	}
@@ -68,21 +69,12 @@ func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 		groupReceiptSettings.HideImages = command.HideImages
 		groupReceiptSettings.HideReceiptCategories = command.HideReceiptCategories
 		groupReceiptSettings.HideReceiptTags = command.HideReceiptTags
-		groupReceiptSettings.HideComments = command.HideComments
+		groupReceiptSettings.HideNote = command.HideNote
 
-		groupReceiptSettings.QuickScanPaidByEnabled = command.QuickScanPaidByEnabled
-		groupReceiptSettings.QuickScanPaidByRequired = command.QuickScanPaidByRequired
+		groupReceiptSettings.QuickScanNoteEnabled = command.QuickScanNoteEnabled
 		groupReceiptSettings.QuickScanDefaultPaidByType = command.QuickScanDefaultPaidByType
 		groupReceiptSettings.QuickScanDefaultPaidById = command.QuickScanDefaultPaidById
-		groupReceiptSettings.QuickScanStatusEnabled = command.QuickScanStatusEnabled
-		groupReceiptSettings.QuickScanStatusRequired = command.QuickScanStatusRequired
 		groupReceiptSettings.QuickScanDefaultStatus = command.QuickScanDefaultStatus
-		groupReceiptSettings.QuickScanCategoriesEnabled = command.QuickScanCategoriesEnabled
-		groupReceiptSettings.QuickScanCategoriesRequired = command.QuickScanCategoriesRequired
-		groupReceiptSettings.QuickScanTagsEnabled = command.QuickScanTagsEnabled
-		groupReceiptSettings.QuickScanTagsRequired = command.QuickScanTagsRequired
-		groupReceiptSettings.QuickScanCommentEnabled = command.QuickScanCommentEnabled
-		groupReceiptSettings.QuickScanCommentRequired = command.QuickScanCommentRequired
 
 		return tx.Select("*").Model(groupReceiptSettings).Updates(groupReceiptSettings).Error
 	})

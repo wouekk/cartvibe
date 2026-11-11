@@ -1,40 +1,23 @@
 import { ReceiptStatus } from "../open-api";
-import { familyReceiptStatus, receiptStatusLabel, toStatusWireFilter } from "./receipt-status";
+import { isSettled, isToCheck, receiptStatusLabel } from "./receipt-status";
 
-describe("family receipt statuses (Phase 3 C6)", () => {
-  it("labels every status as To check or Settled", () => {
+describe("receipt status", () => {
+  it("reads the two statuses in a family's words, and anything else as it came", () => {
     expect(receiptStatusLabel(ReceiptStatus.Open)).toBe("To check");
-    expect(receiptStatusLabel(ReceiptStatus.NeedsAttention)).toBe("To check");
-    expect(receiptStatusLabel(ReceiptStatus.Draft)).toBe("To check");
     expect(receiptStatusLabel(ReceiptStatus.Resolved)).toBe("Settled");
-    expect(receiptStatusLabel(ReceiptStatus.Declined)).toBe("Settled");
     expect(receiptStatusLabel("SOMETHING_NEW")).toBe("SOMETHING_NEW");
     expect(receiptStatusLabel(undefined)).toBe("");
+    expect(receiptStatusLabel("")).toBe("");
   });
 
-  it("shows any status as one of the two picker values", () => {
-    expect(familyReceiptStatus(ReceiptStatus.NeedsAttention)).toBe(ReceiptStatus.Open);
-    expect(familyReceiptStatus(ReceiptStatus.Declined)).toBe(ReceiptStatus.Resolved);
-    expect(familyReceiptStatus("")).toBe("");
-  });
-
-  it("widens a status filter on the wire, without touching the stored one", () => {
-    const filter = { status: { operation: "CONTAINS", value: [ReceiptStatus.Open] }, name: { value: "x" } };
-
-    const wire = toStatusWireFilter(filter) as any;
-
-    expect(wire.status.value).toEqual([ReceiptStatus.Open, ReceiptStatus.NeedsAttention, ReceiptStatus.Draft]);
-    expect(wire.status.operation).toBe("CONTAINS");
-    expect(wire.name).toBe(filter.name);
-    expect(filter.status.value).toEqual([ReceiptStatus.Open]);
-    expect((toStatusWireFilter({ status: { value: [ReceiptStatus.Resolved] } }) as any).status.value).toEqual([
-      ReceiptStatus.Resolved,
-      ReceiptStatus.Declined,
-    ]);
-  });
-
-  it("passes a filter without a status list through", () => {
-    expect(toStatusWireFilter({ status: { value: "" } })).toEqual({ status: { value: "" } });
-    expect(toStatusWireFilter(undefined)).toBeUndefined();
+  it("knows which receipts are to check and which are settled", () => {
+    expect(isToCheck(ReceiptStatus.Open)).toBe(true);
+    expect(isToCheck(ReceiptStatus.Resolved)).toBe(false);
+    expect(isSettled(ReceiptStatus.Resolved)).toBe(true);
+    expect(isSettled(ReceiptStatus.Open)).toBe(false);
+    // A receipt without a status, or with one this version does not know, is neither.
+    expect(isToCheck("")).toBe(false);
+    expect(isSettled(undefined)).toBe(false);
+    expect(isSettled("SOMETHING_NEW")).toBe(false);
   });
 });

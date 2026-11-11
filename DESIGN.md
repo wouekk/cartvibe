@@ -39,6 +39,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Page title `h1` (settings: `text-2xl`); card title `.cv-card__title` 17px semibold; panel `h2` `text-base font-bold`; body `text-sm`; description 13px muted (`.cv-card__desc`).
 - Overline: `text-[11px] font-semibold uppercase tracking-wider text-muted-foreground` (or `.cv-section__title`). Table headers use the same.
 - KPI: label `text-xs font-medium text-muted-foreground`, value `text-3xl font-bold`, sub-line `text-[0.8125rem] font-medium`.
+- Lead sentence (the Dashboard's month summary, between the period row and the panels): one plain `<p>`, `text-base text-foreground`, no card, no icon, no bold; the figures carry it. A page has at most one.
 - Money: `<app-money [value]>` (whole part bold, symbol/decimals `opacity-60` of the same color); `[display]="true"` on the Dashboard only. Digits `tabular-nums` (automatic in tables, `.tile`, `app-money`, charts).
 - Inputs are 16px below 768px (no iOS zoom). Never translate data (money, dates, names); every UI string goes through `| t`.
 
@@ -62,8 +63,8 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
   marks a row that has not been sent. Never a banner for it; the one notice above the list explains what happens to
   changes. A crossed-off row ends in the `xs` avatar of whoever crossed it off, after the amount.
 - Buttons: `hlmBtn` (primary), `variant="outline|ghost"` for toggles/menus/icon rows, `variant="destructive"` (red) for every delete and remove: buttons, row icons, menu items (`hlmDropdownMenuItem variant="destructive"`) and the confirm button of a Delete / Remove dialog. Save = `app-submit-button`; Cancel = `app-cancel-button`, neutral `outline` (white by day, black at night), never red.
-- Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`.
-- Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomlete`, `app-form-section [panel]`.
+- Dialogs: `AppDialog` (`src/dialog/app-dialog.ts`) + `app-dialog-footer`; confirm with `ConfirmationDialogComponent`. On a phone a dialog is a bottom sheet (`.app-dialog-sheet`): full width, on the bottom edge, top corners `rounded-xl`, square below, at most the screen less 3rem, rising instead of zooming, with the footer's buttons at the bottom. The service does it for every dialog: never position one by hand, and keep the primary action in `app-dialog-footer`.
+- Fields: `app-input`, `app-select`, `app-textarea`, `app-checkbox`, `app-datepicker`, `app-autocomplete`, `app-form-section [panel]`.
 - Menus `hlmDropdownMenuTrigger`; tips `hlmTooltip` (the popover surface with a hairline, no arrow, not an inverted black box); toggles `hlm-switch`; badges `app-badge` (tones slate/blue/green); status `app-status-chip`; shops `app-shop-monogram` (a logo sits on a white tile with a `ring-border` hairline: the one allowed fixed colour, since logo art assumes white); toasts `SnackbarService`; loading `hlm-spinner`, `.app-progress-indeterminate`; required-empty `shakeInvalid()`.
 
 ## Patterns

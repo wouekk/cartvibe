@@ -1,7 +1,6 @@
 import {
   BulkStatusUpdateCommand,
   Category,
-  Comment,
   FileData,
   FileDataView,
   Receipt,
@@ -10,7 +9,6 @@ import {
   ReceiptStatus,
   Tag,
   UpsertCategoryCommand,
-  UpsertCommentCommand,
   UpsertReceiptCommand,
   UpsertTagCommand,
 } from "../../../open-api";
@@ -184,18 +182,11 @@ function resolveTags(db: DemoDb, sent: UpsertTagCommand[] | undefined): Tag[] {
     .filter((tag): tag is Tag => !!tag);
 }
 
-function addComments(db: DemoDb, receipt: Receipt, comments: UpsertCommentCommand[] | undefined): void {
-  for (const entry of comments ?? []) {
-    receipt.comments.push(makeComment(db, receipt.id, entry.comment, entry.userId));
-  }
-  receipt.firstComment = receipt.comments[0]?.comment;
-}
-
-function makeComment(db: DemoDb, receiptId: number, text: string, userId?: number): Comment {
-  return { id: nextId(db, "comment"), receiptId, userId: userId ?? db.currentUserId, comment: text, createdAt: instantOn(db.today) };
-}
-
 function applyCommand(db: DemoDb, receipt: Receipt, command: UpsertReceiptCommand): void {
+  // As on the real API: a command without a note keeps the receipt's, an empty one clears it.
+  if (command.note !== undefined && command.note !== null) {
+    receipt.note = command.note;
+  }
   receipt.name = command.name;
   receipt.shopName = command.shopName ?? receipt.shopName;
   receipt.amount = formatCents(parseCents(command.amount));
@@ -224,13 +215,12 @@ function newReceipt(db: DemoDb, command: UpsertReceiptCommand): Receipt {
     status: command.status,
     categories: [],
     tags: [],
-    comments: [],
+    note: "",
     imageFiles: [],
     createdAt: instantOn(db.today),
     createdBy: db.currentUserId,
   };
   applyCommand(db, receipt, command);
-  addComments(db, receipt, command.comments);
   db.receipts.push(receipt);
   return receipt;
 }
@@ -329,10 +319,6 @@ export function registerReceipts(router: DemoRouter): void {
     const command = body<BulkStatusUpdateCommand>(ctx);
     for (const receipt of ctx.db.receipts.filter((candidate) => command.receiptIds.includes(candidate.id))) {
       setStatus(ctx.db, receipt, command.status as ReceiptStatus);
-      if (command.comment) {
-        receipt.comments.push(makeComment(ctx.db, receipt.id, command.comment));
-        receipt.firstComment = receipt.comments[0]?.comment;
-      }
     }
     return ok();
   });
@@ -372,8 +358,6 @@ export function registerReceipts(router: DemoRouter): void {
       id: nextId(ctx.db, "receipt"),
       status: ReceiptStatus.Open,
       resolvedDate: undefined,
-      comments: [],
-      firstComment: undefined,
       imageFiles: [],
       createdAt: instantOn(ctx.db.today),
       createdBy: ctx.db.currentUserId,
@@ -423,32 +407,11 @@ export function registerReceipts(router: DemoRouter): void {
     if (!receipt) {
       return notFound("Receipt not found");
     }
-    // A receipt update does not persist comments (they have their own endpoints), as on the real API.
     applyCommand(ctx.db, receipt, body<UpsertReceiptCommand>(ctx));
     return receipt;
   });
   router.delete("/receipt/:receiptId", (ctx) => {
     removeReceipts(ctx.db, new Set([idParam(ctx, "receiptId")]));
-    return ok();
-  });
-
-  // Comments
-  router.post("/comment", (ctx) => {
-    const command = body<UpsertCommentCommand>(ctx);
-    const receipt = ctx.db.receipts.find((candidate) => candidate.id === command.receiptId);
-    if (!receipt) {
-      return notFound("Receipt not found");
-    }
-    const comment = makeComment(ctx.db, receipt.id, command.comment, command.userId);
-    receipt.comments.push(comment);
-    receipt.firstComment = receipt.comments[0]?.comment;
-    return comment;
-  });
-  router.delete("/comment/:commentId", (ctx) => {
-    for (const receipt of ctx.db.receipts) {
-      receipt.comments = receipt.comments.filter((comment) => comment.id !== idParam(ctx, "commentId"));
-      receipt.firstComment = receipt.comments[0]?.comment;
-    }
     return ok();
   });
 

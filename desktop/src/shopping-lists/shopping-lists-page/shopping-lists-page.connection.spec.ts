@@ -8,7 +8,6 @@ import { of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "../../services/shopping-list-stream.service";
@@ -61,9 +60,8 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     snackbarError = vi.fn();
 
     await TestBed.configureTestingModule({
-      declarations: [ShoppingListsPageComponent],
-      imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), PipesModule],
-      providers: [
+    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -74,13 +72,13 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
         { provide: ShoppingListSyncService, useValue: { stalled, drained } },
         { provide: OnlineStatusService, useValue: { online } },
         {
-          provide: SnackbarService,
-          useValue: { error: snackbarError, success: vi.fn(), hint: vi.fn(), successFromTemplate: vi.fn().mockReturnValue({ dismiss: vi.fn() }) },
+            provide: SnackbarService,
+            useValue: { error: snackbarError, success: vi.fn(), hint: vi.fn(), successFromTemplate: vi.fn().mockReturnValue({ dismiss: vi.fn() }) },
         },
         { provide: AppDialog, useValue: { open: vi.fn() } },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
     store = TestBed.inject(Store);
   });
 

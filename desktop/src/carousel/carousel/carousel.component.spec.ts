@@ -2,7 +2,6 @@ import { CommonModule } from "@angular/common";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { PipesModule } from "src/pipes/pipes.module";
 import { ButtonModule } from "../../button";
 import { CarouselComponent } from "./carousel.component";
 
@@ -12,15 +11,14 @@ describe("CarouselComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CarouselComponent],
-      imports: [
+    imports: [
         CommonModule,
-        PipesModule,
         HlmButton,
         AppIconComponent,
         ButtonModule,
-      ],
-    }).compileComponents();
+        CarouselComponent,
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(CarouselComponent);
     component = fixture.componentInstance;

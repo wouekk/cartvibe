@@ -5,9 +5,11 @@ import { RouterLink } from "@angular/router";
 import { catchError, forkJoin, map, Observable, of, take } from "rxjs";
 import { ButtonModule } from "../../button";
 import { GroupOverviewProduct, OverviewService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { DonutMember } from "../overview-chart.utils";
+import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 /**
  * What a Dashboard figure is made of: the unhealthy lines, the unplanned ones, one category's, one tag's, or the
@@ -51,7 +53,7 @@ const UNCATEGORIZED = "Uncategorized";
   selector: "app-overview-detail-dialog",
   templateUrl: "./overview-detail-dialog.component.html",
   standalone: true,
-  imports: [ButtonModule, CommonModule, PipesModule, RouterLink, SharedUiModule],
+  imports: [ButtonModule, CommonModule, TranslatePipe, TranslateDataPipe, AppDatePipe, RouterLink, SharedUiModule],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],

@@ -3,18 +3,29 @@ import { Component, Input, OnInit, signal, ChangeDetectionStrategy } from "@angu
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { catchError, map, of, take } from "rxjs";
 import { Receipt, ReceiptService, SortDirection } from "../../open-api";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 
 /** How many of the group's newest receipts the dialog offers. */
 export const ATTACHABLE_RECEIPT_COUNT = 15;
 
 /** Picks one of the group's recent receipts to attach to a list. Closes with the receipt's id. */
 @Component({
-  selector: "app-attach-receipt-dialog",
-  templateUrl: "./attach-receipt-dialog.component.html",
-  standalone: false,
-  // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
-  changeDetection: ChangeDetectionStrategy.Eager,
-  providers: [CurrencyPipe],
+    selector: "app-attach-receipt-dialog",
+    templateUrl: "./attach-receipt-dialog.component.html",
+    // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [CurrencyPipe],
+    imports: [
+        DialogComponent,
+        CancelButtonComponent,
+        TranslatePipe,
+        AppDatePipe,
+        CustomCurrencyPipe,
+    ],
 })
 export class AttachReceiptDialogComponent implements OnInit {
   @Input() public groupId!: number;
@@ -27,7 +38,7 @@ export class AttachReceiptDialogComponent implements OnInit {
 
   constructor(
     private receiptService: ReceiptService,
-    private matDialogRef: AppDialogRef<AttachReceiptDialogComponent, number>
+    private dialogRef: AppDialogRef<AttachReceiptDialogComponent, number>
   ) {}
 
   public ngOnInit(): void {
@@ -50,10 +61,10 @@ export class AttachReceiptDialogComponent implements OnInit {
   }
 
   public pick(receipt: Receipt): void {
-    this.matDialogRef.close(receipt.id);
+    this.dialogRef.close(receipt.id);
   }
 
   public close(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 }

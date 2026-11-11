@@ -7,7 +7,6 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Comment } from './comment';
 import { Category } from './category';
 import { ReceiptSearchMatch } from './receiptSearchMatch';
 import { ReceiptStatus } from './receiptStatus';
@@ -28,9 +27,9 @@ export interface Receipt {
      */
     categories: Array<Category>;
     /**
-     * Comments associated to receipt
+     * The household\'s own words about the receipt, \"\" when there is none. One free text (until 2026-11 a receipt had a thread of comments, which was joined into it); the AI never writes it.
      */
-    comments: Array<Comment>;
+    note: string;
     createdAt?: string;
     createdBy?: number;
     /**
@@ -41,10 +40,6 @@ export interface Receipt {
      * The last day of the purchase\'s warranty, yyyy-MM-dd; null when none was entered. Changed only through PUT /receipt/{receiptId}/warranty.
      */
     warrantyUntil?: string;
-    /**
-     * Text of the receipt\'s earliest comment the caller may see. Only populated by the paged receipt list (POST /receipt/group/{groupId}); absent when there is no such comment.
-     */
-    firstComment?: string;
     /**
      * The product lines that made the receipt match the list\'s search phrase. Only populated by the paged receipt list while a search is active; absent otherwise.
      */

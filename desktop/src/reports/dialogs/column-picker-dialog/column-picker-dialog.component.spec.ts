@@ -2,11 +2,11 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@angular/core"
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder } from "@angular/forms";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
-import { PipesModule } from "../../../pipes";
 import { ReportColumn } from "../../../open-api";
 import { ColumnPickerDialogComponent, ColumnPickerDialogData } from "./column-picker-dialog.component";
 
 import type { Mock } from "vitest";
+import { StoreModule } from "../../../store/store.module";
 function configure(data: ColumnPickerDialogData): {
   fixture: ComponentFixture<ColumnPickerDialogComponent>;
   component: ColumnPickerDialogComponent;
@@ -14,16 +14,15 @@ function configure(data: ColumnPickerDialogData): {
 } {
   const close = vi.fn();
   TestBed.configureTestingModule({
-    declarations: [ColumnPickerDialogComponent],
-    imports: [PipesModule],
+    imports: [StoreModule, ColumnPickerDialogComponent],
     providers: [
-      provideZonelessChangeDetection(),
-      FormBuilder,
-      { provide: AppDialogRef, useValue: { close } },
-      { provide: APP_DIALOG_DATA, useValue: data },
+        provideZonelessChangeDetection(),
+        FormBuilder,
+        { provide: AppDialogRef, useValue: { close } },
+        { provide: APP_DIALOG_DATA, useValue: data },
     ],
     schemas: [NO_ERRORS_SCHEMA],
-  });
+});
   const fixture = TestBed.createComponent(ColumnPickerDialogComponent);
   return { fixture, component: fixture.componentInstance, close };
 }

@@ -68,7 +68,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   that queues a read (`ReceiptProductExtraction` → PENDING, in the caller's transaction); a new image re-reads the whole
   set. `DeleteReceipt` removes products and extraction explicitly (not associations).
 - A finished read fills a blank `shopName`, renames a placeholder-named receipt (`IsPlaceholderReceiptName`) to the shop,
-  and moves a receipt still "To check" (OPEN / NEEDS_ATTENTION / DRAFT) to RESOLVED through `AfterReceiptUpdated`.
+  and moves a receipt still "To check" (OPEN) to RESOLVED through `AfterReceiptUpdated`.
 - Classification (`FoodClassification`: health HEALTHY/MEDIUM/UNHEALTHY/NOT_FOOD/UNKNOWN, food group, seasonality for
   Western Europe in the month bought) is usually done by the read itself; the sweep covers the rest. Corrections set
   `classificationOverridden` (the sweep's UPDATE skips it) and remember the health per group by normalized name
@@ -82,12 +82,12 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   serializes nil tags as `[]`. A person's category choice survives sweeps, renames and Read again.
   `PUT /receipt-product/product/{id}/labels` sets only category and tags (the full update would count a printed/display
   name difference as a rename). Category rename keeps products by id; delete nulls their `category_id`. Receipt-level
-  categories/tags remain in the model and still drive grants and the receipts filter (which matches receipt-level or
+  categories/tags remain in the model and still drive the receipts filter (which matches receipt-level or
   line-level).
 - **Trips** (`ShoppingTrip`): a receipt attached to a list; products not on the list get `planned = false` (unplanned
   spend); `null` counts as planned. Attach an existing receipt (`group.shopping-lists.update` + `group.receipts.read`,
   paid-by included) or upload a photo (`+ group.receipts.quick-scan`), stored in `data/shopping-trips/` (not `temp/`),
-  scanned when the AI is available with a 1 h → 12 h backoff. A role requiring a comment is refused at upload. The planned
+  scanned when the AI is available with a 1 h → 12 h backoff. The planned
   snapshot is taken at attach time. Every sweep write requires the trip still `RUNNING`, so a detach or product re-read
   mid-comparison discards the result. A receipt is on one trip at most.
 
@@ -103,10 +103,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   way are scaled to it), so the slices always add up to `total`. `unhealthyTotal`, `unplannedTotal` and `tags[]` add
   the same shares; `tags[]` gives a tile per tag with `showOnDashboard` (a line counts toward each of its tags).
   `GET /overview/group/{id}/products?kind=UNHEALTHY|UNPLANNED|FOODGROUP|TAG` lists the lines behind a tile. Open
-  receipts are OPEN, NEEDS_ATTENTION and DRAFT.
-- Category/tag grants apply per receipt group (`overviewGrants`): a hidden line category becomes the `(Restricted)`
-  slice; a hidden tag gets no tile (a tile needs the tag visible in the group, or for All in one readable real group)
-  and its lines do not count; a drill-down by a hidden category or tag id lists nothing.
+  receipts are the OPEN ones.
 - `GET/PUT /dashboardLayout`: one row per user; `layout` is a client-owned JSON document. The API checks only the
   envelope (`ValidateDashboardLayout`: object, numeric version, ≤16 KB). It is not a `UserPreferences` field because
   `PUT /userPreferences` replaces the whole object and would erase it from any client that does not know it.
@@ -128,7 +125,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 ## Search
 
 - The receipts filter carries `search`; `GetPagedReceiptsByGroupId` calls `fuzzySearchReceiptIds` over the already
-  resolved scope (names, shop, comments, product names), matched in Go by `utils/fuzzy_match.go` (accent folding, prefix
+  resolved scope (names, shop, note, product names), matched in Go by `utils/fuzzy_match.go` (accent folding, prefix
   abbreviations, OSA distance 1 for 4-7 letters, 2 for 8+, exact under 4), and ANDs `receipts.id IN (...)` before the
   count. It only narrows; every visibility rule still applies. `Receipt.searchMatches` lists up to 3 matching lines
   while a search is active. `GET /search` (name `LIKE`) remains for MCP.
@@ -140,8 +137,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   is the only transition logic: RESOLVED stamps `resolved_date`, any other status clears it. Reports label statuses "To
   check" / "Settled".
 - Create is `POST /receipt/withFiles` (multipart: `receipt` JSON as a form value or a file part, plus `files`): parse →
-  gate → `ValidateFileType` on every file before any write → `enforceReceiptCreate` (All group, grants, member
-  visibility, requirements) → one transaction with tracked file paths removed on failure → `writeCreatedReceipt`.
+  gate → `ValidateFileType` on every file before any write → `enforceReceiptCreate` (the All group is refused; a
+  category or tag sent by name needs its create permission) → one transaction with tracked file paths removed on failure → `writeCreatedReceipt`.
   `POST /receipt/` (deprecated) shares the checks with zero files.
 - `DuplicateReceipt` and `CreateReceiptWithFiles` are all-or-nothing: paths are tracked before each write, the copy runs
   on the transaction, the stored bytes are copied (`ReadDataFile`, never the display conversion), and the system task is
@@ -194,8 +191,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `GetReceiptForUser` (paid-by and member isolation included). `fire_on = max(today, end − lead)`; an end before today
   plans nothing. `SyncWarrantyReminders` re-plans one receipt (an upsert that keeps `fired_for`) after the warranty
   date, a receipt update (group or payer may move) and a duplicate; `SyncWarrantyRemindersForUser` after a preferences
-  save; `SyncWarrantyRemindersForGroup` after a group update or member grants change; `SyncWarrantyRemindersForUser`
-  also for a new account (it joins the household); `SyncAllWarrantyReminders` at start-up (catches role edits).
+  save; `SyncWarrantyRemindersForGroup` after a group update (its members may have changed); `SyncWarrantyRemindersForUser`
+  also for a new account (it joins the household); `SyncAllWarrantyReminders` at start-up.
   Receipt and user deletion remove the rows explicitly.
 - The `system_clean_up:warranty_reminders` sweep (every minute) drops reminders of ended warranties and, once the app
   zone is past 09:00, fires due rows: a conditional UPDATE sets `fired_for = warranty_until` and the notification is
@@ -238,8 +235,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   admin key, so paid-by and member isolation do not apply (`authorization.md`). The All group is never written; its ids
   are in the manifest for report templates that cover it.
 - Never exported: password hashes, AI processing settings and keys, the Logo.dev key, OIDC providers and identities,
-  push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles and
-  grants, shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
+  push subscriptions, tokens and OAuth rows, notifications, system tasks, extraction rows, warranty reminders, roles,
+  shop logos. `TestExportNeverContainsSecrets` scans every entry for seeded secrets.
 - A new table or column the household would miss after a move goes into `tableSpecs` (`backup/export.go`), the reader
   (`backup/parse.go`), the writer (`backup/import.go`) and the format note in the same branch; an additive column keeps
   `FormatVersion`.
@@ -284,16 +281,18 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   (`IncludeProducts` → `InlineProductPrompt`), then `ApplyInlineRead` stores the products after claiming the extraction
   (`ClaimPendingExtraction`), so the sweep never applies twice. When the AI cannot read the photo,
   `QuickScanKeepingThePhoto` saves the receipt anyway ("Receipt <today>", today in the app zone, amount 0, the resolved
-  status and payer, the person's picks and comment), records a FAILED `QUICK_SCAN` task (created when no AI ran), and the
+  status and payer, the person's picks and note), records a FAILED `QUICK_SCAN` task (created when no AI ran), and the
   uploader is told to fill it in; the task succeeds, so the AI is not asked again. Only other errors are retried (3 tries,
   then archived, "failed" on the last one: `isFinalAttempt`). A missing name or date in a read is filled the same way
   (`fillQuickScanDefaults`). It removes its upload only after the receipt commits. `ReceiptService.QuickScan` (used by
   shopping trips) takes `QuickScanParams` and still returns the AI error with nothing saved.
-- Quick-scan ingress (`ResolveQuickScanFields`) enforces only the comment (group config, role requirement,
-  `MaxCommentLength` 500 counted in runes) and the All-group refusal, synchronously before enqueue; paid-by falls back to
-  the configured default then the uploader, status to the default then OPEN. A comment from a caller without
-  `group.comments.create` is dropped, not refused. Picked categories/tags are grant-checked (403). AI-returned category
-  ids are resolved to names; unknown, out-of-grant and switched-off (`skipped`, unless the person picked it too) ids are
+- Quick-scan ingress (`ResolveQuickScanFields`) requires nothing but the photo. Synchronously, before anything is
+  queued, it refuses the All group and a note longer than `MaxReceiptNoteLength` (counted in runes); paid-by falls
+  back to the household's default member then the uploader, status to the household's default then OPEN. A note is
+  kept only where the household's Quick Scan asks for one (`IsQuickScanNoteShown`), otherwise dropped, not refused.
+  The form field is `notes` (`comments`, its older name, is still read; a job queued before 2026-11 carries the note
+  as `Comment`, which the handler reads too). AI-returned category
+  ids are resolved to names; unknown and switched-off (`skipped`, unless the person picked it too) ids are
   dropped (an id-only category would blank the category's name on save). Failures before the create transaction, and a
   failed `CreateReceipt` (the transaction is rolled back first, never committed half-written), record a FAILED
   `RECEIPT_UPLOADED` child (`recordEarlyQuickScanFailure`).
@@ -313,22 +312,21 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 
 ## Roles in detail
 
-- Role CRUD (`services/roles.go`, `repositories/roles.go`, gated by `app.roles.*`): system roles are immutable, scope
-  cannot change, an assigned or default role cannot be deleted. Grant rows sync delete-then-insert with associations
-  omitted. Group-only flags are rejected on APP scope; `SkipDefaultGroupCreation` is APP-only. Extra role flags
-  (`SetGroupRoleIndividualGrantConfig`, `SetGroupRoleReceiptRequirements`) persist through separate methods to avoid
-  long runs of transposable bools.
-- Seeded on every boot by `SeedSystemRoles` (add-only, keyed on name): Legacy Admin / Owner (every app / group key, so a
-  new key reaches admins next boot), Legacy User / Viewer / Editor, and the family roles **User** (`FamilyUserAppKeys`,
-  includes the AI page's receipt-processing create/read/update) and **Member** (`FamilyMemberGroupKeys`). Only Admin and
-  User are offered in the family UI; names are shared with the desktop's `utils/family-roles.ts`.
-- `EnsureDefaultRoles` guarantees one default per scope without overriding an admin's choice. `CreateUser` gives the first
-  account Legacy Admin, others the default app role, best-effort. Public `SignUp` strips a submitted `AppRoleID`.
-- Reporting is admin-by-default: Legacy User lacks `app.reports.*`. `app.categories.read` / `app.tags.read` (global
-  catalogs) are admin-only too; other users get `AppData.groupCategories` / `groupTags`, filtered per group.
-- `PermissionService` (`HasAppPermissions`, `HasGroupPermissions` and their `Any` variants) scope-guards keys: an `app.*`
-  key in a group check is an error. The role permission list is cached per role and evicted on role update/delete;
-  assignment is read fresh.
+The roles are fixed; the rules and why are in `authorization.md` and `../CLAUDE.md` → 4. What is left to know here:
+
+- `SeedSystemRoles` runs on every start, keyed on name so ids never change, and brings each of the four rows to
+  exactly its list: Legacy Admin / Legacy Owner hold every key of their scope (a new key reaches admins and owners at
+  the next start); **User** (`FamilyUserAppKeys`, which includes the AI page's receipt-processing create, read and
+  update) and **Member** (`FamilyMemberGroupKeys`) are fixed lists. Names are shared with the desktop's
+  `utils/family-roles.ts`.
+- `EnsureDefaultRoles` marks User (what a new account gets) and Owner (what the creator of a household gets).
+  `CreateUser` gives the first account Legacy Admin, best-effort. Public `SignUp` strips a submitted `AppRoleID`.
+- Reporting is admin-only: a User holds no `app.reports.*`. `app.categories.read` / `app.tags.read` (the global
+  catalogs) are admin-only too; other people get `AppData.groupCategories` / `groupTags`, the whole pool of every
+  household they are in.
+- `PermissionService` (`HasAppPermissions`, `HasGroupPermissions` and their `Any` variants) scope-guards keys: an
+  `app.*` key in a group check is an error. The role permission list is cached per role for the life of the
+  process; assignment is read fresh.
 
 ## Time zone in detail
 
@@ -364,7 +362,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   JPEG 85); the stored original is untouched. Tesseract is the only OCR engine; a setting naming EasyOCR is read with
   Tesseract.
 - **Prompts are code** (`services/receipt_prompt.go`, `DefaultReceiptPrompt`, the product and classification prompts).
-  The AI never assigns tags, a payer, a status or comments (`onlyPromptedReceiptFields` keeps the prompted fields
+  The AI never assigns tags, a payer, a status or the note (`onlyPromptedReceiptFields` keeps the prompted fields
   only) and never a category switched off under Manage Categories. Read `docs/ai-prompts.md` before changing a prompt.
 - `foodGroupResolver` maps AI category names onto Manage Categories: a name or old alias resolves, a skipped one becomes
   Uncategorized, an unknown one is created (Title Case). Renames keep the old name in `aliases`.
@@ -376,8 +374,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   own categories/tags). Lines are scaled to the receipt amount by `allocateProportionally` so totals stay exact; a rest
   row carries what lines do not cover. Rows outnumber receipts, so the preview cap cuts on whole receipts and `COUNT()`
   counts rows. Callers preload `PaidByUser` and `Group`.
-- `ReportDataService` fetches through `GetPagedReceiptsByGroupId` with the access controls in order (grant-intersected
-  filter, paid-by in SQL, `(Restricted)` per line). `ReportService.buildModel` is shared by generate and preview: it reads
+- `ReportDataService` fetches through `GetPagedReceiptsByGroupId`, the same list the receipts page reads.
+  `ReportService.buildModel` is shared by generate and preview: it reads
   the clock once, resolves the `-1` "whoever generates" paid-by sentinel, the currency format and the zone. The receipts
   drill-in shares `prepareReportFilter` and the fetch so list and count agree.
 - Gates: generate needs `app.reports.generate` plus `group.reports.read` in every group; preview `app.reports.read` or

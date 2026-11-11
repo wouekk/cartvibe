@@ -15,19 +15,6 @@
       } @else {
         <button hlmSidebarTrigger class="mr-1" data-testid="sidebar-toggle"></button>
       }
-      @for (shortcut of userPreferences()?.userShortcuts ?? []; track shortcut["id"]) {
-        <a class="max-md:hidden" [href]="shortcutHref(shortcut.url)">
-          <button
-            hlmBtn variant="ghost" size="icon-lg"
-            color="accent"
-            class="nav-button"
-            routerLinkActive="active-link"
-            [hlmTooltip]="shortcut.name"
-          >
-            <app-icon [name]="shortcut.icon"></app-icon>
-          </button>
-        </a>
-      }
     </div>
     <div class="flex min-w-0 flex-1 items-center justify-end gap-1 md:flex-none">
       <span
@@ -37,10 +24,10 @@
         #notificationsOrigin="cdkOverlayOrigin"
       >
         <app-button
-          matButtonType="iconButton"
+          buttonType="iconButton"
           icon="notifications"
           [tooltip]="'Notifications' | t"
-          [matBadgeContent]="notificationCount()"
+          [badgeContent]="notificationCount()"
           (clicked)="notificationsOpen.set(!notificationsOpen())"
         ></app-button>
         <ng-template

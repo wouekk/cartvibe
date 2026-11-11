@@ -6,7 +6,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
-import { PipesModule } from "src/pipes/pipes.module";
 import { SYSTEM_RAN_BY_OPTION_ID } from "src/constants";
 import { buildDefaultSystemTaskFilter } from "src/store/system-task-table.state";
 import { SetSystemTaskFilter } from "src/store/system-task-table.state.actions";
@@ -45,20 +44,19 @@ describe("SystemTaskFilterComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SystemTaskFilterComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
         InputModule,
-        PipesModule,
         ReactiveFormsModule,
         StoreModule,
-      ],
-      providers: [
-        { provide: AppDialogRef, useValue: { close: () => {} } },
+        SystemTaskFilterComponent,
+    ],
+    providers: [
+        { provide: AppDialogRef, useValue: { close: () => { } } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     destroyRef = TestBed.inject(DestroyRef);

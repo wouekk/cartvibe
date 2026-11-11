@@ -7,6 +7,14 @@ import { AuthState, GroupState, UserState } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
 import { marker } from "../../i18n/marker";
+import { NgIf } from "@angular/common";
+import { InputComponent } from "../../input/input/input.component";
+import { DatepickerComponent } from "../../datepicker/datepicker/datepicker.component";
+import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocomplete.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /**
  * The pinned "report generator" paid-by option id — negative so it never collides
@@ -55,11 +63,20 @@ const FILTER_FIELDS: FilterFieldDef[] = [
  * user's group catalogs, so the picker is available regardless of the chosen scope.
  */
 @Component({
-  selector: "app-report-filters",
-  host: { class: "block" },
-  templateUrl: "./report-filters.component.html",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-report-filters",
+    host: { class: "block" },
+    templateUrl: "./report-filters.component.html",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        InputComponent,
+        DatepickerComponent,
+        AutocompleteComponent,
+        SelectComponent,
+        ButtonComponent,
+        TranslatePipe,
+        FormGetPipe,
+    ],
 })
 export class ReportFiltersComponent implements OnInit {
   public readonly form = input.required<FormGroup>();

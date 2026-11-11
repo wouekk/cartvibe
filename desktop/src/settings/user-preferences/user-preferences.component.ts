@@ -1,18 +1,17 @@
-import { Component, computed, OnInit, signal, viewChild, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { Component, computed, OnInit, signal, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { FormConfig } from "src/interfaces";
 import { BaseFormComponent } from "../../form/index";
-import { Permission, UserPreferencesService, UserShortcut } from "../../open-api";
+import { Permission, UserPreferencesService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { parseGoalInput } from "../../overview/overview-chart.utils";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { AuthState, SetUserPreferences } from "../../store";
-import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { pluralMarker } from "../../i18n/marker";
 import {
@@ -24,6 +23,18 @@ import {
   regionName,
   WARRANTY_PERIOD_CHOICES,
 } from "../../utils/warranty-period";
+import { FormComponent } from "../../shared-ui/form/form.component";
+import { FeatureDirective } from "../../directives/feature.directive";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { GroupAutocompleteComponent } from "../../shared-ui/group-autocomplete/group-autocomplete.component";
+import { UserAutocompleteComponent } from "../../user-autocomplete/user-autocomplete/user-autocomplete.component";
+import { StatusSelectComponent } from "../../shared-ui/status-select/status-select.component";
+import { InputComponent } from "../../input/input/input.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 /** The select cannot show an option whose value is "", so "from the browser" and Automatic have values of their own. */
 const FROM_BROWSER = "browser";
@@ -39,17 +50,13 @@ pluralMarker("year", "years");
     templateUrl: "./user-preferences.component.html",
     styleUrls: ["./user-preferences.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormComponent, FeatureDirective, FormSectionComponent, GroupAutocompleteComponent, UserAutocompleteComponent, StatusSelectComponent, InputComponent, SelectComponent, CheckboxComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  public readonly userShortcutComponent = viewChild(UserShortcutComponent);
-
   public formMode = FormMode;
-
-  public originalUserShortcuts = signal<UserShortcut[]>([]);
 
   protected readonly canEdit = this.store.selectSignal(
     AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate)
@@ -95,10 +102,6 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     super();
   }
 
-  public get userShortcuts(): FormArray {
-    return this.form.get("userShortcuts") as FormArray;
-  }
-
   public ngOnInit(): void {
     this.formConfig = this.editableConfig(this.activatedRoute.snapshot.data["formConfig"], this.canEdit());
     this.initForm();
@@ -108,8 +111,6 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     const userPreferences = this.store.selectSnapshot(
       AuthState.userPreferences
     );
-    this.originalUserShortcuts.set(userPreferences?.userShortcuts ?? []);
-
     this.form = this.formBuilder.group({
       quickScanDefaultPaidById: userPreferences?.quickScanDefaultPaidById ?? "",
       quickScanDefaultGroupId: userPreferences?.quickScanDefaultGroupId ?? "",
@@ -117,7 +118,6 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
       monthlySpendingGoal: userPreferences?.monthlySpendingGoal ? String(userPreferences.monthlySpendingGoal).replace(".", ",") : "",
       closeChipSelectOnSelect:
         userPreferences?.closeChipSelectOnSelect ?? false,
-      userShortcuts: this.formBuilder.array(this.originalUserShortcuts().map((userShortcut, i) => this.buildUserShortcut(i, userShortcut))),
       region: userPreferences?.region || FROM_BROWSER,
       warrantyPeriodYears: userPreferences?.warrantyPeriodYears ? String(userPreferences.warrantyPeriodYears) : AUTOMATIC,
       warrantyReminderLeadDays: [
@@ -133,71 +133,6 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     if (this.formConfig.mode === FormMode.view) {
       this.form.get("quickScanDefaultStatus")?.disable();
     }
-  }
-
-  private buildUserShortcut(index: number, userShortcut?: UserShortcut): FormGroup {
-    return this.formBuilder.group({
-      trackby: index,
-      name: this.formBuilder.control(userShortcut?.name ?? "", Validators.required),
-      icon: this.formBuilder.control(userShortcut?.icon ?? "", Validators.required),
-      url: this.formBuilder.control(userShortcut?.url ?? "", Validators.required),
-    });
-  }
-
-  public addNewShortcut(): void {
-    const userShortcutComp = this.userShortcutComponent();
-    if (!userShortcutComp) return;
-
-    const userShortcuts = this.form.get("userShortcuts") as FormArray;
-    const newUserShortcut = this.buildUserShortcut(
-      userShortcuts.length
-    );
-    userShortcuts.push(newUserShortcut);
-    this.originalUserShortcuts.update(prev => [...prev, newUserShortcut.value]);
-
-    userShortcutComp.editableListComponent().openLastRow(userShortcuts.length - 1);
-    userShortcutComp.isAddingShortcut = true;
-  }
-
-  public shortcutDoneClicked(): void {
-    const userShortcutComp = this.userShortcutComponent();
-    if (!userShortcutComp) return;
-
-    if (this.userShortcuts.at(this.userShortcuts.length - 1).valid) {
-      if (userShortcutComp.isAddingShortcut) {
-        this.originalUserShortcuts.update(prev => [...prev, this.userShortcuts.at(this.userShortcuts.length - 1).value]);
-      } else {
-        const currentOpen = userShortcutComp.editableListComponent().getCurrentRowOpen();
-        if (currentOpen !== undefined && currentOpen >= 0) {
-          this.originalUserShortcuts.update(prev => {
-            const updated = [...prev];
-            updated[currentOpen] = this.userShortcuts.at(currentOpen).value;
-            return updated;
-          });
-        }
-      }
-
-      userShortcutComp.isAddingShortcut = false;
-      userShortcutComp.editableListComponent().closeRow();
-    }
-  }
-
-  public shortcutCancelClicked(): void {
-    const userShortcutComp = this.userShortcutComponent();
-    if (!userShortcutComp) return;
-
-    if (userShortcutComp.isAddingShortcut) {
-      this.userShortcuts.removeAt(this.userShortcuts.length - 1);
-      this.originalUserShortcuts.update(prev => prev.slice(0, prev.length - 1));
-    } else {
-      const currentOpen = userShortcutComp.editableListComponent().getCurrentRowOpen();
-      if (currentOpen !== undefined && currentOpen >= 0) {
-        this.userShortcuts.at(currentOpen).patchValue(this.originalUserShortcuts()[currentOpen]);
-      }
-    }
-
-    userShortcutComp.isAddingShortcut = false;
-    userShortcutComp.editableListComponent().closeRow();
   }
 
 

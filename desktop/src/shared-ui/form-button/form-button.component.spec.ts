@@ -9,9 +9,8 @@ describe('FormButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [ FormButtonComponent ]
-    })
+    imports: [TranslatePipe, FormButtonComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(FormButtonComponent);

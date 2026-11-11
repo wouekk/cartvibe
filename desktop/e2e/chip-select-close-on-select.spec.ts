@@ -14,7 +14,7 @@ import { setAppCheckbox } from './helpers/ui';
 
 // The "close the option list after each selection" user preference, end to end.
 //
-// The unit specs drive AutocomleteComponent against a mocked store, so they
+// The unit specs drive AutocompleteComponent against a mocked store, so they
 // prove the branch but nothing about the wire. Only an e2e covers the whole
 // chain: the checkbox on the User Preferences form -> PUT /userPreferences ->
 // the stored column -> AppData on the next navigation -> AuthState -> the

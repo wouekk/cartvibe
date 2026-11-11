@@ -1,41 +1,51 @@
-import { Component, DestroyRef, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { finalize, take, tap } from "rxjs";
+import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
-import { setRequired } from "../../form";
-import { Category, GroupReceiptSettings, Permission, ReceiptService, ReceiptStatus, Tag } from "../../open-api";
+import { GroupReceiptSettings, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
 import { AuthState, GroupState } from "../../store";
-import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../validators";
+import { codePointMaxLengthValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
-import { QuickScanFieldConfig, resolveQuickScanFieldConfig } from "./quick-scan-field-config";
+import { quickScanAsksForNote } from "./quick-scan-field-config";
 import { marker } from "../../i18n/marker";
 import { buttonVariants } from "@spartan-ng/helm/button";
 import { finePointerSignal } from "../../utils/fine-pointer";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HlmAttachment } from "../../ui/attachment/lib/hlm-attachment";
+import { HlmAttachmentMedia } from "../../ui/attachment/lib/hlm-attachment-media";
+import { HlmAttachmentContent } from "../../ui/attachment/lib/hlm-attachment-content";
+import { HlmAttachmentTitle } from "../../ui/attachment/lib/hlm-attachment-title";
+import { HlmAttachmentDescription } from "../../ui/attachment/lib/hlm-attachment-description";
+import { HlmAttachmentActions } from "../../ui/attachment/lib/hlm-attachment-actions";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { HlmAttachmentAction } from "../../ui/attachment/lib/hlm-attachment-action";
+import { GroupAutocompleteComponent } from "../../shared-ui/group-autocomplete/group-autocomplete.component";
+import { TextareaComponent } from "../../textarea/textarea/textarea.component";
+import { UploadProgressComponent } from "../../shared-ui/upload-progress/upload-progress.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
-// Mirrors the backend's models.MaxCommentLength, so an over-length comment is caught here
-// instead of coming back as a 400 after submit. Counted in
-// code points, like the backend's rune count -- Validators.maxLength counts UTF-16 code units,
-// which would reject 500 emoji the API accepts.
-export const QUICK_SCAN_COMMENT_MAX_LENGTH = 500;
-
-// Built once so setRequired can remove them by reference on a later recompute.
-const commentMaxLengthValidator = codePointMaxLengthValidator(QUICK_SCAN_COMMENT_MAX_LENGTH);
-// QuickScanCommand trims each comment on parse, so a whitespace-only one arrives empty and fails
-// the group's required check -- Validators.required would have called it valid and eaten a 400.
-const commentRequiredValidator = trimmedRequiredValidator();
-
+/**
+ * Quick Scan: photos in, receipts out. Each photo becomes its own receipt, read by the AI. Nothing but the photo
+ * is asked for: the person scanning paid, the receipt starts as "To check" (or the person's own default status),
+ * and categories and tags come from the product lines once they are read. A person in several households picks
+ * one per photo, and a household can add a note field (Receipt Settings); the note is never required.
+ */
 @Component({
     selector: "app-quick-scan-dialog",
-  host: { class: "block" },
+    host: { class: "block" },
     templateUrl: "./quick-scan-dialog.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, UploadImageComponent, AppIconComponent, HlmAttachment, HlmAttachmentMedia, HlmAttachmentContent, HlmAttachmentTitle, HlmAttachmentDescription, HlmAttachmentActions, BrnButton, HlmButton, HlmAttachmentAction, GroupAutocompleteComponent, TextareaComponent, UploadProgressComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class QuickScanDialogComponent implements OnInit {
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
@@ -44,10 +54,10 @@ export class QuickScanDialogComponent implements OnInit {
 
   public images: ReceiptFileUploadCommand[] = [];
 
-  // base-input has no built-in message for the maxlength error, so an unmapped one would render an
-  // empty mat-error. Held as a field rather than an inline object literal so the binding is stable.
-  public readonly commentErrorMessages: { [key: string]: string } = {
-    maxlength: marker("Comment must be {requiredLength} characters or fewer."),
+  // base-input has no built-in message for the maxlength error, so an unmapped one would render an empty
+  // message. Held as a field rather than an inline object literal so the binding is stable.
+  public readonly noteErrorMessages: { [key: string]: string } = {
+    maxlength: marker("Note must be {requiredLength} characters or fewer."),
   };
 
   // The photo buttons are native labels around file inputs (mobile browsers ignore input.click() made after an
@@ -64,10 +74,6 @@ export class QuickScanDialogComponent implements OnInit {
   // The group picker only shows when there is a choice to make.
   public readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
 
-  private readonly commentPermissionByGroup = new Map<number, boolean>();
-
-  private readonly destroyRef = inject(DestroyRef);
-
   private readonly queuedScans = inject(QueuedScanService);
 
   constructor(
@@ -78,49 +84,19 @@ export class QuickScanDialogComponent implements OnInit {
     private store: Store
   ) {}
 
-  public get paidByUserIds(): FormArray {
-    return this.form.get("paidByUserIds") as FormArray;
-  }
-
-  public get statuses(): FormArray {
-    return this.form.get("statuses") as FormArray;
-  }
-
   public get groupIds(): FormArray {
     return this.form.get("groupIds") as FormArray;
   }
 
-  public get categories(): FormArray {
-    return this.form.get("categories") as FormArray;
-  }
-
-  public get tags(): FormArray {
-    return this.form.get("tags") as FormArray;
-  }
-
-  public get comments(): FormArray {
-    return this.form.get("comments") as FormArray;
+  public get notes(): FormArray {
+    return this.form.get("notes") as FormArray;
   }
 
   public ngOnInit(): void {
-    this.initForm();
-  }
-
-  private initForm(): void {
     this.form = this.formBuilder.group({
-      paidByUserIds: this.formBuilder.array<number>([]),
-      statuses: this.formBuilder.array<ReceiptStatus>([]),
       groupIds: this.formBuilder.array<number>([]),
-      categories: this.formBuilder.array<Category[]>([]),
-      tags: this.formBuilder.array<Tag[]>([]),
-      comments: this.formBuilder.array<string>([]),
+      notes: this.formBuilder.array<string>([]),
     });
-
-    // Re-resolve each image's field config whenever anything changes (a group selection can flip
-    // which fields are shown/required for that image).
-    this.form.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.configureImages());
   }
 
   public fileLoaded(fileData: ReceiptFileUploadCommand): void {
@@ -130,35 +106,20 @@ export class QuickScanDialogComponent implements OnInit {
     this.images.push(fileData);
     const userPreferences = this.store.selectSnapshot(AuthState.userPreferences);
 
-    // Group is always required; paid-by/status validators are applied per-image by configureImages.
-    // Paid by is the user scanning (Phase 3 C1); the preference only matters when the user id is
-    // unknown.
-    this.paidByUserIds.push(new FormControl(this.scannerUserId() || (userPreferences?.quickScanDefaultPaidById ?? "")));
-    this.statuses.push(new FormControl(userPreferences?.quickScanDefaultStatus ?? ""));
-    // A member of exactly one group has no choice to make, so it is seeded and its
-    // picker hidden (Phase 3 C3) -- ahead of the quick-scan default group, which
-    // could be stale. configureImages() below then applies that group's
-    // show/require config exactly as a manual pick would.
+    // A member of exactly one household has no choice to make, so it is seeded and its picker hidden, ahead of
+    // the person's default household, which could be stale.
     this.groupIds.push(new FormControl(
       this.store.selectSnapshot(GroupState.soleGroupId)
         ?? userPreferences?.quickScanDefaultGroupId
         ?? "",
       Validators.required
     ));
-    // Categories/tags are multi-selects backed by app-category/tag-autocomplete,
-    // which push selections onto a FormArray (see the receipt form). A plain
-    // FormControl has no push(), so selecting one would throw — use a FormArray.
-    this.categories.push(this.formBuilder.array([]));
-    this.tags.push(this.formBuilder.array([]));
-    // The comment is a scalar text field, so a plain FormControl - unlike categories/tags above.
-    // maxLength is applied here rather than in configureImages because setRequired composes
-    // validators additively, so it survives every show/require recompute and is never re-added.
-    this.comments.push(new FormControl("", commentMaxLengthValidator));
-
-    this.configureImages();
+    // Counted in characters like the server does: Validators.maxLength counts UTF-16 units and would refuse a
+    // note of emoji the server takes.
+    this.notes.push(new FormControl("", codePointMaxLengthValidator(RECEIPT_NOTE_MAX_LENGTH)));
   }
 
-  // Returns the receipt settings for the group currently selected on the given image, if any.
+  // Returns the receipt settings for the household currently selected on the given photo, if any.
   public settingsForIndex(index: number): GroupReceiptSettings | undefined {
     const groupId = this.groupIds.at(index)?.value;
     if (!groupId) {
@@ -168,125 +129,12 @@ export class QuickScanDialogComponent implements OnInit {
     return this.store.selectSnapshot(GroupState.getGroupById(groupId.toString()))?.groupReceiptSettings;
   }
 
-  // Whether the user has picked a group for this image. This -- not "did settings resolve" -- is
-  // what gates the field set: a group id the store does not know (a stale quickScanDefaultGroupId,
-  // or AppData not carrying that group) is still a choice, and keeps the backend defaults.
-  private hasGroupAt(index: number): boolean {
-    return !!this.groupIds.at(index)?.value;
-  }
-
-  // Resolved per call rather than cached per index: removeImage() shifts every later image down, so
-  // an index-keyed cache would hand an image another one's config. The template reads the show*
-  // getters on every change-detection pass, which is what keeps them correct as the group changes.
-  //
-  // The comment field additionally requires group.comments.create: without it the field is hidden,
-  // never required, and a comment sent anyway is dropped server-side. hideComments hides the whole
-  // group's comments, so it hides this too. Mirrors the backend's IsQuickScanCommentShown.
-  private configForIndex(index: number): QuickScanFieldConfig {
-    return resolveQuickScanFieldConfig(this.settingsForIndex(index), {
-      hasGroup: this.hasGroupAt(index),
-      canCreateComments: this.canCommentForIndex(index),
-    });
-  }
-
-  // Never asked when the scanner is known: they paid (Phase 3 C1). The group's paid-by settings
-  // only apply to the fallback.
-  public showPaidBy(index: number): boolean {
-    return !this.scannerUserId() && this.configForIndex(index).showPaidBy;
-  }
-
-  private scannerUserId(): number {
-    return Number(this.store.selectSnapshot(AuthState.userId)) || 0;
-  }
-
-  public showStatus(index: number): boolean {
-    return this.configForIndex(index).showStatus;
-  }
-
-  // Categories and tags describe a receipt's product lines, set once they are read, so Quick Scan no
-  // longer asks for receipt-level ones, whatever the group's quick scan settings say.
-  public showCategories(_index: number): boolean {
-    return false;
-  }
-
-  public showTags(_index: number): boolean {
-    return false;
-  }
-
-  public showComment(index: number): boolean {
-    return this.configForIndex(index).showComment;
-  }
-
-  // Cached per group: AuthState.hasGroupPermission allocates a new selector on each call, and
-  // showComment is read from the template on every change-detection pass.
-  private canCommentForIndex(index: number): boolean {
-    const groupId = Number(this.groupIds.at(index)?.value);
-    if (!groupId) {
-      return false;
-    }
-
-    if (!this.commentPermissionByGroup.has(groupId)) {
-      this.commentPermissionByGroup.set(
-        groupId,
-        this.store.selectSnapshot(AuthState.hasGroupPermission(groupId, Permission.GroupCommentsCreate))
-      );
-    }
-
-    return this.commentPermissionByGroup.get(groupId) ?? false;
-  }
-
-  public categoriesForIndex(index: number): Category[] {
-    const groupId = this.groupIds.at(index)?.value;
-    return groupId ? this.store.selectSnapshot(AuthState.groupCategories(Number(groupId))) : [];
-  }
-
-  public tagsForIndex(index: number): Tag[] {
-    const groupId = this.groupIds.at(index)?.value;
-    return groupId ? this.store.selectSnapshot(AuthState.groupTags(Number(groupId))) : [];
-  }
-
-  // Applies the per-image required validators and clears hidden fields so the server backfills their
-  // group-configured defaults (a hidden paid-by/status must be sent empty, not with a stale value).
-  private configureImages(): void {
-    const paidByIsScanner = !!this.scannerUserId();
-
-    for (let i = 0; i < this.images.length; i++) {
-      const config = this.configForIndex(i);
-
-      // Required is recomputed unconditionally: with no group nothing but Group is required, and a
-      // required flag left over from a group the user just cleared has to come off.
-      setRequired(this.form.get("paidByUserIds." + i), !paidByIsScanner && config.requirePaidBy);
-      setRequired(this.form.get("statuses." + i), config.requireStatus);
-      setRequired(this.form.get("categories." + i), config.requireCategories);
-      setRequired(this.form.get("tags." + i), config.requireTags);
-      setRequired(this.form.get("comments." + i), config.requireComment, commentRequiredValidator);
-
-      // Clearing is gated on a group being SELECTED. "Hidden because this group's config hides it"
-      // must clear, so the server backfills its configured default instead of receiving a stale
-      // value. "Hidden because no group is picked yet" must NOT: the values sitting there are the
-      // caller's quickScanDefault* prefills, and every FormArray.push in fileLoaded() emits
-      // valueChanges, so this runs before groupIds is even pushed -- an ungated clear would wipe
-      // those prefills on the very first pass and never put them back.
-      if (!this.hasGroupAt(i)) {
-        continue;
-      }
-
-      if (!paidByIsScanner && !config.showPaidBy) {
-        this.form.get("paidByUserIds." + i)?.setValue("", { emitEvent: false });
-      }
-      if (!config.showStatus) {
-        this.form.get("statuses." + i)?.setValue("", { emitEvent: false });
-      }
-      if (!config.showCategories) {
-        (this.form.get("categories." + i) as FormArray | null)?.clear({ emitEvent: false });
-      }
-      if (!config.showTags) {
-        (this.form.get("tags." + i) as FormArray | null)?.clear({ emitEvent: false });
-      }
-      if (!config.showComment) {
-        this.form.get("comments." + i)?.setValue("", { emitEvent: false });
-      }
-    }
+  /**
+   * Whether this photo's household asks for a note. Resolved per call rather than kept per index: removing a
+   * photo shifts every later one down, and the household of a photo can change.
+   */
+  public showNote(index: number): boolean {
+    return quickScanAsksForNote(this.settingsForIndex(index), !!this.groupIds.at(index)?.value);
   }
 
   /** True while a file is dragged over the drop zone, so it can show it will take it. */
@@ -322,12 +170,8 @@ export class QuickScanDialogComponent implements OnInit {
   }
 
   public removeImage(index: number): void {
-    this.paidByUserIds.removeAt(index);
-    this.statuses.removeAt(index);
     this.groupIds.removeAt(index);
-    this.categories.removeAt(index);
-    this.tags.removeAt(index);
-    this.comments.removeAt(index);
+    this.notes.removeAt(index);
     this.images.splice(index, 1);
   }
 
@@ -339,17 +183,7 @@ export class QuickScanDialogComponent implements OnInit {
       return;
     }
     if (this.form.valid && this.images.length > 0) {
-      // The scan as it is sent, kept in case it cannot be: the form may change while the upload runs.
-      const scan: QueuedScan = {
-        files: this.images.map((i) => i.file),
-        groupIds: [...this.groupIds.value],
-        paidByUserIds: [...this.paidByUserIds.value],
-        statuses: [...this.statuses.value],
-        categoryIds: this.joinIds(this.categories),
-        tagIds: this.joinIds(this.tags),
-        // Already one string per image - no id joining needed, unlike categories/tags.
-        comments: [...this.comments.value],
-      };
+      const scan = this.buildScan();
 
       this.uploadStage.set({ stage: "uploading", percent: 0 });
       withUploadProgress(
@@ -361,7 +195,7 @@ export class QuickScanDialogComponent implements OnInit {
           scan.statuses,
           scan.categoryIds,
           scan.tagIds,
-          scan.comments,
+          scan.notes,
           "events",
           true
         ),
@@ -400,17 +234,30 @@ export class QuickScanDialogComponent implements OnInit {
     }
   }
 
-  // Serializes each image's selected category/tag objects into a comma-joined id string (one entry
-  // per image), matching the multipart shape the API expects.
-  private joinIds(array: FormArray): string[] {
-    return array.controls.map((control) =>
-      ((control.value ?? []) as { id: number }[]).map((entity) => entity.id).join(",")
-    );
+  /**
+   * The scan as it is sent, kept as one value in case it cannot be sent: the form may change while the upload
+   * runs. Per photo: the person scanning paid (their own default payer only when who they are is unknown), the
+   * status is their own default or empty for the household's, and a note travels only where the household asks
+   * for one, so a note typed before switching to another household is not sent to it.
+   */
+  private buildScan(): QueuedScan {
+    const userPreferences = this.store.selectSnapshot(AuthState.userPreferences);
+    const paidBy = (Number(this.store.selectSnapshot(AuthState.userId)) || userPreferences?.quickScanDefaultPaidById || "") as number;
+    const status = (userPreferences?.quickScanDefaultStatus ?? "") as ReceiptStatus;
+
+    return {
+      files: this.images.map((image) => image.file),
+      groupIds: [...this.groupIds.value],
+      paidByUserIds: this.images.map(() => paidBy),
+      statuses: this.images.map(() => status),
+      // One empty entry per photo: receipt-level categories and tags are not picked here any more.
+      categoryIds: this.images.map(() => ""),
+      tagIds: this.images.map(() => ""),
+      notes: this.images.map((_image, index) => (this.showNote(index) ? String(this.notes.at(index).value ?? "") : "")),
+    };
   }
 
   public cancelButtonClicked(): void {
     this.dialogRef.close();
   }
-
-
 }

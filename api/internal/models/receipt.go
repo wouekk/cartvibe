@@ -33,12 +33,10 @@ type Receipt struct {
 	Categories    []Category    `gorm:"many2many:receipt_categories" json:"categories"`
 	Tags          []Tag         `gorm:"many2many:receipt_tags" json:"tags"`
 	ImageFiles    []FileData    `json:"imageFiles"`
-	Comments      []Comment     `json:"comments"`
-	// FirstComment is the text of the earliest comment the caller may see, a
-	// transient projection filled only by the paged receipts list (see
-	// PermissionService.LoadFirstVisibleComments). omitempty keeps it off every
-	// other response, where it is never loaded.
-	FirstComment *string `gorm:"-" json:"firstComment,omitempty"`
+	// Note is the household's own words about the receipt ("for Ania's birthday"), one free text that anyone who
+	// may change the receipt may change. Until 2026-11 a receipt had a thread of comments instead; the data
+	// migration comments-to-note-v1 joined each thread into this field. The AI never writes it.
+	Note string `gorm:"type:text;not null;default:''" json:"note"`
 	// SearchMatches names the product lines that made the receipt match the list's search phrase,
 	// filled only by the paged receipts list while a search is active.
 	SearchMatches []ReceiptSearchMatch `gorm:"-" json:"searchMatches,omitempty"`
@@ -53,7 +51,7 @@ type ReceiptSearchMatch struct {
 	Amount *decimal.Decimal `json:"amount"`
 }
 
-// MarshalJSON keeps categories, tags, image files and comments arrays on every response, loaded or
+// MarshalJSON keeps the categories, tags and image files arrays on every response, loaded or
 // not (the paged list without fullReceipts preloads none of them): the contract marks them required
 // arrays, and lists never serialize as null.
 func (r Receipt) MarshalJSON() ([]byte, error) {
@@ -66,9 +64,6 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 	}
 	if r.ImageFiles == nil {
 		r.ImageFiles = []FileData{}
-	}
-	if r.Comments == nil {
-		r.Comments = []Comment{}
 	}
 	return json.Marshal(plainReceipt(r))
 }

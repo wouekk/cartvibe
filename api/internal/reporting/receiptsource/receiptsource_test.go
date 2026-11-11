@@ -522,12 +522,9 @@ func TestSource_ZeroValueAmountSums(t *testing.T) {
 // of the API's enum values.
 func TestSource_StatusReadsAsTheAppShowsIt(t *testing.T) {
 	cases := map[models.ReceiptStatus]string{
-		models.OPEN:            "To check",
-		models.NEEDS_ATTENTION: "To check",
-		models.DRAFT:           "To check",
-		models.RESOLVED:        "Settled",
-		models.DECLINED:        "Settled",
-		"SOMETHING_NEW":        "SOMETHING_NEW",
+		models.OPEN:     "To check",
+		models.RESOLVED: "Settled",
+		"SOMETHING_NEW": "SOMETHING_NEW",
 	}
 	for status, want := range cases {
 		row := mustNew(t).Rows([]models.Receipt{{Name: "R", Status: status}})[0]

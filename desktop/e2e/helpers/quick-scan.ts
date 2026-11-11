@@ -3,33 +3,23 @@ import { openReceiptsOverflowMenu } from './receipts-table';
 import { expect, type Locator, type Page, type Route } from '@playwright/test';
 
 // Shared helpers for the Quick Scan dialog e2e specs. The dialog is only
-// reachable behind the `aiPoweredReceipts` feature flag (off in dev/CI) and its
-// per-image fields are driven by each group's quick-scan config + the caller's
-// user preferences + the per-group category/tag catalogs — all delivered on
-// AppData. Rather than mutate global server config, we intercept the AppData
-// response client-side (per BrowserContext, like `stubTokenRefresh`) and inject
-// exactly what a given test needs. This mirrors the original quick-scan-dialog
-// spec and matches the desktop CLAUDE.md "AppData interception" pattern.
+// reachable behind the `aiPoweredReceipts` feature flag (off in dev/CI). A scan
+// is a photo and nothing else; the one field a household can add is the note, and
+// that switch, like the caller's preferences, arrives on AppData. Rather than
+// mutate global server config, we intercept the AppData response client-side (per
+// BrowserContext, like `stubTokenRefresh`) and inject exactly what a test needs.
 
 /** The fixture image fed into the dialog's file input (read client-side). */
 export const RECEIPT_PNG = 'e2e/fixtures/receipt.png';
 
-/** A partial `GroupReceiptSettings` quick-scan config to inject onto a group. */
+/** A partial `GroupReceiptSettings` to inject onto a household. */
 export interface QuickScanConfig {
-  quickScanPaidByEnabled?: boolean;
-  quickScanPaidByRequired?: boolean;
+  /** Quick Scan asks for a note under each photo. */
+  quickScanNoteEnabled?: boolean;
+  /** Hides the note for the household, which also hides it in Quick Scan. */
+  hideNote?: boolean;
   quickScanDefaultPaidByType?: string;
-  quickScanStatusEnabled?: boolean;
-  quickScanStatusRequired?: boolean;
   quickScanDefaultStatus?: string;
-  quickScanCategoriesEnabled?: boolean;
-  quickScanCategoriesRequired?: boolean;
-  quickScanTagsEnabled?: boolean;
-  quickScanTagsRequired?: boolean;
-  quickScanCommentEnabled?: boolean;
-  quickScanCommentRequired?: boolean;
-  /** Hides comments group-wide, which also hides the quick-scan comment field. */
-  hideComments?: boolean;
 }
 
 interface IdName {
@@ -44,23 +34,19 @@ export interface QuickScanAppData {
   groupConfigs?: { groupId: number; config: QuickScanConfig }[];
   /** Prefill values for the caller's `userPreferences` (e.g. quickScanDefault*). */
   userPreferences?: Record<string, unknown>;
-  /** Per-group category catalog the pickers read (keyed by group id). */
+  /** Per-group category catalog (keyed by group id). */
   groupCategories?: Record<number, IdName[]>;
-  /** Per-group tag catalog the pickers read (keyed by group id). */
+  /** Per-group tag catalog (keyed by group id). */
   groupTags?: Record<number, IdName[]>;
-  /**
-   * Per-group effective permissions (keyed by group id). Use to withhold a
-   * permission the real caller holds — e.g. `group.comments.create`, which gates
-   * the quick-scan comment field — without provisioning a custom role.
-   */
+  /** Per-group effective permissions (keyed by group id), to withhold one the real caller holds. */
   groupPermissions?: Record<number, string[]>;
 }
 
 /**
  * Intercepts `GET /api/user/appData` to flip the AI flag on and inject the given
- * quick-scan config / user preferences / category+tag catalogs. The dialog reads
- * all of these from the NGXS store, so the injected values drive its behavior
- * without touching server state. Also stubs the pre-auth `/api/featureConfig`.
+ * receipt settings and user preferences. The dialog reads them from the NGXS
+ * store, so the injected values drive its behavior without touching server
+ * state. Also stubs the pre-auth `/api/featureConfig`.
  */
 export async function injectQuickScanAppData(
   page: Page,
@@ -111,7 +97,7 @@ export async function injectQuickScanAppData(
 export async function openQuickScanDialog(page: Page, groupId: number): Promise<Locator> {
   await page.goto(`/receipts/group/${groupId}`);
   await openReceiptsOverflowMenu(page);
-  // A mat-menu-item is the button itself, so there is no inner button to reach.
+  // The menu item is the button itself, so there is no inner button to reach.
   await page.getByTestId('receipts-quick-scan').click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -119,9 +105,9 @@ export async function openQuickScanDialog(page: Page, groupId: number): Promise<
 }
 
 /**
- * Uploads [count] copies of the fixture image into the dialog — one carousel
- * slide per image (upload-image emits `fileLoaded` once per file). Waits until
- * every slide has mounted.
+ * Uploads [count] copies of the fixture image into the dialog — one row per
+ * photo (upload-image emits `fileLoaded` once per file). Waits until every row
+ * has mounted.
  */
 export async function uploadQuickScanImages(dialog: Locator, count = 1): Promise<void> {
   await dialog

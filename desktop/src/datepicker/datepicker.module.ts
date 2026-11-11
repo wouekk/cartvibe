@@ -7,8 +7,7 @@ import { DateInputDirective } from "./date-input.directive";
 import { DatepickerComponent } from "./datepicker/datepicker.component";
 
 @NgModule({
-  declarations: [DatepickerComponent],
-  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, DateInputDirective, ...HlmInputImports],
-  exports: [DatepickerComponent],
+    imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, DateInputDirective, ...HlmInputImports, DatepickerComponent],
+    exports: [DatepickerComponent],
 })
 export class DatepickerModule {}

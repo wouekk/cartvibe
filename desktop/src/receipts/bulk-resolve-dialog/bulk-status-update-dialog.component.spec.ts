@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { ReceiptStatus } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { BulkStatusUpdateComponent } from "./bulk-status-update-dialog.component";
+import { StoreModule } from "../../store/store.module";
 
 describe("BulkStatusUpdateComponent", () => {
   let component: BulkStatusUpdateComponent;
@@ -12,18 +12,17 @@ describe("BulkStatusUpdateComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BulkStatusUpdateComponent],
-      imports: [ReactiveFormsModule, PipesModule],
-      providers: [
+    imports: [StoreModule, ReactiveFormsModule, BulkStatusUpdateComponent],
+    providers: [
         {
-          provide: AppDialogRef,
-          useValue: {
-            close: (arg: any) => {},
-          },
+            provide: AppDialogRef,
+            useValue: {
+                close: (arg: any) => { },
+            },
         },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BulkStatusUpdateComponent);
     component = fixture.componentInstance;
@@ -37,30 +36,28 @@ describe("BulkStatusUpdateComponent", () => {
   it("should init form correctly", () => {
     component.ngOnInit();
 
+    // The status and nothing else: a receipt has one note, and a bulk change does not write to it.
     expect(component.form.value).toEqual({
-      comment: "",
       status: ReceiptStatus.Resolved,
     });
   });
 
   it("should close dialog with undefined", () => {
-    const spy = vi.spyOn(component.matDialogRef, "close");
+    const spy = vi.spyOn(component.dialogRef, "close");
     component.cancelButtonClicked();
 
     expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it("should close dialog with form value", () => {
-    const spy = vi.spyOn(component.matDialogRef, "close");
+    const spy = vi.spyOn(component.dialogRef, "close");
     component.form.patchValue({
-      comment: "resolved",
-      status: ReceiptStatus.NeedsAttention,
+      status: ReceiptStatus.Open,
     });
     component.submitButtonClicked();
 
     expect(spy).toHaveBeenCalledWith({
-      comment: "resolved",
-      status: ReceiptStatus.NeedsAttention,
+      status: ReceiptStatus.Open,
     });
   });
 });

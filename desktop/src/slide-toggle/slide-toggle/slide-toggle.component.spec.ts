@@ -9,9 +9,9 @@ describe('SlideToggleComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SlideToggleComponent],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    imports: [SlideToggleComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(SlideToggleComponent);
     component = fixture.componentInstance;

@@ -7,7 +7,6 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
-import { PipesModule } from "src/pipes/pipes.module";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { SetColumnConfig, SetReceiptFilterData } from "src/store/receipt-table.actions";
 import { ReceiptTableState } from "src/store/receipt-table.state";
@@ -30,13 +29,12 @@ describe("ReceiptsTableComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ReceiptsTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
-        PipesModule],
+        ReceiptsTableComponent],
     providers: [
         {
             provide: ActivatedRoute,
@@ -151,7 +149,7 @@ describe("ReceiptsTableComponent", () => {
       for (const cell of [
         "createdAtCell", "dateCell", "nameCell", "amountCell",
         "categoryCell", "tagCell", "statusCell", "resolvedDateCell",
-        "firstCommentCell", "actionsCell",
+        "noteCell", "actionsCell",
       ]) {
         Object.defineProperty(component, cell, { value: () => ({}) });
       }
@@ -162,31 +160,42 @@ describe("ReceiptsTableComponent", () => {
     });
 
 
-    it("offers a sortable Comment column, hidden until it is switched on", () => {
+    const withNoteShown = () =>
+      DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
+        column.columnDef === "note" ? { ...column, visible: true } : column
+      );
+
+    it("offers a sortable Note column, hidden until it is switched on", () => {
       store.dispatch(new SetColumnConfig(DEFAULT_RECEIPT_TABLE_COLUMNS));
 
       (component as any).setColumns();
 
-      expect(component.displayedColumns()).not.toContain("first_comment");
+      expect(component.displayedColumns()).not.toContain("note");
 
-      store.dispatch(
-        new SetColumnConfig(
-          DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
-            column.matColumnDef === "first_comment" ? { ...column, visible: true } : column
-          )
-        )
-      );
+      store.dispatch(new SetColumnConfig(withNoteShown()));
 
       (component as any).setColumns();
 
-      // Its matColumnDef is also the orderBy the API sorts on, so both must be
-      // exactly first_comment.
+      // Its columnDef is also the orderBy the API sorts on, so both must be
+      // exactly note.
       const column = component
         .columns()
-        .find((col) => col.matColumnDef === "first_comment");
-      expect(column?.columnHeader).toEqual("Comment");
+        .find((col) => col.columnDef === "note");
+      expect(column?.columnHeader).toEqual("Note");
       expect(column?.sortable).toEqual(true);
-      expect(component.displayedColumns()).toContain("first_comment");
+      expect(component.displayedColumns()).toContain("note");
+    });
+
+    it("leaves the Note column out for a household that hides the note, whatever the saved layout says", () => {
+      store.dispatch(new SetColumnConfig(withNoteShown()));
+      component.group = { id: 1, groupReceiptSettings: { hideNote: true } } as any;
+
+      (component as any).setColumns();
+
+      expect(component.displayedColumns()).not.toContain("note");
+      expect(component.columns().some((col) => col.columnDef === "note")).toBe(false);
+      // The layout itself is kept: the column is back when the household shows the note again.
+      expect(store.selectSnapshot(ReceiptTableState.columnConfig).find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     // mat-table throws on a displayed id it has no definition for, and a config
@@ -195,7 +204,7 @@ describe("ReceiptsTableComponent", () => {
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
+          { columnDef: "custom_99", visible: true, order: 9 },
         ])
       );
 
@@ -207,7 +216,7 @@ describe("ReceiptsTableComponent", () => {
           continue;
         }
         expect(
-          component.columns().some((col) => col.matColumnDef === displayed)
+          component.columns().some((col) => col.columnDef === displayed)
         ).toEqual(true);
       }
     });
@@ -218,7 +227,7 @@ describe("ReceiptsTableComponent", () => {
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
+          { columnDef: "custom_99", visible: true, order: 9 },
         ])
       );
 
@@ -227,7 +236,7 @@ describe("ReceiptsTableComponent", () => {
       expect(
         store
           .selectSnapshot(ReceiptTableState.columnConfig)
-          .map((col) => col.matColumnDef)
+          .map((col) => col.columnDef)
       ).not.toContain("custom_99");
     });
 
@@ -246,6 +255,31 @@ describe("ReceiptsTableComponent", () => {
       expect(store.selectSnapshot(ReceiptTableState.filterData).orderBy).toEqual(
         "date"
       );
+    });
+
+    // A browser that sorted by the Comment column, or showed it, keeps both under the column's new key:
+    // the API still reads the old sort key, but the table would not find the column to mark as sorted.
+    it("carries a sort and a layout on the Comment column over to the Note column", () => {
+      const filterData = store.selectSnapshot(ReceiptTableState.filterData);
+      store.dispatch(
+        new SetReceiptFilterData({ ...filterData, orderBy: "first_comment", sortDirection: "asc" })
+      );
+      store.dispatch(
+        new SetColumnConfig(
+          DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
+            column.columnDef === "note" ? { ...column, columnDef: "first_comment", visible: true } : column
+          )
+        )
+      );
+
+      (component as any).reconcileColumnConfig();
+
+      const sorted = store.selectSnapshot(ReceiptTableState.filterData);
+      expect(sorted.orderBy).toEqual("note");
+      expect(sorted.sortDirection).toEqual("asc");
+      const layout = store.selectSnapshot(ReceiptTableState.columnConfig);
+      expect(layout.some((col) => col.columnDef === "first_comment")).toBe(false);
+      expect(layout.find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     it("keeps a sort on a column that still exists", () => {

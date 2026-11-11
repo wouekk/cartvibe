@@ -7,7 +7,7 @@ import { catchError, map, of } from "rxjs";
 import { formatDateInput } from "../datepicker/date-input.directive";
 import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
 import { Receipt, ReceiptService, SortDirection } from "../open-api";
-import { PipesModule } from "../pipes/pipes.module";
+
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { ShopMonogramComponent } from "../shared-ui/shop-monogram/shop-monogram.component";
@@ -15,6 +15,7 @@ import { SystemSettingsState } from "../store/system-settings.state";
 import { todayInZone } from "../utils/app-time-zone";
 import { WarrantyRow, warrantyRows } from "../utils/warranty-period";
 import { WarrantyMenuComponent } from "./warranty-menu/warranty-menu.component";
+import { AppDatePipe } from "../pipes/app-date.pipe";
 
 /**
  * The Warranties list: every receipt the person can see whose warranty ends today or later, nearest end first, one
@@ -24,7 +25,7 @@ import { WarrantyMenuComponent } from "./warranty-menu/warranty-menu.component";
   selector: "app-warranties-page",
   templateUrl: "./warranties-page.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TranslatePipe, PluralPipe, PipesModule, SharedUiModule, AppIconComponent, ShopMonogramComponent, WarrantyMenuComponent, ...HlmTableImports],
+  imports: [RouterLink, TranslatePipe, PluralPipe, AppDatePipe, SharedUiModule, AppIconComponent, ShopMonogramComponent, WarrantyMenuComponent, ...HlmTableImports],
 })
 export class WarrantiesPageComponent {
   private readonly receiptService = inject(ReceiptService);

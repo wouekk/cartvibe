@@ -99,7 +99,7 @@ the receipts list), `shopping-list` (list cards, not tabs; a Member uses the Own
 `context.setOffline(true)`, adds and crosses off, reconnects and reads the list
 back through the admin API, since the page alone shows its own copy; an add is done once `shopping-list-item-pending` is
 gone, not when the row appears), `quick-scan-config` (Save stays on `/edit`: the PUT is the proof), `chip-select-close-on-select` (the
-Categories picker of the receipts filter dialog), `receipt-comment-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
+Categories picker of the receipts filter dialog), `receipt-note-column`, `receipt-update-diff`, `report-builder` (Aggregate detail rows),
 `system-task-filter`, `single-group-default` (still true: a new account has exactly one real group, Household).
 `receipt-quick-date-filter` is now `receipt-period-filter` (the period picker: This month by default, a typed From/To range, the
 date chip).
@@ -221,11 +221,15 @@ Config: `fullyParallel`, `retries` 2 on CI and 0 locally, `trace: 'on-first-retr
 - `single-group-default.spec.ts` and `receipts.spec.ts`: a single-select autocomplete shows its value in a box with a Clear button
   (`data-testid="autocomplete-clear"`) once filled. A new account belongs to exactly one real group (Household) and the forms hide
   the Group; `e2e-user` gets more groups while other specs run, so `receipts.spec` picks Household when the Group field is there.
-- `quick-scan-config.spec.ts`, `quick-scan-dialog*.spec.ts`: config checkboxes use `quick-scan-<field>-show/-require`
-  test ids (the labels collide). To change an image's group, clear the autocomplete first (`selectImageGroup` does).
+- `quick-scan-config.spec.ts` (the household's Receipt Settings: `quick-scan-note-show`, `receipt-settings-hide-note`
+  and the two defaults) and `quick-scan-dialog*.spec.ts` (the dialog asks for the household and, where switched on,
+  a note; the scan itself is answered by a stub and its multipart is read). To change a photo's group, clear the
+  autocomplete first (`selectImageGroup` does). Rewritten for sprint 10 and not run yet outside CI's smoke set
+  (`quick-scan-dialog.spec` and `receipts.spec` are in it).
 - `receipt-period-filter.spec.ts`: the period picker is typed into (`overview-custom-from/-to`, DD/MM/YYYY); the table always
   reopens on "This month" (the picker emits it on mount), so a range survives no reload.
-- `receipt-comment-column.spec.ts`: the opt-in column, first comment only, server sort both ways.
+- `receipt-note-column.spec.ts`: the opt-in Note column, each receipt's note, server sort both ways (rewritten from
+  the comment column's spec in sprint 10; not run yet).
 - `app-time-zone.spec.ts`: picks `America/New_York`, compares "Added at" with whitespace normalized (CLDR puts U+202F
   before AM/PM).
 - `session-lifetime.spec.ts`: the only proof of model → DB → JWT → `Set-Cookie`; `temp-file-retention.spec.ts` covers

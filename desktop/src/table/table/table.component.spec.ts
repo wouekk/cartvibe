@@ -10,8 +10,7 @@ import { TableColumn } from '../table-column.interface';
 
 /** Renders one templated column so the template's context can be inspected. */
 @Component({
-  standalone: false,
-  template: `
+    template: `
     <ng-template #cell let-column="column">{{ column.columnHeader }}</ng-template>
     <app-table
       [columns]="columns()"
@@ -19,6 +18,7 @@ import { TableColumn } from '../table-column.interface';
       [dataSource]="dataSource"
     ></app-table>
   `,
+    imports: [TranslatePipe, CommonModule, AppIconComponent, TableComponent],
 })
 class ColumnContextHostComponent {
   readonly cell = viewChild.required<TemplateRef<any>>('cell');
@@ -35,9 +35,8 @@ describe('TableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TableComponent, ColumnContextHostComponent],
-      imports: [TranslatePipe, CommonModule, AppIconComponent],
-    }).compileComponents();
+    imports: [TranslatePipe, CommonModule, AppIconComponent, TableComponent, ColumnContextHostComponent],
+}).compileComponents();
 
     fixture = TestBed.createComponent(TableComponent);
     component = fixture.componentInstance;
@@ -68,18 +67,18 @@ describe('TableComponent', () => {
     const columns: TableColumn[] = [
       {
         columnHeader: 'header',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
         defaultSortDirection: 'asc',
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column1',
+        columnDef: 'column1',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column2',
+        columnDef: 'column2',
         sortable: false,
       },
     ];
@@ -96,17 +95,17 @@ describe('TableComponent', () => {
     const columns: TableColumn[] = [
       {
         columnHeader: 'header',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column1',
+        columnDef: 'column1',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column2',
+        columnDef: 'column2',
         sortable: false,
       },
     ];
@@ -129,7 +128,7 @@ describe('TableComponent', () => {
     hostFixture.componentInstance.columns.set([
       {
         columnHeader: 'From the column',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
         template: hostFixture.componentInstance.cell(),
       },

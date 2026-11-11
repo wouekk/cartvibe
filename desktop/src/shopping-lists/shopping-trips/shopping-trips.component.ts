@@ -17,6 +17,19 @@ import { AttachReceiptDialogComponent } from "../attach-receipt-dialog/attach-re
 import { describeShoppingTrip, ShoppingTripStatus } from "./shopping-trip-status";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { RouterLink } from "@angular/router";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 
 interface ShoppingTripRow {
   trip: ShoppingTripView;
@@ -30,13 +43,29 @@ interface ShoppingTripRow {
  * tab coming back into view).
  */
 @Component({
-  selector: "app-shopping-trips",
-  templateUrl: "./shopping-trips.component.html",
-  host: { class: "block" },
-  standalone: false,
-  // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
-  changeDetection: ChangeDetectionStrategy.Eager,
-  providers: [CurrencyPipe],
+    selector: "app-shopping-trips",
+    templateUrl: "./shopping-trips.component.html",
+    host: { class: "block" },
+    // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [CurrencyPipe],
+    imports: [
+        BrnButton,
+        HlmButton,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        AppIconComponent,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        RouterLink,
+        MoneyComponent,
+        TranslatePipe,
+        AppDatePipe,
+        CustomCurrencyPipe,
+    ],
 })
 export class ShoppingTripsComponent {
   private readonly translation = inject(TranslationService);
@@ -75,7 +104,7 @@ export class ShoppingTripsComponent {
     private store: Store,
     private actions: Actions,
     private shoppingListService: ShoppingListService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     effect(() => {
@@ -134,7 +163,7 @@ export class ShoppingTripsComponent {
   }
 
   public attachExisting(): void {
-    const dialogRef = this.matDialog.open(AttachReceiptDialogComponent);
+    const dialogRef = this.dialog.open(AttachReceiptDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.attachedReceiptIds = this.trips()
       .map((trip) => trip.receipt?.id)
@@ -190,7 +219,7 @@ export class ShoppingTripsComponent {
   }
 
   private confirm(headerText: string, dialogContent: string, confirmText: string): Observable<unknown> {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
     dialogRef.componentInstance.confirmText = confirmText;

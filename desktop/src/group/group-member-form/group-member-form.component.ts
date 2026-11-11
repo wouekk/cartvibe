@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, computed, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { catchError, of, startWith } from "rxjs";
@@ -14,13 +14,20 @@ import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dia
 import { AuthState } from "../../store";
 import { buildGroupMemberForm } from "../utils/group-member.utils";
 import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { UserAutocompleteComponent } from "../../user-autocomplete/user-autocomplete/user-autocomplete.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-group-member-form",
-  host: { class: "block max-h-[85vh] overflow-y-auto" },
+    host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./group-member-form.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, UserAutocompleteComponent, SelectComponent, ButtonComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class GroupMemberFormComponent implements OnInit {
   public userId = this.store.selectSignal(AuthState.userId);
@@ -60,9 +67,9 @@ export class GroupMemberFormComponent implements OnInit {
   );
 
   constructor(
-    private matDialogRef: AppDialogRef<GroupMemberFormComponent>,
+    private dialogRef: AppDialogRef<GroupMemberFormComponent>,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private destroyRef: DestroyRef
   ) {
     // A new member defaults to the User role once the roles resolve; an existing
@@ -109,12 +116,12 @@ export class GroupMemberFormComponent implements OnInit {
   public previewRole(): void {
     const role = this.selectedRole();
     if (role) {
-      openRolePreviewDialog(this.matDialog, role);
+      openRolePreviewDialog(this.dialog, role);
     }
   }
 
   public closeModal(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 
   public submit(): void {
@@ -122,6 +129,6 @@ export class GroupMemberFormComponent implements OnInit {
       return;
     }
 
-    this.matDialogRef.close(this.form);
+    this.dialogRef.close(this.form);
   }
 }

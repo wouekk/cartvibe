@@ -1,5 +1,9 @@
 import { Component, Inject, ChangeDetectionStrategy } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
+import { DialogComponent } from "../dialog/dialog.component";
+import { ImageViewerComponent } from "../image-viewer/image-viewer.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 export interface SourceFileViewerDialogData {
   /** Base64 data URI of the upload, already converted for display by the API. */
@@ -13,10 +17,15 @@ export interface SourceFileViewerDialogData {
  * working from before deciding whether to retry it or enter the receipt by hand.
  */
 @Component({
-  selector: "app-source-file-viewer-dialog",
-  templateUrl: "./source-file-viewer-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-source-file-viewer-dialog",
+    templateUrl: "./source-file-viewer-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        DialogComponent,
+        ImageViewerComponent,
+        ButtonComponent,
+        TranslatePipe,
+    ],
 })
 export class SourceFileViewerDialogComponent {
   constructor(

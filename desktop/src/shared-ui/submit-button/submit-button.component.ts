@@ -14,6 +14,8 @@ import { Store } from '@ngxs/store';
 import { FormMode } from 'src/enums/form-mode.enum';
 import { LayoutState } from 'src/store/layout.state';
 import { FormButtonComponent } from '../form-button/form-button.component';
+import { NgIf } from '@angular/common';
+import { ButtonComponent } from '../../button/button/button.component';
 
 /**
  * The app's Save button: the filled accent button, labelled. While an edit form
@@ -25,7 +27,7 @@ import { FormButtonComponent } from '../form-button/form-button.component';
     selector: 'app-submit-button',
     templateUrl: './submit-button.component.html',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, ButtonComponent]
 })
 export class SubmitButtonComponent extends FormButtonComponent implements OnInit {
   public readonly onlyIcon = input<boolean>(false);

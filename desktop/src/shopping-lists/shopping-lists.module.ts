@@ -8,7 +8,7 @@ import { HlmCheckbox } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { InputModule } from "../input";
-import { PipesModule } from "../pipes/pipes.module";
+
 import { SelectModule } from "../select/select.module";
 import { TextareaModule } from "../textarea/textarea.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
@@ -27,18 +27,7 @@ import { FoodTagsComponent } from "../standalone/components/food-tags/food-tags.
 import { AvatarModule } from "../avatar/avatar.module";
 
 @NgModule({
-  declarations: [
-    AttachReceiptDialogComponent,
-    RecipeImportDialogComponent,
-    ShoppingListAmountFieldsComponent,
-    ShoppingListComponent,
-    ShoppingListFormDialogComponent,
-    ShoppingListItemComponent,
-    ShoppingListItemFormDialogComponent,
-    ShoppingListsPageComponent,
-    ShoppingTripsComponent,
-  ],
-  imports: [
+    imports: [
     AvatarModule,
     ShoppingItemNameFieldComponent,
     CommonModule,
@@ -50,12 +39,20 @@ import { AvatarModule } from "../avatar/avatar.module";
     HlmCheckbox,
     HlmSpinner,
     ...HlmDropdownMenuImports,
-    PipesModule,
     ReactiveFormsModule,
     SelectModule,
     SharedUiModule,
     ShoppingListsRoutingModule,
     TextareaModule,
-  ],
+    AttachReceiptDialogComponent,
+    RecipeImportDialogComponent,
+    ShoppingListAmountFieldsComponent,
+    ShoppingListComponent,
+    ShoppingListFormDialogComponent,
+    ShoppingListItemComponent,
+    ShoppingListItemFormDialogComponent,
+    ShoppingListsPageComponent,
+    ShoppingTripsComponent,
+],
 })
 export class ShoppingListsModule {}

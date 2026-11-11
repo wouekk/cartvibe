@@ -15,14 +15,13 @@ describe('GroupAutocompleteComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GroupAutocompleteComponent],
-      imports: [TranslatePipe, NgxsModule.forRoot([GroupState])],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
+    imports: [TranslatePipe, NgxsModule.forRoot([GroupState]), GroupAutocompleteComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    });
+    ],
+});
     fixture = TestBed.createComponent(GroupAutocompleteComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('inputFormControl', new FormControl());

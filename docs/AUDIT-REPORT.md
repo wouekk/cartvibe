@@ -164,7 +164,51 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     (`api/docs/oidc.md`).
   - Found on the way and fixed: the tab strip threw when its tabs were taken away, which happened for a moment
     after *Sign out everywhere*.
-- [ ] 10. App cleanup: C10, C11, C13, D6 to D11, F6, F8
+- [ ] 10. App cleanup (`feature/app-cleanup`, cut from `preview`): C10, C11, C13, D6 to D11, F6, F8
+  - Done on the branch on 2026-11-11, D6 to D9: two receipt statuses, *To check* and *Settled* (the three others
+    are rewritten once and read as one of the two wherever they still arrive); one note per receipt in place of the
+    comment thread (each thread is joined into the note once, a single comment as written, several as "Name: text"
+    lines); a Quick Scan that asks for the photo and its household only, with *Ask for a note* and the two
+    defaults as a household's whole receipt settings; the header shortcuts a person could add are gone. The three
+    data migrations are one-way.
+  - Kept from D6 on purpose: the bulk status change (without its comment) and the next/previous queue on the
+    receipt page; both are still used with two statuses.
+  - Proved by unit specs, the production and demo builds and the demo's Playwright suite. The rewritten real-app
+    specs (`quick-scan-config`, `quick-scan-dialog-behavior`, `receipt-note-column`) have not run; CI's smoke set
+    runs `quick-scan-dialog.spec` and `receipts.spec`.
+  - Done on 2026-11-11 as well:
+    - D11: the app's states and stored slices are listed once (`desktop/src/store/ngxs-states.ts`), for the app and
+      for the specs.
+    - D10: `UserPrefernces`, `BuildParamaterisedString`, `app-autocomlete` and `app-data.utill.ts` are spelled
+      right (the preferences table keeps its name, so nothing migrates).
+    - C13: every component, directive and pipe is standalone (Angular's migration, then repairs by hand; what it got
+      wrong is in `desktop/docs/features.md` → Modules). 28 feature and shared modules remain as bundles of imports
+      and as the targets of the lazy routes.
+    - C11, the names: `matDialog`, `matColumnDef`, `matButtonType` and the badge inputs lost the prefix (314
+      places down to one, which reads a column layout a browser stored under the old key).
+    - F8, the budget: the build warns above 1.8 MB of first load and fails at 2.0 MB (it is 1.68 MB). `@defer` was
+      measured earlier and left out with its reasons (`desktop/docs/features.md`): the charts and the barcode
+      reader are already loaded on demand.
+    - C10, in part: the icon map lost the 64 names (44 icons) nothing uses since the header shortcuts went.
+  - Decided differently from the audit, C10: templates keep naming icons through `app-icon` and the one map.
+    Registering icons per component would move about 100 kB out of the first load, but a missed registration
+    draws nothing and no build or spec reports it; with one map an unknown name draws a circle and a spec proves
+    every name draws. Say so if the per-component version is wanted anyway.
+    - F6, the sentence: with a monthly goal set, the Dashboard opens with what was spent of it, the days left and
+      what a day may cost (DASH-12).
+    - F4, the review: a receipt that is to check ends with one *Looks right* button under its products, and its
+      lines without an amount are listed first (RCPT-07). The photo is not pinned beside the lines: the lines
+      table needs the page's full width, so that part needs a layout of its own.
+    - F9, the sheets: on a phone every dialog is a sheet across the bottom of the screen (APP-19), done once in
+      the dialog service. Seen in the demo at phone width; never on a real phone, where the on-screen keyboard is
+      the thing to watch.
+  - Found on the way and fixed: the receipts filter's two date fields overlapped their labels at phone width. A
+    range now takes the row there, with its Operation under it.
+    - F6, the split, in part: the receipts panel and the warranties panel are components of their own, beside
+      the shopping panel that already was. The page's template went from 712 lines to 605.
+  - Still to do on the branch: C11's second half (one button idiom in the templates), and the rest of F6's
+    split: the tiles and the two chart panels, each of which has to move together with its state (the page's
+    class is still about 1,640 lines) and the specs that drive it.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---

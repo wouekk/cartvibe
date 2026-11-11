@@ -1,7 +1,9 @@
 import { Dialog, DIALOG_DATA, DialogRef } from "@angular/cdk/dialog";
+import { Overlay } from "@angular/cdk/overlay";
 import { ComponentType } from "@angular/cdk/portal";
 import { inject, Injectable, TemplateRef } from "@angular/core";
 import { Observable, take } from "rxjs";
+import { ViewportService } from "../services/viewport.service";
 
 /** The data a dialog was opened with (inject it in the dialog component). */
 export const APP_DIALOG_DATA = DIALOG_DATA;
@@ -43,10 +45,16 @@ export class AppDialogRef<T = any, R = any> {
 /**
  * Opens dialogs on the CDK dialog (the primitive spartan's own dialog uses) with the look of the theme's popover
  * surface. It keeps the `open / afterClosed / close / componentInstance` shape Angular Material's MatDialog had.
+ *
+ * On a phone a dialog is a sheet: as wide as the screen, standing on its bottom edge, so its buttons are under the
+ * thumb. The sizes a caller asks for are for wider screens and are not applied there. The choice is made when
+ * the dialog opens; one that is open keeps its shape when the window is resized.
  */
 @Injectable({ providedIn: "root" })
 export class AppDialog {
   private readonly dialog = inject(Dialog);
+  private readonly overlay = inject(Overlay);
+  private readonly viewport = inject(ViewportService);
 
   /** The dialogs open right now. */
   public get openDialogs(): readonly DialogRef<any, any>[] {
@@ -58,18 +66,22 @@ export class AppDialog {
     config: AppDialogConfig<D> = {}
   ): AppDialogRef<T, R> {
     let wrapper!: AppDialogRef<T, R>;
+    const sheet = this.viewport.isHandset();
+    const callerClasses = Array.isArray(config.panelClass) ? config.panelClass : config.panelClass ? [config.panelClass] : [];
     const ref = this.dialog.open<R, D, T>(content, {
       data: config.data,
-      width: config.width,
-      minWidth: config.minWidth ?? "min(calc(100vw - 2rem), 28rem)",
-      maxWidth: config.maxWidth ?? "calc(100vw - 2rem)",
-      height: config.height,
-      maxHeight: config.maxHeight ?? "calc(100vh - 2rem)",
+      width: sheet ? "100vw" : config.width,
+      minWidth: sheet ? "100vw" : (config.minWidth ?? "min(calc(100vw - 2rem), 28rem)"),
+      maxWidth: sheet ? "100vw" : (config.maxWidth ?? "calc(100vw - 2rem)"),
+      // A sheet is as tall as what it holds, up to the screen less a strip of the page behind it.
+      height: sheet ? undefined : config.height,
+      maxHeight: sheet ? "calc(100dvh - 3rem)" : (config.maxHeight ?? "calc(100vh - 2rem)"),
+      positionStrategy: sheet ? this.overlay.position().global().bottom("0").centerHorizontally() : undefined,
       disableClose: config.disableClose,
       // An explicit undefined would override the CDK's own default and leave focus on the page behind the dialog.
       autoFocus: (config.autoFocus ?? "first-tabbable") as never,
       closeOnNavigation: true,
-      panelClass: ["app-dialog-panel", ...(Array.isArray(config.panelClass) ? config.panelClass : config.panelClass ? [config.panelClass] : [])],
+      panelClass: ["app-dialog-panel", ...(sheet ? ["app-dialog-sheet"] : []), ...callerClasses],
       backdropClass: "app-dialog-backdrop",
       providers: (dialogRef) => {
         wrapper = new AppDialogRef<T, R>(dialogRef as DialogRef<R, T>);

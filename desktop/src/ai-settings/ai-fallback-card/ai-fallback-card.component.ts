@@ -12,7 +12,7 @@ import {
   SystemTaskStatus,
   UpsertSystemSettingsCommand,
 } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SnackbarService } from "../../services";
@@ -30,6 +30,8 @@ import {
   providerValueFrom,
   watchProviderRules,
 } from "../ai-settings-shared";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /** What the backup AI settings are called; a processing setting's name must be unique. */
 export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
@@ -46,7 +48,7 @@ export const AI_FALLBACK_SETTINGS_NAME = "Household AI backup";
   templateUrl: "./ai-fallback-card.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [SharedUiModule, AppIconComponent, AiProviderFieldsComponent, CheckboxModule, HlmButton, PipesModule, ReactiveFormsModule],
+  imports: [SharedUiModule, AppIconComponent, AiProviderFieldsComponent, CheckboxModule, HlmButton, TranslatePipe, FormGetPipe, ReactiveFormsModule],
 })
 export class AiFallbackCardComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

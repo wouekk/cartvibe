@@ -9,9 +9,8 @@ describe('BaseFormComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [BaseFormComponent]
-    });
+    imports: [TranslatePipe, BaseFormComponent]
+});
     fixture = TestBed.createComponent(BaseFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

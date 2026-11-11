@@ -21,11 +21,8 @@ import (
 // These tests exercise the full "AI response -> created receipt" path: a controlled AI JSON body is
 // fed through the real ReceiptService.QuickScan (the only place an AI response reaches CreateReceipt)
 // and the persisted receipt is read back through the deep-preload GetFullyLoadedReceiptById to prove
-// that every field survives - name, amount, date, paid-by, status, categories, tags,
-// comments,
-// and custom-field values of all five value types. If a future prompt starts emitting these fields,
-// these tests prove the plumbing already persists them; a regression that silently drops a field
-// fails here.
+// that every field survives - name, amount, date, paid-by, status, categories, tags and the person's
+// note. A regression that silently drops a field fails here.
 //
 // The AI is mocked at the HTTP transport layer (see ai_test.go) via a server whose body is set AFTER
 // the pipeline is seeded, so fixtures can reference the seeded user's real id without guessing.
@@ -97,17 +94,16 @@ func runQuickScan(
 	return runQuickScanWithSetup(t, paidByArg, status, categoryPicks, tagPicks, "", aiJSONFor, nil)
 }
 
-// runQuickScanWithSetup is runQuickScan with the user's quick-scan comment (the handler-resolved
+// runQuickScanWithSetup is runQuickScan with the person's quick-scan note (the handler-resolved
 // value; empty for none) and an optional postSeed hook that runs after the pipeline +
-// categories/tags are seeded and before the AI body is set - so a test can, e.g., assign the seeded
-// member a grant-restricted group role to exercise the out-of-grant drop.
+// categories/tags are seeded and before the AI body is set.
 func runQuickScanWithSetup(
 	t *testing.T,
 	paidByArg func(user models.User) uint,
 	status models.ReceiptStatus,
 	categoryPicks []uint,
 	tagPicks []uint,
-	comment string,
+	note string,
 	aiJSONFor func(user models.User, group models.Group) string,
 	postSeed func(t *testing.T, user models.User, group models.Group),
 ) (models.Receipt, models.User, models.Group, error) {
@@ -138,7 +134,7 @@ func runQuickScanWithSetup(
 		Status:           status,
 		CategoryIds:      categoryPicks,
 		TagIds:           tagPicks,
-		Comment:          comment,
+		Note:             note,
 		TempPath:         tempPath,
 		OriginalFileName: "test.jpg",
 		JobId:      "test-task",
@@ -172,7 +168,7 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 	created, user, _, err := runQuickScan(
 		t,
 		func(u models.User) uint { return u.ID }, // handler-resolved default paid-by
-		models.NEEDS_ATTENTION,
+		models.RESOLVED,
 		nil,
 		nil,
 		func(u models.User, g models.Group) string {
@@ -192,8 +188,8 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 	if receipt.PaidByUserID != user.ID {
 		utils.PrintTestError(t, receipt.PaidByUserID, user.ID)
 	}
-	if receipt.Status != models.NEEDS_ATTENTION {
-		utils.PrintTestError(t, receipt.Status, models.NEEDS_ATTENTION)
+	if receipt.Status != models.RESOLVED {
+		utils.PrintTestError(t, receipt.Status, models.RESOLVED)
 	}
 }
 
@@ -478,13 +474,21 @@ func quickScanSystemTaskByType(taskType models.SystemTaskType) (models.SystemTas
 	return task, true
 }
 
-// The user's quick-scan comment is persisted against the caller, attached to the receipt created by
-// the same transaction (UpsertCommentCommand.Validate requires a non-nil UserId, so a regression
-// that drops it would fail the whole receipt rather than just the comment).
-func TestQuickScan_PersistsUserComment(t *testing.T) {
+// storedNote reads the note of a receipt back from the database.
+func storedNote(t *testing.T, receiptId uint) string {
+	t.Helper()
+	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(receiptId))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return receipt.Note
+}
+
+// The person's quick-scan note is saved on the receipt the scan creates.
+func TestQuickScan_PersistsTheNote(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
-	created, user, _, err := runQuickScanWithSetup(
+	created, _, _, err := runQuickScanWithSetup(
 		t,
 		func(u models.User) uint { return u.ID },
 		models.OPEN,
@@ -501,27 +505,13 @@ func TestQuickScan_PersistsUserComment(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-
-	if len(receipt.Comments) != 1 {
-		utils.PrintTestError(t, len(receipt.Comments), 1)
-		return
-	}
-	if receipt.Comments[0].Comment != "Team lunch, split later" {
-		utils.PrintTestError(t, receipt.Comments[0].Comment, "Team lunch, split later")
-	}
-	if receipt.Comments[0].UserId == nil || *receipt.Comments[0].UserId != user.ID {
-		utils.PrintTestError(t, receipt.Comments[0].UserId, user.ID)
+	if note := storedNote(t, created.ID); note != "Team lunch, split later" {
+		t.Errorf("note = %q, want the one typed in Quick Scan", note)
 	}
 }
 
-// An empty comment adds nothing - the default (hidden) config sends no comment, and that must not
-// create a blank one.
-func TestQuickScan_EmptyCommentAddsNothing(t *testing.T) {
+// A scan without a note (the default: Quick Scan does not ask for one) leaves the note empty.
+func TestQuickScan_NoNoteLeavesItEmpty(t *testing.T) {
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
@@ -539,57 +529,38 @@ func TestQuickScan_EmptyCommentAddsNothing(t *testing.T) {
 		return
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
-	if len(receipt.Comments) != 0 {
-		utils.PrintTestError(t, len(receipt.Comments), 0)
+	if note := storedNote(t, created.ID); note != "" {
+		t.Errorf("note = %q, want none", note)
 	}
 }
 
-// A comment in the AI's answer is not taken: the prompt asks for none, and text printed on a receipt must not be
-// able to put words in a household member's mouth. The person's own quick-scan comment is the only one saved.
-func TestQuickScan_IgnoresACommentInTheAiAnswer(t *testing.T) {
-	defer repositories.TruncateTestDb()
-
-	created, user, _, err := runQuickScanWithSetup(
-		t,
-		func(u models.User) uint { return u.ID },
-		models.OPEN,
-		nil,
-		nil,
-		"User note",
-		func(u models.User, g models.Group) string {
-			return fmt.Sprintf(
-				`{"name": "Both", "amount": 5.00, "date": "2024-07-07T00:00:00Z", "comments": [{"comment": "AI note", "userId": %d}]}`,
-				u.ID)
-		},
-		nil,
-	)
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
+// A note in the AI's answer is not taken: the prompt asks for none, and text printed on a receipt must not be able
+// to put words in a household member's mouth. The person's own quick-scan note is the only one saved, and without
+// one the note stays empty.
+func TestQuickScan_IgnoresANoteInTheAiAnswer(t *testing.T) {
+	aiAnswer := func(u models.User, g models.Group) string {
+		return `{"name": "Both", "amount": 5.00, "date": "2024-07-07T00:00:00Z", "note": "AI note", "comments": [{"comment": "AI comment"}]}`
 	}
 
-	receipt, err := repositories.NewReceiptRepository(nil).GetFullyLoadedReceiptById(utils.UintToString(created.ID))
-	if err != nil {
-		utils.PrintTestError(t, err, "no error")
-		return
-	}
+	t.Run("with a note of the person's own", func(t *testing.T) {
+		defer repositories.TruncateTestDb()
+		created, _, _, err := runQuickScanWithSetup(t, func(u models.User) uint { return u.ID }, models.OPEN, nil, nil, "User note", aiAnswer, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if note := storedNote(t, created.ID); note != "User note" {
+			t.Errorf("note = %q, want the person's", note)
+		}
+	})
 
-	if len(receipt.Comments) != 1 {
-		utils.PrintTestError(t, len(receipt.Comments), 1)
-		return
-	}
-
-	comment := receipt.Comments[0]
-	if comment.Comment != "User note" {
-		utils.PrintTestError(t, comment.Comment, "User note")
-	}
-	if comment.UserId == nil || *comment.UserId != user.ID {
-		utils.PrintTestError(t, comment.UserId, user.ID)
-	}
+	t.Run("without one", func(t *testing.T) {
+		defer repositories.TruncateTestDb()
+		created, _, _, err := runQuickScanWithSetup(t, func(u models.User) uint { return u.ID }, models.OPEN, nil, nil, "", aiAnswer, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if note := storedNote(t, created.ID); note != "" {
+			t.Errorf("note = %q, want none", note)
+		}
+	})
 }
-

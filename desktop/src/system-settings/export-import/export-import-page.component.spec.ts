@@ -23,7 +23,7 @@ describe("ExportImportPageComponent", () => {
     ],
     fileCount: 9,
     fileBytes: 3 * 1024 * 1024,
-    formatVersion: 1,
+    formatVersion: 2,
   };
 
   const setUp = async (getBackupSummary: Mock): Promise<void> => {

@@ -1,13 +1,14 @@
 import { Component, OnChanges, OnInit, computed, signal, SimpleChanges, input, ChangeDetectionStrategy } from "@angular/core";
-import { ActivatedRoute, NavigationEnd, Router } from "@angular/router";
+import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from "@angular/router";
 import { tap } from "rxjs";
 import { TabConfig } from "./tab-config.interface";
+import { SettingsTabsComponent } from "../settings/settings-tabs.component";
 
 @Component({
     selector: "app-tabs",
     templateUrl: "./tabs.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsTabsComponent, RouterOutlet]
 })
 export class TabsComponent implements OnInit, OnChanges {
   public readonly tabs = input<TabConfig[]>([]);

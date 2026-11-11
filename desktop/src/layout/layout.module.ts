@@ -9,7 +9,7 @@ import { RouterModule } from "@angular/router";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { AutocompleteModule } from "src/autocomplete/autocomplete.module";
 import { NotificationsModule } from "src/notifications/notifications.module";
-import { PipesModule } from "src/pipes/pipes.module";
+
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { AvatarModule } from "../avatar";
 import { NgIcon } from "@ng-icons/core";
@@ -18,7 +18,7 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSidebarImports } from "@spartan-ng/helm/sidebar";
 import { ButtonModule } from "../button";
 import { DemoBannerComponent, DemoFooterComponent } from "../demo/demo-runtime";
-import { DirectivesModule } from "../directives/directives.module";
+
 import { AddReceiptIconComponent } from "./add-receipt-icon/add-receipt-icon.component";
 import { DashboardIconComponent } from "./dashboard-icon/dashboard-icon.component";
 import { HeaderComponent } from "./header/header.component";
@@ -27,22 +27,13 @@ import { SidebarComponent } from "./sidebar/sidebar.component";
 import { TabBarComponent } from "./tab-bar/tab-bar.component";
 
 @NgModule({
-  declarations: [
-    AddReceiptIconComponent,
-    DashboardIconComponent,
-    HeaderComponent,
-    ReceiptListIconComponent,
-    SidebarComponent,
-  ],
-  imports: [
+    imports: [
     AutocompleteModule,
     AvatarModule,
     ButtonModule,
     CommonModule,
     DemoBannerComponent,
     DemoFooterComponent,
-    DirectivesModule,
-    DirectivesModule,
     HlmButton,
     AppIconComponent,
     NgIcon,
@@ -52,13 +43,16 @@ import { TabBarComponent } from "./tab-bar/tab-bar.component";
     ...HlmTooltipImports,
     OverlayModule,
     NotificationsModule,
-    PipesModule,
-    PipesModule,
     ReactiveFormsModule,
     RouterModule,
     SharedUiModule,
     TabBarComponent,
-  ],
-  exports: [HeaderComponent, AddReceiptIconComponent],
+    AddReceiptIconComponent,
+    DashboardIconComponent,
+    HeaderComponent,
+    ReceiptListIconComponent,
+    SidebarComponent,
+],
+    exports: [HeaderComponent, AddReceiptIconComponent],
 })
 export class LayoutModule {}

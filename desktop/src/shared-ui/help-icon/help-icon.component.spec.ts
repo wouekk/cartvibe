@@ -8,8 +8,8 @@ describe('HelpIconComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [HelpIconComponent]
-    });
+    imports: [HelpIconComponent]
+});
     fixture = TestBed.createComponent(HelpIconComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

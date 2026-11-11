@@ -1,14 +1,14 @@
 import { Component, DestroyRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
-import { formatDate } from "@angular/common";
+import { formatDate, NgTemplateOutlet } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormBuilder, FormGroup, ValidatorFn, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, ValidatorFn, Validators, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter, startWith, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AutocomleteComponent } from "../../autocomplete/autocomlete/autocomlete.component";
+import { AutocompleteComponent } from "../../autocomplete/autocomplete/autocomplete.component";
 import { BaseFormComponent } from "../../form";
 import { FormOption } from "../../interfaces/form-option.interface";
 import {
@@ -34,6 +34,17 @@ import { absoluteUrlValidator, durationValueValidator } from "../../validators";
 import { ExchangeRatesComponent } from "../exchange-rates/exchange-rates.component";
 import { CURRENCY_PRESETS, CUSTOM_CURRENCY, matchCurrencyPreset } from "./currency-presets";
 import { marker } from "../../i18n/marker";
+import { SystemTaskTableComponent } from "../system-task-table/system-task-table.component";
+import { SettingsSectionComponent } from "../../shared-ui/settings/settings-section.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { InputComponent } from "../../input/input/input.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /** The tab a settings form is placed on (route data `section`). */
 export type SystemSettingsSection = "general" | "logos" | "security" | "tasks";
@@ -58,15 +69,15 @@ export function shopLogoKeyValidator(): ValidatorFn {
 }
 
 @Component({
-  selector: "app-system-settings-form",
-  templateUrl: "./system-settings-form.component.html",
-  providers: [InputReadonlyPipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-system-settings-form",
+    templateUrl: "./system-settings-form.component.html",
+    providers: [InputReadonlyPipe],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [SystemTaskTableComponent, ReactiveFormsModule, SettingsSectionComponent, SelectComponent, AutocompleteComponent, NgTemplateOutlet, InputComponent, CheckboxComponent, ExchangeRatesComponent, BrnButton, HlmButton, TranslatePipe, AppDatePipe, CustomCurrencyPipe, FormGetPipe, InputReadonlyPipe]
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit {
   // Optional: the processing pickers are no longer rendered (Phase 3 M1).
-  public readonly fallbackReceiptProcessingSettings = viewChild<AutocomleteComponent>("fallbackReceiptProcessingSettings");
+  public readonly fallbackReceiptProcessingSettings = viewChild<AutocompleteComponent>("fallbackReceiptProcessingSettings");
 
 
   /** Only on the General tab; its rates save with this form's Save changes. */

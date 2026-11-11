@@ -10,6 +10,7 @@ import { NgxsModule, Store } from '@ngxs/store';
 import { Permission } from '../../open-api';
 import { AuthState } from '../../store';
 import { SetPermissions } from '../../store/auth.state.actions';
+import { renderShallow } from "../../testing/render-shallow";
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
@@ -19,22 +20,22 @@ describe('SettingsComponent', () => {
   const tabNames = () => component.tabs().map((t) => t.name);
 
   beforeEach(async () => {
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(SettingsComponent);
     await TestBed.configureTestingModule({
-      declarations: [SettingsComponent],
-      imports: [TranslatePipe, 
+    imports: [TranslatePipe,
         ...HlmTooltipImports,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
-        RouterModule,
-      ],
-      providers: [
+        RouterModule, SettingsComponent,],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {},
+            provide: ActivatedRoute,
+            useValue: {},
         },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SettingsComponent);

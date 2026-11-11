@@ -1,14 +1,19 @@
 import { Component, input, output, ChangeDetectionStrategy } from "@angular/core";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
 import { marker } from "../../i18n/marker";
+import { BrnTabs, BrnTabsList, BrnTabsTrigger } from "@spartan-ng/brain/tabs";
+import { HlmTabs } from "../../ui/tabs/lib/hlm-tabs";
+import { HlmTabsList } from "../../ui/tabs/lib/hlm-tabs-list";
+import { HlmTabsTrigger } from "../../ui/tabs/lib/hlm-tabs-trigger";
+import { AppIconComponent } from "../icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /** The one segmented tab strip (control height 36px, no scrollbar) behind `app-filter-bar` and `app-tabs`. */
 @Component({
-  selector: "app-settings-tabs",
-  standalone: false,
-  host: { class: "block max-w-full min-w-0" },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  template: `
+    selector: "app-settings-tabs",
+    host: { class: "block max-w-full min-w-0" },
+    changeDetection: ChangeDetectionStrategy.Eager,
+    template: `
     <hlm-tabs class="max-w-full min-w-0" [tab]="value()" (tabActivated)="valueChange.emit($event)">
       <!-- justify-start: the helm list centres its tabs, and a centred strip that overflows cuts its first tab off
            where no scrolling can reach it. -->
@@ -27,6 +32,16 @@ import { marker } from "../../i18n/marker";
       </hlm-tabs-list>
     </hlm-tabs>
   `,
+    imports: [
+        BrnTabs,
+        HlmTabs,
+        BrnTabsList,
+        HlmTabsList,
+        BrnTabsTrigger,
+        HlmTabsTrigger,
+        AppIconComponent,
+        TranslatePipe,
+    ],
 })
 export class SettingsTabsComponent {
   public readonly tabs = input.required<FilterTab[]>();

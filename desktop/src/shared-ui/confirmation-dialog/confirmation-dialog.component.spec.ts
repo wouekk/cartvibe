@@ -10,17 +10,20 @@ describe('ConfirmationDialogComponent', () => {
   let fixture: ComponentFixture<ConfirmationDialogComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [ConfirmationDialogComponent],
-      imports: [TranslatePipe, TranslateDataPipe],
-      providers: [
+    TestBed.configureTestingModule({
+    imports: [TranslatePipe, TranslateDataPipe, ConfirmationDialogComponent],
+    providers: [
         {
-          provide: AppDialogRef,
-          useValue: {},
+            provide: AppDialogRef,
+            useValue: {},
         },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    ],
+});
+    // The dialog shell and footer are left as plain elements: what is tested is what the footer is handed.
+    TestBed.overrideComponent(ConfirmationDialogComponent, {
+      set: { imports: [TranslateDataPipe], schemas: [CUSTOM_ELEMENTS_SCHEMA] },
+    });
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(ConfirmationDialogComponent);
     component = fixture.componentInstance;

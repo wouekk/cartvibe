@@ -27,7 +27,7 @@ export interface GroupOverview {
     previousTotal: string;
     receiptCount: number;
     /**
-     * The month\'s receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT)
+     * The month\'s receipts still to check (OPEN)
      */
     openReceiptCount: number;
     /**

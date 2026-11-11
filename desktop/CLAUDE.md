@@ -13,13 +13,16 @@ feature.
 - `npm start`: dev server on :4200, proxying `/api` to :8081 (`proxy.conf.json`). It does not start the API.
 - `npm run build` (output `dist/cartvibe/`). `npm test` runs the specs on **Vitest** through `ng test`
   (`@angular/build:unit-test`); `npm run test:ci` adds coverage (`coverage/cartvibe/cobertura-coverage.xml`). One spec:
-  `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`).
+  `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`). The build
+  warns when the first load passes 1.8 MB and fails at 2.0 MB (`budgets` in `angular.json`; it was 1.70 MB on
+  2026-11-11): find what grew before raising the figure.
 - `npm run build:demo` / `start:demo` / `check:demo` / `e2e:demo`: the demo on an in-memory API (`docs/demo.md`). `check:demo`
   proves it is not in the production bundle; a new endpoint the UI calls also needs an answer in `src/demo/backend`.
 - `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
 - `npm run check:traps` (CI, before the specs; `tools/check-traps.cjs` lists the traps and why): no import of
-  `environment.development`, no `[attr.aria-label]` glued with `+`, the counts of `standalone: false` and of
-  Material-era names only go down (`tools/trap-baseline.json`; after lowering one run it with `--update`), and
+  `environment.development`, no `[attr.aria-label]` glued with `+`, no `standalone: false` (the count is 0 and
+  only goes down), the count of Material-era names only goes down (`tools/trap-baseline.json`; after lowering it
+  run the check with `--update`), and
   `package.json` / `swagger.yml` stay at version `0.0.0`. `test:ci` fails under the coverage floor in
   `angular.json` (set two points under the figures of 2026-11-10).
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
@@ -29,10 +32,17 @@ feature.
 ## Stack conventions
 
 - No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
-  describe the past. Most components are still `standalone: false` in NgModules; new leaf components may be
-  standalone, a non-standalone one must be declared (and exported if another module uses it).
+  describe the past.
+- **Every component, directive and pipe is standalone** and lists what its template uses in its own `imports`.
+  The `*.module.ts` files that remain only bundle and export (and carry the lazy routes); nothing is declared in
+  one, and a provider belongs on the component that injects it or at the root, never in a module. Traps:
+  - `app.config.ts`'s `importProvidersFrom(...)` carries the router and the API client. Without it the app builds,
+    every spec passes and the page is empty: only `npm run e2e:demo` notices, so run it after touching that file.
+  - Two pipes are named `optionDisplay` (the select's and the autocomplete's, with different arguments); a
+    component imports exactly one.
 - **State:** NGXS in `src/store/`; read with `store.selectSignal(...)` or `selectSnapshot`, never `@Select` / `| async`.
-  Persisted slices are listed in `ngxsStorageKeys` (`app.config.ts`); the shopping lists keep their own copy in
+  The states and the persisted slices (`ngxsStorageKeys`) are listed once, in `src/store/ngxs-states.ts`, for the app
+  and for the specs' `StoreModule`; the shopping lists keep their own copy in
   IndexedDB instead (`src/offline/`).
 - **Zoneless traps.** Only signal writes, template/host events, `markForCheck()` and `setInput()` repaint. A plain
   field written in `subscribe`, `setTimeout`, a promise or **`finalize()`** never repaints (the login spinner once stuck
@@ -41,10 +51,12 @@ feature.
 - **HTTP:** `provideHttpClient(withXhr(), …)`; XHR is kept because upload progress needs it. In templates `?.` yields
   `undefined`; the few places that relied on `null` read `$safeNavigationMigration(…)`.
 - **Spartan wrappers keep the app's API:** `app-button`, `app-input`, `app-select`, `app-checkbox`, `app-textarea`,
-  `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomlete` (sic),
+  `app-datepicker` (`DateInputDirective` blurs on a calendar pick so Safari's popover closes), `app-autocomplete`,
   `app-table` (types in `src/table/table-types.ts`), `app-tabs`, `app-card`, `app-expansion-panel`. Add a helm part only
   with `node tools/spartan-add.cjs <name>`: it re-applies the local patches listed at its end.
-- **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`); the opened component injects `AppDialogRef` and
+- **Dialogs:** `AppDialog` (`src/dialog/app-dialog.ts`), which opens a centred dialog, or on a phone a sheet on
+  the bottom edge (decided when it opens; the width and height a caller passes apply to wider screens only, so a
+  dialog's content must not count on them). The opened component injects `AppDialogRef` and
   `APP_DIALOG_DATA`. Never hand the CDK an explicit `autoFocus: undefined` (it leaves focus on the page behind).
   Dialogs are created from the root injector, so a provider in a lazy module is invisible to them (NG0201): provide it
   in the dialog component.
@@ -56,13 +68,21 @@ feature.
   does it; give a new table's columns a `phone` role when the default reads badly), and a row has one `more_vert`
   menu (`app-row-actions`), never a row of icon buttons (`docs/features.md` → Navigation and settings screens).
 - **Icons:** `<app-icon name="receipt_long">` takes the Material name and draws the Lucide icon mapped in
-  `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
+  `shared-ui/icon/icon-map.ts`; add a pair there for a new name. The map holds only the names the app uses (it
+  ships in the first load): a name nothing uses any more is taken out with its icon, and an unknown name draws a
+  circle, so a missing pair shows. The household icon is the one name that comes from stored data.
 - **Tests (Vitest, zoneless):** `angular.json` target `test` (builds with the JIT `build:test` configuration, runs
   isolated, `vitest.config.ts` sets the timeouts), `setup-vitest.ts` (stubs `ResizeObserver`, canvas and `chart.js`: `src/testing/chartjs.stub.ts` records the config it is given).
   Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +
   `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
   `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
-  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocomleteComponent` needs `AuthState`.
+  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocompleteComponent` needs `AuthState`.
+  Every spec gets what the app provides at its root (`src/testing/test-providers.ts`, the target's
+  `providersFile`: the input mask's configuration, the router, `CurrencyPipe`); a spec's own `Router` or
+  `ActivatedRoute` still wins. A component under test renders its real children, so give the spec the store they
+  read (`StoreModule`, the app's own). A spec that mocks the store or the router instead leaves the children out
+  with `renderShallow(Component, [its pipes])` (`src/testing/render-shallow.ts`), and a test host imports what it
+  hosts.
 - **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
   (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`chart.js`), not
@@ -93,7 +113,7 @@ feature.
   `app-add-button`; settings pages `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
 - **Small pieces:** `app-badge`, `app-filter-bar`, `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button`
   (silent on failure by design; hand-roll a toasting copy where the value matters).
-- **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
+- **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   silently does nothing); clear with `FormArray.clear()`. Plain-string options need a `displayWith`.
 
 ## Dependencies (recipe and failure modes: `docs/lockfile.md`)
@@ -113,7 +133,7 @@ feature.
 ## Cross-cutting invariants
 
 - **Permission gating** mirrors the server (which re-checks, so a stale button at worst 403s). `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.utill.ts`), never from `TokenRefreshService`. The matcher
+  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService`. The matcher
   `src/utils/permission.utils.ts` ports the Go matcher. Use `AuthState.hasAppPermission` / `hasGroupPermission`, the
   `*hasAppPermission` / `*hasGroupPermission` directives and `appPermissionGuard` / `groupPermissionGuard`.
 - **Gate on the item's own group,** never the page's: the "All" group never appears in `groupPermissions`.
@@ -174,10 +194,12 @@ feature.
   browsers ignore a click made after an `await`).
 - **Receipt filter:** the dialog authors its own row labels, so a rename touches both `RECEIPT_FILTER_FIELDS` and
   `receipt-filter.component.html`.
-- **Quick Scan:** resolve field config per image index on each call (removing an image shifts indexes); the comment
-  validators are module-level singletons because `removeValidators` matches by reference.
-- **Magic Fill:** Paid by needs `AutocomleteComponent.syncSingleDisplay()` after the patch; comments go through
-  `ReceiptCommentsComponent.addMagicFilledComments()` (a receipt update does not persist comments).
+- **Quick Scan** asks for the photo and its household, plus a note where the household switched that on
+  (`quickScanAsksForNote`). Resolve it per photo index on each call (removing a photo shifts indexes), and send a
+  note only where it is asked for.
+- **A receipt has one note** (`note`, a field of the receipt, sent with it; `""` clears it) and two statuses, OPEN
+  ("To check") and RESOLVED ("Settled"). Magic Fill never writes the note; its Paid by needs
+  `AutocompleteComponent.syncSingleDisplay()` after the patch.
 - **Preferences saves send the whole object** (`PUT /userPreferences` replaces it); the Dashboard layout is its own
   endpoint for that reason.
 - **Product checker:** no name search on purpose (Open Food Facts answers cross-site search with 503 and no CORS; a
@@ -211,4 +233,6 @@ The Flutter app; Angular Material, Bootstrap and ngx-bootstrap; login QR; the ro
 (category and tag access per member), the "Isolate members" switch and role-required receipt fields; custom fields,
 the receipt summary, stored prompts, config import, system emails; items, shares and bill
 splitting; per-group widget dashboards; the month stepper as a date control and the header search box; the
-`showLargeImagePreviews` preference and the old image viewer.
+`showLargeImagePreviews` preference and the old image viewer; receipt comments as a thread (one note now), the
+statuses Needs Attention, Draft and Declined, the header shortcuts a person could add, and Quick Scan's switches
+that showed or required a field per photo.

@@ -65,7 +65,7 @@ export function scriptedReceiptDraft(db: DemoDb, paidByUserId: number): Receipt 
     status: ReceiptStatus.Open,
     categories: [],
     tags: [],
-    comments: [],
+    note: "",
   };
 }
 

@@ -18,7 +18,6 @@ import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { ButtonModule } from "../../button";
-import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, Group, GroupsService, Permission } from "../../open-api";
 import { AuthState, GroupState, SetGroups } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -38,12 +37,10 @@ describe("GroupTableComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [GroupTableComponent],
-      imports: [TranslatePipe, 
+    imports: [TranslatePipe,
         RouterLink,
         ApiModule,
         ButtonModule,
-        DirectivesModule,
         AppDatePipe,
         NgxsModule.forRoot([AuthState, GroupState, GroupTableState, SystemSettingsState]),
         SharedUiModule,
@@ -52,15 +49,14 @@ describe("GroupTableComponent", () => {
         ...HlmDropdownMenuImports,
         AppIconComponent,
         AvatarModule,
-        RowActionsComponent,
-      ],
-      providers: [
+        RowActionsComponent, GroupTableComponent,],
+    providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(GroupTableComponent);

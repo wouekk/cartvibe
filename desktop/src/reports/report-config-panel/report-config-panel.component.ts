@@ -51,6 +51,21 @@ import {
 import { marker } from "../../i18n/marker";
 import { TranslateFn } from "../../i18n/translate-fn";
 import { TranslationService } from "../../i18n/translation.service";
+import { ReportSectionComponent } from "../report-section/report-section.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { InputComponent } from "../../input/input/input.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { DatepickerComponent } from "../../datepicker/datepicker/datepicker.component";
+import { ReportFiltersComponent } from "../report-filters/report-filters.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.component";
+import { NgClass } from "@angular/common";
+import { BadgeComponent } from "../../shared-ui/badge/badge.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { TextareaComponent } from "../../textarea/textarea/textarea.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 interface ScopeChip {
   index: number;
@@ -107,11 +122,27 @@ const KIND_META: Record<
  * dialog-driven changes under zoneless change detection.
  */
 @Component({
-  selector: "app-report-config-panel",
-  templateUrl: "./report-config-panel.component.html",
-  host: { class: "flex flex-col gap-4" },
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-report-config-panel",
+    templateUrl: "./report-config-panel.component.html",
+    host: { class: "flex flex-col gap-4" },
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReportSectionComponent,
+        AddButtonComponent,
+        InputComponent,
+        AppIconComponent,
+        SelectComponent,
+        DatepickerComponent,
+        ReportFiltersComponent,
+        ButtonComponent,
+        SettingsTabsComponent,
+        NgClass,
+        BadgeComponent,
+        CheckboxComponent,
+        TextareaComponent,
+        TranslatePipe,
+        FormGetPipe,
+    ],
 })
 export class ReportConfigPanelComponent implements OnInit {
   private readonly translation = inject(TranslationService);

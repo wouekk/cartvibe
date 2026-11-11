@@ -24,7 +24,7 @@ func statusReportCommand(groupIds []uint) commands.ReportRequestCommand {
 
 func setReaderLanguage(t *testing.T, userId uint, language string) {
 	t.Helper()
-	preferences := models.UserPrefernces{UserId: userId, Language: language}
+	preferences := models.UserPreferences{UserId: userId, Language: language}
 	if err := repositories.GetDB().Create(&preferences).Error; err != nil {
 		t.Fatalf("seed preferences: %v", err)
 	}

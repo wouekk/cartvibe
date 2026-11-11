@@ -14,16 +14,14 @@ describe("QueueStartMenuComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [QueueStartMenuComponent],
-      imports: [TranslatePipe, 
-        StoreModule,
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
+    imports: [TranslatePipe,
+        StoreModule, QueueStartMenuComponent,],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    })
+    ]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(QueueStartMenuComponent);

@@ -26,7 +26,7 @@ func TestUpdateUserPreferencesRoundTripsCloseChipSelectOnSelect(t *testing.T) {
 		utils.PrintTestError(t, created.CloseChipSelectOnSelect, false)
 	}
 
-	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{
+	updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{
 		CloseChipSelectOnSelect: true,
 	})
 	if err != nil {
@@ -62,7 +62,7 @@ func TestUpdateUserPreferencesTurnsCloseChipSelectOnSelectBackOff(t *testing.T) 
 		return
 	}
 
-	_, err = repository.UpdateUserPreferences(1, models.UserPrefernces{
+	_, err = repository.UpdateUserPreferences(1, models.UserPreferences{
 		CloseChipSelectOnSelect: true,
 	})
 	if err != nil {
@@ -70,7 +70,7 @@ func TestUpdateUserPreferencesTurnsCloseChipSelectOnSelectBackOff(t *testing.T) 
 		return
 	}
 
-	_, err = repository.UpdateUserPreferences(1, models.UserPrefernces{
+	_, err = repository.UpdateUserPreferences(1, models.UserPreferences{
 		CloseChipSelectOnSelect: false,
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testi
 	}
 
 	goal := decimal.RequireFromString("500.50")
-	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{MonthlySpendingGoal: &goal})
+	updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{MonthlySpendingGoal: &goal})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestUpdateUserPreferencesRoundTripsAndClearsTheMonthlySpendingGoal(t *testi
 	}
 
 	// Clearing it (no value) must stick: the row is written with Select("*").
-	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPreferences{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 	}
 
 	rate := decimal.RequireFromString("4.25")
-	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{DisplayCurrency: " pln ", DisplayCurrencyRate: &rate})
+	updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{DisplayCurrency: " pln ", DisplayCurrencyRate: &rate})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestUpdateUserPreferencesStoresTheDisplayCurrencyAndItsRate(t *testing.T) {
 		t.Errorf("expected the rate to be stored, got %v", updated.DisplayCurrencyRate)
 	}
 
-	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPreferences{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestUpdateUserPreferencesStoresWellFormedLanguageCodes(t *testing.T) {
 	}
 
 	for language, want := range map[string]string{" PL ": "pl", "en": "en", "pt-BR": "pt-br", "de": "de", "english!": "", "x": "", "": ""} {
-		updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: language})
+		updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{Language: language})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -178,7 +178,7 @@ func TestUpdateUserPreferencesStoresTheAiLanguage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: "en", AiLanguage: " PL "})
+	updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{Language: "en", AiLanguage: " PL "})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +186,7 @@ func TestUpdateUserPreferencesStoresTheAiLanguage(t *testing.T) {
 		t.Fatalf("want language en and AI language pl, got %q and %q", updated.Language, updated.AiLanguage)
 	}
 
-	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Language: "en", AiLanguage: ""})
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPreferences{Language: "en", AiLanguage: ""})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,7 +252,7 @@ func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
 	}
 
 	years, lead := 3, 0
-	if _, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Region: " pl ", WarrantyPeriodYears: &years, WarrantyReminderLeadDays: &lead}); err != nil {
+	if _, err := repository.UpdateUserPreferences(1, models.UserPreferences{Region: " pl ", WarrantyPeriodYears: &years, WarrantyReminderLeadDays: &lead}); err != nil {
 		t.Fatal(err)
 	}
 	stored, err := repository.GetUserPreferencesOrCreate(1)
@@ -265,7 +265,7 @@ func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
 	}
 
 	badYears, negative := 4, -5
-	updated, err := repository.UpdateUserPreferences(1, models.UserPrefernces{Region: "Poland", WarrantyPeriodYears: &badYears, WarrantyReminderLeadDays: &negative})
+	updated, err := repository.UpdateUserPreferences(1, models.UserPreferences{Region: "Poland", WarrantyPeriodYears: &badYears, WarrantyReminderLeadDays: &negative})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -273,7 +273,7 @@ func TestUpdateUserPreferencesRoundTripsTheWarrantySettings(t *testing.T) {
 		t.Fatalf("expected a bad region and period dropped and a negative lead clamped to 0, got %q %v %v", updated.Region, updated.WarrantyPeriodYears, updated.WarrantyReminderLeadDays)
 	}
 
-	cleared, err := repository.UpdateUserPreferences(1, models.UserPrefernces{})
+	cleared, err := repository.UpdateUserPreferences(1, models.UserPreferences{})
 	if err != nil {
 		t.Fatal(err)
 	}

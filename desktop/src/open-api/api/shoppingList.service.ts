@@ -1642,7 +1642,7 @@ export class ShoppingListService {
 
     /**
      * Start a shopping trip from a receipt photo
-     * This will keep the photo and turn it into a receipt the way Quick Scan does, with the group\&#39;s quick-scan defaults, then compare it with the list. While the AI is unavailable the photo waits, for up to 14 days [group.shopping-lists.update, group.receipts.quick-scan]. Refused when the caller\&#39;s role requires a comment on receipts.
+     * This will keep the photo and turn it into a receipt the way Quick Scan does, with the group\&#39;s quick-scan defaults, then compare it with the list. While the AI is unavailable the photo waits, for up to 14 days [group.shopping-lists.update, group.receipts.quick-scan].
      * @param listId Id of the shopping list
      * @param file A photo or PDF of the receipt
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.

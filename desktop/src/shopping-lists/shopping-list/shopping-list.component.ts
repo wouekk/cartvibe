@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, ElementRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { EMPTY, filter, from, map, of, switchMap, take } from "rxjs";
@@ -19,7 +19,7 @@ import {
 } from "../../store/shopping-list.state.actions";
 import { isLocalItem, newClientId, nextLocalItemId } from "../shopping-list-pending";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
-import { ShoppingListItemClassification } from "../shopping-list-item/shopping-list-item.component";
+import { ShoppingListItemClassification, ShoppingListItemComponent } from "../shopping-list-item/shopping-list-item.component";
 import {
   buildShoppingListItemForm,
   DEFAULT_SHOPPING_LIST_UNIT,
@@ -29,15 +29,30 @@ import {
 import { buildItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
+import { ShoppingItemNameFieldComponent } from "../shopping-item-name-field/shopping-item-name-field.component";
+import { ShoppingListAmountFieldsComponent } from "../shopping-list-amount-fields/shopping-list-amount-fields.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
 /** The selected list: a quick-add bar, the items still to buy, and the crossed-off ones. */
 @Component({
-  selector: "app-shopping-list",
-  templateUrl: "./shopping-list.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-shopping-list",
+    templateUrl: "./shopping-list.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        ReactiveFormsModule,
+        ShoppingItemNameFieldComponent,
+        ShoppingListAmountFieldsComponent,
+        BrnButton,
+        HlmButton,
+        AppIconComponent,
+        ShoppingListItemComponent,
+        TranslatePipe,
+    ],
 })
 export class ShoppingListComponent {
   private readonly translation = inject(TranslationService);
@@ -90,7 +105,7 @@ export class ShoppingListComponent {
     private store: Store,
     private formBuilder: FormBuilder,
     private shoppingListService: ShoppingListService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     this.addForm = buildShoppingListItemForm(this.formBuilder);
@@ -195,7 +210,7 @@ export class ShoppingListComponent {
   }
 
   public editItem(item: ShoppingListItem): void {
-    const dialogRef = this.matDialog.open(ShoppingListItemFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListItemFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.item = item;
   }
@@ -272,7 +287,7 @@ export class ShoppingListComponent {
   }
 
   private confirm(headerText: string, dialogContent: string, confirmText: string) {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
     dialogRef.componentInstance.confirmText = confirmText;

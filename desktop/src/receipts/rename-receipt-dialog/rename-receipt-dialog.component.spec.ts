@@ -2,8 +2,8 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { PipesModule } from "../../pipes";
 import { RECEIPT_NAME_MAX_LENGTH, RenameReceiptDialogComponent } from "./rename-receipt-dialog.component";
+import { StoreModule } from "../../store/store.module";
 
 describe("RenameReceiptDialogComponent", () => {
   let component: RenameReceiptDialogComponent;
@@ -13,11 +13,10 @@ describe("RenameReceiptDialogComponent", () => {
   beforeEach(() => {
     close.mockReset();
     TestBed.configureTestingModule({
-      declarations: [RenameReceiptDialogComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [PipesModule, ReactiveFormsModule],
-      providers: [{ provide: AppDialogRef, useValue: { close } }],
-    });
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [StoreModule, ReactiveFormsModule, RenameReceiptDialogComponent],
+    providers: [{ provide: AppDialogRef, useValue: { close } }],
+});
     fixture = TestBed.createComponent(RenameReceiptDialogComponent);
     component = fixture.componentInstance;
     component.name = "Lunch";

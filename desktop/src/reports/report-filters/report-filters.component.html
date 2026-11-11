@@ -23,25 +23,25 @@
       <app-datepicker *ngIf="def.type === 'date'" class="min-w-0 flex-1"
         [label]="def.label"
         [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-datepicker>
-      <app-autocomlete *ngIf="def.type === 'users'" class="min-w-0 flex-1"
+      <app-autocomplete *ngIf="def.type === 'users'" class="min-w-0 flex-1"
         [label]="def.label" [multiple]="true"
         [options]="paidByOptions()"
         optionValueKey="id" optionFilterKey="displayName" optionDisplayKey="displayName"
-        [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomlete>
-      <app-autocomlete *ngIf="def.type === 'list'" class="min-w-0 flex-1"
+        [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomplete>
+      <app-autocomplete *ngIf="def.type === 'list'" class="min-w-0 flex-1"
         [label]="def.label" [multiple]="true"
         [options]="optionsFor(def)"
         [optionValueKey]="def.optionValueKey ?? ''"
         [optionFilterKey]="def.optionFilterKey ?? ''"
         [optionDisplayKey]="def.optionDisplayKey ?? ''"
-        [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomlete>
+        [inputFormControl]="filterGroup | formGet: def.field + '.value'"></app-autocomplete>
     }
 
     <app-select class="w-37.5 flex-none" [label]="'Operation' | t" [addEmptyOption]="true"
       [options]="operationOptions(def.type)" [optionsDisplayArray]="operationDisplay(def.type)"
       [inputFormControl]="filterGroup | formGet: def.field + '.operation'"></app-select>
 
-    <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
+    <app-button buttonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
       (clicked)="removeFilter(def.field)" data-testid="report-filter-remove"></app-button>
   </div>
 }

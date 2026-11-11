@@ -1,10 +1,16 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { Category, CategoryService, CategoryView } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { InputComponent } from "../../input/input/input.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-category-form",
@@ -14,7 +20,7 @@ import { SnackbarService } from "../../services";
     // the lazy module's providers ("No provider found for DuplicateValidator", a blank Add dialog).
     providers: [DuplicateValidator],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, InputComponent, CheckboxComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class CategoryForm implements OnInit {
   @Input() public headerText: string = "";
@@ -25,7 +31,7 @@ export class CategoryForm implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: AppDialogRef<CategoryForm>,
+    private dialogRef: AppDialogRef<CategoryForm>,
     private categoryService: CategoryService,
     private snackService: SnackbarService,
     private duplicateValidator: DuplicateValidator
@@ -60,7 +66,7 @@ export class CategoryForm implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Category updated successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -71,7 +77,7 @@ export class CategoryForm implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Category created successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -79,6 +85,6 @@ export class CategoryForm implements OnInit {
   }
 
   public closeDialog(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

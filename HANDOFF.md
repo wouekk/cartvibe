@@ -25,8 +25,16 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     run.
   - Sprint 9 (identity-provider screens, `feature/oidc-ui`) is in `preview` too: web app only, proved by component
     specs; no sign-in was made end to end, because the agent has no identity provider.
-  - Next, one branch each from `preview`: sprint 10 (app cleanup), then 11 onward. The audit report lists what
-    each holds.
+  - **Sprint 10 is under way on `feature/app-cleanup`** (cut from `preview`, not merged yet; the worktree is
+    `.claude/worktrees/dependency-updates`). Done there, each with green CI up to the standalone commit: one note
+    per receipt, two statuses and a Quick Scan that asks for nothing (three one-way data migrations), the renames,
+    every component standalone, the Material-era names gone, the bundle budget, the pruned icon map and the
+    Dashboard's summary sentence. Left: one button idiom in the templates (86 `<app-button>` in 42 templates),
+    the Dashboard split into panel components, the receipt page's review with one "Looks right" button, dialogs
+    as bottom sheets on a phone. `docs/AUDIT-REPORT.md` (sprint 10) has the detail and one decision made
+    differently from the audit (icons stay on one map). When it is done: merge into `preview`, publish
+    `:preview`, and add the migrations to *Waiting on the owner*.
+  - After it, one branch each from `preview`: sprint 11 onward. The audit report lists what each holds.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac

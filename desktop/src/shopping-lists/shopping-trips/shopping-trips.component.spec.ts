@@ -11,7 +11,6 @@ import { provideRouter, RouterLink } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -59,25 +58,24 @@ describe("ShoppingTripsComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ShoppingTripsComponent],
-      imports: [
+    imports: [
         NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
         MoneyComponent,
-        PipesModule,
         RouterLink,
-      ],
-      providers: [
+        ShoppingTripsComponent,
+    ],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: ShoppingListService, useValue: shoppingListService },
         { provide: SnackbarService, useValue: { success: vi.fn(), error: vi.fn() } },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
   });
 
   it("shows what each trip bought that was not on the list", async () => {

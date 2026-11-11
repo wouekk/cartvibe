@@ -6,7 +6,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
-import { PipesModule } from "src/pipes/pipes.module";
 import { SetReceiptFilter } from "src/store/receipt-table.actions";
 import { defaultReceiptFilter, } from "src/store/receipt-table.state";
 import { InputModule } from "../../input";
@@ -68,24 +67,21 @@ describe("ReceiptFilterComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ReceiptFilterComponent, OperationsPipe],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [PipesModule,
-        InputModule,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [InputModule,
         StoreModule,
-        PipesModule,
-        ReactiveFormsModule],
-      providers: [
+        ReactiveFormsModule, ReceiptFilterComponent, OperationsPipe],
+    providers: [
         {
-          provide: AppDialogRef,
-          useValue: {
-            close: (value: any) => { },
-          },
+            provide: AppDialogRef,
+            useValue: {
+                close: (value: any) => { },
+            },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    });
+    ]
+});
 
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(ReceiptFilterComponent);

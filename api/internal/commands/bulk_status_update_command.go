@@ -8,7 +8,6 @@ import (
 )
 
 type BulkStatusUpdateCommand struct {
-	Comment    string
 	Status     models.ReceiptStatus
 	ReceiptIds []uint
 }

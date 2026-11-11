@@ -57,7 +57,7 @@ func TestBackupSummaryAnswersArrays(t *testing.T) {
 	if err := json.Unmarshal(response.Body.Bytes(), &summary); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if len(summary.Counts) == 0 || summary.FormatVersion != 1 {
+	if len(summary.Counts) == 0 || summary.FormatVersion != 2 {
 		t.Errorf("unexpected summary: %+v", summary)
 	}
 	for _, count := range summary.Counts {

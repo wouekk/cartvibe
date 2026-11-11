@@ -10,10 +10,10 @@ describe("PrettyJsonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PrettyJsonComponent, PrettyJsonPipe],
-      providers: [PrettyJsonPipe],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    imports: [PrettyJsonComponent, PrettyJsonPipe],
+    providers: [PrettyJsonPipe],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(PrettyJsonComponent);

@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { ReceiptStatus } from './receiptStatus';
-import { UserShortcut } from './userShortcut';
 
 
 export interface UserPreferences { 
@@ -79,7 +78,6 @@ export interface UserPreferences {
      * Days before a warranty ends that its reminder comes, 0 on the day; null is 30
      */
     warrantyReminderLeadDays?: number;
-    userShortcuts?: Array<UserShortcut>;
 }
 export namespace UserPreferences {
 }

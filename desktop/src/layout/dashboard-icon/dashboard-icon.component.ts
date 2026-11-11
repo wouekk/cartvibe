@@ -3,7 +3,6 @@ import { Component, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/
 @Component({
     selector: 'app-dashboard-icon',
     templateUrl: './dashboard-icon.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class DashboardIconComponent {}

@@ -31,7 +31,7 @@ func TestAiAnswerLanguageFollowsThePersonsChoice(t *testing.T) {
 		t.Errorf("no preferences: got %q, want English", got)
 	}
 
-	preferences := models.UserPrefernces{UserId: 1, Language: "de"}
+	preferences := models.UserPreferences{UserId: 1, Language: "de"}
 	if err := db.Create(&preferences).Error; err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestAiAnswerLanguageFollowsThePersonsChoice(t *testing.T) {
 		t.Errorf("interface language only: got %q, want German", got)
 	}
 
-	if err := db.Model(&models.UserPrefernces{}).Where("user_id = ?", 1).Update("ai_language", "pl").Error; err != nil {
+	if err := db.Model(&models.UserPreferences{}).Where("user_id = ?", 1).Update("ai_language", "pl").Error; err != nil {
 		t.Fatal(err)
 	}
 	if got := AiAnswerLanguage(db, 1); got != "Polish" {

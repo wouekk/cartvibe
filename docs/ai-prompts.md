@@ -9,7 +9,7 @@ the "Prompts" table and the prompt a processing setting names are kept for upstr
 - **The AI assigns categories and the health rating. It never assigns tags.** Tags are the household's own labels, set
   by people (per product line, or picked in Quick Scan). The receipt prompt does not ask for tags, and
   `onlyPromptedReceiptFields` (`services/receipt_processing.go`) keeps only what the prompt asked for (name, shop,
-  currency, amount, date, categories): tags, a payer, a status, a group or comments in an answer are dropped, whether
+  currency, amount, date, categories): tags, a payer, a status, a group or a note in an answer are dropped, whether
   the model made them up or read them off the receipt. Quick Scan takes payer, status and household from the person's
   choices only.
 - **A category switched off for the AI** (Manage Categories → "Never let the AI use this category", `categories.skipped`)

@@ -10,7 +10,7 @@ order); behaviour: `api/docs/domain.md`, "Household export".
 cartvibe-backup-2026-11-03.zip
   users.csv  groups.csv  group_members.csv  categories.csv  tags.csv
   receipts.csv  receipt_categories.csv  receipt_tags.csv  receipt_products.csv  receipt_product_tags.csv
-  comments.csv  files.csv  shopping_lists.csv  shopping_list_items.csv  shopping_trips.csv
+  files.csv  shopping_lists.csv  shopping_list_items.csv  shopping_trips.csv
   classification_overrides.csv  exchange_rates.csv  report_templates.csv  report_template_groups.csv
   user_preferences.csv  dashboard_layouts.csv  group_receipt_settings.csv
   files/<fileId>            the receipt photos and PDFs, when photos are included
@@ -26,7 +26,7 @@ already); the CSVs are deflated.
 | Field | Meaning |
 | :--- | :--- |
 | `format` | Always `cartvibe-backup`. |
-| `formatVersion` | `1`. Changes only for a breaking change (below). |
+| `formatVersion` | `2`. Changes only for a breaking change (below). |
 | `appVersion`, `exportedAt`, `exportId` | The server's version, the moment in RFC 3339 UTC, a random UUID. |
 | `includesFiles` | Whether `files/` is there. |
 | `household` | The currency display, its ISO code (empty for a custom symbol), separators, symbol position, hidden decimals, the time zone and the date format. |
@@ -70,6 +70,11 @@ data-migration ledger and the shop logos (downloaded again).
 - A breaking change (a renamed or re-meant column) bumps it, and the reader gets an upcaster from the older version.
 - A reader refuses a `formatVersion` newer than its own ("update CartVibe first"), an entry name that could leave a
   folder (`..`, an absolute path, a backslash), and an entry whose size or SHA-256 differs from the manifest.
+
+| Version | Since | What changed | How this reader takes the older one |
+| :--- | :--- | :--- | :--- |
+| 1 | 0.17.0 | The first format. | |
+| 2 | 2026-11 | A receipt has one note (`receipts.note`) instead of comments (`comments.csv` is gone); a status is `OPEN` or `RESOLVED`; `group_receipt_settings` has `hide_note` and `quick_scan_note_enabled` for `hide_comments` and `quick_scan_comment_enabled`, and no "show" and "require" columns per Quick Scan field. | A receipt without a note gets its comments joined into one (a single comment as written, several as "Name: text" lines, oldest first); `NEEDS_ATTENTION` and `DRAFT` are read as `OPEN`, `DECLINED` as `RESOLVED`; the two older setting names are read; the dropped columns are ignored. |
 
 ## How an import reads it
 

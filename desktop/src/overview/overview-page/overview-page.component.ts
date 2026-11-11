@@ -3,7 +3,7 @@ import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, 
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import type { ScriptableContext } from "chart.js";
 
@@ -48,7 +48,7 @@ import { DisplayCurrencyService } from "../../services/display-currency.service"
 import { centerTextPlugin, goalLinePlugin, pointerPlugin } from "../../shared-ui/chart/chart-plugins";
 import { ChartColors } from "../../shared-ui/chart/chart-colors";
 import { chartFontSize } from "../../shared-ui/chart/chart-scale";
-import { ChartSpec } from "../../shared-ui/chart/chart.component";
+import { ChartSpec, ChartComponent } from "../../shared-ui/chart/chart.component";
 import { htmlTooltip, tooltipCard } from "../../shared-ui/chart/chart-tooltip";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
@@ -106,9 +106,30 @@ import {
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
 import { barRange, isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { monthSummary } from "../overview-summary";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
+import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { PeriodPickerComponent } from "../period-picker/period-picker.component";
+import { HlmSwitch } from "../../ui/switch/lib/hlm-switch";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { HlmTHead, HlmTh } from "../../ui/table/lib/hlm-table";
+import { OverviewReceiptsPanelComponent } from "../overview-receipts-panel/overview-receipts-panel.component";
+import { OverviewWarrantiesPanelComponent } from "../overview-warranties-panel/overview-warranties-panel.component";
+import { OverviewShoppingPanelComponent } from "../overview-shopping-panel/overview-shopping-panel.component";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
+import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
+import { TranslatePipe, TranslateDataPipe, PluralPipe } from "../../i18n/translate.pipe";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -173,12 +194,40 @@ const UNCATEGORIZED = marker("Uncategorized");
  * only itself.
  */
 @Component({
-  selector: "app-overview-page",
-  templateUrl: "./overview-page.component.html",
-  standalone: false,
-  // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
-  changeDetection: ChangeDetectionStrategy.Eager,
-  providers: [CurrencyPipe, CustomCurrencyPipe],
+    selector: "app-overview-page",
+    templateUrl: "./overview-page.component.html",
+    // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [CurrencyPipe, CustomCurrencyPipe],
+    imports: [
+        SettingsTabsComponent,
+        BrnButton,
+        HlmButton,
+        AppIconComponent,
+        ButtonComponent,
+        PeriodPickerComponent,
+        HlmSwitch,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        RouterLink,
+        MoneyComponent,
+        ChartComponent,
+        HlmTHead,
+        HlmTh,
+        OverviewReceiptsPanelComponent,
+        OverviewWarrantiesPanelComponent,
+        OverviewShoppingPanelComponent,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmDropdownMenuSeparator,
+        DisplayCurrencyPipe,
+        TranslatePipe,
+        TranslateDataPipe,
+        PluralPipe,
+    ],
 })
 export class OverviewPageComponent {
   public readonly groupId = toSignal(
@@ -223,6 +272,40 @@ export class OverviewPageComponent {
 
     const spent = Number(overview.total);
     return { goal, over: Math.max(0, spent - goal), remaining: Math.max(0, goal - spent) };
+  });
+
+  /**
+   * The sentence above the panels, while the running month is shown and a goal is set: what was spent, the goal,
+   * the days left and what a day may cost to end the month on the goal. Empty otherwise (no goal, another range,
+   * a month that is over, or nothing loaded yet).
+   */
+  public readonly summarySentence = computed(() => {
+    const overview = this.overview();
+    const period = this.period();
+    if (!overview) {
+      return "";
+    }
+
+    const summary = monthSummary(Number(overview.total), this.goal(), period?.from, period?.to, this.appToday());
+    if (!summary) {
+      return "";
+    }
+
+    const money = (value: number) => this.displayCurrencyService.format(value);
+    const params = {
+      spent: money(summary.spent),
+      goal: money(summary.goal),
+      over: money(summary.over),
+      perDay: money(summary.perDay),
+      days: `${summary.daysLeft} ${this.translation.plural(summary.daysLeft, "day", "days")}`,
+    };
+    if (summary.over > 0) {
+      return this.translation.t(marker("{spent} spent this month: {over} over the goal of {goal}. Left: {days}."), params);
+    }
+    if (summary.remaining === 0) {
+      return this.translation.t(marker("{spent} spent this month: the goal of {goal} is reached. Left: {days}."), params);
+    }
+    return this.translation.t(marker("{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal."), params);
   });
 
   /** The month chart splits bars at the goal; it needs a goal and a month-by-month trend. */
@@ -1387,7 +1470,7 @@ export class OverviewPageComponent {
       return;
     }
 
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Discard changes");
     dialogRef.componentInstance.dialogContent = this.translation.t("Leave without saving your dashboard changes?");
     dialogRef.componentInstance.confirmText = marker("Discard");
@@ -1418,7 +1501,7 @@ export class OverviewPageComponent {
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe,
@@ -1553,6 +1636,6 @@ export class OverviewPageComponent {
       to: period.to,
       ...filter,
     };
-    this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
+    this.dialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }
 }

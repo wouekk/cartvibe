@@ -10,7 +10,7 @@ import { Store } from "@ngxs/store";
 import { catchError, concatMap, EMPTY, filter, Subject, Subscription, switchMap, take, timer } from "rxjs";
 import { Category, Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView, Tag, UpsertReceiptProductCommand } from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
@@ -20,6 +20,8 @@ import { hasAll } from "../../utils/permission.utils";
 import { parseAmountInput } from "./product-amount";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 
 /** While a read is queued or running and the live stream cannot be used, the section checks back this often. */
 const REFRESH_INTERVAL_MS = 30_000;
@@ -55,7 +57,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   host: { class: "block" },
   templateUrl: "./receipt-products.component.html",
   standalone: true,
-  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, MoneyComponent, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, MoneyComponent, TranslatePipe, CustomCurrencyPipe],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],
@@ -75,6 +77,12 @@ export class ReceiptProductsComponent {
 
   /** Asks the page to set the receipt's total to this sum of the lines. */
   public readonly setTotal = output<string>();
+
+  /** True while the receipt is to check and the person may settle it: the review then ends with "Looks right". */
+  public readonly canSettle = input(false);
+
+  /** The person looked the lines over and found them right: the page settles the receipt. */
+  public readonly settle = output<void>();
 
   public readonly view = signal<ReceiptProductsView | undefined>(undefined);
 
@@ -126,6 +134,22 @@ export class ReceiptProductsComponent {
   });
 
   public readonly isInProgress = computed(() => ["PENDING", "RUNNING"].includes(this.view()?.status ?? ""));
+
+  /**
+   * The lines in the order they are shown. While the receipt is to check, a line without an amount comes first:
+   * it is what the review is for. The others, and a settled receipt's lines, keep the order they were read in.
+   */
+  public readonly orderedProducts = computed(() => {
+    const products = this.view()?.products ?? [];
+    if (!this.canSettle()) {
+      return products;
+    }
+
+    return [...products.filter((product) => !product.amount), ...products.filter((product) => !!product.amount)];
+  });
+
+  /** How many lines have no amount: what the review asks about before "Looks right". */
+  public readonly linesWithoutAmount = computed(() => (this.view()?.products ?? []).filter((product) => !product.amount).length);
 
   private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
 
@@ -184,7 +208,7 @@ export class ReceiptProductsComponent {
 
   public readonly tagChoices = computed<Tag[]>(() => byName(this.catalog().tags[this.groupId()] ?? []));
 
-  private readonly matDialog = inject(AppDialog);
+  private readonly dialog = inject(AppDialog);
 
   /** A category's name; the line's own copy of it when the category is not among the choices. */
   public categoryName(categoryId: number | null | undefined, fallback = ""): string {
@@ -333,7 +357,7 @@ export class ReceiptProductsComponent {
   }
 
   public remove(product: ReceiptProduct): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Remove product");
     dialogRef.componentInstance.confirmText = marker("Remove");
     dialogRef.componentInstance.dialogContent = this.translation.t("Remove \"{name}\" from this receipt?", { name: product.displayName || product.name });

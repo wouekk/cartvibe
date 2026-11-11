@@ -8,7 +8,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
@@ -53,13 +52,12 @@ describe("ShoppingListComponent", () => {
     drained = vi.fn().mockResolvedValue(true);
 
     await TestBed.configureTestingModule({
-      declarations: [ShoppingListComponent],
-      imports: [
+    imports: [
         NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]),
-        PipesModule,
         ReactiveFormsModule,
-      ],
-      providers: [
+        ShoppingListComponent,
+    ],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -68,9 +66,9 @@ describe("ShoppingListComponent", () => {
         // Sending the queue has its own spec; here it only answers whether the queue went out.
         { provide: ShoppingListSyncService, useValue: { drained } },
         { provide: ViewportService, useValue: { isHandset } },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     store.dispatch(new LoadShoppingLists(1));

@@ -8,9 +8,9 @@ describe("ReadonlyValuePipe", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ReadonlyValuePipe, OptionDisplayPipe],
-      providers: [ReadonlyValuePipe, OptionDisplayPipe]
-    });
+    imports: [ReadonlyValuePipe, OptionDisplayPipe],
+    providers: [ReadonlyValuePipe, OptionDisplayPipe]
+});
 
     pipe = TestBed.inject(ReadonlyValuePipe);
     optionDisplayPipe = TestBed.inject(OptionDisplayPipe);

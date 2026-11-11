@@ -4,7 +4,7 @@
   buttons are ghost buttons in the accent (or red for "warn"); a basic button in "outline" is the neutral bordered one
   (Cancel: white in White, black in Black).
 -->
-@switch (matButtonType()) {
+@switch (buttonType()) {
   @case ("basic") {
     <button
       hlmBtn
@@ -21,18 +21,18 @@
         <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() | t }}</span>
-      @if (!matBadgeHidden()) {
+      @if (!badgeHidden()) {
         <span
           hlmBadge
           class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums"
           data-testid="button-badge"
-          >{{ matBadgeContent() }}</span
+          >{{ badgeContent() }}</span
         >
       }
     </button>
   }
 
-  @case ("matRaisedButton") {
+  @case ("raised") {
     <button
       hlmBtn
       [variant]="color() === 'warn' ? 'destructive' : 'default'"
@@ -48,12 +48,12 @@
         <app-icon [name]="icon"></app-icon>
       }
       <span class="font-medium">{{ buttonText() | t }}</span>
-      @if (!matBadgeHidden()) {
+      @if (!badgeHidden()) {
         <span
           hlmBadge
           class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums"
           data-testid="button-badge"
-          >{{ matBadgeContent() }}</span
+          >{{ badgeContent() }}</span
         >
       }
     </button>
@@ -75,12 +75,12 @@
       @if (icon) {
         <app-icon [name]="icon"></app-icon>
       }
-      @if (!matBadgeHidden()) {
+      @if (!badgeHidden()) {
         <span
           hlmBadge
           class="pointer-events-none absolute -right-1.5 -top-1.5 h-4 min-w-4 justify-center px-1 text-[0.625rem] tabular-nums"
           data-testid="button-badge"
-          >{{ matBadgeContent() }}</span
+          >{{ badgeContent() }}</span
         >
       }
     </button>

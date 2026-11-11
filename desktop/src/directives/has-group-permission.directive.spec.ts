@@ -5,10 +5,7 @@ import { AuthState } from "../store/auth.state";
 import { SetPermissions } from "../store/auth.state.actions";
 import { HasGroupPermissionDirective, HasGroupPermissionInput } from "./has-group-permission.directive";
 
-@Component({
-  template: `<span *hasGroupPermission="config" data-testid="gated">gated</span>`,
-  standalone: false,
-})
+@Component({ template: `<span *hasGroupPermission="config" data-testid="gated">gated</span>`, imports: [HasGroupPermissionDirective] })
 class HostComponent {
   config: HasGroupPermissionInput = { groupId: 1, permission: "group.view" };
 }
@@ -22,10 +19,9 @@ describe("HasGroupPermissionDirective", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HostComponent, HasGroupPermissionDirective],
-      imports: [NgxsModule.forRoot([AuthState])],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [NgxsModule.forRoot([AuthState]), HostComponent, HasGroupPermissionDirective],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     store = TestBed.inject(Store);
     fixture = TestBed.createComponent(HostComponent);

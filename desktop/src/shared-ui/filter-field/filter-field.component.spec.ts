@@ -2,12 +2,15 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { NgxsModule, Store } from "@ngxs/store";
-import { PipesModule } from "src/pipes/pipes.module";
 import { SystemSettingsState } from "src/store/system-settings.state";
 import { SetTimeZone } from "src/store/system-settings.state.actions";
 import { FilterOperation } from "../../open-api";
 import { OperationsPipe } from "../receipt-filter/operations.pipe";
 import { FilterFieldComponent } from "./filter-field.component";
+import { renderShallow } from "../../testing/render-shallow";
+import { NgIf } from "@angular/common";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 describe("FilterFieldComponent", () => {
   let fixture: ComponentFixture<FilterFieldComponent>;
@@ -38,11 +41,12 @@ describe("FilterFieldComponent", () => {
   };
 
   beforeEach(async () => {
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(FilterFieldComponent, [NgIf, TranslatePipe, FormGetPipe, OperationsPipe]);
     await TestBed.configureTestingModule({
-      declarations: [FilterFieldComponent, OperationsPipe],
-      imports: [ReactiveFormsModule, PipesModule, NgxsModule.forRoot([SystemSettingsState])],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([SystemSettingsState]), FilterFieldComponent, OperationsPipe],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
   });
 
   it("should create", () => {
@@ -55,7 +59,7 @@ describe("FilterFieldComponent", () => {
       { type: "text", selector: "app-input" },
       { type: "number", selector: "app-input" },
       { type: "date", selector: "app-datepicker" },
-      { type: "list", selector: "app-autocomlete" },
+      { type: "list", selector: "app-autocomplete" },
       { type: "users", selector: "app-user-autocomplete" },
     ];
 

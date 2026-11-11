@@ -250,6 +250,86 @@ func TestParseReadsAnOlderExportWithoutSomeTables(t *testing.T) {
 	}
 }
 
+// An export made before 2026-11: receipts have a thread of comments and no note, three more statuses exist, and
+// the household's settings name the note's switches after the comments and carry the old Quick Scan matrix.
+func TestParseReadsAnExportFromBeforeTheNoteAndTheTwoStatuses(t *testing.T) {
+	archive := handMadeArchive(t, map[string]string{
+		"users":  "id,username,display_name\r\n1,anna,Anna\r\n2,piotr,\r\n",
+		"groups": "id,name\r\n3,Home\r\n4,Cabin\r\n",
+		"receipts": "id,group_id,name,date,amount,status,paid_by_user_id\r\n" +
+			"7,3,Thread,2026-11-04,10.00,NEEDS_ATTENTION,1\r\n" +
+			"8,3,One comment,2026-11-04,1,DECLINED,1\r\n" +
+			"9,3,No comments,2026-11-04,1,DRAFT,1\r\n",
+		"comments": "id,receipt_id,comment_id,user_id,comment,additional_info,created_at\r\n" +
+			// Out of order in the file: the thread reads by time.
+			"21,7,20,2,Split it?,,2026-11-04T11:00:00Z\r\n" +
+			"20,7,,1,For the party,,2026-11-04T10:00:00Z\r\n" +
+			"22,7,,,No need,,2026-11-04T12:00:00Z\r\n" +
+			"23,8,,1,Returned it,,2026-11-04T10:00:00Z\r\n",
+		"group_receipt_settings": "group_id,hide_comments,quick_scan_paid_by_enabled,quick_scan_paid_by_required," +
+			"quick_scan_status_enabled,quick_scan_status_required,quick_scan_default_status,quick_scan_comment_enabled,quick_scan_comment_required\r\n" +
+			// Home never touched its settings; Cabin hid the comments, asked for one in Quick Scan and set a default.
+			"3,false,true,true,true,true,,false,false\r\n" +
+			"4,true,true,false,true,true,DECLINED,true,true\r\n",
+	}, func(manifest *Manifest) {
+		// What such a file says of itself.
+		manifest.FormatVersion = 1
+	})
+
+	household, err := Parse(archive)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if household.ProblemCount() != 0 {
+		t.Fatalf("problems: %v", household.Problems)
+	}
+
+	want := map[uint]struct {
+		status models.ReceiptStatus
+		note   string
+	}{
+		7: {models.OPEN, "Anna: For the party\npiotr: Split it?\nNo need"},
+		8: {models.RESOLVED, "Returned it"},
+		9: {models.OPEN, ""},
+	}
+	for _, receipt := range household.Receipts {
+		expected := want[receipt.ID]
+		if receipt.Status != expected.status || receipt.Note != expected.note {
+			t.Errorf("receipt %d: status %s, note %q; want %s, %q", receipt.ID, receipt.Status, receipt.Note, expected.status, expected.note)
+		}
+	}
+
+	settings := map[uint]models.GroupReceiptSettings{}
+	for _, row := range household.GroupSettings {
+		settings[row.GroupId] = row
+	}
+	home, cabin := settings[3], settings[4]
+	if home.HideNote || home.QuickScanNoteEnabled || home.QuickScanDefaultStatus != "" {
+		t.Errorf("an untouched household reads as asking for nothing: %+v", home)
+	}
+	if !cabin.HideNote || !cabin.QuickScanNoteEnabled || cabin.QuickScanDefaultStatus != models.RESOLVED {
+		t.Errorf("a household's own choices are kept under the new names: %+v", cabin)
+	}
+}
+
+// A note the export already has is kept; comments beside it (a file put together by hand) do not replace it.
+func TestParseKeepsANoteOverOldComments(t *testing.T) {
+	archive := handMadeArchive(t, map[string]string{
+		"users":    "id,username\r\n1,anna\r\n",
+		"groups":   "id,name\r\n3,Home\r\n",
+		"receipts": "id,group_id,name,date,amount,status,paid_by_user_id,note\r\n7,3,Shop,2026-11-04,10.00,OPEN,1,My own note\r\n",
+		"comments": "id,receipt_id,user_id,comment\r\n20,7,1,An old comment\r\n",
+	}, nil)
+
+	household, err := Parse(archive)
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if household.ProblemCount() != 0 || household.Receipts[0].Note != "My own note" {
+		t.Errorf("note %q, problems %v", household.Receipts[0].Note, household.Problems)
+	}
+}
+
 func TestParseFailsWhenAListedTableIsMissingFromTheZip(t *testing.T) {
 	archive := handMadeArchive(t, map[string]string{"groups": "id,name\r\n3,Home\r\n"}, nil)
 	archive.entries["receipts.csv"] = ManifestEntry{Name: "receipts.csv", Kind: EntryKindTable, Bytes: 3}

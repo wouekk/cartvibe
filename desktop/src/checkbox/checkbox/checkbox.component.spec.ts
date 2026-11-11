@@ -10,10 +10,9 @@ describe('CheckboxComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [CheckboxComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [TranslatePipe, CheckboxComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(CheckboxComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

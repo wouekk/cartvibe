@@ -1,13 +1,17 @@
 import { Component, Input, ChangeDetectionStrategy } from "@angular/core";
-import { FormControl } from "@angular/forms";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { BaseInputInterface } from "../../base-input";
+import { BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { HlmCheckbox } from "../../ui/checkbox/lib/hlm-checkbox";
+import { HelpIconComponent } from "../../shared-ui/help-icon/help-icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
-  selector: "app-checkbox",
-  templateUrl: "./checkbox.component.html",
-  styleUrls: ["./checkbox.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-checkbox",
+    templateUrl: "./checkbox.component.html",
+    styleUrls: ["./checkbox.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [BrnFieldControlDescribedBy, HlmCheckbox, ReactiveFormsModule, HelpIconComponent, TranslatePipe]
 })
 export class CheckboxComponent implements BaseInputInterface {
   @Input() public inputFormControl: FormControl<any> = new FormControl();

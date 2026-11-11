@@ -1,4 +1,5 @@
 import { ApplicationConfig, isDevMode, provideAppInitializer, provideZonelessChangeDetection, inject } from "@angular/core";
+import { CurrencyPipe } from "@angular/common";
 import { provideServiceWorker } from "@angular/service-worker";
 import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
@@ -14,68 +15,14 @@ import { httpInterceptor } from "../interceptors/http-interceptor";
 import { rateLimitRetryInterceptor } from "../interceptors/rate-limit-retry.interceptor";
 import { serviceWorkerBypassInterceptor } from "../interceptors/service-worker-bypass.interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
-import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
 import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
-import { PipesModule } from "../pipes";
-import { AboutState } from "../store/about.state";
-import { AuthState } from "../store/auth.state";
-import { CategoryTableState } from "../store/category-table.state";
-import { FeatureConfigState } from "../store/feature-config.state";
-import { GroupTableState } from "../store/group-table.state";
-import { GroupState } from "../store/group.state";
-import { LayoutState } from "../store/layout.state";
-import { ReceiptProcessingSettingsTaskTableState } from "../store/receipt-processing-settings-task-table.state";
-import { ReceiptTableState } from "../store/receipt-table.state";
-import { ReportTemplateTableState } from "../store/report-template-table.state";
-import { ShoppingListState } from "../store/shopping-list.state";
-import { SystemSettingsState } from "../store/system-settings.state";
-import { SystemTaskTableState } from "../store/system-task-table.state";
-import { TagTableState } from "../store/tag-table.state";
-import { UserTableState } from "../store/user-table.state";
-import { UserState } from "../store/user.state";
+import { ngxsStates, ngxsStorageKeys } from "../store/ngxs-states";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { DEMO_MODE, demoInterceptors, demoProviders } from "../demo/demo-runtime";
 import { environment } from "src/environments/environment";
-
-const ngxsStates = [
-  AboutState,
-  AuthState,
-  CategoryTableState,
-  FeatureConfigState,
-  GroupState,
-  GroupTableState,
-  LayoutState,
-  ReceiptProcessingSettingsTaskTableState,
-  ReceiptTableState,
-  ReportTemplateTableState,
-  // Not in ngxsStorageKeys: ShoppingListSyncService keeps its copy in IndexedDB (lists and waiting changes).
-  ShoppingListState,
-  SystemSettingsState,
-  SystemTaskTableState,
-  TagTableState,
-  UserTableState,
-  UserState,
-];
-
-const ngxsStorageKeys = [
-  "about",
-  "auth",
-  "categoryTable",
-  "groupTable",
-  "groups",
-  "layout",
-  "receiptProcessingSettingsTaskTable",
-  "receiptTable",
-  "reportTemplateTable",
-  "systemSettings",
-  "systemTaskTable",
-  "tagTable",
-  "userTable",
-  "users",
-];
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -83,6 +30,9 @@ export const appConfig: ApplicationConfig = {
     // The retry sits inside httpInterceptor, so a toast is shown only for a request that was still refused after it.
     provideHttpClient(withXhr(), withInterceptors([serviceWorkerBypassInterceptor, httpInterceptor, rateLimitRetryInterceptor, ...demoInterceptors])),
     provideNgxMask(),
+    // The money pipe (customCurrency) is built on Angular's CurrencyPipe and asks the injector for it. The shared
+    // module used to provide it to every page; components are standalone now, so it is provided here once.
+    CurrencyPipe,
     // App shell only (ngsw-config.json): API, SSE and OAuth calls always go to the network. Off in development.
     provideServiceWorker("ngsw-worker.js", {
       enabled: !isDevMode() && !DEMO_MODE,
@@ -117,14 +67,13 @@ export const appConfig: ApplicationConfig = {
       withNgxsStoragePlugin({ keys: ngxsStorageKeys }),
       withNgxsReduxDevtoolsPlugin({ disabled: environment.isProd }),
     ),
+    // The router and the API client come from their modules. Nothing reports their absence at build time: without
+    // this block the app starts and shows an empty page (the demo's Playwright suite is what notices).
     importProvidersFrom(
       ApiModule.forRoot(() => new Configuration({ basePath: undefined })),
       AppRoutingModule,
       LayoutModule,
       ...HlmTooltipImports,
-      NgxMaskDirective,
-      NgxMaskPipe,
-      PipesModule,
     ),
     // Empty in the real app. The `demo` build swaps in an in-memory backend (src/demo, desktop/docs/demo.md).
     ...demoProviders,

@@ -6,7 +6,6 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { SnackbarService } from "../../services";
 import { UpdateUser } from "../../store";
 import { StoreModule } from "../../store/store.module";
@@ -18,25 +17,24 @@ describe("DummyUserConversionDialogComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [DummyUserConversionDialogComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
         ApiModule,
         StoreModule,
-        PipesModule,
-      ],
-      providers: [
+        DummyUserConversionDialogComponent,
+    ],
+    providers: [
         SnackbarService,
         {
-          provide: AppDialogRef,
-          useValue: {
-            close: () => { },
-          },
+            provide: AppDialogRef,
+            useValue: {
+                close: () => { },
+            },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    });
+    ]
+});
     fixture = TestBed.createComponent(DummyUserConversionDialogComponent);
     component = fixture.componentInstance;
     component.user = {} as any;
@@ -56,7 +54,7 @@ describe("DummyUserConversionDialogComponent", () => {
   });
 
   it("should call close when cancel button is clicked", () => {
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
     component.cancelButtonClicked();
 
     expect(dialogRefSpy).toHaveBeenCalledTimes(1);
@@ -72,7 +70,7 @@ describe("DummyUserConversionDialogComponent", () => {
     const storeSpy = vi.spyOn(store, "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogSpy = vi.spyOn(component.dialogRef, "close");
     dialogSpy.mockReturnValue(undefined);
 
     vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue(

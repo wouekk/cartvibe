@@ -32,12 +32,22 @@ categories, tags or payers, those limits are gone after the update: everyone in 
 back means restoring the copy of the database the server makes before it updates (`sqlite/backups`, a file named
 `app-upgrade-…`) and running the older version.
 
+**Comments become one note, and three statuses go.** At its first start this version turns each receipt's comments
+into the receipt's one note (a single comment as it was written; several as one line each, starting with the name of
+who wrote it), and makes every receipt either *To check* or *Settled*: *Needs attention* and *Draft* become
+*To check*, *Declined* becomes *Settled*. The app has shown only those two for a long time, so the lists look the
+same. The header shortcuts a person could add under their preferences are deleted. Like the roles, this is undone
+only by restoring the copy the server makes before it updates.
+
 Nothing else is needed by hand. The server copies its database before this version changes anything (see *Added*).
 Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed that setting),
 and you can add `stop_grace_period: 30s` to your stack as the README shows, so an update lets the server finish what
 it is doing.
 
 ### Added
+- **The month in one sentence on the Dashboard.** With a monthly goal set, the Dashboard opens with a line such as
+  "142,85 € of 650,00 € spent this month. Left: 20 days, so 25,35 € a day stays on goal." Over the goal it says by
+  how much instead *(DASH-12)*.
 - **Sign in with your own identity provider.** If you run Authentik, Authelia, Keycloak or another OpenID Connect
   provider, an admin can add it under *System Settings → Sign-in providers*, and the login page gets a *Sign in
   with …* button for it. People who already have an account connect the provider under *User Settings → Sign-in
@@ -83,10 +93,28 @@ it is doing.
 - **Two roles, and a household that shares everything.** There is Admin and there is User, in the app and inside a
   household, and nothing else: an Admin manages people, households, settings and reports; a User adds and changes
   receipts, lists, categories and tags. Everyone in a household sees every receipt in it, whoever added it, with
-  all its categories, tags and comments. A new account is a User; whoever creates a household is its Admin. People
+  all its categories, tags and its note. A new account is a User; whoever creates a household is its Admin. People
   who were on an older role are moved: someone who could manage people becomes an Admin, everyone else a User; in
   a household, someone who could change it or its members becomes its Admin, everyone else a User there
   *(HH-09, ADM-01)*.
+- **A receipt has one note instead of comments.** The receipt's form has a *Note* field, saved with the receipt and
+  emptied by saving it empty; the comment thread under a receipt is gone, and what was in it is in the note. The
+  receipts list's optional *Comment* column is now *Note*, and stays where you had it. Search reads the note as it
+  read the comments. A household can hide the note under its Receipt Settings *(RCPT-09, RCPT-10, RCPT-11)*.
+  A household export made from now on carries the note, and an older CartVibe refuses to import it ("update
+  CartVibe first") rather than import receipts without their notes; an export made by an older version still
+  imports, comments included *(ADM-11, ADM-12)*.
+- **A receipt is To check or Settled, and nothing else.** The three older statuses that the app already showed as
+  one of these two are gone from the data as well, so a filter, a report and an export all say the same thing
+  *(RCPT-07)*.
+- **Quick Scan asks for the photo and nothing else.** Whoever scans is the one who paid and the receipt starts as
+  *To check*; someone in several households still picks the household. A household's Receipt Settings are now three
+  things: *Ask for a note* (a note field under each photo, which may stay empty), who paid when a scan does not say,
+  and the status a new scan starts with. The switches that showed or required a field per photo had not been
+  followed by the app for some time and are gone *(SCAN-14, SCAN-01)*.
+- **A receipt that is to check ends with *Looks right*.** Under the products of such a receipt there is one named
+  button that settles it, in place of the small tick in the page's header. Until then the lines without an amount
+  are listed first, and the page says how many there are *(RCPT-07)*.
 - **Receipt photos open faster and are kept by the browser.** A photo used to travel as text inside the page's
   data, a third larger than the file, on every visit, and a HEIC or PDF was converted each time. The server now
   keeps a ready copy and the browser keeps it too, so opening a receipt again shows its photo at once *(RCPT-02)*.
@@ -123,6 +151,9 @@ it is doing.
 - **Lists are cards on a phone.** Receipts, categories, tags, users, households, report templates and the activity
   log no longer scroll sideways on a phone: each row is a card with one ⋮ menu, and *Sort by* replaces the column
   headers. A receipt's product lines are cards as well *(APP-17)*.
+- **Dialogs are sheets on a phone.** A confirmation, Quick Scan, a filter or a form now rises from the bottom of
+  the screen and is as wide as it, so its buttons sit under the thumb instead of in the middle of the screen
+  *(APP-19)*.
 - **Buttons and fields are finger-sized on touch screens.** 44 pixels tall instead of 36; nothing changes with a
   mouse *(APP-16)*.
 - **The theme is chosen in Settings.** The palette menu and the Day/Night switch left the header, which on a phone
@@ -184,7 +215,7 @@ it is doing.
 - **A lost connection no longer signs you out.** Opening the app in a dead zone, a server restarting during an update
   or a busy server used to sign you out and reset the theme, palette and language. Now only a session the server
   really refuses ends, and those three choices are kept even then *(APP-13)*.
-- **The AI cannot set who paid, the status or a comment.** Whatever a model made up, or read off a receipt, in those
+- **The AI cannot set who paid, the status or the note.** Whatever a model made up, or read off a receipt, in those
   fields is ignored; they come from the person who scanned *(SCAN-07)*.
 - **A local model's error is shown.** When Ollama answers with an error (a model that is not installed, for example),
   the failed scan now says so instead of "the answer could not be read" *(ADM-05)*.
@@ -202,8 +233,17 @@ it is doing.
   (limiting someone to chosen categories and tags). Gone from a household's edit page: *Isolate members*. Gone
   with them, for anyone who had set them up through the API: roles of your own, a role that showed only receipts
   paid by certain people, a role limited to certain report templates, and a role that required a comment or a
-  photo on every receipt. A household that wants a comment on each Quick Scan still has that switch in its
-  receipt settings *(HH-09)*.
+  photo on every receipt. A household that wants a note with each Quick Scan can ask for one in its receipt
+  settings; it is never required *(HH-09)*.
+- **Header shortcuts.** The links a person could add to the header under their preferences (a name, an address and
+  an icon) are gone; they never showed on a phone. The shortcuts on the installed app's icon *(APP-12)* are a
+  different thing and stay.
+- **The comment on a bulk status change.** Changing the status of several selected receipts no longer offers a
+  comment to add to each.
+- **The comment addresses of the API.** `POST /api/comment` and `DELETE /api/comment/{id}` no longer exist: a
+  receipt's note is the `note` field of the receipt itself. A Quick Scan sent by a script names its notes in
+  `notes` (the old `comments` field is still read), a receipt list is sorted by `note` (the old `first_comment`
+  still works), and a status the API no longer has is read as the one it became.
 - **The role addresses of the API.** `POST /api/role`, `PUT` and `DELETE /api/role/{id}`,
   `PUT /api/role/{id}/default`, `PUT /api/group/{id}/member/{userId}/grants` and
   `GET /api/report/template/options` no longer exist; `GET /api/role` still lists the roles.

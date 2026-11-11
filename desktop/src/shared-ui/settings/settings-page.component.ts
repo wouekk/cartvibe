@@ -1,15 +1,15 @@
 import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The shell every settings page shares: title, description, primary action top right, optional tab strip, content.
  * Every settings page fills the shared page width (--page-max) so a page never changes width between menus.
  */
 @Component({
-  selector: "app-settings-page",
-  standalone: false,
-  host: { class: "block", "[class]": "hostClass()" },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  template: `
+    selector: "app-settings-page",
+    host: { class: "block", "[class]": "hostClass()" },
+    changeDetection: ChangeDetectionStrategy.Eager,
+    template: `
     <div class="flex flex-col gap-6" data-testid="settings-page">
       <div class="flex min-w-0 flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -31,6 +31,7 @@ import { Component, computed, input, ChangeDetectionStrategy } from "@angular/co
       </div>
     </div>
   `,
+    imports: [ TranslatePipe],
 })
 export class SettingsPageComponent {
   public readonly title = input<string>("");

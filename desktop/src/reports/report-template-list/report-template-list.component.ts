@@ -11,7 +11,7 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { EMPTY, catchError, finalize, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
@@ -34,6 +34,15 @@ import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { TableComponent } from "../../table/table/table.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.component";
+import { DeleteButtonComponent } from "../../shared-ui/delete-button/delete-button.component";
+import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 /**
  * The Reports landing page: a paged table of saved report templates. Each row
@@ -43,19 +52,31 @@ import { TranslationService } from "../../i18n/translation.service";
  * Detail/Formats columns are read out of each template's stored configuration.
  */
 @Component({
-  selector: "app-report-template-list",
-  templateUrl: "./report-template-list.component.html",
-  host: DEFAULT_HOST_CLASS,
-  providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-report-template-list",
+    templateUrl: "./report-template-list.component.html",
+    host: DEFAULT_HOST_CLASS,
+    providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        TableHeaderComponent,
+        AddButtonComponent,
+        TableComponent,
+        AppIconComponent,
+        RouterLink,
+        ButtonComponent,
+        EditButtonComponent,
+        DeleteButtonComponent,
+        TranslatePipe,
+        TranslateDataPipe,
+        AppDatePipe,
+    ],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
   private readonly translation = inject(TranslationService);
 
   private readonly router = inject(Router);
   private readonly store = inject(Store);
-  private readonly matDialog = inject(AppDialog);
+  private readonly dialog = inject(AppDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly runner = inject(ReportRunnerService);
   private readonly destroyRef = inject(DestroyRef);
@@ -129,13 +150,13 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
 
   private setColumns(): void {
     this.columns = [
-      { columnHeader: "Name", matColumnDef: "name", template: this.nameCell(), sortable: true },
-      { columnHeader: "Scope", matColumnDef: "scope", template: this.scopeCell(), sortable: false },
-      { columnHeader: "Grouping", matColumnDef: "grouping", template: this.groupingCell(), sortable: false },
-      { columnHeader: marker("Detail"), matColumnDef: "detail", template: this.detailCell(), sortable: false },
-      { columnHeader: marker("Formats"), matColumnDef: "formats", template: this.formatsCell(), sortable: false },
-      { columnHeader: marker("Updated"), matColumnDef: "updated_at", template: this.updatedCell(), sortable: true },
-      { columnHeader: "", matColumnDef: "actions", template: this.actionsCell(), sortable: false },
+      { columnHeader: "Name", columnDef: "name", template: this.nameCell(), sortable: true },
+      { columnHeader: "Scope", columnDef: "scope", template: this.scopeCell(), sortable: false },
+      { columnHeader: "Grouping", columnDef: "grouping", template: this.groupingCell(), sortable: false },
+      { columnHeader: marker("Detail"), columnDef: "detail", template: this.detailCell(), sortable: false },
+      { columnHeader: marker("Formats"), columnDef: "formats", template: this.formatsCell(), sortable: false },
+      { columnHeader: marker("Updated"), columnDef: "updated_at", template: this.updatedCell(), sortable: true },
+      { columnHeader: "", columnDef: "actions", template: this.actionsCell(), sortable: false },
     ];
     this.setInitialSortedColumn(
       this.baseTableService.getPagedRequestCommand() as PagedTableInterface,
@@ -220,7 +241,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   }
 
   public delete(template: ReportTemplate): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
     dialogRef.componentInstance.headerText = marker("Delete Report Template");
     dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete \"{name}\"? This action is irreversible.", { name: template.name });

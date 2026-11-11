@@ -1,20 +1,16 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from "@angular/core";
+import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { FormArray, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
-import { FormConfig } from "src/interfaces/form-config.interface";
 import { InputReadonlyPipe } from "src/pipes/input-readonly.pipe";
-import { EditableListComponent } from "src/shared-ui/editable-list/editable-list.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
-import { Permission, UserPreferences, UserPreferencesService, UserShortcut } from "../../open-api";
-import { PipesModule } from "../../pipes";
+import { Permission, UserPreferences, UserPreferencesService } from "../../open-api";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { StoreModule } from "../../store/store.module";
-import { UserShortcutComponent } from "../user-shortcut/user-shortcut.component";
 
 import { UserPreferencesComponent } from "./user-preferences.component";
 
@@ -24,41 +20,29 @@ describe("UserPreferencesComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [UserPreferencesComponent, InputReadonlyPipe],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
         ReactiveFormsModule,
         StoreModule,
-        PipesModule,
-        SharedUiModule
-      ],
-      providers: [
+        SharedUiModule,
+        UserPreferencesComponent, InputReadonlyPipe
+    ],
+    providers: [
         UserPreferencesService,
         {
-          provide: ActivatedRoute,
-          useValue: { snapshot: { data: { formConfig: {} } } },
+            provide: ActivatedRoute,
+            useValue: { snapshot: { data: { formConfig: {} } } },
         },
         {
-          provide: Router,
-          useValue: { navigate: vi.fn().mockResolvedValue(true) },
+            provide: Router,
+            useValue: { navigate: vi.fn().mockResolvedValue(true) },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    });
+    ]
+});
     fixture = TestBed.createComponent(UserPreferencesComponent);
     component = fixture.componentInstance;
-    Object.defineProperty(component, 'userShortcutComponent', {
-      value: () => ({
-        editableListComponent: () => ({
-          openLastRow: vi.fn(),
-          closeRow: vi.fn(),
-          getCurrentRowOpen: vi.fn(),
-        }),
-        isAddingShortcut: false,
-      }),
-      configurable: true,
-    });
     fixture.detectChanges();
   });
 
@@ -87,7 +71,6 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultStatus: "",
       monthlySpendingGoal: "",
       closeChipSelectOnSelect: false,
-      userShortcuts: [],
       region: "browser",
       warrantyPeriodYears: "automatic",
       warrantyReminderLeadDays: "30",
@@ -105,7 +88,6 @@ describe("UserPreferencesComponent", () => {
           quickScanDefaultGroupId: "2",
           quickScanDefaultStatus: "OPEN",
           closeChipSelectOnSelect: true,
-              userShortcuts: [{ id: 1, name: "Test", url: "test", icon: "icon" }],
         },
       },
     });
@@ -117,7 +99,6 @@ describe("UserPreferencesComponent", () => {
       quickScanDefaultStatus: "OPEN",
       monthlySpendingGoal: "",
       closeChipSelectOnSelect: true,
-      userShortcuts: [{ name: "Test", url: "test", icon: "icon", trackby: 0 }],
       region: "browser",
       warrantyPeriodYears: "automatic",
       warrantyReminderLeadDays: "30",
@@ -171,7 +152,6 @@ describe("UserPreferencesComponent", () => {
       displayCurrency: "",
       displayCurrencyRate: null,
       closeChipSelectOnSelect: false,
-      userShortcuts: [],
       region: "",
       warrantyPeriodYears: null,
       warrantyReminderLeadDays: 30,
@@ -219,27 +199,24 @@ describe("UserPreferencesComponent", () => {
       expect(serviceSpy).toHaveBeenCalledWith(expect.objectContaining({ displayCurrency: "", displayCurrencyRate: null }));
     });
   });
-  describe("when userShortcutComponent is not yet available", () => {
-    beforeEach(() => {
-      Object.defineProperty(component, 'userShortcutComponent', {
-        value: () => undefined,
-        configurable: true,
-      });
-    });
 
-    it("should not throw on addNewShortcut", () => {
-      component.ngOnInit();
-      expect(() => component.addNewShortcut()).not.toThrow();
+  it("has no shortcut list: a stored one from an older version is neither shown nor sent back", () => {
+    const store = TestBed.inject(Store);
+    store.reset({
+      ...store.snapshot(),
+      auth: {
+        ...store.snapshot().auth,
+        userPreferences: { userShortcuts: [{ id: 1, name: "Test", url: "test", icon: "icon" }] },
+      },
     });
+    const serviceSpy = vi
+      .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
+      .mockReturnValue(of({} as any));
 
-    it("should not throw on shortcutDoneClicked", () => {
-      component.ngOnInit();
-      expect(() => component.shortcutDoneClicked()).not.toThrow();
-    });
+    component.ngOnInit();
+    expect(component.form.get("userShortcuts")).toBeNull();
+    component.submit();
 
-    it("should not throw on shortcutCancelClicked", () => {
-      component.ngOnInit();
-      expect(() => component.shortcutCancelClicked()).not.toThrow();
-    });
+    expect(Object.keys(serviceSpy.mock.calls[0][0] as object)).not.toContain("userShortcuts");
   });
 });

@@ -9,20 +9,29 @@ import { SourceFileViewerDialogComponent } from "./source-file-viewer-dialog.com
 // Stubbed rather than pulled in from SharedUiModule: the real app-image-viewer
 // renders an image canvas that wants a live image load, and the point here is the
 // binding, not their rendering.
-@Component({ selector: "app-dialog", template: "<ng-content></ng-content>", standalone: false })
+@Component({
+    selector: "app-dialog", template: "<ng-content></ng-content>",
+    imports: [TranslatePipe]
+})
 class DialogStubComponent {
   @Input() public headerText?: string;
 }
 
-@Component({ selector: "app-image-viewer", template: "", standalone: false })
+@Component({
+    selector: "app-image-viewer", template: "",
+    imports: [TranslatePipe]
+})
 class ImageViewerStubComponent {
   @Input() public imageBase64?: string;
 }
 
-@Component({ selector: "app-button", template: "", standalone: false })
+@Component({
+    selector: "app-button", template: "",
+    imports: [TranslatePipe]
+})
 class ButtonStubComponent {
   @Input() public buttonText?: string;
-  @Input() public matButtonType?: string;
+  @Input() public buttonType?: string;
 }
 
 describe("SourceFileViewerDialogComponent", () => {
@@ -32,19 +41,18 @@ describe("SourceFileViewerDialogComponent", () => {
   const data = { name: "receipt.png", encodedImage: "data:image/png;base64,AAA" };
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [
-        SourceFileViewerDialogComponent,
-        DialogStubComponent,
-        ImageViewerStubComponent,
-        ButtonStubComponent,
-      ],
-      providers: [
+    TestBed.configureTestingModule({
+    imports: [SourceFileViewerDialogComponent],
+    providers: [
         { provide: AppDialogRef, useValue: dialogRef },
         { provide: APP_DIALOG_DATA, useValue: data },
-      ],
-    }).compileComponents();
+    ],
+});
+    // The stand-ins take the place of the real children the component imports.
+    TestBed.overrideComponent(SourceFileViewerDialogComponent, {
+      set: { imports: [TranslatePipe, DialogStubComponent, ImageViewerStubComponent, ButtonStubComponent] },
+    });
+    await TestBed.compileComponents();
 
     fixture = TestBed.createComponent(SourceFileViewerDialogComponent);
     component = fixture.componentInstance;

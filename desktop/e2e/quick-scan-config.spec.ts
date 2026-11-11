@@ -8,15 +8,14 @@ import {
   withAdminApi,
 } from './helpers/provisioning';
 
-// Drives the group receipt settings "Quick Scan" config UI as an admin (group owner → group.update).
-// Asserts the section renders, the conditional default controls appear/disappear per the Show/Require
-// toggles, and that the form's validation gates Save when an optional field has no configured default.
-// The settings page is always editable: Save stays on /edit and answers with a toast, so a save is
-// proven by the PUT /groupReceiptSettings response, not by a navigation.
+// Drives a household's Receipt Settings as an admin (the household's owner). A Quick Scan is a photo and nothing
+// else, so the page holds one switch (ask for a note) and two defaults (who paid, the status of a new scan).
+// The settings page is always editable: Save stays on /edit and answers with a toast, so a save is proven by the
+// PUT /groupReceiptSettings response and by what a reload shows, not by a navigation.
 
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
-test.describe('Quick scan group receipt settings', () => {
+test.describe('Household receipt settings', () => {
   test.describe.configure({ mode: 'serial' });
 
   let groupId: string;
@@ -34,11 +33,15 @@ test.describe('Quick scan group receipt settings', () => {
     });
   });
 
+  async function openSettings(page: Page): Promise<void> {
+    await page.goto(`/groups/${groupId}/receipt-settings/edit`);
+    // The page has loaded once its (uniquely identified) controls are present.
+    await expect(page.getByTestId('quick-scan-note-show').getByRole('checkbox')).toBeVisible();
+  }
+
   test.beforeEach(async ({ page }) => {
     await stubTokenRefresh(page);
-    await page.goto(`/groups/${groupId}/receipt-settings/edit`);
-    // The Quick Scan section has loaded once its (uniquely identified) controls are present.
-    await expect(page.getByTestId('quick-scan-paidby-show').getByRole('checkbox')).toBeVisible();
+    await openSettings(page);
   });
 
   /** Clicks Save and returns the status of the settings PUT it sends. */
@@ -52,94 +55,90 @@ test.describe('Quick scan group receipt settings', () => {
     return response.status();
   }
 
-  test('reveals the paid-by/status defaults only when the field is optional', async ({ page }) => {
-    const defaultPaidBy = comboboxNamed(page, 'Default Paid By');
-    const defaultPaidByUser = comboboxNamed(page, 'Default Paid By User');
+  test('a new household asks for nothing in Quick Scan, and has no switch per field', async ({ page }) => {
+    await expect(page.getByTestId('quick-scan-note-show').getByRole('checkbox')).not.toBeChecked();
+    await expect(page.getByTestId('receipt-settings-hide-note').getByRole('checkbox')).not.toBeChecked();
+    await expect(comboboxNamed(page, 'Paid by, when a scan does not say')).toContainText('The person scanning');
 
-    // Shown + required → no default needed → default controls hidden.
-    await setAppCheckbox(page.getByTestId('quick-scan-paidby-show'), true);
-    await setAppCheckbox(page.getByTestId('quick-scan-paidby-require'), true);
-    await expect(defaultPaidBy).toHaveCount(0);
-
-    // Optional → the default paid-by selector appears.
-    await setAppCheckbox(page.getByTestId('quick-scan-paidby-require'), false);
-    await expect(defaultPaidBy).toBeVisible();
-
-    // "Specific user" reveals the member autocomplete; "Uploader" hides it again.
-    await defaultPaidBy.click();
-    await page.getByRole('option', { name: 'Specific user', exact: true }).click();
-    await expect(defaultPaidByUser).toBeVisible();
-
-    await defaultPaidBy.click();
-    await page.getByRole('option', { name: 'Uploader', exact: true }).click();
-    await expect(defaultPaidByUser).toHaveCount(0);
-
-    // Status behaves the same way.
-    const defaultStatus = comboboxNamed(page, 'Default Status');
-    await setAppCheckbox(page.getByTestId('quick-scan-status-show'), true);
-    await setAppCheckbox(page.getByTestId('quick-scan-status-require'), true);
-    await expect(defaultStatus).toHaveCount(0);
-    await setAppCheckbox(page.getByTestId('quick-scan-status-require'), false);
-    await expect(defaultStatus).toBeVisible();
+    // The switches that showed or required a field per photo are gone.
+    await expect(page.getByTestId('quick-scan-paidby-show')).toHaveCount(0);
+    await expect(page.getByTestId('quick-scan-status-show')).toHaveCount(0);
+    await expect(page.getByTestId('quick-scan-comment-show')).toHaveCount(0);
   });
 
-  test('blocks save until an optional paid-by has a default', async ({ page }) => {
-    await setAppCheckbox(page.getByTestId('quick-scan-paidby-show'), true);
-    await setAppCheckbox(page.getByTestId('quick-scan-paidby-require'), false);
+  test('asks who, and only then, for "Always the same person"', async ({ page }) => {
+    const paidBy = comboboxNamed(page, 'Paid by, when a scan does not say');
+    const person = comboboxNamed(page, 'Person');
+    await expect(person).toHaveCount(0);
 
-    // "Specific user" with no user chosen → form invalid → Save sends nothing.
     const requests: string[] = [];
     page.on('request', (r) => {
       if (r.method() === 'PUT' && r.url().includes('/groupReceiptSettings')) {
         requests.push(r.url());
       }
     });
-    await comboboxNamed(page, 'Default Paid By').click();
-    await page.getByRole('option', { name: 'Specific user', exact: true }).click();
+
+    // "Always the same person" with nobody chosen: the form is invalid and Save sends nothing.
+    await paidBy.click();
+    await page.getByRole('option', { name: 'Always the same person', exact: true }).click();
+    await expect(person).toBeVisible();
     await page.getByRole('button', { name: 'Save' }).click();
-    await expect(comboboxNamed(page, 'Default Paid By User')).toBeVisible();
+    await expect(person).toBeVisible();
     expect(requests).toHaveLength(0);
 
-    // Switch to "Uploader" (a complete default) → Save is accepted by the server.
-    await comboboxNamed(page, 'Default Paid By').click();
-    await page.getByRole('option', { name: 'Uploader', exact: true }).click();
+    // Back to the person scanning: the picker goes and the server takes the save.
+    await paidBy.click();
+    await page.getByRole('option', { name: 'The person scanning', exact: true }).click();
+    await expect(person).toHaveCount(0);
     expect(await saveAndGetStatus(page)).toBe(200);
     expect(requests).toHaveLength(1);
   });
 
-  test('greys out the comment toggles while comments are hidden, keeping their values', async ({ page }) => {
-    const commentShow = page.getByTestId('quick-scan-comment-show').getByRole('checkbox');
-    const commentRequire = page.getByTestId('quick-scan-comment-require').getByRole('checkbox');
-    const hideComments = page.getByText('Hide Comments', { exact: true });
+  test('greys out the Quick Scan note switch while the note is hidden, keeping its value', async ({ page }) => {
+    const askForNote = page.getByTestId('quick-scan-note-show').getByRole('checkbox');
 
-    await setAppCheckbox(page.getByTestId('quick-scan-comment-show'), true);
-    await setAppCheckbox(page.getByTestId('quick-scan-comment-require'), true);
-    await expect(commentShow).toBeEnabled();
+    await setAppCheckbox(page.getByTestId('quick-scan-note-show'), true);
+    await expect(askForNote).toBeEnabled();
 
-    // Hiding comments group-wide hides the quick-scan comment too — the toggles grey out but keep
-    // their values (derived state, nothing is cleared).
-    await hideComments.click();
-    await expect(commentShow).toBeDisabled();
-    await expect(commentRequire).toBeDisabled();
-    await expect(commentShow).toBeChecked();
-    await expect(commentRequire).toBeChecked();
+    // Hiding the note for the household hides it in Quick Scan too: the switch greys out but keeps its value.
+    await setAppCheckbox(page.getByTestId('receipt-settings-hide-note'), true);
+    await expect(askForNote).toBeDisabled();
+    await expect(askForNote).toBeChecked();
+    await expect(page.getByTestId('quick-scan-note-hidden-hint')).toBeVisible();
 
-    // Un-hiding restores them exactly as configured.
-    await hideComments.click();
-    await expect(commentShow).toBeEnabled();
-    await expect(commentShow).toBeChecked();
-    await expect(commentRequire).toBeChecked();
+    // Showing the note again restores the switch exactly as it was.
+    await setAppCheckbox(page.getByTestId('receipt-settings-hide-note'), false);
+    await expect(askForNote).toBeEnabled();
+    await expect(askForNote).toBeChecked();
+    await expect(page.getByTestId('quick-scan-note-hidden-hint')).toHaveCount(0);
   });
 
-  test('persists the comment configuration', async ({ page }) => {
-    await setAppCheckbox(page.getByTestId('quick-scan-comment-show'), true);
-    await setAppCheckbox(page.getByTestId('quick-scan-comment-require'), true);
+  test('keeps the note switch through a save made while the note is hidden', async ({ page }) => {
+    await setAppCheckbox(page.getByTestId('quick-scan-note-show'), true);
+    await setAppCheckbox(page.getByTestId('receipt-settings-hide-note'), true);
     expect(await saveAndGetStatus(page)).toBe(200);
 
-    // Reload the edit page: the toggles must come back checked. A field missing from the API's
-    // update assignment block persists nothing and fails only here.
-    await page.goto(`/groups/${groupId}/receipt-settings/edit`);
-    await expect(page.getByTestId('quick-scan-comment-show').getByRole('checkbox')).toBeChecked();
-    await expect(page.getByTestId('quick-scan-comment-require').getByRole('checkbox')).toBeChecked();
+    // Reload: both come back as saved. A greyed-out switch left out of the request would come back off.
+    await openSettings(page);
+    await expect(page.getByTestId('receipt-settings-hide-note').getByRole('checkbox')).toBeChecked();
+    await expect(page.getByTestId('quick-scan-note-show').getByRole('checkbox')).toBeChecked();
+
+    await setAppCheckbox(page.getByTestId('receipt-settings-hide-note'), false);
+    expect(await saveAndGetStatus(page)).toBe(200);
+
+    await openSettings(page);
+    await expect(page.getByTestId('receipt-settings-hide-note').getByRole('checkbox')).not.toBeChecked();
+    await expect(page.getByTestId('quick-scan-note-show').getByRole('checkbox')).toBeChecked();
+    await expect(page.getByTestId('quick-scan-note-show').getByRole('checkbox')).toBeEnabled();
+  });
+
+  test('persists the status of a new scan', async ({ page }) => {
+    const status = comboboxNamed(page, 'Status of a new scan');
+    await status.click();
+    await page.getByRole('option', { name: 'Settled', exact: true }).click();
+    expect(await saveAndGetStatus(page)).toBe(200);
+
+    await openSettings(page);
+    await expect(comboboxNamed(page, 'Status of a new scan')).toContainText('Settled');
   });
 });

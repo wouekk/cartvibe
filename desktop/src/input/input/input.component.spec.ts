@@ -27,25 +27,23 @@ describe("InputComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [InputComponent],
-      imports: [TranslatePipe, 
+    imports: [TranslatePipe,
         CommonModule,
         HlmButton,
         AppIconComponent,
         ...HlmTooltipImports,
         ReactiveFormsModule,
         NgxMaskDirective,
-        NgxsModule.forRoot([SystemSettingsState]),
-      ],
-      providers: [
+        NgxsModule.forRoot([SystemSettingsState]), InputComponent,],
+    providers: [
         provideNgxMask(),
         provideZonelessChangeDetection(),
         {
-          provide: PasswordGeneratorService,
-          useValue: passwordGeneratorService,
+            provide: PasswordGeneratorService,
+            useValue: passwordGeneratorService,
         },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(InputComponent);
     component = fixture.componentInstance;

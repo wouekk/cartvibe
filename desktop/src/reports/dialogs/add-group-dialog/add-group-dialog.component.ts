@@ -4,6 +4,12 @@ import { Store } from "@ngxs/store";
 import { AuthState, GroupState } from "src/store";
 import { Permission } from "../../../open-api";
 import { CHIP_COLORS, groupInitials } from "../../models/report-chip.util";
+import { DialogComponent } from "../../../shared-ui/dialog/dialog.component";
+import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../../ui/button/lib/hlm-button";
+import { DialogFooterComponent } from "../../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../../i18n/translate.pipe";
 
 export interface AddGroupDialogData {
   selectedGroupIds: string[];
@@ -23,10 +29,17 @@ interface GroupChoice {
  * selected group-id array on submit, or undefined on cancel.
  */
 @Component({
-  selector: "app-add-group-dialog",
-  templateUrl: "./add-group-dialog.component.html",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-add-group-dialog",
+    templateUrl: "./add-group-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DialogComponent,
+        AppIconComponent,
+        BrnButton,
+        HlmButton,
+        DialogFooterComponent,
+        TranslatePipe,
+    ],
 })
 export class AddGroupDialogComponent {
   private readonly store = inject(Store);

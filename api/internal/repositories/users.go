@@ -1,12 +1,12 @@
 package repositories
 
 import (
-	"errors"
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/permissions"
 	"cartvibe/api/internal/structs"
 	"cartvibe/api/internal/utils"
+	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,7 +19,7 @@ type UserRepository struct {
 func NewUserRepository(tx *gorm.DB) UserRepository {
 	repository := UserRepository{BaseRepository: BaseRepository{
 		DB: GetDB(),
-		TX:   tx,
+		TX: tx,
 	}}
 	return repository
 }
@@ -119,7 +119,7 @@ func (repository UserRepository) CreateUser(userData commands.SignUpCommand) (mo
 		}
 
 		// A new account is greeted once at its first sign-in (language, theme, currency).
-		userPreferences := models.UserPrefernces{UserId: user.ID, OnboardingPending: true}
+		userPreferences := models.UserPreferences{UserId: user.ID, OnboardingPending: true}
 		_, err = userPreferencesRepository.CreateUserPreferences(userPreferences)
 		if err != nil {
 			return err

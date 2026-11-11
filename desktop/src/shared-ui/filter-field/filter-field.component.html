@@ -1,8 +1,9 @@
 <div class="flex">
   @if ((parentForm() | formGet : basePath() + fieldName() + '.operation').value === FilterOperation.Between) {
-    <div class="flex w-full">
-      <div class="flex w-1/2 items-center">
-        <div class="w-1/2">
+    <!-- A range: beside its Operation on a wide screen; on a phone the two fields take the row and Operation goes under. -->
+    <div class="flex w-full max-md:flex-col max-md:gap-2">
+      <div class="flex w-1/2 items-center gap-2 max-md:w-full">
+        <div class="w-1/2 min-w-0">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
             [label]="'Start {label}' | t: { label: (label() | t) }"
@@ -25,7 +26,7 @@
         <span class="between-separator">
           {{ 'and' | t }}
         </span>
-        <div class="w-1/2">
+        <div class="w-1/2 min-w-0">
           <app-input
             *ngIf="type() === 'text' || type() === 'number'"
             [label]="'End {label}' | t: { label: (label() | t) }"
@@ -41,7 +42,7 @@
         </div>
       </div>
 
-      <div class="ms-2 w-1/2">
+      <div class="ms-2 w-1/2 max-md:ms-0 max-md:w-full">
         <app-select
           [label]="'Operation' | t"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
@@ -52,9 +53,10 @@
       </div>
     </div>
   } @else if ((parentForm() | formGet : basePath() + fieldName() + '.operation').value === FilterOperation.WithinCurrentMonth) {
-    <div class="flex w-full">
-      <div class="flex w-1/2 items-center">
-        <div class="w-1/2">
+    <!-- A range: beside its Operation on a wide screen; on a phone the two fields take the row and Operation goes under. -->
+    <div class="flex w-full max-md:flex-col max-md:gap-2">
+      <div class="flex w-1/2 items-center gap-2 max-md:w-full">
+        <div class="w-1/2 min-w-0">
           <app-datepicker
             *ngIf="type() === 'date'"
             [label]="'Start {label}' | t: { label: (label() | t) }"
@@ -65,7 +67,7 @@
         <span class="between-separator">
           {{ 'and' | t }}
         </span>
-        <div class="w-1/2">
+        <div class="w-1/2 min-w-0">
           <app-datepicker
             *ngIf="type() === 'date'"
             [label]="'End {label}' | t: { label: (label() | t) }"
@@ -75,7 +77,7 @@
         </div>
       </div>
 
-      <div class="ms-2 w-1/2">
+      <div class="ms-2 w-1/2 max-md:ms-0 max-md:w-full">
         <app-select
           [label]="'Operation' | t"
           [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.operation'"
@@ -108,7 +110,7 @@
       [inputFormControl]="parentForm() | formGet : basePath() + fieldName() + '.value'"
     >
     </app-datepicker>
-    <app-autocomlete
+    <app-autocomplete
       *ngIf="type() === 'list'"
       class="w-1/2"
       [multiple]="multiple()"
@@ -119,7 +121,7 @@
       [optionFilterKey]="optionFilterKey()"
       [optionDisplayKey]="optionDisplayKey()"
     >
-    </app-autocomlete>
+    </app-autocomplete>
     <app-select
       class="ms-2 w-1/2"
       [label]="'Operation' | t"

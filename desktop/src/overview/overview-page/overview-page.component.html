@@ -38,7 +38,7 @@
             icon="receipt_long"
             [buttonText]="'Quick Scan' | t"
             [tooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-quick-scan"
             (clicked)="openQuickScan()"
           ></app-button>
@@ -47,7 +47,7 @@
           <app-button
             icon="playlist_add"
             [buttonText]="'New list' | t"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-new-list"
             [buttonRouterLink]="newListLink()"
             [buttonQueryParams]="{ new: 'list' }"
@@ -57,7 +57,7 @@
           icon="barcode_scanner"
           [buttonText]="'Check product' | t"
           [tooltip]="'Check a product barcode' | t"
-          matButtonType="matRaisedButton"
+          buttonType="raised"
           data-testid="overview-scan-product"
           (clicked)="scanProduct()"
         ></app-button>
@@ -66,7 +66,7 @@
             icon="tune"
             [buttonText]="'Customize' | t"
             [tooltip]="'Choose and arrange the dashboard panels' | t"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-customise"
             [buttonRouterLink]="customiseLink()"
           ></app-button>
@@ -79,6 +79,11 @@
     <app-period-picker (periodChange)="period.set($event)"></app-period-picker>
     <span class="ml-auto text-sm text-muted-foreground" data-testid="overview-period-label">{{ periodLabel() }}</span>
   </div>
+
+  <!-- The month in one sentence, before any panel: only for the running month with a goal set. -->
+  @if (!customising() && summarySentence(); as sentence) {
+    <p class="m-0 text-base text-foreground" data-testid="overview-summary">{{ sentence }}</p>
+  }
 
   @if (!period()) {
     <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-pick-range">{{ 'Type a first and a last day for the custom range, like 01/10/2026.' | t }}</p>
@@ -498,134 +503,22 @@
                   </section>
                 }
                 @case ('recentReceipts') {
-                  <section class="cv-panel" aria-labelledby="overview-receipts-title">
-                    <div class="cv-panel-header">
-                      <h2 id="overview-receipts-title">{{ 'Receipts in {period}' | t: { period: periodLabel() } }}</h2>
-                      <a [routerLink]="['/receipts/group', groupId()]">{{ 'All receipts' | t }}</a>
-                    </div>
-                    @if (recentReceipts().length > 0) {
-                      <!-- With a mouse it scrolls under the wheel, header pinned; the page takes over at either end. -->
-                      <div
-                        class="overflow-x-auto"
-                        [class.cv-scroll-y]="recentReceiptsMaxHeight()"
-                        [style.max-height]="recentReceiptsMaxHeight()"
-                        [attr.data-scrollable]="recentReceiptsMaxHeight() ? '' : null"
-                        data-testid="overview-recent-receipts-scroll"
-                      >
-                        <table hlmTable class="w-full min-w-[35rem]" data-testid="overview-recent-receipts">
-                          <thead class="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_var(--border)]">
-                            <tr hlmTr>
-                              <th hlmTh scope="col">{{ 'Date' | t }}</th>
-                              <th hlmTh scope="col">{{ 'Shop' | t }}</th>
-                              <th hlmTh scope="col">{{ 'Added by' | t }}</th>
-                              <th hlmTh scope="col">{{ 'Status' | t }}</th>
-                              <th hlmTh scope="col" class="text-right">{{ 'Amount' | t }}</th>
-                            </tr>
-                          </thead>
-                          <tbody hlmTBody>
-                            @for (receipt of recentReceipts(); track receipt.id) {
-                              <tr hlmTr>
-                                <td hlmTd class="text-muted-foreground whitespace-nowrap">
-                                  <a class="text-inherit underline-offset-4 hover:text-foreground hover:underline" data-testid="overview-receipt-date-link" [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.date | appDate : "MMM d" : "calendar" }}</a>
-                                </td>
-                                <td hlmTd class="font-semibold">
-                                  <span class="inline-flex items-center gap-2">
-                                    <app-shop-monogram [name]="receipt.shopName || receipt.name"></app-shop-monogram>
-                                    <a [routerLink]="['/receipts', receipt.id, 'view']">{{ receipt.shopName || receipt.name }}</a>
-                                  </span>
-                                </td>
-                                <td hlmTd>{{ ((receipt.paidByUserId + "") | user)?.displayName ?? "—" }}</td>
-                                <td hlmTd><app-status-chip [status]="receipt.status"></app-status-chip></td>
-                                <td hlmTd class="text-right font-semibold"><app-money [value]="receipt.amount" [display]="true"></app-money></td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
-                    } @else {
-                      <div class="flex flex-col items-center gap-2 py-4 [&_.empty]:py-0" data-testid="overview-receipts-empty">
-                        <p class="m-0 py-6 text-center text-muted-foreground">{{ 'No receipts yet in {period}.' | t: { period: periodLabel() } }}</p>
-                        @if (canAddReceipt()) {
-                          <app-add-button
-                            [buttonText]="'Add receipt' | t"
-                            [tooltip]="'Add a receipt' | t"
-                            data-testid="overview-empty-add-receipt"
-                            [buttonRouterLink]="['/receipts/add']"
-                          ></app-add-button>
-                        }
-                      </div>
-                    }
-                  </section>
+                  <section
+                    app-overview-receipts-panel
+                    [receipts]="recentReceipts()"
+                    [periodLabel]="periodLabel()"
+                    [groupId]="groupId()"
+                    [maxHeight]="recentReceiptsMaxHeight()"
+                    [canAddReceipt]="canAddReceipt()"
+                  ></section>
                 }
                 @case ('warrantiesEndingSoon') {
-                  <section class="cv-panel" aria-labelledby="overview-warranties-title">
-                    <div class="cv-panel-header">
-                      <h2 id="overview-warranties-title">{{ 'Warranties ending soon' | t }}</h2>
-                      <a [routerLink]="['/warranties/group', groupId()]">{{ 'All warranties' | t }}</a>
-                    </div>
-                    @if (warrantyEndingSoonRows().length > 0) {
-                      <!-- Fixed layout: long names are cut with an ellipsis instead of pushing Days left off a phone. -->
-                      <table hlmTable class="w-full table-fixed" data-testid="overview-warranties-ending-soon">
-                        <thead>
-                          <tr hlmTr>
-                            <th hlmTh scope="col" class="w-[30%]">{{ 'Shop' | t }}</th>
-                            <th hlmTh scope="col">{{ 'Product' | t }}</th>
-                            <th hlmTh scope="col" class="w-32 max-sm:hidden">{{ 'Warranty until' | t }}</th>
-                            <th hlmTh scope="col" class="w-20 text-right sm:w-24">{{ 'Days left' | t }}</th>
-                            <th hlmTh scope="col" class="w-12"><span class="sr-only">{{ 'Actions' | t }}</span></th>
-                          </tr>
-                        </thead>
-                        <tbody hlmTBody>
-                          @for (row of warrantyEndingSoonRows(); track row.receiptId + ':' + $index) {
-                            <tr hlmTr>
-                              <td hlmTd class="font-semibold">
-                                @if (row.first) {
-                                  <span class="flex min-w-0 items-center gap-2">
-                                    <app-shop-monogram class="shrink-0 max-sm:hidden" [name]="row.shop"></app-shop-monogram>
-                                    <a class="truncate" [title]="row.shop" [routerLink]="['/receipts', row.receiptId, 'view']">{{ row.shop }}</a>
-                                  </span>
-                                }
-                              </td>
-                              <td hlmTd class="truncate" [title]="row.product" data-testid="overview-warranty-product">
-                                @if (row.product) {
-                                  <a [routerLink]="['/receipts', row.receiptId, 'view']">{{ row.product }}</a>
-                                } @else if (row.first) {
-                                  <span class="text-muted-foreground">–</span>
-                                }
-                              </td>
-                              <td hlmTd class="whitespace-nowrap text-muted-foreground max-sm:hidden">
-                                @if (row.first) {
-                                  {{ row.warrantyUntil | appDate : "MMM d, y" : "calendar" }}
-                                }
-                              </td>
-                              <td hlmTd class="whitespace-nowrap text-right font-semibold tabular-nums" [class.text-warning-text]="row.daysLeft <= 7" data-testid="overview-warranty-days-left">
-                                @if (row.first) {
-                                  @if (row.daysLeft === 0) {
-                                    {{ 'Today' | t }}
-                                  } @else {
-                                    {{ row.daysLeft }} {{ row.daysLeft | plural: 'day' : 'days' }}
-                                  }
-                                }
-                              </td>
-                              <td hlmTd class="text-right">
-                                @if (row.first) {
-                                  <app-warranty-menu
-                                    [receiptId]="row.receiptId"
-                                    [groupId]="row.groupId"
-                                    [shop]="row.shop"
-                                    [warrantyUntil]="row.warrantyUntil"
-                                    (changed)="reloadWarranties()"
-                                  ></app-warranty-menu>
-                                }
-                              </td>
-                            </tr>
-                          }
-                        </tbody>
-                      </table>
-                    } @else {
-                      <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-warranties-empty">{{ 'No warranty ends in the next two months.' | t }}</p>
-                    }
-                  </section>
+                  <section
+                    app-overview-warranties-panel
+                    [rows]="warrantyEndingSoonRows()"
+                    [groupId]="groupId()"
+                    (changed)="reloadWarranties()"
+                  ></section>
                 }
                 @case ('shoppingList') {
                   @if (shoppingListGroupId(); as listGroupId) {

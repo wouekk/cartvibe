@@ -3,13 +3,13 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { FormArray, FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { ReactiveFormsModule, Validators } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
+import { RECEIPT_NOTE_MAX_LENGTH } from "src/constants/receipt-note.constant";
 import { FormMode } from "src/enums/form-mode.enum";
-import { PipesModule } from "src/pipes/pipes.module";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -32,31 +32,27 @@ describe("ReceiptFormComponent", () => {
   beforeEach(async () => {
     routeDataSubject = new BehaviorSubject<any>({});
     await TestBed.configureTestingModule({
-      declarations: [ReceiptFormComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ApiModule,
-        PipesModule,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [ApiModule,
         StoreModule,
-        PipesModule,
         ReactiveFormsModule,
         SharedUiModule,
-        UserAutocompleteModule,
-      ],
-      providers: [
+        UserAutocompleteModule, ReceiptFormComponent,],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {}, queryParams: {}
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {}, queryParams: {}
+                },
+                data: routeDataSubject,
+                params: of({})
             },
-            data: routeDataSubject,
-            params: of({})
-          },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ReceiptFormComponent);
     component = fixture.componentInstance;
@@ -90,6 +86,7 @@ describe("ReceiptFormComponent", () => {
       // the old sentinel left a group-less form valid.
       groupId: "",
       status: ReceiptStatus.Open,
+      note: "",
     });
     vi.useRealTimers();
   });
@@ -431,7 +428,7 @@ describe("ReceiptFormComponent", () => {
   });
 
   // Full-receipt magic-fill ingest: proves the form takes in every field the
-  // backend can return (paid-by, status, items, shares, custom fields, comments),
+  // backend can return (paid-by, status, categories, tags),
   // not just the header fields, and drops nothing on the way into the form.
   describe("magicFill — full receipt ingest", () => {
     function stubCarousel(index = 0): void {
@@ -439,15 +436,6 @@ describe("ReceiptFormComponent", () => {
         value: () => ({ currentlyShownImageIndex: index }),
         configurable: true,
       });
-    }
-
-    function stubCommentsComponent(): { addMagicFilledComments: Mock } {
-      const addMagicFilledComments = vi.fn();
-      Object.defineProperty(component, "receiptCommentsComponent", {
-        value: () => ({ addMagicFilledComments }),
-        configurable: true,
-      });
-      return { addMagicFilledComments };
     }
 
     function stubPaidByAutocomplete(): { syncSingleDisplay: Mock } {
@@ -480,7 +468,6 @@ describe("ReceiptFormComponent", () => {
       component.mode = FormMode.edit;
 
       stubCarousel();
-      const { addMagicFilledComments } = stubCommentsComponent();
       const { syncSingleDisplay } = stubPaidByAutocomplete();
 
       component.categories = [
@@ -497,11 +484,12 @@ describe("ReceiptFormComponent", () => {
         amount: "100.00",
         date: "2023-08-05T00:00:00.000Z",
         paidByUserId: 7,
-        status: ReceiptStatus.NeedsAttention,
+        status: ReceiptStatus.Resolved,
         categories: [{ id: 1 }],
         tags: [{ id: 2 }],
-        comments: [{ comment: "auto comment", userId: 7 }],
       } as any;
+
+      component.form.patchValue({ note: "the household's own words" });
 
       mockMagicFill(magicReceipt);
       const successSpy = spySuccess();
@@ -515,20 +503,19 @@ describe("ReceiptFormComponent", () => {
       expect(value.amount).toEqual("100.00");
       expect(value.date).toEqual(new Date(2023, 7, 5));
       expect(value.paidByUserId).toEqual(7);
-      // Shown as "To check" (Phase 3 C6).
-      expect(value.status).toEqual(ReceiptStatus.Open);
+      expect(value.status).toEqual(ReceiptStatus.Resolved);
       expect(syncSingleDisplay).toHaveBeenCalled();
 
       // Categories/tags matched from the pool by id
       expect(value.categories).toEqual([component.categories[0]]);
       expect(value.tags).toEqual([component.tags[1]]);
 
-      // Comments handed to the (mode-aware) comments child
-      expect(addMagicFilledComments).toHaveBeenCalledWith(magicReceipt.comments);
+      // The note is the household's: Magic Fill never writes to it.
+      expect(value.note).toEqual("the household's own words");
 
       // Snackbar lists every filled field with reader-friendly labels
       expect(successSpy).toHaveBeenCalledWith(
-        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags, comments from selected image!",
+        "Magic fill successfully filled name, amount, date, paid by, status, categories, tags from selected image!",
         { duration: 10000 }
       );
     });
@@ -555,7 +542,6 @@ describe("ReceiptFormComponent", () => {
         status: "",
         categories: [],
         tags: [],
-        comments: [],
       } as any;
 
       mockMagicFill(magicReceipt);
@@ -1024,12 +1010,11 @@ describe("ReceiptFormComponent", () => {
     });
   });
 
-  describe("creating with files and comments", () => {
+  describe("creating with files and a note", () => {
     let store: Store;
     let receiptService: ReceiptService;
     let receiptImageService: ReceiptImageService;
     let snackbarError: MockInstance;
-    let commentCount: number;
 
     const group = (id: number): any => ({
       id,
@@ -1050,26 +1035,12 @@ describe("ReceiptFormComponent", () => {
       });
     };
 
-    const queueComment = (text: string): void => {
-      component.updateComments(
-        new FormArray([
-          new FormGroup({
-            comment: new FormControl(text),
-            userId: new FormControl(1),
-            receiptId: new FormControl(null),
-          }),
-        ])
-      );
-      commentCount = 1;
-    };
-
     beforeEach(() => {
       store = TestBed.inject(Store);
       receiptService = TestBed.inject(ReceiptService);
       receiptImageService = TestBed.inject(ReceiptImageService);
       snackbarError = vi.spyOn(TestBed.inject(SnackbarService), "error");
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-      commentCount = 0;
 
       store.dispatch(new SetGroups([group(7), group(8)]));
       store.dispatch(
@@ -1082,14 +1053,6 @@ describe("ReceiptFormComponent", () => {
         )
       );
 
-      // Neither child is declared under CUSTOM_ELEMENTS_SCHEMA; stub the two the
-      // submit path and the comment check read.
-      Object.defineProperty(component, "shareListComponent", {
-        value: () => ({ userExpansionPanels: () => [] }),
-      });
-      Object.defineProperty(component, "receiptCommentsComponent", {
-        value: () => ({ commentCount: () => commentCount }),
-      });
       // Resolves to a bare element under CUSTOM_ELEMENTS_SCHEMA once rendered.
       Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
     });
@@ -1099,13 +1062,13 @@ describe("ReceiptFormComponent", () => {
       routeDataSubject.next({ mode: FormMode.add });
     };
 
-    it("creates with exactly one request carrying the files and comments", () => {
+    it("creates with exactly one request carrying the files and the note", () => {
       const httpMock = TestBed.inject(HttpTestingController);
       const createSpy = vi.spyOn(receiptService, "createReceiptWithFiles");
       const uploadSpy = vi.spyOn(receiptImageService, "uploadReceiptImage");
       openAddForm();
       fillValidForm();
-      queueComment("Business lunch");
+      component.form.patchValue({ note: "Business lunch" });
       const files = [pngFile("a.png"), pngFile("b.png")];
       component.filesToUpload.set(files.map((file) => ({ file, receiptId: 0 })));
 
@@ -1113,9 +1076,7 @@ describe("ReceiptFormComponent", () => {
 
       expect(createSpy).toHaveBeenCalledTimes(1);
       const [receipt, sentFiles] = createSpy.mock.calls[0] as any[];
-      expect(receipt.comments).toEqual([
-        { comment: "Business lunch", userId: 1, receiptId: null },
-      ]);
+      expect(receipt.note).toEqual("Business lunch");
       expect(sentFiles).toEqual(files);
 
       const request = httpMock.expectOne((req) => req.url.endsWith("/receipt/withFiles"));
@@ -1130,7 +1091,7 @@ describe("ReceiptFormComponent", () => {
       httpMock.verify();
     });
 
-    it("creates in one request without files or comments", () => {
+    it("creates in one request without files or a note", () => {
       store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }));
       const createSpy = vi
         .spyOn(receiptService, "createReceiptWithFiles")
@@ -1160,12 +1121,6 @@ describe("ReceiptFormComponent", () => {
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       // The store persists across this file; start from no permissions.
       TestBed.inject(Store).dispatch(new SetPermissions([], {}));
-      Object.defineProperty(component, "shareListComponent", {
-        value: () => ({ userExpansionPanels: () => [] }),
-      });
-      Object.defineProperty(component, "receiptCommentsComponent", {
-        value: () => ({ commentCount: () => 0 }),
-      });
       Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
     });
 
@@ -1199,5 +1154,65 @@ describe("ReceiptFormComponent", () => {
       expect(component.form.getRawValue().date).toEqual(new Date(2026, 8, 15));
     });
 
+  });
+
+  // A receipt has one note: a field of the receipt, saved with it.
+  describe("the note", () => {
+    let receiptService: ReceiptService;
+
+    const noted = { id: 3, name: "R", amount: "1.00", paidByUserId: 1, groupId: 7, note: "paid in cash" };
+
+    beforeEach(() => {
+      receiptService = TestBed.inject(ReceiptService);
+      vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      TestBed.inject(Store).dispatch(new SetPermissions([], {}));
+      Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
+    });
+
+    it("opens with the receipt's note and sends a changed one with the receipt", () => {
+      const updateSpy = vi.spyOn(receiptService, "updateReceipt").mockReturnValue(of({}) as any);
+      routeDataSubject.next({ mode: FormMode.edit, receipt: noted });
+
+      expect(component.form.getRawValue().note).toEqual("paid in cash");
+
+      component.form.patchValue({ note: "paid by card after all" });
+      component.submit();
+
+      const [, sent] = updateSpy.mock.calls[0] as any[];
+      expect(sent.note).toBe("paid by card after all");
+    });
+
+    it("sends an emptied note as empty, which is how one is removed", () => {
+      const updateSpy = vi.spyOn(receiptService, "updateReceipt").mockReturnValue(of({}) as any);
+      routeDataSubject.next({ mode: FormMode.edit, receipt: noted });
+
+      component.form.patchValue({ note: "" });
+      component.submit();
+
+      const [, sent] = updateSpy.mock.calls[0] as any[];
+      expect(sent.note).toBe("");
+    });
+
+    it("is empty for a receipt that has none", () => {
+      routeDataSubject.next({ mode: FormMode.edit, receipt: { ...noted, note: undefined } });
+
+      expect(component.form.getRawValue().note).toEqual("");
+    });
+
+    // The server counts characters (runes); Validators.maxLength counts UTF-16 units.
+    it("takes a note of the greatest length, counted in characters, and refuses a longer one", () => {
+      const updateSpy = vi.spyOn(receiptService, "updateReceipt").mockReturnValue(of({}) as any);
+      routeDataSubject.next({ mode: FormMode.edit, receipt: noted });
+      const note = component.form.get("note")!;
+
+      note.setValue("😀".repeat(RECEIPT_NOTE_MAX_LENGTH));
+      expect(note.valid).toBe(true);
+
+      note.setValue("😀".repeat(RECEIPT_NOTE_MAX_LENGTH + 1));
+      expect(note.hasError("maxlength")).toBe(true);
+
+      component.submit();
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
   });
 });

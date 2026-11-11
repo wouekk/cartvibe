@@ -1,5 +1,5 @@
 import { AuthState } from "../../store";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -17,13 +17,19 @@ import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/
 import { CategoryForm } from "../category-form/category-form.component";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-category-table",
     templateUrl: "./category-table.component.html",
     styleUrls: ["./category-table.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class CategoryTableComponent implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);
@@ -71,7 +77,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
   constructor(
     private categoryService: CategoryService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
   ) {}
@@ -156,25 +162,25 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
     const columns = [
       {
         columnHeader: "Name",
-        matColumnDef: "name",
+        columnDef: "name",
         template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: "Products",
-        matColumnDef: "numberOfProducts",
+        columnDef: "numberOfProducts",
         template: this.numberOfReceiptsCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
-        matColumnDef: "description",
+        columnDef: "description",
         template: this.descriptionCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       },
@@ -182,7 +188,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
     const tableState = this.store.selectSnapshot(CategoryTableState.state);
     if (tableState.orderBy) {
-      const column = columns.find(c => c.matColumnDef === tableState.orderBy);
+      const column = columns.find(c => c.columnDef === tableState.orderBy);
       if (column) {
         column.defaultSortDirection = tableState.sortDirection;
       }
@@ -198,7 +204,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   }
 
   public openEditDialog(categoryView: CategoryView): void {
-    const dialogRef = this.matDialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
+    const dialogRef = this.dialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
 
     dialogRef.componentInstance.category = categoryView;
     dialogRef.componentInstance.headerText = this.translation.t("Edit {name}", { name: categoryView.name });
@@ -217,7 +223,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   }
 
   public openAddDialog(): void {
-    const dialogRef = this.matDialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
+    const dialogRef = this.dialog.open(CategoryForm, DEFAULT_DIALOG_CONFIG);
 
     dialogRef.componentInstance.headerText = this.translation.t("Add Category");
 
@@ -235,7 +241,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   }
 
   public openDeleteConfirmationDialog(categoryView: CategoryView) {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ConfirmationDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );

@@ -8,9 +8,8 @@ import { InputErrorMessage } from "./input-error-message";
 
 @Component({
     selector: "app-base-input",
-    template: "", // a base class: subclasses bring their own template
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class BaseInputComponent implements OnInit, BaseInputInterface {
   @Input() public inputFormControl: FormControl = new FormControl();

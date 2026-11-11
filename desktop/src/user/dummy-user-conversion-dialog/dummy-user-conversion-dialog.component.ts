@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
@@ -7,13 +7,18 @@ import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { UpdateUser } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { InputComponent } from "../../input/input/input.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-dummy-user-conversion-dialog",
     templateUrl: "./dummy-user-conversion-dialog.component.html",
     styleUrls: ["./dummy-user-conversion-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, InputComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class DummyUserConversionDialogComponent implements OnInit {
   private readonly translation = inject(TranslationService);
@@ -27,7 +32,7 @@ export class DummyUserConversionDialogComponent implements OnInit {
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService,
-    public matDialogRef: AppDialogRef<DummyUserConversionDialogComponent>
+    public dialogRef: AppDialogRef<DummyUserConversionDialogComponent>
   ) {}
 
   public ngOnInit(): void {
@@ -57,13 +62,13 @@ export class DummyUserConversionDialogComponent implements OnInit {
               new UpdateUser(userId, { ...this.user, isDummyUser: false })
             )
           ),
-          tap(() => this.matDialogRef.close(true))
+          tap(() => this.dialogRef.close(true))
         )
         .subscribe();
     }
   }
 
   public cancelButtonClicked(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

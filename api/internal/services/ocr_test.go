@@ -22,10 +22,11 @@ func TestOcrCharBlacklistKeepsWhatReceiptsAreWrittenWith(t *testing.T) {
 }
 
 // Only the six things the prompt asks for are taken from an AI's answer; who paid, the status, the household, the
-// comments and the tags are never the AI's to set.
+// note and the tags are never the AI's to set.
 func TestOnlyPromptedReceiptFieldsDropsEverythingThePromptDoesNotAskFor(t *testing.T) {
 	userId := uint(9)
 	original := decimal.NewFromInt(7)
+	aiNote := "from the AI"
 	answer := commands.UpsertReceiptCommand{
 		Name:             "Lidl",
 		ShopName:         "Lidl",
@@ -40,7 +41,7 @@ func TestOnlyPromptedReceiptFieldsDropsEverythingThePromptDoesNotAskFor(t *testi
 		CreatedByString:  "somebody",
 		Categories:       []commands.UpsertCategoryCommand{{Id: &userId}},
 		Tags:             []commands.UpsertTagCommand{{Name: "from the AI"}},
-		Comments:         []commands.UpsertCommentCommand{{Comment: "from the AI", UserId: &userId}},
+		Note:             &aiNote,
 	}
 
 	kept := onlyPromptedReceiptFields(answer)
@@ -49,7 +50,7 @@ func TestOnlyPromptedReceiptFieldsDropsEverythingThePromptDoesNotAskFor(t *testi
 		t.Errorf("the prompted fields must be kept, got %+v", kept)
 	}
 	if kept.GroupId != 0 || kept.PaidByUserID != 0 || kept.Status != "" || kept.CreatedByString != "" ||
-		kept.OriginalAmount != nil || kept.OriginalCurrency != "" || kept.ExchangeRate != nil || len(kept.Comments) != 0 {
+		kept.OriginalAmount != nil || kept.OriginalCurrency != "" || kept.ExchangeRate != nil || kept.Note != nil {
 		t.Errorf("fields the prompt does not ask for must be dropped, got %+v", kept)
 	}
 	if kept.Tags == nil || len(kept.Tags) != 0 {

@@ -8,7 +8,6 @@
  * Do not edit the class manually.
  */
 import { UpsertCategoryCommand } from './upsertCategoryCommand';
-import { UpsertCommentCommand } from './upsertCommentCommand';
 import { ReceiptStatus } from './receiptStatus';
 import { UpsertTagCommand } from './upsertTagCommand';
 
@@ -48,9 +47,9 @@ export interface UpsertReceiptCommand {
      */
     tags?: Array<UpsertTagCommand>;
     /**
-     * Comments associated to receipt
+     * The household\'s own words about the receipt. Leave the key out (or send null) to keep the stored note; an empty text clears it.
      */
-    comments?: Array<UpsertCommentCommand>;
+    note?: string;
 }
 export namespace UpsertReceiptCommand {
 }

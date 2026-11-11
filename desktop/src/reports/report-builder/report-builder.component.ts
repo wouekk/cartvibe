@@ -8,7 +8,7 @@ import {
 } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { EMPTY, catchError, debounceTime, finalize, startWith, switchMap, take, tap } from "rxjs";
 import { Permission, ReportPeriod, ReportRequestCommand, ReportTemplate } from "../../open-api";
@@ -25,6 +25,12 @@ import { ReportRunnerService } from "../services/report-runner.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
 import { localizeStoredTexts, restoreStoredTexts } from "../models/report-stored-text";
+import { ButtonComponent } from "../../button/button/button.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ReportConfigPanelComponent } from "../report-config-panel/report-config-panel.component";
+import { ReportPreviewPanelComponent } from "../report-preview-panel/report-preview-panel.component";
+import { ReportGenerateBarComponent } from "../report-generate-bar/report-generate-bar.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The Report Builder screen: owns the report form, drives the debounced live
@@ -32,11 +38,19 @@ import { localizeStoredTexts, restoreStoredTexts } from "../models/report-stored
  * preview panel, and generate bar are presentational children bound to this form.
  */
 @Component({
-  selector: "app-report-builder",
-  host: { class: "block h-full min-h-0" },
-  templateUrl: "./report-builder.component.html",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-report-builder",
+    host: { class: "block h-full min-h-0" },
+    templateUrl: "./report-builder.component.html",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ButtonComponent,
+        RouterLink,
+        AppIconComponent,
+        ReportConfigPanelComponent,
+        ReportPreviewPanelComponent,
+        ReportGenerateBarComponent,
+        TranslatePipe,
+    ],
 })
 export class ReportBuilderComponent {
   private readonly formBuilder = inject(FormBuilder);

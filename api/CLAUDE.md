@@ -135,7 +135,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 ### Who sees what (rationale: `docs/authorization.md`)
 
 - **Everyone in a household sees all of it** (2026-11): every receipt whoever paid, every category and tag, every
-  member, comment and activity. The permission keys of the caller's role are the only gate. There are no category or
+  member, note and activity. The permission keys of the caller's role are the only gate. There are no category or
   tag grants, no paid-by visibility, no member isolation, no per-template report matrix and no role-required receipt
   fields: do not add a rule that narrows what one member sees of another's without the owner's word.
 - **Receipt lists go through `GetPagedReceiptsByGroupId`** (one receipt: the `HandleRequest` receipt gate). Its
@@ -281,7 +281,7 @@ which day an instant falls on and what "today" means.
   is the only OCR engine, and reads in the five languages the app ships in (`ocrLanguages`; the image installs the
   data and `runtime-check.sh` proves each).
 - **Prompts are code** (`services/receipt_prompt.go`). A receipt answer keeps the prompted fields only
-  (`onlyPromptedReceiptFields`): the AI never sets tags, payer, status, household or comments, and never a switched-off
+  (`onlyPromptedReceiptFields`): the AI never sets tags, payer, status, household or the note, and never a switched-off
   category. A new field the AI may fill is added to the prompt and to that function together. Read `../docs/ai-prompts.md` before changing a prompt. `foodGroupResolver` maps AI category names onto
   Manage Categories (unknown ones are created; renames keep the old name in `aliases`).
 - **Shop logos** (`docs/shop-logos.md`): Logo.dev credits are the limit, so never widen what is fetched (only wanted
@@ -330,8 +330,21 @@ which day an instant falls on and what "today" means.
   A receipt `amount` is always main currency, converted when added and never recomputed.
 - `GET/PUT /dashboardLayout` is its own row, not a `UserPreferences` field: `PUT /userPreferences` replaces the whole
   object and would erase it.
-- Receipt statuses: adding one means the `const` block, `Value()`, `ReceiptStatuses()` and swagger
-  (`TestReceiptStatuses` fails by design). `AfterReceiptUpdated` is the only transition logic.
+- **Receipt statuses are two:** `OPEN` ("To check") and `RESOLVED` ("Settled"). The three upstream had beside
+  them still arrive (a stored report template, a backup file, a scan queued before the update, an older client), so
+  `ReceiptStatus` normalizes on the way in (`UnmarshalJSON`, `Scan`, `NormalizeReceiptStatus`) and never stores one.
+  Adding a status means the `const` block, `Value()`, `ReceiptStatuses()` and swagger (`TestReceiptStatuses` fails by
+  design). `AfterReceiptUpdated` is the only transition logic.
+- **A receipt has one note** (`Receipt.Note`, free text, at most `MaxReceiptNoteLength` characters), not comments.
+  It is part of the receipt: whoever may change the receipt may change it, and there is no permission of its own.
+  `UpsertReceiptCommand.Note` is a pointer: a missing key keeps the stored note, `""` clears it (written on its own,
+  because the struct update skips an empty text). The list sorts by it under `note` (and still under `first_comment`,
+  the key a browser may have kept), and the search reads it.
+- **A Quick Scan is a photo and nothing else** (`models.GroupReceiptSettings`): nothing is required, and
+  `ResolveQuickScanFields` fills what a scan does not say (paid by: the household's default member, else the person
+  scanning; status: the household's default, else OPEN). The one field a household can add is the note
+  (`quickScanNoteEnabled`), kept only where it is asked for. Do not add a "show" or "require" switch per field
+  back: the app stopped honouring that matrix long before it was removed.
 - `UpdateReceipt` snapshots are `{"before","after","version":2}`; bump `ReceiptUpdateDescriptionVersion` (and the
   desktop's constant) on any format change. `ReceiptRepository.UpdateReceipt` skips zero values.
 - `DuplicateReceipt` and `CreateReceiptWithFiles` are all-or-nothing: track paths before each write and remove them on
@@ -361,6 +374,16 @@ The database is fresh-only since the clean-schema rework; these are gone from co
   (`Group.isolateMembers`), the per-template report matrix (`GET /report/template/options`), role-required receipt
   fields (`AppData.groupReceiptRequirements`) and `AppRole.skipDefaultGroupCreation`. The six grant tables are
   dropped by `fixed-roles-v1`; the columns stay in existing databases, unused.
+- What the family never used of the upstream receipt workflow (2026-11-11, audit D6 to D9):
+  - Receipt comments as a thread (`/comment` routes, the `Comment` model, `group.comments.create|delete`, the
+    `firstComment` list projection, the comment on a bulk status change): a receipt has one note. The migration
+    `comments-to-note-v1` joined each thread into it and dropped the table.
+  - The statuses `NEEDS_ATTENTION`, `DRAFT` and `DECLINED` (`two-receipt-statuses-v1` rewrote the rows).
+  - The Quick Scan settings matrix: a "show" and a "require" switch for paid by, status, categories and tags, and
+    "require" for the comment (nine columns that stay in existing databases, unread). Only "ask for a note" and
+    the two defaults are left.
+  - A person's header shortcuts (`UserShortcut`, `userPreferences.userShortcuts`; `remove-user-shortcuts-v1`
+    drops the table).
 - Valkey and `hibiken/asynq` (2026-11-10): `VALKEY_*`, the queue names and priorities (`TaskQueueConfiguration`,
   `QueueName`), `taskConcurrency`, and `POST /systemSettings/restartTaskServer` with its permission
   `app.system-settings.restart-task-server` (a role that still lists it is unaffected). The

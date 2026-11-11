@@ -5,13 +5,20 @@ import {
   output,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { NgIf, NgFor, NgTemplateOutlet } from '@angular/common';
+import { EditButtonComponent } from '../edit-button/edit-button.component';
+import { DeleteButtonComponent } from '../delete-button/delete-button.component';
+import { SubmitButtonComponent } from '../submit-button/submit-button.component';
+import { CancelButtonComponent } from '../cancel-button/cancel-button.component';
+import { ButtonComponent } from '../../button/button/button.component';
+import { TranslatePipe } from '../../i18n/translate.pipe';
 
 @Component({
     selector: 'app-form-list',
     templateUrl: './form-list.component.html',
     styleUrls: ['./form-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgFor, NgTemplateOutlet, EditButtonComponent, DeleteButtonComponent, SubmitButtonComponent, CancelButtonComponent, ButtonComponent, TranslatePipe]
 })
 export class FormListComponent {
   public readonly array = input<any[]>([]);

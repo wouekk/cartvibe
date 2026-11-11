@@ -277,7 +277,7 @@ func (service GroupService) DeleteGroup(groupId string, allowAllGroupDelete bool
 		}
 
 		// Unset user preferences
-		tx.Model(models.UserPrefernces{}).Where("quick_scan_default_group_id = ?", groupId).Update("quick_scan_default_group_id", nil)
+		tx.Model(models.UserPreferences{}).Where("quick_scan_default_group_id = ?", groupId).Update("quick_scan_default_group_id", nil)
 
 		// Delete Group Receipt Settings
 		if group.GroupReceiptSettings.GroupId > 0 {

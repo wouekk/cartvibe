@@ -9,9 +9,9 @@ describe('CardComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [CardComponent],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [CardComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(CardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

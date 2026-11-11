@@ -91,23 +91,21 @@ test.describe('receipts', () => {
     currentReceiptName = null;
   });
 
-  test('create a receipt with a comment', async ({ page }) => {
+  test('create a receipt with a note', async ({ page }) => {
     const name = uniqueName('receipt');
-    const commentText = `note-${Date.now()}`;
+    const noteText = `note-${Date.now()}`;
 
     await openAddReceipt(page);
     await fillBasics(page, name);
 
-    // In add mode the comment is staged locally and persisted on save.
-    await page.getByLabel('Leave a comment').fill(commentText);
-    await page.getByRole('button', { name: 'Comment', exact: true }).click();
+    // The note is one field of the receipt: it is saved with it, in the same request.
+    await page.getByTestId('receipt-note').getByRole('textbox').fill(noteText);
 
     await saveReceipt(page);
     currentReceiptName = name;
 
-    // The saved comment should render inside the comments section on view.
-    const comments = page.locator('app-receipt-comments');
-    await expect(comments.getByText(commentText)).toBeVisible();
+    // The saved receipt opens with its note.
+    await expect(page.getByTestId('receipt-note').getByRole('textbox')).toHaveValue(noteText);
 
     await deleteReceiptByName(page, groupId, name);
     currentReceiptName = null;
