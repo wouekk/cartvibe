@@ -8,8 +8,8 @@ import (
 )
 
 type BulkStatusUpdateCommand struct {
-	Status     models.ReceiptStatus
-	ReceiptIds []uint
+	Status     models.ReceiptStatus `json:"status"`
+	ReceiptIds []uint               `json:"receiptIds"`
 }
 
 func (command *BulkStatusUpdateCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

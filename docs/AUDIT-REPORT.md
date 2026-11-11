@@ -282,6 +282,20 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     - Proved by unit tests and a real upgrade on the PC: thirteen receipts (among them the amounts floating
       point gets wrong times a hundred) and a goal written by the previous binary came back from the new one
       as exactly the same text, sorted and filtered exactly. Never on the NAS.
+  - The contract (`feature/contract-check`, cut from `preview`, 2026-11-11; the owner chose a check over a
+    generator): `api/internal/routers/contract_schemas_test.go` compares every object schema of `swagger.yml`
+    with the Go type behind it, by the names of their fields, on every CI run. A field added on one side and not
+    the other fails with its name. `swagger.yml` is written as before and the client generated as before.
+    - Where things stood: of 124 object schemas, 103 had a Go type of the same name and 23 of those differed.
+      Three commands now carry the JSON names the contract always used (they were read only because Go ignores
+      case); fourteen schemas are tied to Go types under another name; eight have no Go type (multipart forms,
+      a struct inside a handler) and say why.
+    - Recorded, not changed, each with its reason in the test: ten schemas with a difference that is right as
+      it is or harmless. Three of them are plain inaccuracies of the contract that nothing reads: `UserView`
+      promises `createdBy` and never sends it, `FileData` lists `imageData` from upstream, and
+      `UpsertReceiptCommand` is silent about the currency fields the server fills itself. Say so if these
+      should be corrected in `swagger.yml`; that regenerates the client.
+    - Not checked: a property's type, which properties are required, and Go types sent without a schema.
 
 ---
 
