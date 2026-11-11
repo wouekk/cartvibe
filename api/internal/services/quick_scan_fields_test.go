@@ -19,14 +19,10 @@ func seedQuickScanGroup(settings models.GroupReceiptSettings) {
 
 	command := commands.UpdateGroupReceiptSettingsCommand{
 		HideNote:                   settings.HideNote,
-		QuickScanPaidByEnabled:     settings.QuickScanPaidByEnabled,
+		QuickScanNoteEnabled:       settings.QuickScanNoteEnabled,
 		QuickScanDefaultPaidByType: settings.QuickScanDefaultPaidByType,
 		QuickScanDefaultPaidById:   settings.QuickScanDefaultPaidById,
-		QuickScanStatusEnabled:     settings.QuickScanStatusEnabled,
 		QuickScanDefaultStatus:     settings.QuickScanDefaultStatus,
-		QuickScanCategoriesEnabled: settings.QuickScanCategoriesEnabled,
-		QuickScanTagsEnabled:       settings.QuickScanTagsEnabled,
-		QuickScanNoteEnabled:       settings.QuickScanNoteEnabled,
 	}
 	if _, err := repository.UpdateGroupReceiptSettings("1", command); err != nil {
 		panic(err)
@@ -70,13 +66,10 @@ func TestResolveQuickScanFields_AScanThatSaysNothingGetsThePersonScanningAndToCh
 	}
 }
 
-// Asking for every field requires none of them.
-func TestResolveQuickScanFields_NothingIsRequiredEvenWhenEveryFieldIsAskedFor(t *testing.T) {
+// Asking for a note does not require one.
+func TestResolveQuickScanFields_ANoteThatIsAskedForIsNotRequired(t *testing.T) {
 	defer repositories.TruncateTestDb()
-	seedQuickScanGroup(models.GroupReceiptSettings{
-		QuickScanPaidByEnabled: true, QuickScanStatusEnabled: true, QuickScanCategoriesEnabled: true,
-		QuickScanTagsEnabled: true, QuickScanNoteEnabled: true,
-	})
+	seedQuickScanGroup(models.GroupReceiptSettings{QuickScanNoteEnabled: true})
 
 	resolved, errors := resolveOne(t, singleFileCommand(0, "", []uint{}, []uint{}, ""), 42)
 
@@ -121,10 +114,8 @@ func TestResolveQuickScanFields_ProvidedValuesKept(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	defaultUser := uint(7)
 	seedQuickScanGroup(models.GroupReceiptSettings{
-		QuickScanPaidByEnabled:     true,
 		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
 		QuickScanDefaultPaidById:   &defaultUser,
-		QuickScanStatusEnabled:     true,
 		QuickScanDefaultStatus:     models.OPEN,
 	})
 

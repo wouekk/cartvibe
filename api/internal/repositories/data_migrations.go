@@ -28,7 +28,6 @@ var dataMigrations = []dataMigration{
 	{name: removeUserShortcutsMigration, run: runRemoveUserShortcutsMigration},
 	{name: twoReceiptStatusesMigration, run: runTwoReceiptStatusesMigration},
 	{name: commentsToNoteMigration, run: runCommentsToNoteMigration},
-	{name: quickScanAsksLessMigration, run: runQuickScanAsksLessMigration},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have

@@ -340,11 +340,11 @@ which day an instant falls on and what "today" means.
   `UpsertReceiptCommand.Note` is a pointer: a missing key keeps the stored note, `""` clears it (written on its own,
   because the struct update skips an empty text). The list sorts by it under `note` (and still under `first_comment`,
   the key a browser may have kept), and the search reads it.
-- **Quick Scan asks for nothing by default** (`models.GroupReceiptSettings`): each `quickScan…Enabled` switch adds
-  a field to its dialog, none is ever required, and `ResolveQuickScanFields` fills what a scan does not say (paid by:
-  the household's default member, else the person scanning; status: the household's default, else OPEN). A note is
-  kept only where the household asks for one. Two of the switches still have a column default of true, so **insert
-  that model through `CreateGroupReceiptSettingsAsGiven`**, never a plain `Create`.
+- **A Quick Scan is a photo and nothing else** (`models.GroupReceiptSettings`): nothing is required, and
+  `ResolveQuickScanFields` fills what a scan does not say (paid by: the household's default member, else the person
+  scanning; status: the household's default, else OPEN). The one field a household can add is the note
+  (`quickScanNoteEnabled`), kept only where it is asked for. Do not add a "show" or "require" switch per field
+  back: the app stopped honouring that matrix long before it was removed.
 - `UpdateReceipt` snapshots are `{"before","after","version":2}`; bump `ReceiptUpdateDescriptionVersion` (and the
   desktop's constant) on any format change. `ReceiptRepository.UpdateReceipt` skips zero values.
 - `DuplicateReceipt` and `CreateReceiptWithFiles` are all-or-nothing: track paths before each write and remove them on
@@ -379,8 +379,9 @@ The database is fresh-only since the clean-schema rework; these are gone from co
     `firstComment` list projection, the comment on a bulk status change): a receipt has one note. The migration
     `comments-to-note-v1` joined each thread into it and dropped the table.
   - The statuses `NEEDS_ATTENTION`, `DRAFT` and `DECLINED` (`two-receipt-statuses-v1` rewrote the rows).
-  - The five Quick Scan "required" switches (the columns stay in existing databases, unread;
-    `quick-scan-asks-less-v1` switched off the paid-by and status fields nobody had chosen).
+  - The Quick Scan settings matrix: a "show" and a "require" switch for paid by, status, categories and tags, and
+    "require" for the comment (nine columns that stay in existing databases, unread). Only "ask for a note" and
+    the two defaults are left.
   - A person's header shortcuts (`UserShortcut`, `userPreferences.userShortcuts`; `remove-user-shortcuts-v1`
     drops the table).
 - Valkey and `hibiken/asynq` (2026-11-10): `VALKEY_*`, the queue names and priorities (`TaskQueueConfiguration`,

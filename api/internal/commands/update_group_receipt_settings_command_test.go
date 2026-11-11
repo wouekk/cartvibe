@@ -17,15 +17,6 @@ func TestUpdateGroupReceiptSettingsCommand_Validate_ValidInputs(t *testing.T) {
 		"everything off, no defaults": {
 			command: UpdateGroupReceiptSettingsCommand{},
 		},
-		"every field asked for, no defaults": {
-			command: UpdateGroupReceiptSettingsCommand{
-				QuickScanPaidByEnabled:     true,
-				QuickScanStatusEnabled:     true,
-				QuickScanCategoriesEnabled: true,
-				QuickScanTagsEnabled:       true,
-				QuickScanNoteEnabled:       true,
-			},
-		},
 		"the person scanning pays by default": {
 			command: UpdateGroupReceiptSettingsCommand{
 				QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
@@ -106,10 +97,11 @@ func TestUpdateGroupReceiptSettingsCommand_Validate_InvalidInputs(t *testing.T) 
 	}
 }
 
-// A status removed in 2026-11 that a stored settings page still sends is read as what it became, and accepted.
-func TestUpdateGroupReceiptSettingsCommand_ARemovedDefaultStatusIsAccepted(t *testing.T) {
+// What an older settings page still sends is read, not refused: a status removed in 2026-11 as what it became,
+// and the switches that no longer exist are ignored.
+func TestUpdateGroupReceiptSettingsCommand_ReadsWhatAnOlderPageSends(t *testing.T) {
 	command := UpdateGroupReceiptSettingsCommand{}
-	body := []byte(`{"quickScanDefaultStatus":"NEEDS_ATTENTION"}`)
+	body := []byte(`{"quickScanDefaultStatus":"NEEDS_ATTENTION","quickScanPaidByEnabled":true,"quickScanPaidByRequired":true,"hideComments":true}`)
 	if err := json.Unmarshal(body, &command); err != nil {
 		t.Fatal(err)
 	}

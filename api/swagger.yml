@@ -6788,9 +6788,8 @@ components:
               description: Days before a warranty ends that its reminder comes, 0 on the day; null is 30
     GroupReceiptSettings:
       description:
-        What a household set for its receipts. Quick Scan asks for nothing beside the photo unless a
-        quickScan...Enabled switch adds a field to its dialog; no field is ever required, and what is not asked
-        for gets a value by itself (see the two defaults).
+        What a household set for its receipts. A Quick Scan is a photo and nothing else; the household can add a
+        note field to it (never required), and can change the two defaults a scan falls back on.
       allOf:
         - $ref: "#/components/schemas/BaseModel"
         - type: object
@@ -6812,29 +6811,17 @@ components:
             hideNote:
               type: boolean
               description: Take the note off the household's receipts (the form, the list and Quick Scan)
-            quickScanPaidByEnabled:
+            quickScanNoteEnabled:
               type: boolean
-              description: Quick Scan asks who paid
+              description: Quick Scan asks for a note (not while hideNote is on)
             quickScanDefaultPaidByType:
               $ref: "#/components/schemas/QuickScanDefaultPaidByType"
             quickScanDefaultPaidById:
               type: integer
               nullable: true
               description: Who paid when a scan does not say and the type is USER
-            quickScanStatusEnabled:
-              type: boolean
-              description: Quick Scan asks for the status
             quickScanDefaultStatus:
               $ref: "#/components/schemas/ReceiptStatus"
-            quickScanCategoriesEnabled:
-              type: boolean
-              description: Quick Scan asks for categories
-            quickScanTagsEnabled:
-              type: boolean
-              description: Quick Scan asks for tags
-            quickScanNoteEnabled:
-              type: boolean
-              description: Quick Scan asks for a note (not while hideNote is on)
     UpdateGroupReceiptSettingsCommand:
       type: object
       properties:
@@ -6850,29 +6837,17 @@ components:
         hideNote:
           type: boolean
           description: Take the note off the household's receipts (the form, the list and Quick Scan)
-        quickScanPaidByEnabled:
+        quickScanNoteEnabled:
           type: boolean
-          description: Quick Scan asks who paid
+          description: Quick Scan asks for a note (not while hideNote is on)
         quickScanDefaultPaidByType:
           $ref: "#/components/schemas/QuickScanDefaultPaidByType"
         quickScanDefaultPaidById:
           type: integer
           nullable: true
           description: Who paid when a scan does not say; required when the type is USER
-        quickScanStatusEnabled:
-          type: boolean
-          description: Quick Scan asks for the status
         quickScanDefaultStatus:
           $ref: "#/components/schemas/ReceiptStatus"
-        quickScanCategoriesEnabled:
-          type: boolean
-          description: Quick Scan asks for categories
-        quickScanTagsEnabled:
-          type: boolean
-          description: Quick Scan asks for tags
-        quickScanNoteEnabled:
-          type: boolean
-          description: Quick Scan asks for a note (not while hideNote is on)
     CreateReceiptWithFilesCommand:
       type: object
       required:

@@ -9,27 +9,22 @@ import (
 )
 
 // UpdateGroupReceiptSettingsCommand is a household's receipt settings as its settings page sends them (see
-// models.GroupReceiptSettings for what each means). Nothing in Quick Scan is ever required, so there is no
-// "required" switch: a field that is not asked for, or left empty, gets its value from the defaults here.
+// models.GroupReceiptSettings for what each means). Nothing in Quick Scan is ever required, and the only field a
+// household can add to it is the note.
 type UpdateGroupReceiptSettingsCommand struct {
 	HideImages            bool `json:"hideImages"`
 	HideReceiptCategories bool `json:"hideReceiptCategories"`
 	HideReceiptTags       bool `json:"hideReceiptTags"`
 	HideNote              bool `json:"hideNote"`
 
-	QuickScanPaidByEnabled bool `json:"quickScanPaidByEnabled"`
-	// QuickScanDefaultPaidByType says who paid when Quick Scan is not told: "" or UPLOADER is the person
-	// scanning, USER is the member named by QuickScanDefaultPaidById.
+	QuickScanNoteEnabled bool `json:"quickScanNoteEnabled"`
+
+	// QuickScanDefaultPaidByType says who paid when a scan does not: "" or UPLOADER is the person scanning, USER
+	// is the member named by QuickScanDefaultPaidById.
 	QuickScanDefaultPaidByType models.QuickScanDefaultPaidByType `json:"quickScanDefaultPaidByType"`
 	QuickScanDefaultPaidById   *uint                             `json:"quickScanDefaultPaidById"`
-
-	QuickScanStatusEnabled bool `json:"quickScanStatusEnabled"`
 	// QuickScanDefaultStatus is the status of a scan that names none; "" is OPEN ("To check").
 	QuickScanDefaultStatus models.ReceiptStatus `json:"quickScanDefaultStatus"`
-
-	QuickScanCategoriesEnabled bool `json:"quickScanCategoriesEnabled"`
-	QuickScanTagsEnabled       bool `json:"quickScanTagsEnabled"`
-	QuickScanNoteEnabled       bool `json:"quickScanNoteEnabled"`
 }
 
 func (command *UpdateGroupReceiptSettingsCommand) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

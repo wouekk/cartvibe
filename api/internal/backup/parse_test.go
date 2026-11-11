@@ -251,7 +251,7 @@ func TestParseReadsAnOlderExportWithoutSomeTables(t *testing.T) {
 }
 
 // An export made before 2026-11: receipts have a thread of comments and no note, three more statuses exist, and
-// the household's Quick Scan settings have a "required" column beside each "enabled" one.
+// the household's settings name the note's switches after the comments and carry the old Quick Scan matrix.
 func TestParseReadsAnExportFromBeforeTheNoteAndTheTwoStatuses(t *testing.T) {
 	archive := handMadeArchive(t, map[string]string{
 		"users":  "id,username,display_name\r\n1,anna,Anna\r\n2,piotr,\r\n",
@@ -268,7 +268,7 @@ func TestParseReadsAnExportFromBeforeTheNoteAndTheTwoStatuses(t *testing.T) {
 			"23,8,,1,Returned it,,2026-11-04T10:00:00Z\r\n",
 		"group_receipt_settings": "group_id,hide_comments,quick_scan_paid_by_enabled,quick_scan_paid_by_required," +
 			"quick_scan_status_enabled,quick_scan_status_required,quick_scan_default_status,quick_scan_comment_enabled,quick_scan_comment_required\r\n" +
-			// Home never touched its settings; Cabin made paid by optional and asked for a comment.
+			// Home never touched its settings; Cabin hid the comments, asked for one in Quick Scan and set a default.
 			"3,false,true,true,true,true,,false,false\r\n" +
 			"4,true,true,false,true,true,DECLINED,true,true\r\n",
 	}, nil)
@@ -301,11 +301,10 @@ func TestParseReadsAnExportFromBeforeTheNoteAndTheTwoStatuses(t *testing.T) {
 		settings[row.GroupId] = row
 	}
 	home, cabin := settings[3], settings[4]
-	if home.QuickScanPaidByEnabled || home.QuickScanStatusEnabled || home.HideNote || home.QuickScanNoteEnabled {
+	if home.HideNote || home.QuickScanNoteEnabled || home.QuickScanDefaultStatus != "" {
 		t.Errorf("an untouched household reads as asking for nothing: %+v", home)
 	}
-	if !cabin.QuickScanPaidByEnabled || cabin.QuickScanStatusEnabled || !cabin.HideNote || !cabin.QuickScanNoteEnabled ||
-		cabin.QuickScanDefaultStatus != models.RESOLVED {
+	if !cabin.HideNote || !cabin.QuickScanNoteEnabled || cabin.QuickScanDefaultStatus != models.RESOLVED {
 		t.Errorf("a household's own choices are kept under the new names: %+v", cabin)
 	}
 }

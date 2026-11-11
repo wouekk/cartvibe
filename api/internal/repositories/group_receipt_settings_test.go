@@ -5,16 +5,13 @@ import (
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 	"testing"
-
-	"gorm.io/gorm"
 )
 
 func setupGroupReceiptSettingsRepository() GroupReceiptSettingsRepository {
 	return NewGroupReceiptSettingsRepository(nil)
 }
 
-// A new household's Quick Scan is a photo and nothing else. Two of the columns still default to true in the
-// database (see models.GroupReceiptSettings), so this reads the row back: it must be what the code wrote.
+// A new household hides nothing, and its Quick Scan is a photo and nothing else.
 func TestCreateGroupReceiptSettingsAsksForNothingInQuickScan(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestGroup()
@@ -25,26 +22,21 @@ func TestCreateGroupReceiptSettingsAsksForNothingInQuickScan(t *testing.T) {
 		utils.PrintTestError(t, err, "no error")
 	}
 
+	// Read back, so this is what the database holds and not the struct that was sent.
 	settings, err := repository.GetGroupReceiptSettingsByGroupId(1)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
 
-	if settings.QuickScanPaidByEnabled || settings.QuickScanStatusEnabled {
-		t.Errorf("paid by and status should be off for a new household, got %+v", settings)
-	}
-	if settings.QuickScanCategoriesEnabled || settings.QuickScanTagsEnabled || settings.QuickScanNoteEnabled {
-		t.Errorf("categories, tags and the note should be off for a new household, got %+v", settings)
-	}
-	if settings.HideNote || settings.HideImages {
-		t.Errorf("nothing is hidden for a new household, got %+v", settings)
+	if settings.QuickScanNoteEnabled || settings.HideNote || settings.HideImages {
+		t.Errorf("a new household asks for no note and hides nothing, got %+v", settings)
 	}
 	if settings.QuickScanDefaultPaidByType != "" || settings.QuickScanDefaultPaidById != nil || settings.QuickScanDefaultStatus != "" {
 		t.Errorf("a new household has no defaults of its own, got %+v", settings)
 	}
 }
 
-func TestUpdateGroupReceiptSettingsPersistsQuickScanConfig(t *testing.T) {
+func TestUpdateGroupReceiptSettingsPersistsEverySetting(t *testing.T) {
 	defer TruncateTestDb()
 	CreateTestGroup()
 	repository := setupGroupReceiptSettingsRepository()
@@ -54,145 +46,87 @@ func TestUpdateGroupReceiptSettingsPersistsQuickScanConfig(t *testing.T) {
 		utils.PrintTestError(t, err, "no error")
 	}
 
+	member := uint(7)
 	command := commands.UpdateGroupReceiptSettingsCommand{
+		HideImages:                 true,
 		HideNote:                   true,
-		QuickScanPaidByEnabled:     true,
-		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
-		QuickScanStatusEnabled:     false,
-		QuickScanDefaultStatus:     models.RESOLVED,
-		QuickScanCategoriesEnabled: true,
-		QuickScanTagsEnabled:       true,
 		QuickScanNoteEnabled:       true,
+		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_USER,
+		QuickScanDefaultPaidById:   &member,
+		QuickScanDefaultStatus:     models.RESOLVED,
 	}
 
-	updated, err := repository.UpdateGroupReceiptSettings("1", command)
-	if err != nil {
+	if _, err := repository.UpdateGroupReceiptSettings("1", command); err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
 
-	if !updated.QuickScanPaidByEnabled || updated.QuickScanDefaultPaidByType != models.QUICK_SCAN_PAID_BY_UPLOADER {
-		t.Errorf("paid by: %+v", updated)
-	}
-	if updated.QuickScanStatusEnabled || updated.QuickScanDefaultStatus != models.RESOLVED {
-		t.Errorf("status: %+v", updated)
-	}
-
 	// A field missing from UpdateGroupReceiptSettings' assignment block silently never persists, so every
-	// switch is read back from the database.
+	// setting is read back from the database.
 	reloaded, err := repository.GetGroupReceiptSettingsByGroupId(1)
 	if err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
-	if !reloaded.HideNote || !reloaded.QuickScanPaidByEnabled || reloaded.QuickScanStatusEnabled ||
-		!reloaded.QuickScanCategoriesEnabled || !reloaded.QuickScanTagsEnabled || !reloaded.QuickScanNoteEnabled ||
-		reloaded.QuickScanDefaultStatus != models.RESOLVED || reloaded.QuickScanDefaultPaidByType != models.QUICK_SCAN_PAID_BY_UPLOADER {
+	if !reloaded.HideImages || !reloaded.HideNote || !reloaded.QuickScanNoteEnabled ||
+		reloaded.QuickScanDefaultPaidByType != models.QUICK_SCAN_PAID_BY_USER ||
+		reloaded.QuickScanDefaultPaidById == nil || *reloaded.QuickScanDefaultPaidById != 7 ||
+		reloaded.QuickScanDefaultStatus != models.RESOLVED {
 		t.Errorf("the saved settings did not survive a fresh read: %+v", reloaded)
 	}
 
 	// And everything can be switched off again (a false is written, not skipped).
-	_, err = repository.UpdateGroupReceiptSettings("1", commands.UpdateGroupReceiptSettingsCommand{})
-	if err != nil {
+	if _, err := repository.UpdateGroupReceiptSettings("1", commands.UpdateGroupReceiptSettingsCommand{}); err != nil {
 		utils.PrintTestError(t, err, "no error")
 	}
 	reloaded, _ = repository.GetGroupReceiptSettingsByGroupId(1)
-	if reloaded.HideNote || reloaded.QuickScanPaidByEnabled || reloaded.QuickScanCategoriesEnabled ||
-		reloaded.QuickScanTagsEnabled || reloaded.QuickScanNoteEnabled || reloaded.QuickScanDefaultStatus != "" {
-		t.Errorf("the switches should all be off again: %+v", reloaded)
+	if reloaded.HideImages || reloaded.HideNote || reloaded.QuickScanNoteEnabled ||
+		reloaded.QuickScanDefaultPaidByType != "" || reloaded.QuickScanDefaultPaidById != nil || reloaded.QuickScanDefaultStatus != "" {
+		t.Errorf("everything should be off again: %+v", reloaded)
 	}
 }
 
-// withOldQuickScanColumns gives the settings table the five "required" columns a database made before 2026-11
-// has (a fresh test database has none), and takes them away again afterwards.
-func withOldQuickScanColumns(t *testing.T) {
-	t.Helper()
+// A database made before 2026-11 has the nine columns of the upstream Quick Scan matrix, each NOT NULL with a
+// default. Nothing reads or writes them any more, and a household can still be created and saved beside them.
+func TestGroupReceiptSettingsWorkBesideTheOldQuickScanColumns(t *testing.T) {
+	defer TruncateTestDb()
 	db := GetDB()
-	columns := []string{"paid_by", "status", "categories", "tags", "comment"}
-	for _, field := range columns {
-		column := "quick_scan_" + field + "_required"
-		if db.Migrator().HasColumn("group_receipt_settings", column) {
-			continue
-		}
-		if err := db.Exec("ALTER TABLE group_receipt_settings ADD COLUMN " + column + " numeric NOT NULL DEFAULT false").Error; err != nil {
+	old := []string{
+		"quick_scan_paid_by_enabled numeric NOT NULL DEFAULT true", "quick_scan_paid_by_required numeric NOT NULL DEFAULT true",
+		"quick_scan_status_enabled numeric NOT NULL DEFAULT true", "quick_scan_status_required numeric NOT NULL DEFAULT true",
+		"quick_scan_categories_enabled numeric NOT NULL DEFAULT false", "quick_scan_categories_required numeric NOT NULL DEFAULT false",
+		"quick_scan_tags_enabled numeric NOT NULL DEFAULT false", "quick_scan_tags_required numeric NOT NULL DEFAULT false",
+		"quick_scan_comment_required numeric NOT NULL DEFAULT false",
+	}
+	for _, column := range old {
+		if err := db.Exec("ALTER TABLE group_receipt_settings ADD COLUMN " + column).Error; err != nil {
 			t.Fatal(err)
 		}
 	}
 	t.Cleanup(func() {
-		for _, field := range columns {
-			db.Exec("ALTER TABLE group_receipt_settings DROP COLUMN quick_scan_" + field + "_required")
+		for _, column := range old {
+			name := column[:len(column)-len(column[indexOfSpace(column):])]
+			db.Exec("ALTER TABLE group_receipt_settings DROP COLUMN " + name)
 		}
 	})
-}
 
-func TestQuickScanAsksLessMigrationSwitchesOffWhatNobodyChose(t *testing.T) {
-	defer TruncateTestDb()
-	withOldQuickScanColumns(t)
-	db := GetDB()
-
-	// Three households as an older release stored them.
-	rows := []struct {
-		groupId                                                    uint
-		paidByEnabled, paidByRequired, statusEnabled, statusRequired bool
-	}{
-		{1, true, true, true, true},     // never touched: the old defaults
-		{2, true, false, true, true},    // chose an optional paid by
-		{3, false, false, true, false},  // hid paid by, made status optional
-	}
-	for _, row := range rows {
-		group := models.Group{Name: "Household", Status: models.GROUP_ACTIVE}
-		group.ID = row.groupId
-		if err := db.Create(&group).Error; err != nil {
-			t.Fatal(err)
-		}
-		err := db.Exec(
-			"INSERT INTO group_receipt_settings (group_id, quick_scan_paid_by_enabled, quick_scan_paid_by_required, quick_scan_status_enabled, quick_scan_status_required) VALUES (?, ?, ?, ?, ?)",
-			row.groupId, row.paidByEnabled, row.paidByRequired, row.statusEnabled, row.statusRequired,
-		).Error
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	if err := db.Transaction(func(tx *gorm.DB) error { return runQuickScanAsksLessMigration(tx) }); err != nil {
-		t.Fatal(err)
-	}
-
-	want := map[uint][2]bool{
-		1: {false, false}, // both were the old default: photo, done
-		2: {true, false},  // the optional paid by was a choice and stays shown
-		3: {false, true},  // the optional status was a choice and stays shown
-	}
-	repository := setupGroupReceiptSettingsRepository()
-	for groupId, expected := range want {
-		settings, err := repository.GetGroupReceiptSettingsByGroupId(groupId)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if settings.QuickScanPaidByEnabled != expected[0] || settings.QuickScanStatusEnabled != expected[1] {
-			t.Errorf("household %d: paid by shown %v, status shown %v; want %v", groupId,
-				settings.QuickScanPaidByEnabled, settings.QuickScanStatusEnabled, expected)
-		}
-	}
-}
-
-func TestQuickScanAsksLessMigrationRunsOnAFreshInstall(t *testing.T) {
-	defer TruncateTestDb()
 	CreateTestGroup()
-	db := GetDB()
 	repository := setupGroupReceiptSettingsRepository()
 	if _, err := repository.CreateGroupReceiptSettings(1); err != nil {
-		t.Fatal(err)
+		t.Fatalf("create beside the old columns: %v", err)
 	}
-	if _, err := repository.UpdateGroupReceiptSettings("1", commands.UpdateGroupReceiptSettingsCommand{QuickScanPaidByEnabled: true}); err != nil {
-		t.Fatal(err)
+	if _, err := repository.UpdateGroupReceiptSettings("1", commands.UpdateGroupReceiptSettingsCommand{QuickScanNoteEnabled: true}); err != nil {
+		t.Fatalf("update beside the old columns: %v", err)
 	}
+	reloaded, err := repository.GetGroupReceiptSettingsByGroupId(1)
+	if err != nil || !reloaded.QuickScanNoteEnabled {
+		t.Errorf("settings beside the old columns: %+v (%v)", reloaded, err)
+	}
+}
 
-	// No "required" columns here, so there is nothing to tell a choice from a default: nothing changes.
-	if err := db.Transaction(func(tx *gorm.DB) error { return runQuickScanAsksLessMigration(tx) }); err != nil {
-		t.Fatal(err)
+func indexOfSpace(text string) int {
+	for i, character := range text {
+		if character == ' ' {
+			return i
+		}
 	}
-
-	settings, _ := repository.GetGroupReceiptSettingsByGroupId(1)
-	if !settings.QuickScanPaidByEnabled {
-		t.Error("a switch set on a fresh install should be left alone")
-	}
+	return len(text)
 }

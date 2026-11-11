@@ -23,42 +23,17 @@ func NewGroupReceiptSettingsRepository(tx *gorm.DB) GroupReceiptSettingsReposito
 func (repository GroupReceiptSettingsRepository) CreateGroupReceiptSettings(groupId uint) (models.GroupReceiptSettings, error) {
 	db := repository.GetDB()
 
-	// A new household's Quick Scan asks for nothing beside the photo: every switch is off.
+	// A new household hides nothing and its Quick Scan asks for nothing beside the photo.
 	groupReceiptSettingsToCreate := models.GroupReceiptSettings{
 		GroupId: groupId,
 	}
 
-	err := CreateGroupReceiptSettingsAsGiven(db, &groupReceiptSettingsToCreate)
+	err := db.Model(models.GroupReceiptSettings{}).Create(&groupReceiptSettingsToCreate).Error
 	if err != nil {
 		return models.GroupReceiptSettings{}, err
 	}
 
 	return groupReceiptSettingsToCreate, nil
-}
-
-// CreateGroupReceiptSettingsAsGiven inserts a household's receipt settings with its switches exactly as the
-// struct has them. A plain Create cannot do that: two of the switches have a column default of true
-// (models.GroupReceiptSettings says why), and the ORM gives a field that is false its column default. So the
-// row is created and the two are then written by name. Use it for every insert of this model.
-func CreateGroupReceiptSettingsAsGiven(db *gorm.DB, settings *models.GroupReceiptSettings) error {
-	paidByEnabled, statusEnabled := settings.QuickScanPaidByEnabled, settings.QuickScanStatusEnabled
-
-	return db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(settings).Error; err != nil {
-			return err
-		}
-
-		err := tx.Model(&models.GroupReceiptSettings{}).Where("id = ?", settings.ID).UpdateColumns(map[string]any{
-			"quick_scan_paid_by_enabled": paidByEnabled,
-			"quick_scan_status_enabled":  statusEnabled,
-		}).Error
-		if err != nil {
-			return err
-		}
-
-		settings.QuickScanPaidByEnabled, settings.QuickScanStatusEnabled = paidByEnabled, statusEnabled
-		return nil
-	})
 }
 
 func (repository GroupReceiptSettingsRepository) GetGroupReceiptSettingsByGroupId(groupId uint) (models.GroupReceiptSettings, error) {
@@ -96,14 +71,10 @@ func (repository GroupReceiptSettingsRepository) UpdateGroupReceiptSettings(
 		groupReceiptSettings.HideReceiptTags = command.HideReceiptTags
 		groupReceiptSettings.HideNote = command.HideNote
 
-		groupReceiptSettings.QuickScanPaidByEnabled = command.QuickScanPaidByEnabled
+		groupReceiptSettings.QuickScanNoteEnabled = command.QuickScanNoteEnabled
 		groupReceiptSettings.QuickScanDefaultPaidByType = command.QuickScanDefaultPaidByType
 		groupReceiptSettings.QuickScanDefaultPaidById = command.QuickScanDefaultPaidById
-		groupReceiptSettings.QuickScanStatusEnabled = command.QuickScanStatusEnabled
 		groupReceiptSettings.QuickScanDefaultStatus = command.QuickScanDefaultStatus
-		groupReceiptSettings.QuickScanCategoriesEnabled = command.QuickScanCategoriesEnabled
-		groupReceiptSettings.QuickScanTagsEnabled = command.QuickScanTagsEnabled
-		groupReceiptSettings.QuickScanNoteEnabled = command.QuickScanNoteEnabled
 
 		return tx.Select("*").Model(groupReceiptSettings).Updates(groupReceiptSettings).Error
 	})

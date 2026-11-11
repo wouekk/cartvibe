@@ -457,20 +457,17 @@ var tableSpecs = []tableSpec{
 	{
 		name: "group_receipt_settings",
 		columns: []string{"group_id", "hide_images", "hide_receipt_categories", "hide_receipt_tags", "hide_note",
-			"quick_scan_paid_by_enabled", "quick_scan_default_paid_by_type", "quick_scan_default_paid_by_id",
-			"quick_scan_status_enabled", "quick_scan_default_status", "quick_scan_categories_enabled",
-			"quick_scan_tags_enabled", "quick_scan_note_enabled"},
+			"quick_scan_note_enabled", "quick_scan_default_paid_by_type", "quick_scan_default_paid_by_id",
+			"quick_scan_default_status"},
 		write: func(state *exportState, table *tableWriter) error {
 			query := state.tx.Model(models.GroupReceiptSettings{}).
 				Where("group_id IN (?)", state.tx.Model(models.Group{}).Select("id").Where("is_all_group = ?", false))
 			return eachInBatches(query, func(settings models.GroupReceiptSettings) error {
 				return table.write(formatUint(settings.GroupId), formatBool(settings.HideImages),
 					formatBool(settings.HideReceiptCategories), formatBool(settings.HideReceiptTags),
-					formatBool(settings.HideNote), formatBool(settings.QuickScanPaidByEnabled),
+					formatBool(settings.HideNote), formatBool(settings.QuickScanNoteEnabled),
 					string(settings.QuickScanDefaultPaidByType), formatUintPtr(settings.QuickScanDefaultPaidById),
-					formatBool(settings.QuickScanStatusEnabled), string(settings.QuickScanDefaultStatus),
-					formatBool(settings.QuickScanCategoriesEnabled), formatBool(settings.QuickScanTagsEnabled),
-					formatBool(settings.QuickScanNoteEnabled))
+					string(settings.QuickScanDefaultStatus))
 			})
 		},
 	},

@@ -1,19 +1,17 @@
 package models
 
-// GroupReceiptSettings is what a household set for its receipts: what the receipt form leaves out, and what Quick
-// Scan asks for beside the photo.
+// GroupReceiptSettings is what a household set for its receipts: what the receipt form leaves out, and the
+// little that Quick Scan can be told.
 //
-// Quick Scan asks for nothing by default: photo, done (2026-11, audit D7). Each switch below adds one field to
-// its dialog; none of them is ever required, and what is not asked for gets a value by itself (paid by: the
-// household's default, else the person scanning; status: the household's default, else "To check").
+// A Quick Scan is a photo and nothing else (2026-11, audit D7). The person scanning paid, the receipt starts as
+// "To check", and its categories and tags come from its product lines once they are read. A household can ask
+// for one more thing, a note, and can change the two defaults a scan (or a shopping-trip photo) falls back on.
 //
-// Three things here are older than that and stay as they are in the database:
-//   - The columns keep their names: hide_comments and quick_scan_comment_enabled are the note's switches, from
-//     when a receipt had a thread of comments.
-//   - The two tags that say `default:true` are the columns' defaults in every existing database. Changing a
-//     default makes the migrator rebuild the table, so the tags stay. The ORM gives a false field its column
-//     default on insert, so every insert goes through repositories.CreateGroupReceiptSettingsAsGiven.
-//   - Five quick_scan_*_required columns exist in older databases and are no longer read.
+// Older than that, and left as they are in the database:
+//   - The note's two columns keep their names from when a receipt had a thread of comments: hide_comments and
+//     quick_scan_comment_enabled.
+//   - Nine quick_scan_* columns of the upstream settings matrix (a "show" and a "require" switch per field) exist
+//     in databases made before this release. Nothing reads them; each has a column default, so inserts still work.
 type GroupReceiptSettings struct {
 	BaseModel
 	GroupId               uint `gorm:"not null;unique" json:"groupId"`
@@ -23,16 +21,14 @@ type GroupReceiptSettings struct {
 	// HideNote takes the note off the household's receipts: the form, the list and Quick Scan.
 	HideNote bool `gorm:"column:hide_comments;not null;default:false" json:"hideNote"`
 
-	QuickScanPaidByEnabled     bool                       `gorm:"not null;default:true" json:"quickScanPaidByEnabled"`
+	// QuickScanNoteEnabled adds a note field to the Quick Scan dialog. It is never required.
+	QuickScanNoteEnabled bool `gorm:"column:quick_scan_comment_enabled;not null;default:false" json:"quickScanNoteEnabled"`
+
+	// Who paid, and the status, of a scan that does not say: see ResolveQuickScanFields. Empty means the person
+	// scanning and "To check".
 	QuickScanDefaultPaidByType QuickScanDefaultPaidByType `json:"quickScanDefaultPaidByType"`
 	QuickScanDefaultPaidById   *uint                      `json:"quickScanDefaultPaidById"`
-
-	QuickScanStatusEnabled bool          `gorm:"not null;default:true" json:"quickScanStatusEnabled"`
-	QuickScanDefaultStatus ReceiptStatus `json:"quickScanDefaultStatus"`
-
-	QuickScanCategoriesEnabled bool `gorm:"not null;default:false" json:"quickScanCategoriesEnabled"`
-	QuickScanTagsEnabled       bool `gorm:"not null;default:false" json:"quickScanTagsEnabled"`
-	QuickScanNoteEnabled       bool `gorm:"column:quick_scan_comment_enabled;not null;default:false" json:"quickScanNoteEnabled"`
+	QuickScanDefaultStatus     ReceiptStatus              `json:"quickScanDefaultStatus"`
 }
 
 // IsQuickScanNoteShown reports whether Quick Scan asks for a note. HideNote hides the note for the whole

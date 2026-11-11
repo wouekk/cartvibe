@@ -247,21 +247,16 @@ func Parse(archive *Archive) (*Household, error) {
 			household.Layouts = append(household.Layouts, models.DashboardLayout{UserId: c.id("user_id"), Layout: c.text("layout")})
 		}},
 		{"group_receipt_settings", func(c cells) {
-			// An export from before 2026-11 names the note's two switches after the comments, and has a
-			// "required" column beside each "enabled" one. Paid by and status that were shown and required are
-			// the old defaults nobody chose, so they read as off, like the data migration does for a database.
+			// An export from before 2026-11 names the note's two switches after the comments, and carries the
+			// upstream Quick Scan matrix (a "show" and a "require" column per field), which is not read.
 			settings := models.GroupReceiptSettings{GroupId: c.id("group_id"),
 				HideImages: c.boolean("hide_images"), HideReceiptCategories: c.boolean("hide_receipt_categories"),
 				HideReceiptTags: c.boolean("hide_receipt_tags"),
 				HideNote:        c.boolean("hide_note") || c.boolean("hide_comments"),
-				QuickScanPaidByEnabled:     c.boolean("quick_scan_paid_by_enabled") && !c.boolean("quick_scan_paid_by_required"),
+				QuickScanNoteEnabled:       c.boolean("quick_scan_note_enabled") || c.boolean("quick_scan_comment_enabled"),
 				QuickScanDefaultPaidByType: models.QuickScanDefaultPaidByType(c.text("quick_scan_default_paid_by_type")),
 				QuickScanDefaultPaidById:   c.idPtr("quick_scan_default_paid_by_id"),
-				QuickScanStatusEnabled:     c.boolean("quick_scan_status_enabled") && !c.boolean("quick_scan_status_required"),
-				QuickScanDefaultStatus:     models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status"))),
-				QuickScanCategoriesEnabled: c.boolean("quick_scan_categories_enabled"),
-				QuickScanTagsEnabled:       c.boolean("quick_scan_tags_enabled"),
-				QuickScanNoteEnabled:       c.boolean("quick_scan_note_enabled") || c.boolean("quick_scan_comment_enabled")}
+				QuickScanDefaultStatus:     models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status")))}
 			household.GroupSettings = append(household.GroupSettings, settings)
 		}},
 	}

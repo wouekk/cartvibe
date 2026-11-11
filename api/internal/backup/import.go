@@ -358,8 +358,7 @@ func (run *importRun) writeGroups() error {
 		}
 		run.groups[group.ID] = created.ID
 		if !hasSettings {
-			// A household the export says nothing about gets a new household's settings: Quick Scan asks for
-			// nothing beside the photo.
+			// A household the export says nothing about gets a new household's settings.
 			settings = models.GroupReceiptSettings{}
 		}
 		if err := run.writeGroupSettings(created.ID, settings, false); err != nil {
@@ -406,9 +405,7 @@ func (run *importRun) writeGroupSettings(groupId uint, settings models.GroupRece
 	settings.QuickScanDefaultPaidById = run.users.ptr(settings.QuickScanDefaultPaidById)
 	settings.CreatedAt = time.Time{}
 	if !existing {
-		// Not a plain Create: two of the switches have a true column default, which it would give to a switch
-		// that is off.
-		return repositories.CreateGroupReceiptSettingsAsGiven(run.tx, &settings)
+		return run.tx.Create(&settings).Error
 	}
 	// Select("*") writes the false flags too (a struct Updates would skip them).
 	return run.tx.Model(&models.GroupReceiptSettings{}).Where("group_id = ?", groupId).

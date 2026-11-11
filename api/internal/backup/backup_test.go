@@ -261,8 +261,10 @@ func TestExportReadsBackEveryRowExactly(t *testing.T) {
 	if settings[0]["hide_note"] != "true" || settings[0]["quick_scan_note_enabled"] != "true" {
 		t.Errorf("group_receipt_settings: %v", settings[0])
 	}
-	if _, old := settings[0]["quick_scan_paid_by_required"]; old {
-		t.Errorf("the removed required columns are not exported: %v", settings[0])
+	for _, gone := range []string{"quick_scan_paid_by_enabled", "quick_scan_paid_by_required", "quick_scan_status_enabled", "hide_comments"} {
+		if _, old := settings[0][gone]; old {
+			t.Errorf("%s is no longer exported: %v", gone, settings[0])
+		}
 	}
 	tags, _ := archive.Table("tags")
 	if tags[0]["name"] != "=treat" {
