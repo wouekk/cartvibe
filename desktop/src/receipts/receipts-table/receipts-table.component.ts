@@ -5,16 +5,14 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { parseDayRange, ResolvedPeriod } from "../../overview/overview-period";
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter as rxFilter, map, Subject, switchMap, take, tap } from "rxjs";
 import { ReceiptFilterService } from "src/services/receipt-filter.service";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { ResetReceiptFilter, SetColumnConfig, SetPage, SetPageSize, SetReceiptFilterData, SetReceiptFilterField, SetReceiptSearch } from "src/store/receipt-table.actions";
-import { DEFAULT_RECEIPT_ORDER_BY, DEFAULT_RECEIPT_SORT_DIRECTION, ReceiptTableState, } from "src/store/receipt-table.state";
+import { DEFAULT_RECEIPT_ORDER_BY, DEFAULT_RECEIPT_SORT_DIRECTION, ReceiptTableStore } from "src/store/receipt-table.store";
 import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
@@ -39,7 +37,7 @@ import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, GroupState, UserState } from "../../store";
+import { UserStore, GroupStore, AuthStore } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
@@ -99,6 +97,16 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
+  private readonly userStore = inject(UserStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
+  private readonly receiptTableStore = inject(ReceiptTableStore);
+
   constructor(
     private activatedRoute: ActivatedRoute,
     private groupsService: GroupsService,
@@ -108,10 +116,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     private receiptService: ReceiptService,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
     private customCurrencyPipe: CustomCurrencyPipe,
     private datePipe: DatePipe,
-    private translation: TranslationService,
+    private translation: TranslationService
   ) {
     this.listenForRefreshRequests();
     this.listenForSearchInput();
@@ -138,34 +145,34 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   readonly table = viewChild.required(TableComponent);
 
-  public page = this.store.selectSignal(ReceiptTableState.page);
+  public page = this.receiptTableStore.page;
 
-  public pageSize = this.store.selectSignal(ReceiptTableState.pageSize);
+  public pageSize = this.receiptTableStore.pageSize;
 
-  public filter = this.store.selectSignal(ReceiptTableState.filterData);
+  public filter = this.receiptTableStore.state;
 
   /** The phrase applied to the table, as the store holds it. */
-  private readonly appliedSearch = this.store.selectSignal(ReceiptTableState.search);
+  private readonly appliedSearch = this.receiptTableStore.search;
 
   /** What the search box shows: ahead of the store while the debounce waits. */
-  public readonly searchText = signal(this.store.selectSnapshot(ReceiptTableState.search));
+  public readonly searchText = signal(this.receiptTableStore.search());
 
   private readonly searchTyped = new Subject<string>();
 
-  public columnConfig = this.store.selectSignal(ReceiptTableState.columnConfig);
+  public columnConfig = this.receiptTableStore.columnConfig;
 
-  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
+  public selectedGroupId = this.groupStore.selectedGroupId;
 
   private readonly refreshRequested = new Subject<void>();
 
   /** Set by the first refresh, which the period picker asks for when it mounts. */
   private refreshWasRequested = false;
 
-  private groups = this.store.selectSignal(GroupState.groups);
+  private groups = this.groupStore.groups;
 
-  private users = this.store.selectSignal(UserState.users);
+  private users = this.userStore.users;
 
-  private dateFormat = this.store.selectSignal(SystemSettingsState.dateFormat);
+  private dateFormat = this.systemSettingsStore.dateFormat;
 
   private receiptFilter = computed(
     () => this.filter()?.filter as ReceiptPagedRequestFilter | undefined
@@ -201,7 +208,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     );
   });
 
-  private numFiltersAppliedRaw = this.store.selectSignal(ReceiptTableState.numFiltersApplied);
+  private numFiltersAppliedRaw = this.receiptTableStore.numFiltersApplied;
 
   /**
    * Every active condition, the date range included: what Reset clears.
@@ -269,8 +276,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public ngOnInit(): void {
     const query = this.activatedRoute.snapshot.queryParamMap;
     this.initialPeriod = parseDayRange(query.get("from"), query.get("to"));
-    this.groupId = this.store
-      .selectSnapshot(GroupState.selectedGroupId)
+    this.groupId = this.groupStore.selectedGroupId()
       ?.toString();
     this.setGroup();
     this.setCanEdit();
@@ -283,12 +289,12 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.categories.set(
       Number.isNaN(numericGroupId)
         ? []
-        : this.store.selectSnapshot(AuthState.groupCategories(numericGroupId))
+        : this.authStore.groupCategories(numericGroupId)
     );
     this.tags.set(
       Number.isNaN(numericGroupId)
         ? []
-        : this.store.selectSnapshot(AuthState.groupTags(numericGroupId))
+        : this.authStore.groupTags(numericGroupId)
     );
 
     this.reconcileColumnConfig();
@@ -308,9 +314,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
    * ask the API to order by a column that no longer exists.
    */
   private reconcileColumnConfig(): void {
-    const persisted = this.store.selectSnapshot(
-      ReceiptTableState.columnConfig
-    );
+    const persisted = this.receiptTableStore.columnConfig();
     const reconciled = reconcileColumns(persisted);
 
     const changed =
@@ -323,10 +327,10 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       );
 
     if (changed) {
-      this.store.dispatch(new SetColumnConfig(reconciled));
+      this.receiptTableStore.setColumnConfig(reconciled);
     }
 
-    const filterData = this.store.selectSnapshot(ReceiptTableState.filterData);
+    const filterData = this.receiptTableStore.state();
     // A sort kept from before a column changed its key follows it (the Note column was first_comment).
     const orderBy = currentColumnKey(filterData.orderBy ?? "");
     const isKnownColumn = reconciled.some(
@@ -334,39 +338,29 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     );
 
     if (!isKnownColumn) {
-      this.store.dispatch(
-        new SetReceiptFilterData({
-          ...filterData,
-          orderBy: DEFAULT_RECEIPT_ORDER_BY,
-          sortDirection: DEFAULT_RECEIPT_SORT_DIRECTION,
-        })
-      );
+      this.receiptTableStore.setFilterData({
+        ...filterData,
+        orderBy: DEFAULT_RECEIPT_ORDER_BY,
+        sortDirection: DEFAULT_RECEIPT_SORT_DIRECTION,
+      });
     } else if (orderBy !== filterData.orderBy) {
-      this.store.dispatch(new SetReceiptFilterData({ ...filterData, orderBy }));
+      this.receiptTableStore.setFilterData({ ...filterData, orderBy });
     }
   }
 
   private setGroup(): void {
-    this.group = this.store.selectSnapshot(GroupState.getGroupById(this.groupId));
+    this.group = this.groupStore.getGroupById(this.groupId);
   }
 
   private setCanEdit(): void {
     const groupId = Number.parseInt(this.groupId);
-    this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsUpdate)
-    );
-    this.canCreate = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsCreate)
-    );
-    this.canQuickScan = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsQuickScan)
-    );
+    this.canEdit = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsUpdate);
+    this.canCreate = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsCreate);
+    this.canQuickScan = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsQuickScan);
   }
 
   private setHeaderText(): void {
-    const group = this.store.selectSnapshot(
-      GroupState.getGroupById(this.groupId)
-    );
+    const group = this.groupStore.getGroupById(this.groupId);
     // Translatable titles (the header passes them through `t`): "<group> Receipts" could never be translated.
     if (group) {
       this.headerText = group.isAllGroup ? marker("All receipts") : marker("Receipts");
@@ -390,7 +384,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private setColumns(): void {
-    const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
+    const currentColumnConfig = this.receiptTableStore.columnConfig();
 
     // On a phone each receipt is a card: the shop and its date on the left, the amount and status on the right, and
     // whatever else the person switched on as labelled details below (`phone`, see app-table).
@@ -485,7 +479,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     // and a configuration naming a since-removed column is ordinary.
     const displayColumns = ["select", ...columns.map(col => col.columnDef)];
 
-    const filter = this.store.selectSnapshot(ReceiptTableState.filterData);
+    const filter = this.receiptTableStore.state();
     const orderByIndex = columns.findIndex(
       (c) => c.columnDef === filter.orderBy
     );
@@ -502,19 +496,15 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public sort(sortState: Sort): void {
     if (!this.firstSort) {
-      const filterData = this.store.selectSnapshot(
-        ReceiptTableState.filterData
-      );
+      const filterData = this.receiptTableStore.state();
 
-      this.store.dispatch(
-        new SetReceiptFilterData({
-          page: filterData.page,
-          pageSize: filterData.pageSize,
-          orderBy: sortState.active,
-          sortDirection: sortState.direction,
-          filter: filterData.filter,
-        })
-      );
+      this.receiptTableStore.setFilterData({
+        page: filterData.page,
+        pageSize: filterData.pageSize,
+        orderBy: sortState.active,
+        sortDirection: sortState.direction,
+        filter: filterData.filter,
+      });
 
       this.getFilteredReceipts();
     }
@@ -522,7 +512,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public filterButtonClicked(): void {
-    const filter = this.store.selectSnapshot(ReceiptTableState.filterData).filter as any;
+    const filter = this.receiptTableStore.state().filter as any;
 
     const dialogRef = this.dialog.open(ReceiptFilterComponent, {
       minWidth: "75%",
@@ -546,7 +536,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((applyFilter) => {
           if (applyFilter) {
-            this.store.dispatch(new SetPage(1));
+            this.receiptTableStore.setPage(1);
             this.getFilteredReceipts();
           }
 
@@ -588,8 +578,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     field: keyof ReceiptPagedRequestFilter,
     entry: { operation: FilterOperation | null; value: unknown } | null
   ): void {
-    this.store.dispatch(new SetReceiptFilterField(field, entry));
-    this.store.dispatch(new SetPage(1));
+    this.receiptTableStore.setFilterField(field, entry);
+    this.receiptTableStore.setPage(1);
     this.getFilteredReceipts();
   }
 
@@ -611,7 +601,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public resetFilterButtonClicked(): void {
-    this.store.dispatch(new ResetReceiptFilter());
+    this.receiptTableStore.resetFilter();
     this.searchText.set("");
     this.getFilteredReceipts();
   }
@@ -640,7 +630,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   private applySearch(value: string): void {
-    this.store.dispatch(new SetReceiptSearch(value));
+    this.receiptTableStore.setSearch(value);
     this.getFilteredReceipts();
   }
 
@@ -668,7 +658,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public configureColumnsButtonClicked(): void {
-    const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
+    const currentColumnConfig = this.receiptTableStore.columnConfig();
 
     const dialogRef = this.dialog.open(ColumnConfigurationDialogComponent, {
       ...DEFAULT_DIALOG_CONFIG,
@@ -683,7 +673,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         take(1),
         tap((result: ReceiptTableColumnConfig[] | null) => {
           if (result) {
-            this.store.dispatch(new SetColumnConfig(result));
+            this.receiptTableStore.setColumnConfig(result);
             this.setColumns();
           }
         })
@@ -799,7 +789,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   /** Gated on the receipt's own household, never the page's (the "All" view lists several). */
   private mayOnRow(row: Receipt, permission: Permission): boolean {
-    return this.store.selectSnapshot(AuthState.hasGroupPermission(row.groupId, permission));
+    return this.authStore.hasGroupPermission(row.groupId, permission);
   }
 
   public runRowAction(key: string, row: Receipt): void {
@@ -888,8 +878,8 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   public updatePageData(pageEvent: PageEvent): void {
     const newPage = pageEvent.pageIndex + 1;
-    this.store.dispatch(new SetPage(newPage));
-    this.store.dispatch(new SetPageSize(pageEvent.pageSize));
+    this.receiptTableStore.setPage(newPage);
+    this.receiptTableStore.setPageSize(pageEvent.pageSize);
 
     this.getFilteredReceipts();
   }

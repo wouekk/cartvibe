@@ -5,7 +5,6 @@ import { DestroyRef, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@a
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { SnackbarService } from "../../services";
 import {
@@ -17,8 +16,7 @@ import {
   ReportRequestCommand,
   ReportTemplate,
 } from "../../open-api";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { ReportBuilderValue, toReportRequestCommand } from "../models/report-command.mapper";
 import {
@@ -42,7 +40,6 @@ describe("ReportBuilderComponent", () => {
     updateTemplate: Mock;
   };
   let snackbar: { success: Mock };
-  let store: Store;
   // Mutable route stub: the builder reads snapshot.data.template in its field
   // initializer, so a test sets this before creating its own component instance.
   const activatedRoute = { snapshot: { data: {} as Record<string, unknown> } };
@@ -62,7 +59,7 @@ describe("ReportBuilderComponent", () => {
     await TestBed.configureTestingModule({
     // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
     // generateAllowed), which resolve through the hasAnyAppPermission selector.
-    imports: [TranslatePipe, NgxsModule.forRoot([AuthState]), ReportBuilderComponent],
+    imports: [TranslatePipe,ReportBuilderComponent],
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
@@ -73,7 +70,6 @@ describe("ReportBuilderComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
 
     fixture = TestBed.createComponent(ReportBuilderComponent);
     component = fixture.componentInstance;
@@ -299,7 +295,7 @@ describe("ReportBuilderComponent", () => {
     // The matcher treats "…create" and "…createAll" as unrelated keys, so gating on the
     // base key alone would hide the control from a role holding only the "*All" variant.
     it("shows Save (create) and Generate with only the base permissions", async () => {
-      store.dispatch(new SetPermissions([Permission.AppReportsCreate, Permission.AppReportsGenerate], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsCreate, Permission.AppReportsGenerate], {});
       await fixture.whenStable();
       expect(component.isEditMode).toBe(false);
       expect(component.saveTemplateAllowed()).toBe(true);
@@ -307,14 +303,14 @@ describe("ReportBuilderComponent", () => {
     });
 
     it("shows Save (create) and Generate with only the -All permissions", async () => {
-      store.dispatch(new SetPermissions([Permission.AppReportsCreateAll, Permission.AppReportsGenerateAll], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsCreateAll, Permission.AppReportsGenerateAll], {});
       await fixture.whenStable();
       expect(component.saveTemplateAllowed()).toBe(true);
       expect(component.generateAllowed()).toBe(true);
     });
 
     it("hides Save and Generate for a read-only holder (neither variant)", async () => {
-      store.dispatch(new SetPermissions([Permission.AppReportsRead], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsRead], {});
       await fixture.whenStable();
       expect(component.saveTemplateAllowed()).toBe(false);
       expect(component.generateAllowed()).toBe(false);
@@ -337,7 +333,7 @@ describe("ReportBuilderComponent", () => {
         template: { id: 7, name: "Saved Report", createdAt: "2026-01-01T00:00:00Z", configuration, configurationVersion: 1 },
       };
       // Only the "*All" update variant — not create, not the base update key.
-      store.dispatch(new SetPermissions([Permission.AppReportsUpdateAll], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsUpdateAll], {});
 
       const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
       await fixture.whenStable();
@@ -363,7 +359,7 @@ describe("ReportBuilderComponent", () => {
         template: { id: 7, name: "Saved Report", createdAt: "2026-01-01T00:00:00Z", configuration, configurationVersion: 1 },
       };
       // Only the base update key — not create, not the "*All" variant.
-      store.dispatch(new SetPermissions([Permission.AppReportsUpdate], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsUpdate], {});
 
       const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
       await fixture.whenStable();
@@ -389,7 +385,7 @@ describe("ReportBuilderComponent", () => {
         template: { id: 7, name: "Saved Report", createdAt: "2026-01-01T00:00:00Z", configuration, configurationVersion: 1 },
       };
       // Create only — editing an existing template needs update, so Save stays hidden.
-      store.dispatch(new SetPermissions([Permission.AppReportsCreate], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsCreate], {});
 
       const local = TestBed.createComponent(ReportBuilderComponent).componentInstance;
       await fixture.whenStable();

@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -11,11 +10,10 @@ import { SnackbarService } from "../../services";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
-import { AuthState } from "../../store/auth.state";
-import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 const item = (id: number, listId: number, isChecked = false): ShoppingListItem =>
@@ -45,7 +43,6 @@ const setChecked = (listId: number, command: { isChecked: boolean; itemIds?: num
 describe("ShoppingListsPageComponent", () => {
   let fixture: ComponentFixture<ShoppingListsPageComponent>;
   let component: ShoppingListsPageComponent;
-  let store: Store;
   let shoppingListService: { [method: string]: Mock };
   let snackbarService: { [method: string]: Mock };
   let confirmed: boolean | undefined;
@@ -73,7 +70,7 @@ describe("ShoppingListsPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -93,17 +90,12 @@ describe("ShoppingListsPageComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        ...store.snapshot().auth,
-        groupPermissions: {
-          1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
-        },
+    seedStore(TestBed.inject(AuthStore), {
+      groupPermissions: {
+        1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
       },
     });
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     component = fixture.componentInstance;
@@ -146,7 +138,7 @@ describe("ShoppingListsPageComponent", () => {
 
   it("leaves the active cards out when the only one is the open list", async () => {
     shoppingListService["getShoppingListsForGroup"].mockReturnValue(of([lists()[0]]));
-    store.dispatch(new LoadShoppingLists(1));
+    TestBed.inject(ShoppingListStore).load(1);
     await fixture.whenStable();
 
     expect(component.showActiveCards()).toBe(false);
@@ -185,7 +177,7 @@ describe("ShoppingListsPageComponent", () => {
     expect(testId("shopping-list-delete")).toBeNull();
     expect(component.canDelete()).toBe(true);
 
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, groupPermissions: { 1: [] } } });
+    seedStore(TestBed.inject(AuthStore), { groupPermissions: { 1: [] } });
     await fixture.whenStable();
 
     expect(component.canDelete()).toBe(false);

@@ -1,14 +1,11 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import type { Mock } from "vitest";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Group, Permission } from "../../../open-api";
-import { AuthState } from "../../../store/auth.state";
-import { SetPermissions } from "../../../store/auth.state.actions";
-import { GroupState } from "../../../store/group.state";
-import { SetGroups } from "../../../store/group.state.actions";
+import { AuthStore } from "../../../store/auth.store";
+import { GroupStore } from "../../../store/group.store";
 import { ReportsModule } from "../../reports.module";
 import { AddGroupDialogComponent, AddGroupDialogData } from "./add-group-dialog.component";
 
@@ -29,7 +26,7 @@ describe("AddGroupDialogComponent", () => {
   const open = async (data: AddGroupDialogData, reportGroups: number[] = [1, 2, 99]) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ReportsModule, NgxsModule.forRoot([AuthState, GroupState])],
+      imports: [ReportsModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -37,14 +34,13 @@ describe("AddGroupDialogComponent", () => {
         { provide: APP_DIALOG_DATA, useValue: data },
       ],
     }).compileComponents();
-    const store = TestBed.inject(Store);
-    store.dispatch(new SetGroups(groups));
+    TestBed.inject(GroupStore).setGroups(groups);
     const groupPermissions: { [groupId: number]: string[] } = {};
     for (const id of reportGroups) {
       groupPermissions[id] = [Permission.GroupReportsRead];
     }
     groupPermissions[3] ??= ["group.receipts.read"];
-    store.dispatch(new SetPermissions([], groupPermissions));
+    TestBed.inject(AuthStore).setPermissions([], groupPermissions);
     fixture = TestBed.createComponent(AddGroupDialogComponent);
     await fixture.whenStable();
   };

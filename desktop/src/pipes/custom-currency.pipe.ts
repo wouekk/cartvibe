@@ -1,12 +1,13 @@
 import { CurrencyPipe } from "@angular/common";
-import { Pipe, PipeTransform } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Pipe, PipeTransform, inject } from "@angular/core";
 import { CurrencySeparator, CurrencySymbolPosition } from "../open-api/index";
-import { SystemSettingsState } from "../store/system-settings.state";
+import { SystemSettingsStore } from "../store/system-settings.store";
 
 @Pipe({ name: "customCurrency" })
 export class CustomCurrencyPipe implements PipeTransform {
-  constructor(private store: Store, private currencyPipe: CurrencyPipe) {}
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
+  constructor(private currencyPipe: CurrencyPipe) {}
 
   public transform(
     value: string | number,
@@ -16,7 +17,7 @@ export class CustomCurrencyPipe implements PipeTransform {
     currencySymbolPosition?: CurrencySymbolPosition,
     currencyHideDecimalPlaces?: boolean
   ): string {
-    const systemSettingsState = this.store.selectSnapshot(SystemSettingsState.state);
+    const systemSettingsState = this.systemSettingsStore.state();
     let currencyValue = this.currencyPipe.transform(value, "USD", "symbol", undefined, "en-US") ?? "";
     const result = currencyValue.split("");
     const originalCurrencyValueArray = currencyValue.split("");

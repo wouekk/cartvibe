@@ -1,8 +1,7 @@
-import { Component, computed, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Component, computed, ChangeDetectionStrategy, inject } from "@angular/core";
 import { DEFAULT_HOST_CLASS } from "src/constants";
 import { Permission } from "../../open-api";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
 import { marker } from "../../i18n/marker";
 import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
@@ -16,13 +15,11 @@ import { TabsComponent } from "../../shared-ui/tabs/tabs.component";
     imports: [SettingsPageComponent, TabsComponent]
 })
 export class SettingsComponent {
-  private readonly canReadProfile = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppAccountRead)
-  );
+  private readonly authStore = inject(AuthStore);
 
-  private readonly canReadPreferences = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppUserPreferencesRead)
-  );
+  private readonly canReadProfile = computed(() => this.authStore.hasAppPermission(Permission.AppAccountRead));
+
+  private readonly canReadPreferences = computed(() => this.authStore.hasAppPermission(Permission.AppUserPreferencesRead));
 
   public readonly tabs = computed<TabConfig[]>(() => {
     const tabs: TabConfig[] = [];
@@ -47,5 +44,4 @@ export class SettingsComponent {
     return tabs;
   });
 
-  constructor(private store: Store) {}
 }

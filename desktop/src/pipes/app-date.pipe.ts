@@ -1,10 +1,9 @@
 import { formatDate } from "@angular/common";
 import { inject, Pipe, PipeTransform } from "@angular/core";
 import { TranslationService } from "../i18n/translation.service";
-import { Store } from "@ngxs/store";
-import { SystemSettingsState } from "../store/system-settings.state";
 import { calendarDayToLocalDate, offsetAt } from "../utils/app-time-zone";
 import { AppDateFormat, appDatePattern } from "../utils/app-date-format";
+import { SystemSettingsStore } from "../store/system-settings.store";
 
 /**
  * - `instant` (the default): a moment in time (`createdAt`, `resolvedDate`,
@@ -81,9 +80,9 @@ export function formatAppDate(
 export class AppDatePipe implements PipeTransform {
   private readonly translation = inject(TranslationService);
 
-  private readonly timeZone = inject(Store).selectSignal(SystemSettingsState.timeZone);
+  private readonly timeZone = inject(SystemSettingsStore).timeZone;
 
-  private readonly dateFormat = inject(Store).selectSignal(SystemSettingsState.dateFormat);
+  private readonly dateFormat = inject(SystemSettingsStore).dateFormat;
 
   private lastKey: unknown[] | null = null;
 

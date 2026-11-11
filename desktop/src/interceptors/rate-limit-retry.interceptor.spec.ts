@@ -2,7 +2,6 @@ import { HttpClient, HttpContext, provideHttpClient, withInterceptors } from "@a
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { SnackbarService } from "../services";
 import { httpInterceptor, QUIET_ERRORS } from "./http-interceptor";
 import { RATE_LIMIT_RETRY_DELAYS, rateLimitRetryInterceptor } from "./rate-limit-retry.interceptor";
@@ -26,8 +25,7 @@ describe("rateLimitRetryInterceptor", () => {
         // The order of the app: the toast is the outer one.
         provideHttpClient(withInterceptors([httpInterceptor, rateLimitRetryInterceptor])),
         provideHttpClientTesting(),
-        { provide: Store, useValue: { selectSnapshot: () => true } },
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
+                { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
       ],
     });
 

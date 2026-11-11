@@ -10,9 +10,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroupDirective } from '@angular/forms';
-import { Store } from '@ngxs/store';
 import { FormMode } from 'src/enums/form-mode.enum';
-import { LayoutState } from 'src/store/layout.state';
+import { LayoutStore } from "src/store/layout.store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { AppIconComponent } from "../icon/icon.component";
@@ -33,6 +32,8 @@ import { NgIf } from '@angular/common';
     imports: [NgIf, HlmButton, HlmTooltip, AppIconComponent, TranslatePipe]
 })
 export class SubmitButtonComponent extends FormButtonComponent implements OnInit {
+  private readonly layoutStore = inject(LayoutStore);
+
   public readonly onlyIcon = input<boolean>(false);
 
   public readonly disableOnLoading = input<boolean>(false);
@@ -44,8 +45,6 @@ export class SubmitButtonComponent extends FormButtonComponent implements OnInit
 
   public formMode = FormMode;
 
-  private readonly store = inject(Store);
-
   private readonly destroyRef = inject(DestroyRef);
 
   // The form this button submits, when it sits inside one.
@@ -53,7 +52,7 @@ export class SubmitButtonComponent extends FormButtonComponent implements OnInit
 
   private readonly formPristine = signal(false);
 
-  private showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  private showProgressBar = this.layoutStore.showProgressBar;
 
   public effectiveDisabled = computed(() => {
     if (this.disableOnLoading() && this.showProgressBar()) {

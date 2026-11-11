@@ -1,8 +1,7 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router, UrlTree } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { Permission } from "../open-api";
-import { AuthState, GroupState } from "../store";
+import { GroupStore, AuthStore } from "../store";
 
 /**
  * Landing guard for the Settings shell. The avatar menu links to `/settings`;
@@ -11,7 +10,8 @@ import { AuthState, GroupState } from "../store";
  * none of them.
  */
 export const settingsLandingGuard: CanActivateFn = (): UrlTree => {
-  const store: Store = inject(Store);
+  const authStore = inject(AuthStore);
+  const groupStore = inject(GroupStore);
   const router: Router = inject(Router);
 
   const tabs: { path: string; permission: Permission }[] = [
@@ -23,10 +23,10 @@ export const settingsLandingGuard: CanActivateFn = (): UrlTree => {
   ];
 
   for (const tab of tabs) {
-    if (store.selectSnapshot(AuthState.hasAppPermission(tab.permission))) {
+    if (authStore.hasAppPermission(tab.permission)) {
       return router.parseUrl(`/settings/${tab.path}`);
     }
   }
 
-  return router.parseUrl(store.selectSnapshot(GroupState.dashboardLink));
+  return router.parseUrl(groupStore.dashboardLink());
 };

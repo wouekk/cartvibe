@@ -2,13 +2,11 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, take, tap, } from "rxjs";
 import { AppData, AuthService, FeatureConfigService, OidcProviderSummary } from "src/open-api";
 import { SnackbarService } from "src/services";
-import { setAppData } from "src/utils";
-import { GroupState, SetFeatureConfig } from "../../store";
-import { FeatureConfigState } from "../../store/feature-config.state";
+import { AppDataService } from "src/services/app-data.service";
+import { FeatureConfigStore, GroupStore } from "../../store";
 import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
@@ -32,6 +30,12 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [CartVibeLogoComponent, ReactiveFormsModule, NgIf, InputComponent, FeatureDirective, RouterLink, BrnButton, HlmButton, AppIconComponent, AsyncPipe, TranslatePipe, FormGetPipe]
 })
 export class AuthForm implements OnInit {
+  private readonly groupStore = inject(GroupStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
+  private readonly appData = inject(AppDataService);
+
   public form: FormGroup = new FormGroup({});
   public isSignUp: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
     false
@@ -43,10 +47,10 @@ export class AuthForm implements OnInit {
   public readonly isLoading = signal<boolean>(false);
 
   /** On while the household has a Logo.dev key: the page then credits Logo.dev. */
-  protected readonly shopLogosEnabled = inject(Store).selectSignal(FeatureConfigState.shopLogosEnabled);
+  protected readonly shopLogosEnabled = inject(FeatureConfigStore).shopLogosEnabled;
 
   /** The identity providers an admin switched on: one button each under the form. Empty on most installs. */
-  protected readonly oidcProviders = inject(Store).selectSignal(FeatureConfigState.oidcProviders);
+  protected readonly oidcProviders = inject(FeatureConfigStore).oidcProviders;
 
   private readonly signInTransition = inject(SignInTransitionService);
 
@@ -58,7 +62,6 @@ export class AuthForm implements OnInit {
     protected formBuilder: FormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
-    protected store: Store,
     protected userValidators: UserValidators
   ) {
   }
@@ -113,7 +116,7 @@ export class AuthForm implements OnInit {
       .getFeatureConfig()
       .pipe(
         take(1),
-        switchMap((config) => this.store.dispatch(new SetFeatureConfig(config))),
+        tap((config) => this.featureConfigStore.setFeatureConfig(config)),
         catchError(() => EMPTY)
       )
       .subscribe();
@@ -220,8 +223,8 @@ export class AuthForm implements OnInit {
     this.authSerivce
       .login(this.form.value)
       .pipe(
-        switchMap((appData: AppData) => setAppData(this.store, appData)),
-        switchMap(() => this.router.navigate([this.store.selectSnapshot(GroupState.overviewLink)])),
+        tap((appData: AppData) => this.appData.set(appData)),
+        switchMap(() => this.router.navigate([this.groupStore.overviewLink()])),
         catchError(() => EMPTY), // the HTTP interceptor surfaces the failure toast
         finalize(() => {
           this.isLoading.set(false);

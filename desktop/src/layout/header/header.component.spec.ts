@@ -4,30 +4,25 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
-import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
-import { StoreModule } from "../../store/store.module";
+import { AuthStore } from "../../store/auth.store";
+import { GroupStore } from "../../store/group.store";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
 describe("HeaderComponent", () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
-  let store: Store;
   let notificationsService: NotificationsService;
   const isHandset = signal(false);
 
   const logIn = () =>
-    store.dispatch(
-      new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any)
-    );
+    TestBed.inject(AuthStore).setAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any);
 
   const grantNotificationsRead = () =>
-    store.dispatch(new SetPermissions(["app.notifications.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.notifications.read"], {});
 
   const bellRendered = (): boolean =>
     !!fixture.nativeElement.querySelector('[data-testid="header-notifications"]');
@@ -40,12 +35,11 @@ describe("HeaderComponent", () => {
     await TestBed.configureTestingModule({
     imports: [TranslatePipe, ApiModule,
         OverlayModule,
-        StoreModule, HeaderComponent,],
+HeaderComponent,],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     notificationsService = TestBed.inject(NotificationsService);
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
@@ -95,8 +89,8 @@ describe("HeaderComponent", () => {
   });
 
   it("names the household on a phone, where the tab bar opens the sheet, and keeps the sidebar button elsewhere", async () => {
-    store.dispatch(new SetGroups([{ id: 3, name: "Home", isAllGroup: false } as Group, { id: 9, name: "All", isAllGroup: true } as Group]));
-    store.dispatch(new SetSelectedGroupId("9"));
+    TestBed.inject(GroupStore).setGroups([{ id: 3, name: "Home", isAllGroup: false } as Group, { id: 9, name: "All", isAllGroup: true } as Group]);
+    TestBed.inject(GroupStore).setSelectedGroupId("9");
     logIn();
     isHandset.set(true);
     await fixture.whenStable();

@@ -1,20 +1,20 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, finalize, firstValueFrom, map, Observable, shareReplay, tap, throwError } from "rxjs";
 import { AuthService, Claims } from "../open-api";
-import { AuthState, Logout, SetAuthState } from "../store";
+import { AuthStore } from "../store";
 import { clearSessionStorage, isSessionRefused } from "../utils/session-storage";
 
 @Injectable({
   providedIn: "root",
 })
 export class TokenRefreshService {
+  private readonly authStore = inject(AuthStore);
+
   private refreshInFlight$: Observable<Claims> | null = null;
 
   constructor(
     private authService: AuthService,
-    private store: Store,
     private router: Router,
   ) {}
 
@@ -31,11 +31,11 @@ export class TokenRefreshService {
     this.refreshInFlight$ = this.authService.getNewRefreshToken().pipe(
       map((response) => response as Claims),
       tap((claims) => {
-        this.store.dispatch(new SetAuthState(claims));
+        this.authStore.setAuthState(claims);
       }),
       catchError((err) => {
         if (isSessionRefused(err)) {
-          this.store.dispatch(new Logout());
+          this.authStore.logout();
           clearSessionStorage();
           this.router.navigate(["/auth/login"]);
         }
@@ -57,10 +57,10 @@ export class TokenRefreshService {
    * could not reach the server, or the server ended the session (the person is then signed out).
    */
   public async ensureFreshToken(): Promise<boolean> {
-    if (!this.store.selectSnapshot(AuthState.isLoggedIn)) {
+    if (!this.authStore.isLoggedIn()) {
       return false;
     }
-    if (!AuthState.isAccessTokenExpired(this.store)) {
+    if (!this.authStore.isAccessTokenExpired()) {
       return true;
     }
 

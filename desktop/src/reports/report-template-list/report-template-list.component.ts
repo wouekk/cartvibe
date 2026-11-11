@@ -6,13 +6,13 @@ import {
   inject,
   signal,
   viewChild,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  computed,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
 import { Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { EMPTY, catchError, finalize, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
 import { PagedTableInterface } from "../../interfaces/paged-table.interface";
@@ -21,8 +21,8 @@ import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, GroupState } from "../../store";
-import { ReportTemplateTableState } from "../../store/report-template-table.state";
+import { GroupStore } from "../../store";
+import { ReportTemplateTableStore } from "../../store/report-template-table.store";
 import {
   columnCount,
   detailSummary,
@@ -44,6 +44,7 @@ import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.com
 import { DeleteButtonComponent } from "../../shared-ui/delete-button/delete-button.component";
 import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { AuthStore } from "../../store/auth.store";
 
 /**
  * The Reports landing page: a paged table of saved report templates. Each row
@@ -71,10 +72,15 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         AppDatePipe, HlmButton, HlmTooltip],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
+  private readonly reportTemplateTableStore = inject(ReportTemplateTableStore);
+
   private readonly translation = inject(TranslationService);
 
   private readonly router = inject(Router);
-  private readonly store = inject(Store);
   private readonly dialog = inject(AppDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly runner = inject(ReportRunnerService);
@@ -96,12 +102,10 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   // keys, so the base alone would hide it from an "*All"-only holder). The Save control stays
   // create-gated in the builder. Resolved through the AuthState selector, exactly like the
   // sidebar's report gate.
-  protected readonly canEnterBuilder = this.store.selectSignal(
-    AuthState.hasAnyAppPermission([
+  protected readonly canEnterBuilder = computed(() => this.authStore.hasAnyAppPermission([
       Permission.AppReportsRead,
       Permission.AppReportsReadAll,
-    ])
-  );
+    ]));
 
   // Guards the empty-state against a first-paint flash: it renders only once a load
   // has completed and returned nothing.
@@ -110,11 +114,11 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   public readonly generatingId = signal<number | null>(null);
   public readonly duplicatingId = signal<number | null>(null);
 
-  private readonly groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  private readonly groups = this.groupStore.groupsWithoutAll;
 
-  public readonly page = this.store.selectSignal(ReportTemplateTableState.page);
+  public readonly page = this.reportTemplateTableStore.page;
 
-  public readonly pageSize = this.store.selectSignal(ReportTemplateTableState.pageSize);
+  public readonly pageSize = this.reportTemplateTableStore.pageSize;
 
   constructor(public override baseTableService: BaseTableService) {
     super(baseTableService);

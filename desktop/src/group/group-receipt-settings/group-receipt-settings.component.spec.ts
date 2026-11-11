@@ -4,14 +4,12 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import { GroupsService, Permission, QuickScanDefaultPaidByType, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { SetPermissions } from "../../store/auth.state.actions";
-import { StoreModule } from "../../store/store.module";
+import { AuthStore } from "../../store/auth.store";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings.component";
 
 describe("GroupReceiptSettingsComponent", () => {
@@ -43,12 +41,11 @@ describe("GroupReceiptSettingsComponent", () => {
   const configureTestBed = async (mode: FormMode = FormMode.edit, options: TestBedOptions = {}) => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [SharedUiModule, StoreModule, GroupReceiptSettingsComponent],
+    imports: [SharedUiModule,GroupReceiptSettingsComponent],
     providers: [
         FormBuilder,
         GroupsService,
         { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
-        Store,
         SnackbarService,
         {
             provide: ActivatedRoute,
@@ -68,7 +65,7 @@ describe("GroupReceiptSettingsComponent", () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     // Permissions must land before the first change-detection pass: ngOnInit reads them once.
-    TestBed.inject(Store).dispatch(new SetPermissions(options.appPermissions ?? [], {}));
+    TestBed.inject(AuthStore).setPermissions(options.appPermissions ?? [], {});
     fixture = TestBed.createComponent(GroupReceiptSettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -76,10 +73,7 @@ describe("GroupReceiptSettingsComponent", () => {
 
   const spyOnSave = () => {
     const groupsService = TestBed.inject(GroupsService);
-    const store = TestBed.inject(Store);
-    const save = vi.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(storedSettings as any));
-    vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
-    return save;
+    return vi.spyOn(groupsService, "updateGroupReceiptSettings").mockReturnValue(of(storedSettings as any));
   };
 
   beforeEach(async () => {

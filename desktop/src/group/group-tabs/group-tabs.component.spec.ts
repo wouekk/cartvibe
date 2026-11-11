@@ -1,10 +1,11 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
-import { AuthState, FeatureConfigState } from "../../store";
 import { GroupTabsComponent } from "./group-tabs.component";
+import { seedStore } from "../../testing/seed-store";
+import { FeatureConfigStore } from "../../store/feature-config.store";
+import { AuthStore } from "../../store/auth.store";
 
 describe("GroupTabsComponent", () => {
   let component: GroupTabsComponent;
@@ -12,7 +13,7 @@ describe("GroupTabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([FeatureConfigState, AuthState]), GroupTabsComponent],
+    imports: [ReactiveFormsModule,GroupTabsComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });
     fixture = TestBed.createComponent(GroupTabsComponent);
@@ -42,15 +43,11 @@ describe("GroupTabsComponent", () => {
   });
 
   it("offers no Group AI Settings tab, even with the AI feature and the permission (AI is household-wide)", () => {
-    const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      featureConfig: {
-        aiPoweredReceipts: true,
-      },
-      auth: {
-        appPermissions: [Permission.AppGroupsRead],
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      appPermissions: [Permission.AppGroupsRead],
+    });
+    seedStore(TestBed.inject(FeatureConfigStore), {
+      aiPoweredReceipts: true,
     });
     component.ngOnInit();
 
@@ -69,15 +66,11 @@ describe("GroupTabsComponent", () => {
   });
 
   it("does not init the group settings tab without the update-settings permission", () => {
-    const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      featureConfig: {
-        aiPoweredReceipts: true,
-      },
-      auth: {
-        appPermissions: [],
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      appPermissions: [],
+    });
+    seedStore(TestBed.inject(FeatureConfigStore), {
+      aiPoweredReceipts: true,
     });
     component.ngOnInit();
 

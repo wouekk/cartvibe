@@ -1,9 +1,7 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { NgxsModule, Store } from "@ngxs/store";
-import { SystemSettingsState } from "src/store/system-settings.state";
-import { SetTimeZone } from "src/store/system-settings.state.actions";
+import { SystemSettingsStore } from "src/store/system-settings.store";
 import { FilterOperation } from "../../open-api";
 import { OperationsPipe } from "../receipt-filter/operations.pipe";
 import { FilterFieldComponent } from "./filter-field.component";
@@ -44,7 +42,7 @@ describe("FilterFieldComponent", () => {
     // The children are left out: this spec mocks what they would read.
     renderShallow(FilterFieldComponent, [NgIf, TranslatePipe, FormGetPipe, OperationsPipe]);
     await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([SystemSettingsState]), FilterFieldComponent, OperationsPipe],
+    imports: [ReactiveFormsModule,FilterFieldComponent, OperationsPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
   });
@@ -94,7 +92,7 @@ describe("FilterFieldComponent", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-10-01T01:00:00Z"));
     try {
-      TestBed.inject(Store).dispatch(new SetTimeZone("America/New_York"));
+      TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
       render("date", FilterOperation.WithinCurrentMonth);
 
       expect(component.startOfMonthFormControl.value).toEqual(new Date(2026, 8, 1));

@@ -1,28 +1,23 @@
 import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { provideStore, Store } from "@ngxs/store";
-import { SetAuthState } from "../../store";
-import { AuthState } from "../../store/auth.state";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SetFeatureConfig } from "../../store/feature-config.state.actions";
+import { AuthStore } from "../../store";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 import { ShopLogoCatalog } from "./shop-logo-catalog.service";
 
 describe("ShopLogoCatalog", () => {
-  let store: Store;
   let http: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideStore([AuthState, FeatureConfigState]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
   });
 
-  const signIn = () => store.dispatch(new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any));
+  const signIn = () => TestBed.inject(AuthStore).setAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any);
   const logosOn = (on: boolean) =>
-    store.dispatch(new SetFeatureConfig({ enableLocalSignUp: false, aiPoweredReceipts: false, shopLogosEnabled: on }));
+    TestBed.inject(FeatureConfigStore).setFeatureConfig({ enableLocalSignUp: false, aiPoweredReceipts: false, shopLogosEnabled: on });
 
   it("asks the server for nothing while the household has no Logo.dev key", () => {
     signIn();

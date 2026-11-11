@@ -1,11 +1,9 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { ExchangeRatesComponent } from "./exchange-rates.component";
 
 import type { Mock } from "vitest";
@@ -36,7 +34,7 @@ describe("ExchangeRatesComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState]), ExchangeRatesComponent],
+      imports: [ExchangeRatesComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ExchangeRateService, useValue: service },
@@ -44,7 +42,7 @@ describe("ExchangeRatesComponent", () => {
       ],
     }).compileComponents();
 
-    TestBed.inject(Store).dispatch(new SetPermissions([Permission.AppSystemSettingsUpdate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsUpdate], {});
     fixture = TestBed.createComponent(ExchangeRatesComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();

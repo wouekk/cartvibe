@@ -96,6 +96,9 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **The web app keeps its state without a state library.** Nothing looks or works differently, and what your
+  browser remembers (that you are signed in, page sizes, filters, the columns of the receipts list, the collapsed
+  sidebar) is read as before, so nobody is signed out by this update. The app's first load is a little smaller.
 - **Two roles, and a household that shares everything.** There is Admin and there is User, in the app and inside a
   household, and nothing else: an Admin manages people, households, settings and reports; a User adds and changes
   receipts, lists, categories and tags. Everyone in a household sees every receipt in it, whoever added it, with
@@ -233,6 +236,10 @@ it is doing.
   HEIC, a PDF or a text-only AI model still works.
 
 ### Fixed
+- **Warranty reminders can arrive as notifications on the device.** The app asked the server for its push key and
+  then lost it, so it never offered to notify you, whatever the server was set up to do. It keeps the key now: with
+  push configured on the server and the app opened over HTTPS, adding a warranty date asks once whether reminders
+  may also arrive on this device *(NOTE-02, WARR-03)*.
 - **An image address no longer says whether an image exists.** Asking for a receipt image that is not there used
   to answer differently from asking for one you may not see.
 - **A busy moment no longer looks like a failure.** The server turns requests away when too many arrive at once

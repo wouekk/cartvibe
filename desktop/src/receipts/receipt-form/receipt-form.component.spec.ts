@@ -6,7 +6,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, Validators } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
 import { RECEIPT_NOTE_MAX_LENGTH } from "src/constants/receipt-note.constant";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -16,11 +15,11 @@ import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, Permission, ReceiptImageService, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueueMode } from "../../services/receipt-queue.service";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { UserAutocompleteModule } from "../../user-autocomplete/user-autocomplete.module";
-import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
-import { StoreModule } from "../../store/store.module";
+import { GroupStore } from "../../store/group.store";
 import { ReceiptFormComponent } from "./receipt-form.component";
+import { seedStore } from "../../testing/seed-store";
 
 import type { Mock, MockInstance } from "vitest";
 describe("ReceiptFormComponent", () => {
@@ -33,8 +32,7 @@ describe("ReceiptFormComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        StoreModule,
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SharedUiModule,
         UserAutocompleteModule, ReceiptFormComponent,],
     providers: [
@@ -92,8 +90,7 @@ describe("ReceiptFormComponent", () => {
 
   describe("a new receipt (Phase 3 C1/C2)", () => {
     beforeEach(() => {
-      const store = TestBed.inject(Store);
-      store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "5" } });
+      seedStore(TestBed.inject(AuthStore), { userId: "5" });
     });
 
     it("is named after today and paid by the user adding it, without asking", () => {
@@ -396,7 +393,7 @@ describe("ReceiptFormComponent", () => {
   it("changes only the date on the view page of a settled receipt", () => {
     vi.useFakeTimers();
     try {
-      TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsUpdate] }));
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
       routeDataSubject.next({
         mode: FormMode.view,
         receipt: { id: 4, groupId: 4, name: "Market", amount: "75.00", status: ReceiptStatus.Resolved, date: "2026-10-01T00:00:00Z" } as any,
@@ -417,11 +414,11 @@ describe("ReceiptFormComponent", () => {
   });
 
   it("keeps the date read-only on the view page of a converted receipt or without update permission", () => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsUpdate] }));
+    TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
     routeDataSubject.next({ mode: FormMode.view, receipt: { id: 4, groupId: 4, amount: "75.00", originalCurrency: "PLN" } as any });
     expect(component.canSetDateInPlace()).toBe(false);
 
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 4: [Permission.GroupReceiptsRead] }));
+    TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsRead] });
     routeDataSubject.next({ mode: FormMode.view, receipt: { id: 5, groupId: 4, amount: "75.00" } as any });
     expect(component.canSetDateInPlace()).toBe(false);
   });
@@ -692,7 +689,6 @@ describe("ReceiptFormComponent", () => {
   // The group's configured default custom fields, applied to the receipt form as
   // a "smart swap" when the group is chosen or changed.
   describe("group seeding on the add form", () => {
-    let store: Store;
 
     const group = (id: number, isAllGroup = false): any => ({
       id,
@@ -702,18 +698,14 @@ describe("ReceiptFormComponent", () => {
     });
 
     const openAddForm = (selectedGroupId: string): void => {
-      store.dispatch(new SetSelectedGroupId(selectedGroupId));
+      TestBed.inject(GroupStore).setSelectedGroupId(selectedGroupId);
       routeDataSubject.next({ mode: FormMode.add });
     };
-
-    beforeEach(() => {
-      store = TestBed.inject(Store);
-    });
 
     it("seeds the user's only group when the All group is the active one", () => {
       // The All group sorts first server-side, so it is what a fresh
       // single-group user lands on - and it is never a receipt target.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("1");
 
@@ -721,7 +713,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("leaves the group blank when the user belongs to more than one", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
 
       openAddForm("1");
 
@@ -735,7 +727,7 @@ describe("ReceiptFormComponent", () => {
       // selectedGroupId is persisted, so it outlives a group the user has left.
       // Number("404") is truthy, which used to skip the fallback and seed an id
       // the picker does not offer.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("404");
 
@@ -743,7 +735,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("still leaves it blank on a stale selection with several groups", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
 
       openAddForm("404");
 
@@ -755,10 +747,8 @@ describe("ReceiptFormComponent", () => {
       // The All group carries its own membership, which can be missing create
       // while the user's real group has it. The gate must follow the group the
       // receipt is actually going into.
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
-      store.dispatch(
-        new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] })
-      );
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
+      TestBed.inject(AuthStore).setPermissions([], { 7: [Permission.GroupReceiptsCreate] });
 
       openAddForm("1");
 
@@ -770,10 +760,8 @@ describe("ReceiptFormComponent", () => {
       // Multi-group user on the All group: no add target, so the gate must stay
       // on the All group exactly as before - resolving the blank seed instead
       // would deny and render the whole form read-only.
-      store.dispatch(new SetGroups([group(1, true), group(7), group(8)]));
-      store.dispatch(
-        new SetPermissions([], { 1: [Permission.GroupReceiptsCreate] })
-      );
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7), group(8)]);
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsCreate] });
 
       openAddForm("1");
 
@@ -782,7 +770,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("keeps the actively selected group over the sole-group fallback", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
 
       openAddForm("7");
 
@@ -790,8 +778,8 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("keeps an existing receipt's own group in edit mode", () => {
-      store.dispatch(new SetGroups([group(1, true), group(7)]));
-      store.dispatch(new SetSelectedGroupId("1"));
+      TestBed.inject(GroupStore).setGroups([group(1, true), group(7)]);
+      TestBed.inject(GroupStore).setSelectedGroupId("1");
 
       routeDataSubject.next({
         mode: FormMode.edit,
@@ -1008,7 +996,6 @@ describe("ReceiptFormComponent", () => {
   });
 
   describe("creating with files and a note", () => {
-    let store: Store;
     let receiptService: ReceiptService;
     let receiptImageService: ReceiptImageService;
     let snackbarError: MockInstance;
@@ -1033,29 +1020,24 @@ describe("ReceiptFormComponent", () => {
     };
 
     beforeEach(() => {
-      store = TestBed.inject(Store);
       receiptService = TestBed.inject(ReceiptService);
       receiptImageService = TestBed.inject(ReceiptImageService);
       snackbarError = vi.spyOn(TestBed.inject(SnackbarService), "error");
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
-      store.dispatch(new SetGroups([group(7), group(8)]));
-      store.dispatch(
-        new SetPermissions(
-          [],
+      TestBed.inject(GroupStore).setGroups([group(7), group(8)]);
+      TestBed.inject(AuthStore).setPermissions([],
           {
             7: [Permission.GroupReceiptsCreate, Permission.GroupReceiptsUpdate],
             8: [Permission.GroupReceiptsCreate, Permission.GroupReceiptsUpdate],
-          }
-        )
-      );
+          });
 
       // Resolves to a bare element under CUSTOM_ELEMENTS_SCHEMA once rendered.
       Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
     });
 
     const openAddForm = (): void => {
-      store.dispatch(new SetSelectedGroupId("7"));
+      TestBed.inject(GroupStore).setSelectedGroupId("7");
       routeDataSubject.next({ mode: FormMode.add });
     };
 
@@ -1089,7 +1071,7 @@ describe("ReceiptFormComponent", () => {
     });
 
     it("creates in one request without files or a note", () => {
-      store.dispatch(new SetPermissions([], { 7: [Permission.GroupReceiptsCreate] }));
+      TestBed.inject(AuthStore).setPermissions([], { 7: [Permission.GroupReceiptsCreate] });
       const createSpy = vi
         .spyOn(receiptService, "createReceiptWithFiles")
         .mockReturnValue(of(new HttpResponse({ body: { id: 5 } })) as any);
@@ -1117,7 +1099,7 @@ describe("ReceiptFormComponent", () => {
       receiptService = TestBed.inject(ReceiptService);
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       // The store persists across this file; start from no permissions.
-      TestBed.inject(Store).dispatch(new SetPermissions([], {}));
+      TestBed.inject(AuthStore).setPermissions([], {});
       Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
     });
 
@@ -1162,7 +1144,7 @@ describe("ReceiptFormComponent", () => {
     beforeEach(() => {
       receiptService = TestBed.inject(ReceiptService);
       vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-      TestBed.inject(Store).dispatch(new SetPermissions([], {}));
+      TestBed.inject(AuthStore).setPermissions([], {});
       Object.defineProperty(component, "paidByAutocomplete", { value: () => undefined });
     });
 

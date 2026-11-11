@@ -1,9 +1,8 @@
-import { Component, Input, OnChanges, SimpleChanges, computed, input, viewChild, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Component, Input, OnChanges, SimpleChanges, computed, input, viewChild, ChangeDetectionStrategy, inject } from "@angular/core";
 import { BaseInputComponent } from "../../base-input";
 import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api/index";
 import { PasswordGeneratorService } from "../../services/password-generator.service";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { InputInterface } from "../input.interface";
 import { ReactiveFormsModule } from "@angular/forms";
 import { NgxMaskDirective } from "ngx-mask";
@@ -28,17 +27,19 @@ import { AsyncPipe } from "@angular/common";
 export class InputComponent
   extends BaseInputComponent
   implements InputInterface, OnChanges {
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   public readonly nativeInput = viewChild.required<{
     nativeElement: HTMLElement;
 }>("nativeInput");
 
-  public currencyDisplay = this.store.selectSignal(SystemSettingsState.currencyDisplay);
+  public currencyDisplay = this.systemSettingsStore.currencyDisplay;
 
-  public currencyDecimalSeparator = this.store.selectSignal(SystemSettingsState.currencyDecimalSeparator);
+  public currencyDecimalSeparator = this.systemSettingsStore.currencyDecimalSeparator;
 
-  public currencyThousandthsSeparator = this.store.selectSignal(SystemSettingsState.currencyThousandthsSeparator);
+  public currencyThousandthsSeparator = this.systemSettingsStore.currencyThousandthsSeparator;
 
-  public currencySymbolPosition = this.store.selectSignal(SystemSettingsState.currencySymbolPosition);
+  public currencySymbolPosition = this.systemSettingsStore.currencySymbolPosition;
 
   private static nextId = 0;
 
@@ -68,7 +69,6 @@ export class InputComponent
   @Input() public decimalMarker: CurrencySeparator = CurrencySeparator.Period;
 
   constructor(
-    private store: Store,
     private passwordGeneratorService: PasswordGeneratorService
   ) {
     super();
@@ -92,20 +92,20 @@ export class InputComponent
 
   private initCurrencyField(): void {
     if (this.isCurrency()) {
-      if (this.store.selectSnapshot(SystemSettingsState.currencyHideDecimalPlaces)) {
+      if (this.systemSettingsStore.currencyHideDecimalPlaces()) {
         this.decimalMarker = CurrencySeparator.Period;
         this.mask = "separator.0";
       } else {
-        this.decimalMarker = this.store.selectSnapshot(SystemSettingsState.currencyDecimalSeparator);
+        this.decimalMarker = this.systemSettingsStore.currencyDecimalSeparator();
         this.mask = "separator.2";
       }
 
-      this.thousandSeparator = this.store.selectSnapshot(SystemSettingsState.currencyThousandthsSeparator);
-      if (this.store.selectSnapshot(SystemSettingsState.currencySymbolPosition) === CurrencySymbolPosition.Start) {
-        this.maskPrefix = this.store.selectSnapshot(SystemSettingsState.currencyDisplay);
+      this.thousandSeparator = this.systemSettingsStore.currencyThousandthsSeparator();
+      if (this.systemSettingsStore.currencySymbolPosition() === CurrencySymbolPosition.Start) {
+        this.maskPrefix = this.systemSettingsStore.currencyDisplay();
       }
-      if (this.store.selectSnapshot(SystemSettingsState.currencySymbolPosition) === CurrencySymbolPosition.End) {
-        this.maskSuffix = this.store.selectSnapshot(SystemSettingsState.currencyDisplay);
+      if (this.systemSettingsStore.currencySymbolPosition() === CurrencySymbolPosition.End) {
+        this.maskSuffix = this.systemSettingsStore.currencyDisplay();
       }
     } else if (!this.mask && !this.maskPrefix && !this.maskSuffix) {
       // Only clear mask if it wasn't manually set

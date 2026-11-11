@@ -122,7 +122,7 @@ function formatYmd(year: number, monthIndex: number, day: number): string {
  * The **local** calendar day a filter value names, as `yyyy-MM-dd`.
  *
  * Filter values are what the datepickers wrote: a local-midnight `Date`, or —
- * once the filter has been through the persisted NGXS state — that `Date` as an
+ * once the filter has been through the receipts list's kept state — that `Date` as an
  * ISO string. Both are read back on the browser's calendar, which is the day the
  * user picked. A bare `yyyy-MM-dd` is returned unchanged (re-parsing it would read
  * it as UTC midnight and could shift it a day). Anything unparseable is returned

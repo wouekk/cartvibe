@@ -1,10 +1,9 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
 import { PeriodPickerComponent } from "./period-picker.component";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 
 describe("PeriodPickerComponent", () => {
   let fixture: ComponentFixture<PeriodPickerComponent>;
@@ -13,7 +12,7 @@ describe("PeriodPickerComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PeriodPickerComponent, NgxsModule.forRoot([SystemSettingsState])],
+      imports: [PeriodPickerComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
@@ -24,7 +23,7 @@ describe("PeriodPickerComponent", () => {
     await fixture.whenStable();
   });
 
-  const today = () => todayInZone(TestBed.inject(Store).selectSnapshot(SystemSettingsState.timeZone));
+  const today = () => todayInZone(TestBed.inject(SystemSettingsStore).timeZone());
 
   it("offers exactly this month, last 7 days, last 30 days, this year and custom", () => {
     expect(component.periodTabs.map((tab) => tab.label)).toEqual([
@@ -98,7 +97,7 @@ describe("PeriodPickerComponent", () => {
 describe("PeriodPickerComponent with a starting range", () => {
   it("opens on that range as a custom one and emits it, never this month first", async () => {
     await TestBed.configureTestingModule({
-      imports: [PeriodPickerComponent, NgxsModule.forRoot([SystemSettingsState])],
+      imports: [PeriodPickerComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
     const fixture = TestBed.createComponent(PeriodPickerComponent);

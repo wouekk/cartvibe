@@ -2,7 +2,6 @@ import { Component, computed, OnInit, signal, inject, ChangeDetectionStrategy, D
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { FormConfig } from "src/interfaces";
@@ -10,8 +9,8 @@ import { BaseFormComponent } from "../../form/index";
 import { Permission, UserPreferencesService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { parseGoalInput } from "../../overview/overview-chart.utils";
-import { SystemSettingsState } from "../../store/system-settings.state";
-import { AuthState, SetUserPreferences } from "../../store";
+import { SystemSettingsStore } from "../../store/system-settings.store";
+import { AuthStore } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
 import { pluralMarker } from "../../i18n/marker";
 import {
@@ -53,16 +52,18 @@ pluralMarker("year", "years");
     imports: [FormComponent, FeatureDirective, FormSectionComponent, GroupAutocompleteComponent, UserAutocompleteComponent, StatusSelectComponent, InputComponent, SelectComponent, CheckboxComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
   public formMode = FormMode;
 
-  protected readonly canEdit = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate)
-  );
+  protected readonly canEdit = computed(() => this.authStore.hasAppPermission(Permission.AppUserPreferencesUpdate));
 
-  private readonly currencySymbol = this.store.selectSignal(SystemSettingsState.currencyDisplay);
+  private readonly currencySymbol = this.systemSettingsStore.currencyDisplay;
 
   /** The region picked in the form, so the Automatic option can say what it resolves to. */
   private readonly regionValue = signal("");
@@ -96,8 +97,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
     private formBuilder: FormBuilder,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
-    private userPreferencesService: UserPreferencesService,
+    private userPreferencesService: UserPreferencesService
   ) {
     super();
   }
@@ -108,9 +108,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
   }
 
   private initForm(): void {
-    const userPreferences = this.store.selectSnapshot(
-      AuthState.userPreferences
-    );
+    const userPreferences = this.authStore.userPreferences();
     this.form = this.formBuilder.group({
       quickScanDefaultPaidById: userPreferences?.quickScanDefaultPaidById ?? "",
       quickScanDefaultGroupId: userPreferences?.quickScanDefaultGroupId ?? "",
@@ -181,7 +179,7 @@ export class UserPreferencesComponent extends BaseFormComponent implements OnIni
             this.snackbarService.success(
               "User preferences successfully updated"
             );
-            this.store.dispatch(new SetUserPreferences(updatedUserPreferences));
+            this.authStore.setUserPreferences(updatedUserPreferences);
             this.form.markAsPristine();
           })
         )

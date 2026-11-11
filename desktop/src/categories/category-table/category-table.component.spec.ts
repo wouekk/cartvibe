@@ -2,11 +2,10 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { CategoryTableState } from "src/store/category-table.state";
+import { CategoryTableStore } from "src/store/category-table.store";
 import { ApiModule, CategoryService } from "../../open-api";
 import { CategoryForm } from "../category-form/category-form.component";
 import { CategoryTableComponent } from "./category-table.component";
@@ -15,17 +14,15 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 describe("CategoriesListComponent", () => {
   let component: CategoryTableComponent;
   let fixture: ComponentFixture<CategoryTableComponent>;
-  let store: Store;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([CategoryTableState]), CategoryTableComponent],
+CategoryTableComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(CategoryTableComponent);
-    store = TestBed.inject(Store);
     component = fixture.componentInstance;
   });
 
@@ -75,7 +72,7 @@ describe("CategoriesListComponent", () => {
       direction: "asc",
     });
 
-    expect(store.selectSnapshot(CategoryTableState.state)).toEqual({
+    expect(TestBed.inject(CategoryTableStore).state()).toEqual({
       page: 1,
       pageSize: 50,
       orderBy: "numberOfProducts",
@@ -106,7 +103,7 @@ describe("CategoriesListComponent", () => {
       pageSize: 100,
     } as any);
 
-    expect(store.selectSnapshot(CategoryTableState.state)).toEqual({
+    expect(TestBed.inject(CategoryTableStore).state()).toEqual({
       page: 3,
       pageSize: 100,
       orderBy: "name",

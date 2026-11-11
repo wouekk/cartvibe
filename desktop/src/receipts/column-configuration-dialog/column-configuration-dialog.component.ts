@@ -46,7 +46,7 @@ export class ColumnConfigurationDialogComponent implements OnInit {
    * Reconciles against the built-in columns before display, so a column that no longer exists
    * disappears from the list and a new one shows up without the user resetting anything.
    *
-   * `reconcileColumns` copies, which matters: the caller hands us the NGXS snapshot, and that is
+   * `reconcileColumns` copies, which matters: the caller hands us the store's own array, and that is
    * deep-frozen in dev mode.
    */
   private setColumns(columns: ReceiptTableColumnConfig[]): void {

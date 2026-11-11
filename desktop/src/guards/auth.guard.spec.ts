@@ -2,17 +2,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Store } from '@ngxs/store';
 import { firstValueFrom, isObservable, of, throwError } from 'rxjs';
 import { TokenRefreshService } from '../services';
-import { AuthState } from '../store';
+import { AuthStore, GroupStore } from '../store';
+import { seedStore } from '../testing/seed-store';
 import { AuthGuard } from './auth.guard';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
-  let hasSession: boolean;
-  let tokenExpired: boolean;
   let refreshToken: ReturnType<typeof vi.fn>;
+
+  /** Puts a session in the browser (or none), with a token that is still good or has run out. */
+  function session(hasSession: boolean, tokenExpired = false): void {
+    const expires = Math.floor(Date.now() / 1000) + (tokenExpired ? -1 : 60);
+    seedStore(TestBed.inject(AuthStore), { expirationDate: hasSession ? expires.toString() : "" });
+  }
 
   const page = { url: { toString: () => 'receipts' } } as unknown as ActivatedRouteSnapshot;
   const state = {} as RouterStateSnapshot;
@@ -23,30 +27,14 @@ describe('AuthGuard', () => {
   }
 
   beforeEach(() => {
-    hasSession = true;
-    tokenExpired = false;
     refreshToken = vi.fn();
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      providers: [
-        {
-          provide: Store,
-          useValue: {
-            selectSnapshot: (selector: unknown) => {
-              if (selector === AuthState.isLoggedIn) {
-                return hasSession;
-              }
-              if (selector === AuthState.tokenExpiresAt) {
-                return Date.now() + (tokenExpired ? -1000 : 60_000);
-              }
-              return '/overview';
-            },
-          },
-        },
-        { provide: TokenRefreshService, useValue: { refreshToken } },
-      ],
+      providers: [{ provide: TokenRefreshService, useValue: { refreshToken } }],
     });
+    TestBed.inject(GroupStore).setSelectedGroupId('7');
+    session(true);
     guard = TestBed.inject(AuthGuard);
   });
 
@@ -55,7 +43,7 @@ describe('AuthGuard', () => {
   });
 
   it('sends a visitor without a session to the login page', async () => {
-    hasSession = false;
+    session(false);
 
     const result = await activate();
 
@@ -69,7 +57,7 @@ describe('AuthGuard', () => {
   });
 
   it('renews an expired token on the way in', async () => {
-    tokenExpired = true;
+    session(true, true);
     refreshToken.mockReturnValue(of({}));
 
     expect(await activate()).toBe(true);
@@ -78,17 +66,17 @@ describe('AuthGuard', () => {
 
   // No signal in the shop: the refresh never reached the server, the session stands, the page opens.
   it('opens the page when the refresh could not reach the server', async () => {
-    tokenExpired = true;
+    session(true, true);
     refreshToken.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
 
     expect(await activate()).toBe(true);
   });
 
   it('goes to the login page when the server refused the refresh and the session ended', async () => {
-    tokenExpired = true;
+    session(true, true);
     refreshToken.mockImplementation(() => {
       // What TokenRefreshService does on a 401: the session is gone by the time the error arrives.
-      hasSession = false;
+      session(false);
       return throwError(() => new HttpErrorResponse({ status: 401 }));
     });
 

@@ -1,12 +1,9 @@
 import { provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { AuthStore } from "../../store/auth.store";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 import type { Mock } from "vitest";
@@ -28,7 +25,7 @@ describe("ReceiptProductsComponent on a phone", () => {
   const menuItem = (testId: string): HTMLElement | null => document.querySelector(`[data-testid="${testId}"]`);
 
   const render = async (permissions: string[] = [Permission.GroupReceiptsUpdate]) => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 3: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 3: permissions });
     fixture = TestBed.createComponent(ReceiptProductsComponent);
     fixture.componentRef.setInput("receiptId", 7);
     fixture.componentRef.setInput("groupId", 3);
@@ -49,7 +46,7 @@ describe("ReceiptProductsComponent on a phone", () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [ReceiptProductsComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProductService, useValue: service },

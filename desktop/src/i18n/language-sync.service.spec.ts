@@ -2,16 +2,14 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
-import { AuthState } from "../store/auth.state";
-import { SetUserPreferences } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { LanguageSyncService } from "./language-sync.service";
 import { TranslationService } from "./translation.service";
+import { seedStore } from "../testing/seed-store";
 
 describe("LanguageSyncService", () => {
   let service: LanguageSyncService;
   let translation: TranslationService;
-  let store: Store;
   let http: HttpTestingController;
 
   const settle = async () => {
@@ -22,12 +20,10 @@ describe("LanguageSyncService", () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
     translation = TestBed.inject(TranslationService);
     translation.setLanguages([...translation.languages(), { code: "pl", label: "Polski", locale: "pl" }]);
-    store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     service = TestBed.inject(LanguageSyncService);
@@ -37,7 +33,6 @@ describe("LanguageSyncService", () => {
     localStorage.setItem("cartvibe.language", "pl");
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
     const fresh = TestBed.inject(TranslationService);
@@ -49,7 +44,7 @@ describe("LanguageSyncService", () => {
   });
 
   it("loads the account language, then switches once", async () => {
-    store.dispatch(new SetUserPreferences({ language: "pl" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ language: "pl" } as never);
     await settle();
 
     expect(translation.language()).toBe("en");
@@ -61,7 +56,7 @@ describe("LanguageSyncService", () => {
   });
 
   it("stays English when the account language fails to load", async () => {
-    store.dispatch(new SetUserPreferences({ language: "pl" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ language: "pl" } as never);
     await settle();
     http.expectOne("assets/i18n/pl.json").flush("", { status: 500, statusText: "Server Error" });
     await settle();
@@ -71,11 +66,11 @@ describe("LanguageSyncService", () => {
 
   it("goes back to English and clears the cache when the preferences go away (logout)", async () => {
     translation.register("pl", { messages: {} });
-    store.dispatch(new SetUserPreferences({ language: "pl" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ language: "pl" } as never);
     await settle();
     expect(translation.language()).toBe("pl");
 
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userPreferences: undefined } });
+    seedStore(TestBed.inject(AuthStore), { userPreferences: undefined });
     await settle();
 
     expect(translation.language()).toBe("en");

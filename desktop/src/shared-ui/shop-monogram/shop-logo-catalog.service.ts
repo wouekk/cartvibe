@@ -1,9 +1,8 @@
 import { computed, effect, inject, Injectable, Injector, signal } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { catchError, of, take } from "rxjs";
 import { ShopLogoService } from "../../open-api";
-import { AuthState } from "../../store/auth.state";
-import { FeatureConfigState } from "../../store/feature-config.state";
+import { AuthStore } from "../../store/auth.store";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 import { buildCandidates, Candidate, ShopBrand } from "./shop-logo-match";
 
 /**
@@ -12,14 +11,16 @@ import { buildCandidates, Candidate, ShopBrand } from "./shop-logo-match";
  */
 @Injectable({ providedIn: "root" })
 export class ShopLogoCatalog {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   /** The API client is resolved only when logos are on, so a page (or spec) with logos off needs no HTTP. */
   private readonly injector = inject(Injector);
 
-  private readonly store = inject(Store);
+  private readonly enabled = this.featureConfigStore.shopLogosEnabled;
 
-  private readonly enabled = this.store.selectSignal(FeatureConfigState.shopLogosEnabled);
-
-  private readonly signedIn = this.store.selectSignal(AuthState.isLoggedIn);
+  private readonly signedIn = this.authStore.isLoggedIn;
 
   private readonly logos = signal<ShopBrand[]>([]);
 

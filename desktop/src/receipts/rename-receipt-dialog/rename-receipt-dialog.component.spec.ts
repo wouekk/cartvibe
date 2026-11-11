@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { RECEIPT_NAME_MAX_LENGTH, RenameReceiptDialogComponent } from "./rename-receipt-dialog.component";
-import { StoreModule } from "../../store/store.module";
 
 describe("RenameReceiptDialogComponent", () => {
   let component: RenameReceiptDialogComponent;
@@ -14,7 +13,7 @@ describe("RenameReceiptDialogComponent", () => {
     close.mockReset();
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [StoreModule, ReactiveFormsModule, RenameReceiptDialogComponent],
+    imports: [ReactiveFormsModule, RenameReceiptDialogComponent],
     providers: [{ provide: AppDialogRef, useValue: { close } }],
 });
     fixture = TestBed.createComponent(RenameReceiptDialogComponent);

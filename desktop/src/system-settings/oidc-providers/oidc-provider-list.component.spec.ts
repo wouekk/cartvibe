@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import {
@@ -13,10 +12,10 @@ import {
 } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, FeatureConfigState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store";
 import { OidcProviderFormComponent } from "./oidc-provider-form.component";
 import { OidcProviderListComponent } from "./oidc-provider-list.component";
+import { FeatureConfigStore } from "../../store/feature-config.store";
 
 import type { Mock } from "vitest";
 
@@ -74,7 +73,7 @@ describe("OidcProviderListComponent", () => {
     dialog = { open: vi.fn(() => ({ afterClosed: () => of(closeWith), componentInstance: {} })) };
 
     await TestBed.configureTestingModule({
-      imports: [OidcProviderListComponent, NgxsModule.forRoot([AuthState, FeatureConfigState])],
+      imports: [OidcProviderListComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -86,7 +85,7 @@ describe("OidcProviderListComponent", () => {
       ],
     }).compileComponents();
 
-    TestBed.inject(Store).dispatch(new SetPermissions(permissions, {}));
+    TestBed.inject(AuthStore).setPermissions(permissions, {});
     fixture = TestBed.createComponent(OidcProviderListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -168,7 +167,7 @@ describe("OidcProviderListComponent", () => {
     );
     expect(providers.getPagedOidcProviders).toHaveBeenCalledTimes(2);
     // The login page and User Settings read the providers from the feature config.
-    expect(TestBed.inject(Store).selectSnapshot(FeatureConfigState.oidcProviders)).toEqual([
+    expect(TestBed.inject(FeatureConfigStore).oidcProviders()).toEqual([
       { name: "authentik", displayName: "Authentik" },
     ]);
   });

@@ -20,7 +20,7 @@ import { AppIconComponent } from "../icon/icon.component";
 import { marker } from "../../i18n/marker";
 import { TableComponent } from "../../table/table/table.component";
 import { StatusIconComponent } from "../status-icon/status-icon.component";
-import { NgIf, AsyncPipe } from "@angular/common";
+import { NgIf } from "@angular/common";
 import { PrettyJsonComponent } from "../pretty-json/pretty-json.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
@@ -36,7 +36,7 @@ interface ReceiptUpdateRow {
     selector: "app-task-table",
     templateUrl: "./task-table.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [TableComponent, StatusIconComponent, NgIf, PrettyJsonComponent, TranslatePipe, AsyncPipe, AppDatePipe, UserPipe, SystemTaskTypePipe, HlmButton, HlmTooltip, AppIconComponent]
+    imports: [TableComponent, StatusIconComponent, NgIf, PrettyJsonComponent, TranslatePipe, AppDatePipe, UserPipe, SystemTaskTypePipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class TaskTableComponent implements OnInit, AfterViewInit {
   public readonly typeCell = viewChild.required<TemplateRef<any>>("typeCell");

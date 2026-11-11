@@ -8,7 +8,6 @@ import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { ApiModule, CategoryService, CategoryView } from "../../open-api";
 import { CategoryForm } from "./category-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
-import { StoreModule } from "../../store/store.module";
 
 describe("CategoryForm", () => {
   let component: CategoryForm;
@@ -17,7 +16,7 @@ describe("CategoryForm", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [StoreModule, ApiModule,
+    imports: [ApiModule,
         ReactiveFormsModule, CategoryForm],
     providers: [
         DuplicateValidator,
@@ -44,7 +43,7 @@ describe("CategoryForm", () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [StoreModule, ApiModule, ReactiveFormsModule, CategoryForm],
+    imports: [ApiModule, ReactiveFormsModule, CategoryForm],
     providers: [
         { provide: AppDialogRef, useValue: { close: () => { } } },
         provideHttpClient(withInterceptorsFromDi()),

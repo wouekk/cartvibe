@@ -1,15 +1,16 @@
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { Store } from "@ngxs/store";
+import { GroupStore } from "../../store/group.store";
+import { seedStore } from "../../testing/seed-store";
 import { overviewLandingGuard } from "./overview-landing.guard";
 
 describe("overviewLandingGuard", () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      providers: [{ provide: Store, useValue: { selectSnapshot: () => "/overview/group/7" } }],
     });
+    seedStore(TestBed.inject(GroupStore), { selectedGroupId: "7" });
   });
 
   function run(queryParams: Record<string, string>): UrlTree {

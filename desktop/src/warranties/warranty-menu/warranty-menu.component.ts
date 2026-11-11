@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { filter, take } from "rxjs";
@@ -12,7 +11,7 @@ import { Permission, ReceiptService } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { WarrantyDateDialogComponent, WarrantyDateDialogData } from "./warranty-date-dialog.component";
 
@@ -55,7 +54,8 @@ import { WarrantyDateDialogComponent, WarrantyDateDialogData } from "./warranty-
   `,
 })
 export class WarrantyMenuComponent {
-  private readonly store = inject(Store);
+  private readonly authStore = inject(AuthStore);
+
   private readonly dialog = inject(AppDialog);
   private readonly receiptService = inject(ReceiptService);
   private readonly snackbarService = inject(SnackbarService);
@@ -75,7 +75,7 @@ export class WarrantyMenuComponent {
 
   public readonly saving = signal(false);
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   /** Gated on the receipt's own group, never the page's: the "All" view lists receipts of several groups. */
   public readonly canUpdate = computed(() =>

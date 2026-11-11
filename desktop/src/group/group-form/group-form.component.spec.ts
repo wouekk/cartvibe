@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { SelectModule } from "src/select/select.module";
@@ -14,8 +13,7 @@ import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input";
 import { ApiModule, Group, GroupsService, GroupStatus, Permission } from "../../open-api";
-import { AddGroup, AuthState, UpdateGroup } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { GroupStore, AuthStore } from "../../store";
 import { AppInitService } from "../../services";
 import { GroupMemberFormComponent } from "../group-member-form/group-member-form.component";
 import { buildGroupMemberForm } from "../utils/group-member.utils";
@@ -31,8 +29,7 @@ describe("GroupFormComponent", () => {
     imports: [ApiModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([AuthState]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SelectModule,
         SharedUiModule,
         TableModule,
@@ -179,9 +176,8 @@ describe("GroupFormComponent", () => {
 
   it("should create group", () => {
     const createSpy = vi.spyOn(TestBed.inject(GroupsService), "createGroup");
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const group: Group = {
       id: 1,
@@ -224,7 +220,7 @@ describe("GroupFormComponent", () => {
       icon: "",
       color: "",
     } as any);
-    expect(storeSpy).toHaveBeenCalledWith(new AddGroup(returnValue));
+    expect(TestBed.inject(GroupStore).groups()).toContainEqual(returnValue);
     expect(routerSpy).toHaveBeenCalledWith(["/groups/1/details/view"], {
       queryParams: {
         tab: "details",
@@ -234,9 +230,9 @@ describe("GroupFormComponent", () => {
 
   it("should update group", () => {
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
+    const updateGroup = vi.spyOn(TestBed.inject(GroupStore), "updateGroup");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const group: Group = {
       id: 1,
@@ -317,14 +313,14 @@ describe("GroupFormComponent", () => {
         color: "",
       } as Group
     );
-    expect(storeSpy).toHaveBeenCalledWith(new UpdateGroup(returnValue));
+    expect(updateGroup).toHaveBeenCalledWith(returnValue);
     // The form stays where it is (always editable): it settles instead of navigating to a view page.
     expect(component.form.pristine).toBe(true);
   });
 
   it("hydrates the household's icon and colour and sends them with the save", () => {
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, icon: "dog", color: "teal", groupMembers: [{ userId: 1, groupRoleId: 11, groupId: 1 }] },
@@ -358,7 +354,7 @@ describe("GroupFormComponent", () => {
     // must save a non-owner-only membership without blocking.
     const updateSpy = vi.spyOn(TestBed.inject(GroupsService), "updateGroup");
     vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
-    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of([]));
+    vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
@@ -393,7 +389,7 @@ describe("GroupFormComponent", () => {
   });
 
   it("hides member controls in edit mode without group.members.* permissions", () => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, groupMembers: [] },
@@ -408,15 +404,13 @@ describe("GroupFormComponent", () => {
   });
 
   it("shows member controls in edit mode for holders of group.members.*", () => {
-    TestBed.inject(Store).dispatch(
-      new SetPermissions([], {
+    TestBed.inject(AuthStore).setPermissions([], {
         1: [
           Permission.GroupMembersCreate,
           Permission.GroupMembersUpdate,
           Permission.GroupMembersDelete,
         ],
-      })
-    );
+      });
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, groupMembers: [] },

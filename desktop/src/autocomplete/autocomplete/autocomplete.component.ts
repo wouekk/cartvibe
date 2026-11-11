@@ -1,10 +1,9 @@
 import { Component, DestroyRef, effect, inject, Input, OnInit, signal, TemplateRef, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormArray, FormControl, Validators } from "@angular/forms";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { Store } from "@ngxs/store";
 import { defer, map, Observable, of, startWith } from "rxjs";
 import { BaseInputComponent } from "../../base-input";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store/auth.store";
 import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { BrnFieldControl } from "@spartan-ng/brain/field";
@@ -39,6 +38,8 @@ const CREATE_SENTINEL = Symbol("create");
 export class AutocompleteComponent
   extends BaseInputComponent
   implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   @Input() public inputId: string = "";
 
   public readonly options = input<any[]>([]);
@@ -84,16 +85,12 @@ export class AutocompleteComponent
 
   public singleOptionSelected = signal(false);
 
-  private readonly store = inject(Store);
-
   /**
    * Read here rather than taken as an input: the preference is global by
    * design, so threading it through the twenty-odd call sites would only create
    * a way for one of them to disagree with the rest.
    */
-  private readonly closeOnSelect = this.store.selectSignal(
-    AuthState.closeChipSelectOnSelect
-  );
+  private readonly closeOnSelect = this.authStore.closeChipSelectOnSelect;
 
   private optionsEffect = effect(() => {
     this.options();

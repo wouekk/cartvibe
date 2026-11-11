@@ -13,7 +13,7 @@ import { downloadFile } from "../../utils/file";
 /**
  * Runs a report configuration against the backend for the builder: a one-shot
  * generate-and-download, and a live preview. Both feed the same
- * ReportRequestCommand to the same synchronous endpoints; neither needs NGXS
+ * ReportRequestCommand to the same synchronous endpoints; neither needs a store
  * state (mirrors ReceiptExportService).
  */
 @Injectable({ providedIn: "root" })

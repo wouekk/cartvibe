@@ -1,11 +1,10 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
-import { switchMap, take, tap } from "rxjs";
+import { take, tap } from "rxjs";
 import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { UpdateUser } from "../../store";
+import { UserStore } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
 import { InputComponent } from "../../input/input/input.component";
@@ -21,6 +20,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [DialogComponent, ReactiveFormsModule, InputComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class DummyUserConversionDialogComponent implements OnInit {
+  private readonly userStore = inject(UserStore);
+
   private readonly translation = inject(TranslationService);
 
   @Input() public user!: User;
@@ -30,7 +31,6 @@ export class DummyUserConversionDialogComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private snackbarService: SnackbarService,
-    private store: Store,
     private userService: UserService,
     public dialogRef: AppDialogRef<DummyUserConversionDialogComponent>
   ) {}
@@ -57,10 +57,8 @@ export class DummyUserConversionDialogComponent implements OnInit {
               this.translation.t("{name} is now a normal user", { name: this.user.displayName })
             );
           }),
-          switchMap(() =>
-            this.store.dispatch(
-              new UpdateUser(userId, { ...this.user, isDummyUser: false })
-            )
+          tap(() =>
+            this.userStore.updateUser(userId, { ...this.user, isDummyUser: false })
           ),
           tap(() => this.dialogRef.close(true))
         )

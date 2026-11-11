@@ -1,12 +1,12 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, } from "@angular/forms";
-import { NgxsModule, Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
-import { AuthState } from "../../store/auth.state";
 import { AutocompleteSelection, AutocompleteComponent } from "./autocomplete.component";
 import { OptionDisplayPipe } from "./option-display.pipe";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 describe("AutocompleteComponent", () => {
@@ -18,8 +18,7 @@ describe("AutocompleteComponent", () => {
     await TestBed.configureTestingModule({
     imports: [
         TranslatePipe,
-        NgxsModule.forRoot([AuthState]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         AutocompleteComponent, BaseInputComponent, OptionDisplayPipe,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -325,13 +324,8 @@ describe("AutocompleteComponent", () => {
     });
 
     it("should close the panel and blur the field when the preference is on", () => {
-      const store = TestBed.inject(Store);
-      store.reset({
-        ...store.snapshot(),
-        auth: {
-          ...store.snapshot().auth,
-          userPreferences: { closeChipSelectOnSelect: true },
-        },
+      seedStore(TestBed.inject(AuthStore), {
+        userPreferences: { closeChipSelectOnSelect: true },
       });
 
       const { openPanel, closePanel, blur } = selectAnOption();

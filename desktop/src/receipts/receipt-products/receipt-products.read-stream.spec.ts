@@ -1,13 +1,10 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject } from "rxjs";
 import type { Mock } from "vitest";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { ReceiptReadStreamService } from "../../services/receipt-read-stream.service";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { AuthStore } from "../../store";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 const view = (status: string, products: unknown[] = []): ReceiptProductsView =>
@@ -25,7 +22,7 @@ describe("ReceiptProductsComponent while the AI reads the receipt", () => {
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
 
   const render = async (permissions: string[]) => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 3: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 3: permissions });
     fixture = TestBed.createComponent(ReceiptProductsComponent);
     fixture.componentRef.setInput("receiptId", 7);
     fixture.componentRef.setInput("groupId", 3);
@@ -39,7 +36,7 @@ describe("ReceiptProductsComponent while the AI reads the receipt", () => {
     getReceiptProducts = vi.fn().mockReturnValue(of(view("PENDING")));
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [ReceiptProductsComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProductService, useValue: { getReceiptProducts } },

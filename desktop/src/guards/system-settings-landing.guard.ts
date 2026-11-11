@@ -1,8 +1,7 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router, UrlTree } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { Permission } from "../open-api";
-import { AuthState, GroupState } from "../store";
+import { GroupStore, AuthStore } from "../store";
 
 /**
  * Landing guard for the System Settings shell. The sidebar links to `/system-settings`; this redirects
@@ -10,12 +9,13 @@ import { AuthState, GroupState } from "../store";
  * for everyone else. Every tab of the shell needs that same permission.
  */
 export const systemSettingsLandingGuard: CanActivateFn = (): UrlTree => {
-  const store: Store = inject(Store);
+  const authStore = inject(AuthStore);
+  const groupStore = inject(GroupStore);
   const router: Router = inject(Router);
 
-  if (store.selectSnapshot(AuthState.hasAppPermission(Permission.AppSystemSettingsRead))) {
+  if (authStore.hasAppPermission(Permission.AppSystemSettingsRead)) {
     return router.parseUrl("/system-settings/general");
   }
 
-  return router.parseUrl(store.selectSnapshot(GroupState.dashboardLink));
+  return router.parseUrl(groupStore.dashboardLink());
 };

@@ -1,8 +1,5 @@
 import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule } from "@ngxs/store";
-import { AuthState } from "../../store/auth.state";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { MoneyComponent } from "./money.component";
 
 @Component({
@@ -15,7 +12,7 @@ class TintedHostComponent {}
 describe("MoneyComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TintedHostComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [TintedHostComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
   });

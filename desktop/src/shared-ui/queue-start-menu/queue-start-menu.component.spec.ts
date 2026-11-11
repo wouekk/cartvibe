@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
-import { StoreModule } from "../../store/store.module";
 
 import { QueueStartMenuComponent } from "./queue-start-menu.component";
 
@@ -15,7 +14,7 @@ describe("QueueStartMenuComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     imports: [TranslatePipe,
-        StoreModule, QueueStartMenuComponent,],
+QueueStartMenuComponent,],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),

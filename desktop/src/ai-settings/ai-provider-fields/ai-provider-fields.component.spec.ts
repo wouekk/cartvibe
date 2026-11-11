@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder } from "@angular/forms";
-import { NgxsModule } from "@ngxs/store";
 import { of } from "rxjs";
 import type { Mock } from "vitest";
 import { AiType } from "../../constants/ai-type";
@@ -23,7 +22,7 @@ describe("AiProviderFieldsComponent", () => {
   const setUp = async (aiType: string, saved?: ReceiptProcessingSettings, prefix?: string) => {
     service = { getAiModels: vi.fn(() => of([])) };
     await TestBed.configureTestingModule({
-      imports: [AiProviderFieldsComponent, NgxsModule.forRoot([])],
+      imports: [AiProviderFieldsComponent],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProcessingSettingsService, useValue: service }],
     }).compileComponents();
     controls = buildAiProviderControls(TestBed.inject(FormBuilder), aiType);

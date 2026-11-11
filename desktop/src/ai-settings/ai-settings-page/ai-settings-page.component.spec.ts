@@ -2,7 +2,6 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
 import {
@@ -12,7 +11,6 @@ import {
   SystemTaskStatus,
 } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { FeatureConfigState } from "../../store/feature-config.state";
 import { AI_SETTINGS_NAME, AiSettingsPageComponent, describeConnection } from "./ai-settings-page.component";
 
 import type { Mock } from "vitest";
@@ -41,7 +39,7 @@ describe("AiSettingsPageComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
+      imports: [AiSettingsPageComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -264,7 +262,7 @@ describe("AiSettingsPageComponent", () => {
         updateSystemSettings: vi.fn(),
       };
       await TestBed.configureTestingModule({
-        imports: [AiSettingsPageComponent, NgxsModule.forRoot([FeatureConfigState])],
+        imports: [AiSettingsPageComponent],
         providers: [
           provideZonelessChangeDetection(),
           provideHttpClient(),

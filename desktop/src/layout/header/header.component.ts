@@ -1,12 +1,11 @@
 import { ConnectedPosition, CdkOverlayOrigin, CdkConnectedOverlay } from "@angular/cdk/overlay";
-import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
-import { LayoutState } from "src/store/layout.state";
+import { LayoutStore } from "src/store/layout.store";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
-import { AuthState, GroupState } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { HlmBadge } from "@spartan-ng/helm/badge";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -31,22 +30,28 @@ export const HANDSET_LOGO_SCALE = 0.3;
     imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe, HlmTooltip, HlmBadge, AppIconComponent]
 })
 export class HeaderComponent {
-  public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
+  private readonly authStore = inject(AuthStore);
 
-  public selectedGroupId = this.store.selectSignal(GroupState.selectedGroupId);
+  private readonly groupStore = inject(GroupStore);
 
-  public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
+  private readonly layoutStore = inject(LayoutStore);
 
-  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  public isLoggedIn = this.authStore.isLoggedIn;
+
+  public selectedGroupId = this.groupStore.selectedGroupId;
+
+  public loggedInUser = this.authStore.loggedInUser;
+
+  public showProgressBar = this.layoutStore.showProgressBar;
 
   public settingsBaseHeaderLink = computed(() => {
     this.selectedGroupId();
-    return [this.store.selectSnapshot(GroupState.settingsLinkBase) + "/view"];
+    return [this.groupStore.settingsLinkBase() + "/view"];
   });
 
   public groupName = computed(() => {
     const groupId = this.selectedGroupId();
-    const group = this.store.selectSnapshot(GroupState.getGroupById(groupId));
+    const group = this.groupStore.getGroupById(groupId);
     return group?.name as string ?? "";
   });
 
@@ -65,19 +70,16 @@ export class HeaderComponent {
   /** A phone has no sidebar button here (the tab bar's More opens the sheet); it names the household instead. */
   public readonly isHandset = this.viewportService.isHandset;
 
-  private readonly groups = this.store.selectSignal(GroupState.groups);
+  private readonly groups = this.groupStore.groups;
 
   public readonly household = computed(() => shownHousehold(this.groups(), Number.parseInt(this.selectedGroupId() ?? "") || 0));
 
-  private readonly canReadNotifications = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppNotificationsRead)
-  );
+  private readonly canReadNotifications = computed(() => this.authStore.hasAppPermission(Permission.AppNotificationsRead));
 
   constructor(
     private authService: AuthService,
     private notificationsService: NotificationsService,
     private router: Router,
-    private store: Store,
     private viewportService: ViewportService
   ) {
     this.listenForLoggedInUser();

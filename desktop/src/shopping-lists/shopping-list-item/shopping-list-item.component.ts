@@ -1,8 +1,6 @@
 import { Component, computed, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { TranslationService } from "../../i18n/translation.service";
 import { ShoppingListItem } from "../../open-api";
-import { UserState } from "../../store/user.state";
 import { isLocalItem } from "../shopping-list-pending";
 import { HEALTH_CHOICES, SEASONALITY_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { formatShoppingListItemAmount } from "../shopping-list-item-form";
@@ -19,6 +17,7 @@ import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-men
 import { HlmDropdownMenuSubTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-sub-trigger";
 import { HlmDropdownMenuSub } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-sub";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { UserStore } from "../../store/user.store";
 
 /** A person's correction of an item's tags; seasonality is only sent when they chose one. */
 export interface ShoppingListItemClassification {
@@ -67,7 +66,7 @@ export class ShoppingListItemComponent {
   /** A row added on this device that the server has not seen: it has no id to edit by yet. */
   public readonly isLocal = computed(() => isLocalItem(this.item()));
 
-  private readonly users = inject(Store).selectSignal(UserState.users);
+  private readonly users = inject(UserStore).users;
 
   /** Who crossed the item off, when it is crossed off and that person is still known. */
   public readonly checkedBy = computed(() => {

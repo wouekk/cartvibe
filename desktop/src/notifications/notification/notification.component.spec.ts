@@ -2,23 +2,20 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, NotificationsService } from "../../open-api";
-import { GroupState } from "../../store";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { seedStore } from "../../testing/seed-store";
+import { GroupStore } from "../../store/group.store";
 
 describe("NotificationComponent", () => {
   let component: NotificationComponent;
   let fixture: ComponentFixture<NotificationComponent>;
   let service: NotificationsService;
-  let store: Store;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -26,12 +23,10 @@ describe("NotificationComponent", () => {
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
-        NgxsModule.forRoot([GroupState, AuthState, SystemSettingsState]),
-        RouterTestingModule, NotificationComponent],
+                RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
 
-    store = TestBed.inject(Store);
     service = TestBed.inject(NotificationsService);
     fixture = TestBed.createComponent(NotificationComponent);
     component = fixture.componentInstance;
@@ -58,15 +53,13 @@ describe("NotificationComponent", () => {
   });
 
   it("should parse body with link and parameterized text", () => {
-    store.reset({
-      groups: {
-        groups: [
-          {
-            id: 5,
-            name: "Best group ever",
-          },
-        ],
-      },
+    seedStore(TestBed.inject(GroupStore), {
+      groups: [
+        {
+          id: 5,
+          name: "Best group ever",
+        },
+      ],
     });
     fixture.componentRef.setInput("notification", {
       ...component.notification(),
@@ -101,14 +94,14 @@ describe("NotificationComponent", () => {
     };
 
     it("hides the delete button without app.notifications.delete", async () => {
-      store.dispatch(new SetPermissions(["app.notifications.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.notifications.read"], {});
       await render();
 
       expect(deleteButton()).toBeFalsy();
     });
 
     it("shows the delete button with app.notifications.delete", async () => {
-      store.dispatch(new SetPermissions(["app.notifications.delete"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.notifications.delete"], {});
       await render();
 
       expect(deleteButton()).toBeTruthy();

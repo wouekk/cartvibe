@@ -1,7 +1,6 @@
 import { effect, inject, Injectable, untracked } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { AppDialog } from "../dialog/app-dialog";
-import { AuthState } from "../store/auth.state";
+import { AuthStore } from "../store/auth.store";
 import { WelcomeDialogComponent } from "./welcome-dialog.component";
 
 /**
@@ -11,10 +10,10 @@ import { WelcomeDialogComponent } from "./welcome-dialog.component";
  */
 @Injectable({ providedIn: "root" })
 export class OnboardingService {
-  private readonly dialog = inject(AppDialog);
-  private readonly store = inject(Store);
+  private readonly authStore = inject(AuthStore);
 
-  private readonly preferences = this.store.selectSignal(AuthState.userPreferences);
+  private readonly dialog = inject(AppDialog);
+  private readonly preferences = this.authStore.userPreferences;
 
   private shownForUser: number | undefined;
 

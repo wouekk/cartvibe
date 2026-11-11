@@ -1,10 +1,8 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { User } from "../../open-api";
-import { SetUsers } from "../../store/user.state.actions";
-import { UserState } from "../../store/user.state";
+import { UserStore } from "../../store/user.store";
 import { AvatarComponent } from "./avatar.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { Group } from "../../open-api";
@@ -14,7 +12,7 @@ describe("AvatarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [...HlmTooltipImports, AppIconComponent, NgxsModule.forRoot([UserState]), AvatarComponent],
+    imports: [...HlmTooltipImports, AppIconComponent,AvatarComponent],
     providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 
@@ -39,7 +37,7 @@ describe("AvatarComponent", () => {
   });
 
   it("finds the signed-in user's photo in the household's user list", async () => {
-    TestBed.inject(Store).dispatch(new SetUsers([{ id: 7, displayName: "Sam", avatarUpdatedAt: "2026-11-01T08:00:00Z" } as User]));
+    TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Sam", avatarUpdatedAt: "2026-11-01T08:00:00Z" } as User]);
     fixture.componentRef.setInput("user", { id: 7, displayName: "Sam" } as User);
     await fixture.whenStable();
 

@@ -7,7 +7,6 @@ import { of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { GroupOverview, OverviewService } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { StoreModule } from "../../store/store.module";
 import { ResolvedPeriod } from "../overview-period";
 import { OverviewTrendPanelComponent } from "./overview-trend-panel.component";
 
@@ -92,7 +91,7 @@ describe("OverviewTrendPanelComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [HostComponent, StoreModule],
+      imports: [HostComponent],
       providers: [provideZonelessChangeDetection(), { provide: OverviewService, useValue: overviewService }],
     }).compileComponents();
 

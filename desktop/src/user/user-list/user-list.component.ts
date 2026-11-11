@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, computed, DestroyRef, inject, TemplateRef, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { DEFAULT_HOST_CLASS } from "src/constants";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants/dialog.constant";
@@ -14,8 +13,8 @@ import { loadAssignableRoles } from "../../roles/role-loading.util";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
-import { AuthState, RemoveUser, RemoveUsers } from "../../store";
-import { UserTableState } from "../../store/user-table.state";
+import { UserStore, AuthStore } from "../../store";
+import { UserTableStore } from "../../store/user-table.store";
 import { DummyUserConversionDialogComponent } from "../dummy-user-conversion-dialog/dummy-user-conversion-dialog.component";
 import { ResetPasswordComponent } from "../reset-password/reset-password.component";
 import { UserFormComponent } from "../user-form/user-form.component";
@@ -50,16 +49,22 @@ import { RoleNamePipe } from "../../pipes/role-name.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe, HlmButton, AppIconComponent]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly userStore = inject(UserStore);
+
+  private readonly userTableStore = inject(UserTableStore);
+
   private readonly translation = inject(TranslationService);
 
   protected readonly Permission = Permission;
   protected readonly PermissionScope = PermissionScope;
 
-  userId = this.store.selectSignal(AuthState.userId);
+  userId = this.authStore.userId;
 
-  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersUpdate));
+  private readonly canUpdate = computed(() => this.authStore.hasAppPermission(Permission.AppUsersUpdate));
 
-  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersDelete));
+  private readonly canDelete = computed(() => this.authStore.hasAppPermission(Permission.AppUsersDelete));
 
   /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
   public readonly rowActions: readonly RowAction<User>[] = [
@@ -107,9 +112,9 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   // Signal-backed pagination state (per desktop guideline: selectSignal over | async).
-  public readonly page = this.store.selectSignal(UserTableState.page);
+  public readonly page = this.userTableStore.page;
 
-  public readonly pageSize = this.store.selectSignal(UserTableState.pageSize);
+  public readonly pageSize = this.userTableStore.pageSize;
 
   /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
   private readonly initialDataSource = this.dataSource();
@@ -136,7 +141,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   // unless the caller holds app.roles.read (otherwise the 403 would log them
   // out — see loadAssignableRoles); the cell then renders blank.
   public readonly roles = toSignal(
-    loadAssignableRoles(inject(Store), inject(RoleService)),
+    loadAssignableRoles(inject(AuthStore), inject(RoleService)),
     { initialValue: [] as Role[] }
   );
 
@@ -148,7 +153,6 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     public override baseTableService: BaseTableService,
     private dialog: AppDialog,
     private snackbarService: SnackbarService,
-    private store: Store,
     private userService: UserService
   ) {
     super(baseTableService);
@@ -264,7 +268,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
 
   public deleteUser(index: number) {
     const users = this.dataSource().data;
-    const userId = this.store.selectSnapshot(AuthState.userId);
+    const userId = this.authStore.userId();
     const user = users[index];
 
     if (user.id.toString() !== userId) {
@@ -285,7 +289,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
               take(1),
               tap(() => {
                 this.snackbarService.success("User successfully deleted");
-                this.store.dispatch(new RemoveUser(user.id.toString()));
+                this.userStore.removeUser(user.id.toString());
                 this.getTableData();
               })
             )
@@ -297,7 +301,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
 
   public bulkDeleteUsers(): void {
     const selectedUsers = this.table().selection.selected;
-    const currentUserId = this.store.selectSnapshot(AuthState.userId);
+    const currentUserId = this.authStore.userId();
 
     const usersToDelete = selectedUsers.filter(user => user.id.toString() !== currentUserId);
 
@@ -328,7 +332,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
             take(1),
             tap(() => {
               this.snackbarService.success(this.translation.t("{count} user(s) successfully deleted", { count: usersToDelete.length }));
-              this.store.dispatch(new RemoveUsers(bulkDeleteCommand.userIds));
+              this.userStore.removeUsers(bulkDeleteCommand.userIds);
               this.table().selection.clear();
               this.getTableData();
             })

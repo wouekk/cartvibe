@@ -5,10 +5,9 @@ import {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { NgxsModule, Store } from '@ngxs/store';
 import { firstValueFrom, of } from 'rxjs';
 import { ApiModule } from '../../open-api';
-import { SetFeatureConfig } from '../../store/feature-config.state.actions';
+import { FeatureConfigStore } from "../../store/feature-config.store";
 
 import { FeatureDirective } from '../../directives/feature.directive';
 import { InputModule } from '../../input';
@@ -19,9 +18,6 @@ import { AuthForm } from './auth-form.component';
 import { CartVibeLogoComponent } from '../../shared-ui/cartvibe-logo/cartvibe-logo.component';
 import { AppIconComponent } from '../../shared-ui/icon/icon.component';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { AuthState } from '../../store/auth.state';
-import { FeatureConfigState } from '../../store/feature-config.state';
-import { GroupState } from '../../store/group.state';
 import { AuthFormUtil } from './auth-form.util';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Router } from '@angular/router';
@@ -37,8 +33,7 @@ describe('AuthForm', () => {
         AppIconComponent,
         CartVibeLogoComponent,
         InputModule,
-        NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         ApiModule,
         RouterTestingModule, AuthForm, FeatureDirective],
     providers: [
@@ -72,7 +67,7 @@ describe('AuthForm', () => {
     const attribution = () => fixture.nativeElement.querySelector('[data-testid="logo-dev-attribution"]');
     expect(attribution()).toBeNull();
 
-    await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogosEnabled: true })));
+    TestBed.inject(FeatureConfigStore).setFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogosEnabled: true });
     fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
@@ -84,11 +79,11 @@ describe('AuthForm', () => {
     const providers = () => fixture.nativeElement.querySelector('[data-testid="oidc-providers"]');
 
     async function switchOn(...names: string[]) {
-      await firstValueFrom(TestBed.inject(Store).dispatch(new SetFeatureConfig({
+      TestBed.inject(FeatureConfigStore).setFeatureConfig({
         enableLocalSignUp: true,
         aiPoweredReceipts: false,
         oidcProviders: names.map((name) => ({ name, displayName: name.toUpperCase() })),
-      })));
+      });
       fixture.changeDetectorRef.markForCheck();
       fixture.detectChanges();
     }

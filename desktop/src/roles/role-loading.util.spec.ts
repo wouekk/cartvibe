@@ -1,14 +1,11 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { firstValueFrom, of, throwError } from "rxjs";
 import { PermissionScope, Role, RoleService } from "../open-api";
-import { AuthState } from "../store";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store";
 import { loadAssignableRoles } from "./role-loading.util";
 
 import type { Mock } from "vitest";
 describe("loadAssignableRoles", () => {
-  let store: Store;
   let getRoles: Mock;
   let roleService: RoleService;
 
@@ -24,16 +21,12 @@ describe("loadAssignableRoles", () => {
   ];
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
-    });
-    store = TestBed.inject(Store);
     getRoles = vi.fn().mockReturnValue(of(roles));
     roleService = { getRoles } as unknown as RoleService;
   });
 
   function collect(): Promise<Role[]> {
-    return firstValueFrom(loadAssignableRoles(store, roleService));
+    return firstValueFrom(loadAssignableRoles(TestBed.inject(AuthStore), roleService));
   }
 
   it("does NOT call getRoles when app.roles.read is absent", async () => {
@@ -43,14 +36,14 @@ describe("loadAssignableRoles", () => {
   });
 
   it("loads roles when app.roles.read is held", async () => {
-    store.dispatch(new SetPermissions(["app.roles.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.roles.read"], {});
     const result = await collect();
     expect(result).toEqual(roles);
     expect(getRoles).toHaveBeenCalledTimes(1);
   });
 
   it("degrades to an empty list when getRoles errors", async () => {
-    store.dispatch(new SetPermissions(["app.roles.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.roles.read"], {});
     getRoles.mockReturnValue(throwError(() => new Error("boom")));
     const result = await collect();
     expect(result).toEqual([]);

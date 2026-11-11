@@ -1,13 +1,11 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ReceiptService } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store";
 import { WarrantyDateDialogComponent } from "./warranty-date-dialog.component";
 import { WarrantyMenuComponent } from "./warranty-menu.component";
 
@@ -28,7 +26,7 @@ describe("WarrantyMenuComponent", () => {
     }));
 
     await TestBed.configureTestingModule({
-      imports: [WarrantyMenuComponent, NgxsModule.forRoot([AuthState])],
+      imports: [WarrantyMenuComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptService, useValue: { setReceiptWarranty } },
@@ -48,11 +46,11 @@ describe("WarrantyMenuComponent", () => {
   const menuButton = () => fixture.nativeElement.querySelector('[data-testid="warranty-menu"]');
 
   it("shows the menu only with group.receipts.update in the receipt's own group", async () => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 4: ["group.receipts.update"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 4: ["group.receipts.update"] });
     await fixture.whenStable();
     expect(menuButton()).toBeNull();
 
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 3: ["group.receipts.update"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 3: ["group.receipts.update"] });
     await fixture.whenStable();
     expect(menuButton()).not.toBeNull();
   });

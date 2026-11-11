@@ -2,7 +2,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, ElementRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { EMPTY, filter, from, map, of, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -10,13 +9,8 @@ import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store/auth.state";
-import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
-import {
-  ApplyShoppingListEvent,
-  DiscardLocalShoppingListItem,
-  QueueShoppingListChange,
-} from "../../store/shopping-list.state.actions";
+import { AuthStore } from "../../store/auth.store";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
 import { isLocalItem, newClientId, nextLocalItemId } from "../shopping-list-pending";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
 import { ShoppingListItemClassification, ShoppingListItemComponent } from "../shopping-list-item/shopping-list-item.component";
@@ -36,6 +30,7 @@ import { BrnButton } from "@spartan-ng/brain/button";
 import { HlmButton } from "../../ui/button/lib/hlm-button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 
 const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and try again.";
 
@@ -56,6 +51,10 @@ const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and tr
     ],
 })
 export class ShoppingListComponent {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly translation = inject(TranslationService);
 
   public readonly list = input.required<ShoppingList>();
@@ -78,11 +77,11 @@ export class ShoppingListComponent {
    */
   public readonly showAmount = computed(() => !this.viewport.isHandset() || this.addInUse());
 
-  public readonly activeItems = this.store.selectSignal(ShoppingListState.activeItems);
+  public readonly activeItems = this.shoppingListStore.activeItems;
 
-  public readonly checkedItems = this.store.selectSignal(ShoppingListState.checkedItems);
+  public readonly checkedItems = this.shoppingListStore.checkedItems;
 
-  private readonly allLists = this.store.selectSignal(ShoppingListState.lists);
+  private readonly allLists = this.shoppingListStore.lists;
 
   /**
    * In Shop mode, the moment from which this list's ticks are the trip under way: three hours before Shop mode
@@ -112,7 +111,7 @@ export class ShoppingListComponent {
   public readonly showCrossedOff = signal(false);
 
   /** The rows with a change the server has not confirmed yet. */
-  public readonly pendingItemIds = this.store.selectSignal(ShoppingListState.pendingItemIds);
+  public readonly pendingItemIds = this.shoppingListStore.pendingItemIds;
 
   public readonly addForm: FormGroup;
 
@@ -129,7 +128,6 @@ export class ShoppingListComponent {
   private readonly sync = inject(ShoppingListSyncService);
 
   constructor(
-    private store: Store,
     private formBuilder: FormBuilder,
     private shoppingListService: ShoppingListService,
     private dialog: AppDialog,
@@ -163,7 +161,7 @@ export class ShoppingListComponent {
 
   /**
    * Adding and crossing off are what a person does in the shop, where the phone loses its signal between the
-   * shelves: both show at once and go into the queue (`QueueShoppingListChange`), which `ShoppingListSyncService`
+   * shelves: both show at once and go into the queue (`ShoppingListStore.queueChange`), which `ShoppingListSyncService`
    * sends when the server can be reached. The row carries a negative id and a client id until the server's item
    * takes its place; a name that matches a crossed-off item comes back as that item then.
    */
@@ -199,8 +197,7 @@ export class ShoppingListComponent {
       classificationOverridden: false,
     };
 
-    this.store.dispatch(
-      new QueueShoppingListChange({
+    this.shoppingListStore.queueChange({
         kind: "add",
         opId: clientId,
         groupId: this.groupId(),
@@ -208,8 +205,7 @@ export class ShoppingListComponent {
         clientId,
         item,
         command,
-      })
-    );
+      });
     this.addForm.reset({ name: "", amount: "", unit: DEFAULT_SHOPPING_LIST_UNIT, note: "" });
   }
 
@@ -221,8 +217,7 @@ export class ShoppingListComponent {
       navigator.vibrate?.(10);
     }
 
-    this.store.dispatch(
-      new QueueShoppingListChange({
+    this.shoppingListStore.queueChange({
         kind: "toggle",
         opId: newClientId(),
         groupId: this.groupId(),
@@ -231,9 +226,8 @@ export class ShoppingListComponent {
         clientId: isLocalItem(item) ? item.clientId : undefined,
         isChecked,
         checkedAt: isChecked ? new Date().toISOString() : undefined,
-        checkedByUserId: isChecked ? Number(this.store.selectSnapshot(AuthState.userId)) || undefined : undefined,
-      })
-    );
+        checkedByUserId: isChecked ? Number(this.authStore.userId()) || undefined : undefined,
+      });
   }
 
   public editItem(item: ShoppingListItem): void {
@@ -248,7 +242,7 @@ export class ShoppingListComponent {
     // A row the server has not seen yet is simply taken back, with whatever was waiting for it.
     if (isLocalItem(item) && item.clientId) {
       const clientId = item.clientId;
-      confirmed.subscribe(() => this.store.dispatch(new DiscardLocalShoppingListItem(clientId)));
+      confirmed.subscribe(() => this.shoppingListStore.discardLocalItem(clientId));
       return;
     }
 
@@ -281,14 +275,12 @@ export class ShoppingListComponent {
       )
       .subscribe({
         next: (itemIds) =>
-          this.store.dispatch(
-            new ApplyShoppingListEvent({
+          this.shoppingListStore.applyEvent({
               type: ShoppingListEventType.CheckedCleared,
               groupId: this.groupId(),
               shoppingListId: this.list().id,
               itemIds,
-            })
-          ),
+            }),
         error: (error: HttpErrorResponse) => this.reportIfOffline(error),
       });
   }
@@ -308,9 +300,7 @@ export class ShoppingListComponent {
   }
 
   private applyItem(type: string, item: ShoppingListItem): void {
-    this.store.dispatch(
-      new ApplyShoppingListEvent({ type, groupId: this.groupId(), shoppingListId: item.shoppingListId, item })
-    );
+    this.shoppingListStore.applyEvent({ type, groupId: this.groupId(), shoppingListId: item.shoppingListId, item });
   }
 
   private confirm(headerText: string, dialogContent: string, confirmText: string) {

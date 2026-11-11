@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { catchError, of, take } from "rxjs";
 import { UserPreferences, UserPreferencesService } from "../../open-api";
-import { AuthState } from "../../store/auth.state";
-import { SetUserPreferences } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { LanguageSyncService } from "../../i18n/language-sync.service";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { TranslationService } from "../../i18n/translation.service";
@@ -100,15 +98,15 @@ import { SharedUiModule } from "../../shared-ui/shared-ui.module";
   `,
 })
 export class LanguageSettingComponent {
+  private readonly authStore = inject(AuthStore);
+
   protected readonly translation = inject(TranslationService);
 
   protected readonly languageSync = inject(LanguageSyncService);
 
-  private readonly store = inject(Store);
-
   private readonly userPreferencesService = inject(UserPreferencesService);
 
-  private readonly preferences = this.store.selectSignal(AuthState.userPreferences);
+  private readonly preferences = this.authStore.userPreferences;
 
   /** The saved AI language; "" follows the interface language (and English when the server knows none). */
   protected readonly aiLanguage = computed(() => this.preferences()?.aiLanguage ?? "");
@@ -128,7 +126,7 @@ export class LanguageSettingComponent {
       )
       .subscribe((saved) => {
         if (saved) {
-          this.store.dispatch(new SetUserPreferences(saved));
+          this.authStore.setUserPreferences(saved);
         }
       });
   }

@@ -1,13 +1,11 @@
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
-import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Component, inject, ChangeDetectionStrategy, computed } from "@angular/core";
 import { About, Permission } from "../../open-api/index";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store/auth.store";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AboutState } from "../../store/about.state";
-import { FeatureConfigState } from "../../store/feature-config.state";
+import { AboutStore } from "../../store/about.store";
 import { marker } from "../../i18n/marker";
 
 interface Link {
@@ -28,11 +26,14 @@ interface Link {
     styleUrl: "./about.component.scss"
 })
 export class AboutComponent {
-  private store = inject(Store);
-  public about = this.store.selectSignal(AboutState.about);
+  private readonly authStore = inject(AuthStore);
+
+  private readonly aboutStore = inject(AboutStore);
+
+  public about = this.aboutStore.about;
 
   /** The root warning is for the person who can act on it. */
-  public readonly canChangeSystemSettings = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
+  public readonly canChangeSystemSettings = computed(() => this.authStore.hasAppPermission(Permission.AppSystemSettingsUpdate));
 
   public links: Link[] = [
     {

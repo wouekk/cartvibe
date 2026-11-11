@@ -6,7 +6,6 @@ import { ReportColumn } from "../../../open-api";
 import { ColumnPickerDialogComponent, ColumnPickerDialogData } from "./column-picker-dialog.component";
 
 import type { Mock } from "vitest";
-import { StoreModule } from "../../../store/store.module";
 function configure(data: ColumnPickerDialogData): {
   fixture: ComponentFixture<ColumnPickerDialogComponent>;
   component: ColumnPickerDialogComponent;
@@ -14,7 +13,7 @@ function configure(data: ColumnPickerDialogData): {
 } {
   const close = vi.fn();
   TestBed.configureTestingModule({
-    imports: [StoreModule, ColumnPickerDialogComponent],
+    imports: [ColumnPickerDialogComponent],
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,

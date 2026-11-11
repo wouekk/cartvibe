@@ -1,11 +1,8 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, take } from "rxjs";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
-import { AuthState } from "../../store/auth.state";
-import { SetGroupCatalog, SetPermissions } from "../../store/auth.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { AuthStore } from "../../store/auth.store";
 import { ReceiptProductsComponent } from "./receipt-products.component";
 
 import type { Mock } from "vitest";
@@ -29,7 +26,7 @@ describe("ReceiptProductsComponent", () => {
 
   const render = async (initial: ReceiptProductsView, permissions: string[] = []) => {
     service.getReceiptProducts.mockReturnValue(of(initial));
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 3: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 3: permissions });
     fixture = TestBed.createComponent(ReceiptProductsComponent);
     fixture.componentRef.setInput("receiptId", 7);
     fixture.componentRef.setInput("groupId", 3);
@@ -46,7 +43,7 @@ describe("ReceiptProductsComponent", () => {
       setReceiptProductLabels: vi.fn(),
     };
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [ReceiptProductsComponent],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
     }).compileComponents();
   });
@@ -243,7 +240,7 @@ describe("ReceiptProductsComponent", () => {
     };
 
     const renderWithCatalog = async (permissions: string[] = [Permission.GroupReceiptsUpdate]) => {
-      TestBed.inject(Store).dispatch(new SetGroupCatalog({ 3: [dairy] }, { 3: [party, kids] }));
+      TestBed.inject(AuthStore).setGroupCatalog({ 3: [dairy] }, { 3: [party, kids] });
       await render(view({ products: [milk] }), permissions);
     };
 
@@ -304,7 +301,7 @@ describe("ReceiptProductsComponent", () => {
     });
 
     it("shows the category and tags as text to people who cannot edit", async () => {
-      TestBed.inject(Store).dispatch(new SetGroupCatalog({ 3: [dairy] }, { 3: [party] }));
+      TestBed.inject(AuthStore).setGroupCatalog({ 3: [dairy] }, { 3: [party] });
       await render(view({ products: [{ ...milk, categoryId: 10, foodGroup: "Dairy", tags: [party] }] }));
 
       expect(element("receipt-product-category-picker")).toBeNull();
@@ -327,7 +324,7 @@ describe("ReceiptProductsComponent", () => {
 
     const renderToCheck = async (products: unknown[] = lines, canSettle = true) => {
       service.getReceiptProducts.mockReturnValue(of(view({ products: products as never })));
-      TestBed.inject(Store).dispatch(new SetPermissions([], { 3: [] }));
+      TestBed.inject(AuthStore).setPermissions([], { 3: [] });
       fixture = TestBed.createComponent(ReceiptProductsComponent);
       fixture.componentRef.setInput("receiptId", 7);
       fixture.componentRef.setInput("groupId", 3);

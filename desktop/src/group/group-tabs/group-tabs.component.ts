@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { TabConfig } from "src/shared-ui/tabs/tab-config.interface";
 import { marker } from "../../i18n/marker";
 import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
@@ -18,8 +17,6 @@ export class GroupTabsComponent {
   public ngOnInit(): void {
     this.initTabs();
   }
-
-  constructor(private store: Store) {}
 
   private initTabs(): void {
     this.tabs = [

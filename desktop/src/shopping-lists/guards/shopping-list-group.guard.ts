@@ -1,8 +1,7 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
-import { GroupState } from "../../store";
-import { ShoppingListState } from "../../store/shopping-list.state";
+import { GroupStore } from "../../store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 
 /**
  * Allows `/shopping-lists/group/:groupId` only for a real group whose lists the user may read. Any
@@ -12,20 +11,21 @@ import { ShoppingListState } from "../../store/shopping-list.state";
  * as `/shopping-lists?recipeUrl=…` with no group, and the page reads it after the redirect.
  */
 export const shoppingListGroupGuard: CanActivateFn = (route) => {
-  const store = inject(Store);
+  const groupStore = inject(GroupStore);
+  const lists = inject(ShoppingListStore);
   const router = inject(Router);
   const groupId = Number(route.params["groupId"]);
   const queryParams = route.queryParams ?? {};
 
-  const readableGroups = store.selectSnapshot(ShoppingListState.readableGroups);
+  const readableGroups = lists.readableGroups();
   if (readableGroups.some((group) => group.id === groupId)) {
     return true;
   }
 
-  const targetGroupId = store.selectSnapshot(ShoppingListState.targetGroupId);
+  const targetGroupId = lists.targetGroupId();
   if (targetGroupId !== undefined) {
     return router.createUrlTree(["/shopping-lists/group", targetGroupId], { queryParams });
   }
 
-  return router.createUrlTree([store.selectSnapshot(GroupState.receiptListLink)]);
+  return router.createUrlTree([groupStore.receiptListLink()]);
 };

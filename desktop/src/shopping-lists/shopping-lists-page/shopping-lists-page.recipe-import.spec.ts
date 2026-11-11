@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router, convertToParamMap } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -11,12 +10,11 @@ import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from 
 import { SnackbarService } from "../../services";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
-import { AuthState } from "../../store/auth.state";
-import { GroupState } from "../../store/group.state";
-import { ShoppingListState } from "../../store/shopping-list.state";
-import { LoadShoppingLists } from "../../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { RecipeImportDialogComponent } from "../recipe-import-dialog/recipe-import-dialog.component";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 const item = (id: number, listId: number): ShoppingListItem =>
   ({ id, shoppingListId: listId, name: `item-${id}`, isChecked: false }) as ShoppingListItem;
@@ -43,7 +41,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
     service = { getShoppingListsForGroup: vi.fn().mockReturnValue(of(options.lists ?? lists())) };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([ShoppingListState, AuthState, GroupState]), ShoppingListsPageComponent],
+    imports: [ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -65,12 +63,8 @@ describe("ShoppingListsPageComponent recipe import", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: { ...store.snapshot().auth, groupPermissions: { 1: options.permissions ?? EDITOR } },
-    });
-    store.dispatch(new LoadShoppingLists(1));
+    seedStore(TestBed.inject(AuthStore), { groupPermissions: { 1: options.permissions ?? EDITOR } });
+    TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     await fixture.whenStable();

@@ -2,11 +2,9 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { registerRealLanguages } from "../../i18n/i18n-test-utils";
 import { TranslationService } from "../../i18n/translation.service";
-import { AuthState } from "../../store/auth.state";
-import { SetUserPreferences } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { LanguageSettingComponent } from "./language-setting.component";
 
 describe("LanguageSettingComponent", () => {
@@ -24,13 +22,13 @@ describe("LanguageSettingComponent", () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [LanguageSettingComponent, NgxsModule.forRoot([AuthState])],
+      imports: [LanguageSettingComponent],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     translation = TestBed.inject(TranslationService);
     registerRealLanguages(translation);
     http = TestBed.inject(HttpTestingController);
-    TestBed.inject(Store).dispatch(new SetUserPreferences({ language: "en" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ language: "en" } as never);
     fixture = TestBed.createComponent(LanguageSettingComponent);
     await settle();
   });
@@ -75,7 +73,7 @@ describe("LanguageSettingComponent", () => {
   });
 
   it("goes back to following the interface language", async () => {
-    TestBed.inject(Store).dispatch(new SetUserPreferences({ language: "en", aiLanguage: "de" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ language: "en", aiLanguage: "de" } as never);
     await settle();
 
     el("ai-language-same").click();

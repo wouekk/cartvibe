@@ -1,12 +1,9 @@
 import { TemplateRef, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { NgxsModule, Store } from '@ngxs/store';
-import { FeatureConfigState } from '../store/feature-config.state';
 import { FeatureDirective } from './feature.directive';
 
 import type { Mocked } from "vitest";
 describe('FeatureDirective', () => {
-  let store: Store;
   let templateRef: Mocked<TemplateRef<any>>;
   let viewContainer: Mocked<ViewContainerRef>;
 
@@ -15,20 +12,18 @@ describe('FeatureDirective', () => {
     const viewContainerSpy = { createEmbeddedView: vi.fn(), clear: vi.fn() };
 
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([FeatureConfigState])],
       providers: [
         { provide: TemplateRef, useValue: templateSpy },
         { provide: ViewContainerRef, useValue: viewContainerSpy }
       ]
     });
 
-    store = TestBed.inject(Store);
     templateRef = TestBed.inject(TemplateRef) as Mocked<TemplateRef<any>>;
     viewContainer = TestBed.inject(ViewContainerRef) as Mocked<ViewContainerRef>;
   });
 
   it('should create an instance', () => {
-    const directive = new FeatureDirective(templateRef, viewContainer, store);
+    const directive = TestBed.runInInjectionContext(() => new FeatureDirective(templateRef, viewContainer));
     expect(directive).toBeTruthy();
   });
 });

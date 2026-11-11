@@ -1,9 +1,7 @@
 import { effect, inject, Injectable, untracked } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { catchError, of, take } from "rxjs";
 import { UserPreferences, UserPreferencesService } from "../open-api";
-import { AuthState } from "../store/auth.state";
-import { SetUserPreferences } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { TranslationLoader } from "./translation-loader";
 import { AppLanguage, TranslationService } from "./translation.service";
 
@@ -13,19 +11,20 @@ import { AppLanguage, TranslationService } from "./translation.service";
  */
 @Injectable({ providedIn: "root" })
 export class LanguageSyncService {
-  private readonly store = inject(Store);
+  private readonly authStore = inject(AuthStore);
+
   private readonly userPreferencesService = inject(UserPreferencesService);
   private readonly translation = inject(TranslationService);
   private readonly loader = inject(TranslationLoader);
 
-  private readonly preferences = this.store.selectSignal(AuthState.userPreferences);
+  private readonly preferences = this.authStore.userPreferences;
 
   /** Only the latest request may switch the language, so a slow load cannot overwrite a newer choice. */
   private requested = 0;
 
   constructor() {
     // Before the first render: a stale cache from a session that ended without a logout must not show on the login page.
-    if (!this.store.selectSnapshot(AuthState.userPreferences)) {
+    if (!this.authStore.userPreferences()) {
       this.translation.forget();
     }
 
@@ -78,7 +77,7 @@ export class LanguageSyncService {
       )
       .subscribe((saved) => {
         if (saved) {
-          this.store.dispatch(new SetUserPreferences(saved));
+          this.authStore.setUserPreferences(saved);
         }
       });
   }

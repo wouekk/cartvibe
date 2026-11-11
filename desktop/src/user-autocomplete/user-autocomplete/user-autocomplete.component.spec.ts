@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl } from "@angular/forms";
-import { StoreModule } from "../../store/store.module";
 
 import { UserAutocompleteComponent } from "./user-autocomplete.component";
 
@@ -13,7 +12,7 @@ describe("UserAutocompleteComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [StoreModule, UserAutocompleteComponent],
+    imports: [UserAutocompleteComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),

@@ -1,12 +1,10 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { Observable, Subject, of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { PagedData, Receipt, ReceiptService, SortDirection } from "../../open-api";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ShoppingListsModule } from "../shopping-lists.module";
 import { ATTACHABLE_RECEIPT_COUNT, AttachReceiptDialogComponent } from "./attach-receipt-dialog.component";
 
@@ -32,7 +30,7 @@ describe("AttachReceiptDialogComponent", () => {
     service = { getReceiptsForGroup: vi.fn() };
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([SystemSettingsState])],
+      imports: [ShoppingListsModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

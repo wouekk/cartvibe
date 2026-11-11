@@ -3,11 +3,10 @@ import { HttpTestingController, provideHttpClientTesting } from "@angular/common
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { httpInterceptor, QUIET_ERRORS } from "../interceptors/http-interceptor";
 import { ApiModule, AuthService, Claims } from "../open-api";
-import { AuthState, Logout, SetAuthState } from "../store";
+import { AuthStore } from "../store";
 import { SnackbarService } from "./snackbar.service";
 import { TokenRefreshService } from "./token-refresh.service";
 
@@ -22,39 +21,37 @@ const claims = (secondsFromNow: number): Claims => ({
 
 describe("the session behind background work", () => {
   let service: TokenRefreshService;
-  let store: Store;
   let authService: AuthService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ApiModule, NgxsModule.forRoot([AuthState]), RouterTestingModule],
+      imports: [ApiModule,RouterTestingModule],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     service = TestBed.inject(TokenRefreshService);
-    store = TestBed.inject(Store);
     authService = TestBed.inject(AuthService);
     vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
   });
 
   afterEach(() => vi.useRealTimers());
 
-  describe("AuthState.isAccessTokenExpired", () => {
+  describe("AuthStore.isAccessTokenExpired", () => {
     it("is true without a session", () => {
-      expect(AuthState.isAccessTokenExpired(store)).toBe(true);
+      expect(TestBed.inject(AuthStore).isAccessTokenExpired()).toBe(true);
     });
 
     // The regression this replaces: a selector that read the clock was remembered until the auth state changed,
     // so it kept saying "not expired" for as long as the app stayed open.
     it("notices the token running out although nothing in the store changed", () => {
       vi.useFakeTimers();
-      store.dispatch(new SetAuthState(claims(1200)));
-      expect(AuthState.isAccessTokenExpired(store)).toBe(false);
+      TestBed.inject(AuthStore).setAuthState(claims(1200));
+      expect(TestBed.inject(AuthStore).isAccessTokenExpired()).toBe(false);
 
       vi.advanceTimersByTime(19 * 60_000);
-      expect(AuthState.isAccessTokenExpired(store)).toBe(false);
+      expect(TestBed.inject(AuthStore).isAccessTokenExpired()).toBe(false);
 
       vi.advanceTimersByTime(2 * 60_000);
-      expect(AuthState.isAccessTokenExpired(store)).toBe(true);
+      expect(TestBed.inject(AuthStore).isAccessTokenExpired()).toBe(true);
     });
   });
 
@@ -67,7 +64,7 @@ describe("the session behind background work", () => {
     });
 
     it("is true without a renewal while the token is good", async () => {
-      store.dispatch(new SetAuthState(claims(600)));
+      TestBed.inject(AuthStore).setAuthState(claims(600));
       const refresh = vi.spyOn(authService, "getNewRefreshToken");
 
       expect(await service.ensureFreshToken()).toBe(true);
@@ -75,28 +72,29 @@ describe("the session behind background work", () => {
     });
 
     it("renews a token that ran out", async () => {
-      store.dispatch(new SetAuthState(claims(-60)));
+      TestBed.inject(AuthStore).setAuthState(claims(-60));
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(of(claims(1200)) as never);
 
       expect(await service.ensureFreshToken()).toBe(true);
-      expect(AuthState.isAccessTokenExpired(store)).toBe(false);
+      expect(TestBed.inject(AuthStore).isAccessTokenExpired()).toBe(false);
     });
 
     it("is false and keeps the session when the renewal cannot reach the server", async () => {
-      store.dispatch(new SetAuthState(claims(-60)));
+      TestBed.inject(AuthStore).setAuthState(claims(-60));
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(throwError(() => new HttpErrorResponse({ status: 0 })));
 
       expect(await service.ensureFreshToken()).toBe(false);
-      expect(store.selectSnapshot(AuthState.isLoggedIn)).toBe(true);
+      expect(TestBed.inject(AuthStore).isLoggedIn()).toBe(true);
     });
 
     it("is false when the server ends the session", async () => {
-      store.dispatch(new SetAuthState(claims(-60)));
-      const dispatch = vi.spyOn(store, "dispatch");
+      TestBed.inject(AuthStore).setAuthState(claims(-60));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(throwError(() => new HttpErrorResponse({ status: 401 })));
 
       expect(await service.ensureFreshToken()).toBe(false);
-      expect(dispatch).toHaveBeenCalledWith(new Logout());
+      expect(logout).toHaveBeenCalled();
     });
   });
 });
@@ -112,8 +110,7 @@ describe("httpInterceptor with QUIET_ERRORS", () => {
       providers: [
         provideHttpClient(withInterceptors([httpInterceptor])),
         provideHttpClientTesting(),
-        { provide: Store, useValue: { selectSnapshot: () => true } },
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
+                { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
       ],
     });
     http = TestBed.inject(HttpClient);

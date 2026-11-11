@@ -1,10 +1,9 @@
 import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
 import { inject } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, throwError } from "rxjs";
 import { SnackbarService } from "../services";
-import { AuthState } from "../store";
+import { AuthStore } from "../store";
 import { marker } from "../i18n/marker";
 
 const FORBIDDEN_MESSAGE = marker("You do not have permission to perform this action.");
@@ -19,7 +18,7 @@ const TOO_MANY_REQUESTS_MESSAGE = marker("Too many requests at once. Try again i
 export const QUIET_ERRORS = new HttpContextToken<boolean>(() => false);
 
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
-  const store = inject(Store);
+  const authStore = inject(AuthStore);
   const activatedRoute = inject(ActivatedRoute);
   const snackbarService = inject(SnackbarService);
 
@@ -29,7 +28,7 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => e);
       }
 
-      const isLoggedIn = store.selectSnapshot(AuthState.isLoggedIn);
+      const isLoggedIn = authStore.isLoggedIn();
 
       // Don't intercept errors from token refresh requests — let TokenRefreshService handle them
       if (req.url.includes("/api/token/")) {

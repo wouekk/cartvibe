@@ -1,11 +1,10 @@
 import { TranslatePipe } from "../../../i18n/translate.pipe";
-import { Component, computed, input, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, input, signal, ChangeDetectionStrategy, inject } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
-import { Store } from "@ngxs/store";
 import { take } from "rxjs";
 import { Permission, ReceiptProductService } from "../../../open-api";
-import { AuthState } from "../../../store";
+import { AuthStore } from "../../../store";
 import { hasAll } from "../../../utils/permission.utils";
 
 /**
@@ -22,6 +21,8 @@ import { hasAll } from "../../../utils/permission.utils";
   imports: [TranslatePipe, HlmButton, AppIconComponent],
 })
 export class ReceiptProductBackfillComponent {
+  private readonly authStore = inject(AuthStore);
+
   public readonly groupId = input.required<number>();
 
   public readonly requesting = signal(false);
@@ -29,15 +30,14 @@ export class ReceiptProductBackfillComponent {
   /** How many receipts the last click queued; undefined before any click. */
   public readonly queued = signal<number | undefined>(undefined);
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   public readonly canQueue = computed(() =>
     hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsUpdate)
   );
 
   constructor(
-    private receiptProductService: ReceiptProductService,
-    private store: Store
+    private receiptProductService: ReceiptProductService
   ) {}
 
   public queueOlderReceipts(): void {

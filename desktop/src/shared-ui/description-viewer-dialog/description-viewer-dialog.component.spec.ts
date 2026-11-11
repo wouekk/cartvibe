@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import type { Mock } from "vitest";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { SharedUiModule } from "../shared-ui.module";
@@ -14,7 +13,7 @@ describe("DescriptionViewerDialogComponent", () => {
   const open = async (data: DescriptionViewerDialogData) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [SharedUiModule, NgxsModule.forRoot([])],
+      imports: [SharedUiModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

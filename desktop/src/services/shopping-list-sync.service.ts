@@ -1,22 +1,15 @@
 import { HttpContext } from "@angular/common/http";
 import { DOCUMENT } from "@angular/common";
 import { effect, inject, Injectable, OnDestroy, signal, untracked } from "@angular/core";
-import { Actions, ofActionSuccessful, Store } from "@ngxs/store";
-import { debounceTime, firstValueFrom, Subscription } from "rxjs";
+import { debounceTime, distinctUntilChanged, firstValueFrom, map, startWith, Subscription } from "rxjs";
 import { TranslationService } from "../i18n/translation.service";
 import { QUIET_ERRORS } from "../interceptors/http-interceptor";
 import { OfflineStorageService } from "../offline/offline-storage.service";
 import { isWorthRetrying, RetryWhenReachable } from "../offline/retry-when-reachable";
 import { ShoppingListService } from "../open-api";
 import { PendingChange } from "../shopping-lists/shopping-list-pending";
-import { AuthState } from "../store/auth.state";
-import { Logout } from "../store/auth.state.actions";
-import { CachedShoppingLists, ShoppingListState, shoppingListsCacheKey } from "../store/shopping-list.state";
-import {
-  LoadShoppingLists,
-  RestorePendingShoppingListChanges,
-  SettleShoppingListChange,
-} from "../store/shopping-list.state.actions";
+import { AuthStore } from "../store/auth.store";
+import { CachedShoppingLists, shoppingListsCacheKey, ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService } from "./shopping-list-stream.service";
 import { SnackbarService } from "./snackbar.service";
 import { TokenRefreshService } from "./token-refresh.service";
@@ -27,7 +20,7 @@ export const SHOPPING_LIST_OUTBOX_KEY = "shopping-lists:outbox";
 const CACHE_WRITE_DELAY_MS = 250;
 
 /**
- * Sends the shopping list changes made on this device (`ShoppingListState.pending`) to the server, oldest first, and
+ * Sends the shopping list changes made on this device (`ShoppingListStore.pending`) to the server, oldest first, and
  * keeps both the queue and a copy of the open group's lists on the device, so a phone without signal in the shop can
  * still open the list, add to it and cross things off, and nothing is lost when the app is closed meanwhile.
  *
@@ -36,8 +29,10 @@ const CACHE_WRITE_DELAY_MS = 250;
  */
 @Injectable({ providedIn: "root" })
 export class ShoppingListSyncService implements OnDestroy {
-  private readonly store = inject(Store);
-  private readonly actions = inject(Actions);
+  private readonly authStore = inject(AuthStore);
+
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   private readonly storage = inject(OfflineStorageService);
   private readonly shoppingListService = inject(ShoppingListService);
   private readonly tokenRefreshService = inject(TokenRefreshService);
@@ -69,7 +64,7 @@ export class ShoppingListSyncService implements OnDestroy {
     });
 
     this.subscriptions.add(
-      this.actions.pipe(ofActionSuccessful(Logout)).subscribe(() => {
+      this.authStore.signedOut.subscribe(() => {
         this.retry.cancel();
         this.stalled.set(false);
         void this.storage.clear();
@@ -95,28 +90,41 @@ export class ShoppingListSyncService implements OnDestroy {
   public async drained(): Promise<boolean> {
     await this.ready;
     await this.flush();
-    return this.store.selectSnapshot(ShoppingListState.pending).length === 0;
+    return this.shoppingListStore.pending().length === 0;
   }
 
   private async restore(): Promise<void> {
     const kept = await this.storage.get<PendingChange[]>(SHOPPING_LIST_OUTBOX_KEY);
-    if (Array.isArray(kept) && kept.length > 0 && this.store.selectSnapshot(AuthState.isLoggedIn)) {
-      this.store.dispatch(new RestorePendingShoppingListChanges(kept));
+    if (Array.isArray(kept) && kept.length > 0 && this.authStore.isLoggedIn()) {
+      this.shoppingListStore.restorePending(kept);
     }
 
+    // The store says so at once after each change (a signal's effect would wait for the next tick), and both
+    // start from what it holds now.
+    const state = this.shoppingListStore.changes.pipe(startWith(this.shoppingListStore.state()));
+
     this.subscriptions.add(
-      this.store.select(ShoppingListState.pending).subscribe((pending) => {
-        void this.storage.set(SHOPPING_LIST_OUTBOX_KEY, pending);
-        if (pending.length > 0) {
-          this.retry.kick();
-        }
-      })
+      state
+        .pipe(
+          map((slice) => slice.pending),
+          distinctUntilChanged()
+        )
+        .subscribe((pending) => {
+          void this.storage.set(SHOPPING_LIST_OUTBOX_KEY, pending);
+          if (pending.length > 0) {
+            this.retry.kick();
+          }
+        })
     );
 
     this.subscriptions.add(
-      this.store
-        .select(ShoppingListState.cacheSnapshot)
-        .pipe(debounceTime(CACHE_WRITE_DELAY_MS))
+      state
+        .pipe(
+          distinctUntilChanged(
+            (before, after) => before.groupId === after.groupId && before.lists === after.lists && before.selectedListId === after.selectedListId
+          ),
+          debounceTime(CACHE_WRITE_DELAY_MS)
+        )
         .subscribe(({ groupId, lists, selectedListId }) => {
           if (groupId !== undefined) {
             void this.storage.set(shoppingListsCacheKey(groupId), { lists, selectedListId } satisfies CachedShoppingLists);
@@ -128,7 +136,7 @@ export class ShoppingListSyncService implements OnDestroy {
   /** True when the queue is empty, false when the server could not be reached and the rest must wait. */
   private async sendAll(): Promise<boolean> {
     for (;;) {
-      const change = this.store.selectSnapshot(ShoppingListState.pending)[0];
+      const change = this.shoppingListStore.pending()[0];
       if (!change) {
         this.stalled.set(false);
         return true;
@@ -136,7 +144,7 @@ export class ShoppingListSyncService implements OnDestroy {
 
       if (!(await this.tokenRefreshService.ensureFreshToken()) || !(await this.send(change))) {
         // Signed out meanwhile: the queue went with the session and there is nothing to wait for.
-        const signedOut = !this.store.selectSnapshot(AuthState.isLoggedIn);
+        const signedOut = !this.authStore.isLoggedIn();
         this.stalled.set(!signedOut);
         return signedOut;
       }
@@ -160,20 +168,20 @@ export class ShoppingListSyncService implements OnDestroy {
             options
           )
         );
-        this.store.dispatch(new SettleShoppingListChange(change.opId, saved));
+        this.shoppingListStore.settleChange(change.opId, saved);
         return true;
       }
 
       if (change.itemId < 0) {
         // Its item never reached the server (the add was refused), so there is nothing to cross off.
-        this.store.dispatch(new SettleShoppingListChange(change.opId));
+        this.shoppingListStore.settleChange(change.opId);
         return true;
       }
 
       const saved = await firstValueFrom(
         this.shoppingListService.setShoppingListItemChecked(change.itemId, { isChecked: change.isChecked }, "body", false, options)
       );
-      this.store.dispatch(new SettleShoppingListChange(change.opId, saved));
+      this.shoppingListStore.settleChange(change.opId, saved);
       return true;
     } catch (error) {
       if (isWorthRetrying(error)) {
@@ -182,14 +190,14 @@ export class ShoppingListSyncService implements OnDestroy {
 
       // Refused: the change is dropped and the lists are read again, so the page shows what the server has. An
       // item someone else deleted meanwhile is the usual reason for a cross-off, and needs no words.
-      this.store.dispatch(new SettleShoppingListChange(change.opId));
+      this.shoppingListStore.settleChange(change.opId);
       if (change.kind === "add") {
         this.snackbarService.error(
           this.translation.t("\"{name}\" could not be added to the list.", { name: change.item.name })
         );
       }
-      if (this.store.selectSnapshot(ShoppingListState.groupId) === change.groupId) {
-        this.store.dispatch(new LoadShoppingLists(change.groupId));
+      if (this.shoppingListStore.groupId() === change.groupId) {
+        this.shoppingListStore.load(change.groupId);
       }
       return true;
     }

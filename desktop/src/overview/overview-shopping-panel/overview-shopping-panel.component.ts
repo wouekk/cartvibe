@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, DestroyRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { take } from "rxjs";
 import { marker } from "../../i18n/marker";
@@ -11,8 +10,8 @@ import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { formatShoppingListItemAmount } from "../../shopping-lists/shopping-list-item-form";
-import { ShoppingListEventType } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { finePointerSignal } from "../../utils/fine-pointer";
 import { activeItemsOf, pickLargestList } from "../overview-lists";
 
@@ -53,6 +52,8 @@ export interface PendingUndo {
   host: { class: "cv-panel", "aria-labelledby": "overview-lists-title" },
 })
 export class OverviewShoppingPanelComponent {
+  private readonly shoppingListStore = inject(ShoppingListStore);
+
   /** The open lists of the group the panel describes. */
   public readonly lists = input.required<ShoppingList[]>();
 
@@ -99,7 +100,6 @@ export class OverviewShoppingPanelComponent {
   private readonly translation = inject(TranslationService);
 
   constructor(
-    private store: Store,
     private shoppingListService: ShoppingListService,
     private snackbarService: SnackbarService
   ) {
@@ -191,13 +191,11 @@ export class OverviewShoppingPanelComponent {
   }
 
   private applyItem(item: ShoppingListItem): void {
-    this.store.dispatch(
-      new ApplyShoppingListEvent({
+    this.shoppingListStore.applyEvent({
         type: ShoppingListEventType.ItemToggled,
         groupId: this.groupId(),
         shoppingListId: item.shoppingListId,
         item,
-      })
-    );
+      });
   }
 }

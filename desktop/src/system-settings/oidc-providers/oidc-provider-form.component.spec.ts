@@ -2,7 +2,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { OidcProviderService, OidcProviderView } from "../../open-api";
@@ -38,7 +37,7 @@ describe("OidcProviderFormComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [OidcProviderFormComponent, NgxsModule.forRoot([])],
+      imports: [OidcProviderFormComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

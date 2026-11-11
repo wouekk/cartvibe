@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { BackupImportPreview, BackupService } from "../../open-api";
@@ -47,7 +46,7 @@ describe("BackupImportPreviewDialogComponent", () => {
     dialogRef = { close: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [BackupImportPreviewDialogComponent, NgxsModule.forRoot([])],
+      imports: [BackupImportPreviewDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

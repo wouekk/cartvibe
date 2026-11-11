@@ -1,7 +1,6 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
-import { GroupState } from "../../store";
+import { GroupStore } from "../../store";
 
 /**
  * `/overview` with no household in the URL: goes to the selected household's Dashboard and keeps the query string. The
@@ -9,10 +8,10 @@ import { GroupState } from "../../store";
  * in the manifest and cannot know the household.
  */
 export const overviewLandingGuard: CanActivateFn = (route) => {
-  const store = inject(Store);
+  const groupStore = inject(GroupStore);
   const router = inject(Router);
 
-  return router.createUrlTree([store.selectSnapshot(GroupState.overviewLink)], {
+  return router.createUrlTree([groupStore.overviewLink()], {
     queryParams: route.queryParams ?? {},
   });
 };

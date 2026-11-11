@@ -1,8 +1,6 @@
 import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { HasGroupPermissionDirective, HasGroupPermissionInput } from "./has-group-permission.directive";
 
 @Component({ template: `<span *hasGroupPermission="config" data-testid="gated">gated</span>`, imports: [HasGroupPermissionDirective] })
@@ -12,31 +10,29 @@ class HostComponent {
 
 describe("HasGroupPermissionDirective", () => {
   let fixture: ComponentFixture<HostComponent>;
-  let store: Store;
   let host: HostComponent;
 
   const gated = () => fixture.nativeElement.querySelector("[data-testid='gated']");
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([AuthState]), HostComponent, HasGroupPermissionDirective],
+    imports: [HostComponent, HasGroupPermissionDirective],
     providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;
   });
 
   it("renders when the group permission is granted", async () => {
-    store.dispatch(new SetPermissions([], { 1: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.view"] });
     await fixture.whenStable();
 
     expect(gated()).toBeTruthy();
   });
 
   it("does not render when the group permission is not granted", async () => {
-    store.dispatch(new SetPermissions([], { 1: ["group.receipts.read"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.receipts.read"] });
     await fixture.whenStable();
 
     expect(gated()).toBeFalsy();
@@ -44,7 +40,7 @@ describe("HasGroupPermissionDirective", () => {
 
   it("does not render for a group the user is not a member of", async () => {
     host.config = { groupId: 2, permission: "group.view" };
-    store.dispatch(new SetPermissions([], { 1: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.view"] });
     await fixture.whenStable();
 
     expect(gated()).toBeFalsy();
@@ -52,7 +48,7 @@ describe("HasGroupPermissionDirective", () => {
 
   it("renders via the orApp override for a non-member holding the app permission", async () => {
     host.config = { groupId: 2, permission: "group.view", orApp: ["app.groups.read"] };
-    store.dispatch(new SetPermissions(["app.groups.read"], { 1: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions(["app.groups.read"], { 1: ["group.view"] });
     await fixture.whenStable();
 
     expect(gated()).toBeTruthy();
@@ -62,7 +58,7 @@ describe("HasGroupPermissionDirective", () => {
     await fixture.whenStable();
     expect(gated()).toBeFalsy();
 
-    store.dispatch(new SetPermissions([], { 1: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.view"] });
     TestBed.flushEffects();
     await fixture.whenStable();
 

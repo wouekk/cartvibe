@@ -4,13 +4,9 @@ import { CUSTOM_ELEMENTS_SCHEMA, DestroyRef } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
-import { of } from "rxjs";
-import { SetReceiptFilter } from "src/store/receipt-table.actions";
-import { defaultReceiptFilter, } from "src/store/receipt-table.state";
+import { defaultReceiptFilter, ReceiptTableStore } from "src/store/receipt-table.store";
 import { InputModule } from "../../input";
 import { Category, FilterOperation, ReceiptStatus, Tag } from "../../open-api";
-import { StoreModule } from "../../store/store.module";
 import { applyFormCommand } from "../../utils/index";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
 import { OperationsPipe } from "./operations.pipe";
@@ -20,7 +16,6 @@ import { ReceiptFilterComponent } from "./receipt-filter.component";
 describe("ReceiptFilterComponent", () => {
   let component: ReceiptFilterComponent;
   let fixture: ComponentFixture<ReceiptFilterComponent>;
-  let store: Store;
 
   const filledFilter = {
     date: {
@@ -69,8 +64,7 @@ describe("ReceiptFilterComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [InputModule,
-        StoreModule,
-        ReactiveFormsModule, ReceiptFilterComponent, OperationsPipe],
+                ReactiveFormsModule, ReceiptFilterComponent, OperationsPipe],
     providers: [
         {
             provide: AppDialogRef,
@@ -83,7 +77,6 @@ describe("ReceiptFilterComponent", () => {
     ]
 });
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(ReceiptFilterComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -115,12 +108,6 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("should init form with initial data", () => {
-    store.reset({
-      receiptTable: {
-        filter: filledFilter,
-      },
-    });
-
     const destroyRef = TestBed.inject(DestroyRef);
 
     component.parentForm = buildReceiptFilterForm(filledFilter, destroyRef);
@@ -130,12 +117,6 @@ describe("ReceiptFilterComponent", () => {
   });
 
   it("should reset form", () => {
-    store.reset({
-      receiptTable: {
-        filter: filledFilter,
-      },
-    });
-
     component.formCommand.subscribe((formCommand) => {
       applyFormCommand(component.parentForm, formCommand);
     });
@@ -156,13 +137,12 @@ describe("ReceiptFilterComponent", () => {
       TestBed.inject(AppDialogRef<ReceiptFilterComponent>),
       "close"
     );
-    const storeRefSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    const destroyRef = TestBed.inject(DestroyRef);
+    component.parentForm = buildReceiptFilterForm(filledFilter, destroyRef);
 
     component.submitButtonClicked();
 
-    expect(storeRefSpy).toHaveBeenCalledWith(
-      new SetReceiptFilter(component.parentForm.value)
-    );
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual({ ...filledFilter, search: undefined });
     expect(dialogRefSpy).toHaveBeenCalledWith(true);
   });
 

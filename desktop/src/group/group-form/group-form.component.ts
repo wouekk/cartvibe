@@ -1,10 +1,9 @@
-import {AfterViewInit, Component, DestroyRef, OnInit, Signal, signal, TemplateRef, inject, input, viewChild, ChangeDetectionStrategy} from "@angular/core";
+import { AfterViewInit, Component, DestroyRef, OnInit, Signal, signal, TemplateRef, inject, input, viewChild, ChangeDetectionStrategy, computed } from "@angular/core";
 import {takeUntilDestroyed, toSignal} from "@angular/core/rxjs-interop";
 import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Sort, TableDataSource } from "../../table/table-types";
 import {ActivatedRoute, Router} from "@angular/router";
-import {Store} from "@ngxs/store";
 import {map, startWith, switchMap, take, tap} from "rxjs";
 import {DEFAULT_HOST_CLASS} from "src/constants";
 import {GROUP_STATUS_OPTIONS} from "src/constants/receipt-status-options";
@@ -16,7 +15,7 @@ import {SortByDisplayName} from "src/utils/sort-by-displayname";
 import {Group, GroupMember, GroupsService, GroupStatus, Permission, PermissionScope, Role, RoleService} from "../../open-api";
 import {loadAssignableRoles} from "../../roles/role-loading.util";
 import {AppInitService, SnackbarService} from "../../services";
-import {AddGroup, AuthState, UpdateGroup} from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import {GroupMemberFormComponent} from "../group-member-form/group-member-form.component";
 import {buildGroupMemberForm} from "../utils/group-member.utils";
 import { marker } from "../../i18n/marker";
@@ -47,6 +46,10 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [FormComponent, SettingsPageComponent, NgTemplateOutlet, AuditDetailSectionComponent, FormSectionComponent, InputComponent, SelectComponent, GroupLookPickerComponent, TableComponent, NgIf, RowActionsComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe, RoleNamePipe, UserPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class GroupFormComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
   protected readonly PermissionScope = PermissionScope;
   private readonly destroyRef = inject(DestroyRef);
 
@@ -83,7 +86,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   // skipped entirely unless the caller holds app.roles.read — otherwise the 403
   // would log them out (see loadAssignableRoles). Non-holders see a blank name.
   public readonly roles = toSignal(
-    loadAssignableRoles(inject(Store), inject(RoleService)),
+    loadAssignableRoles(inject(AuthStore), inject(RoleService)),
     { initialValue: [] as Role[] }
   );
 
@@ -104,7 +107,6 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     private groupsService: GroupsService,
     private snackbarService: SnackbarService,
     private router: Router,
-    private store: Store,
     private activatedRoute: ActivatedRoute,
     private dialog: AppDialog,
     private sortByDisplayName: SortByDisplayName,
@@ -119,21 +121,16 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     if (
       this.formConfig.mode === FormMode.view &&
       this.originalGroup &&
-      this.store.selectSnapshot(AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate]))
+      this.authStore.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate])
     ) {
       this.formConfig = { ...this.formConfig, mode: FormMode.edit };
     }
     if (this.originalGroup) {
       this.editLink = `/groups/${this.originalGroup.id}/details/edit`;
-      this.canCreateGroupMembers = this.store.selectSignal(
-        AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupMembersCreate)
-      );
-      this.canUpdateGroupMembers = this.store.selectSignal(
-        AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupMembersUpdate)
-      );
-      this.canDeleteGroupMembers = this.store.selectSignal(
-        AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupMembersDelete)
-      );
+      const groupId = this.originalGroup.id;
+      this.canCreateGroupMembers = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupMembersCreate));
+      this.canUpdateGroupMembers = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupMembersUpdate));
+      this.canDeleteGroupMembers = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupMembersDelete));
     }
     this.initForm();
   }
@@ -334,7 +331,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
           this.snackbarService.success("Group successfully created");
         }),
         switchMap((group: Group) => {
-          this.store.dispatch(new AddGroup(group));
+          this.groupStore.addGroup(group);
           // Reload app data so the group creator's permissions for the new
           // group load before navigating into the permission-gated group route.
           return this.appInitService.getAppData().pipe(map(() => group));
@@ -353,7 +350,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
         take(1),
         tap((group: Group) => {
           this.snackbarService.success("Group successfully updated");
-          this.store.dispatch(new UpdateGroup(group));
+          this.groupStore.updateGroup(group);
         }),
         switchMap((group: Group) =>
           // Reload app data so any membership/role changes affecting the current

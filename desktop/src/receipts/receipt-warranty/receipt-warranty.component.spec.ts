@@ -2,15 +2,13 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { formatDateInput } from "../../datepicker/date-input.directive";
 import { Receipt, ReceiptService } from "../../open-api";
 import { WebPushService } from "../../services/web-push.service";
-import { AuthState } from "../../store";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { ReceiptWarrantyComponent } from "./receipt-warranty.component";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 describe("ReceiptWarrantyComponent", () => {
@@ -23,8 +21,7 @@ describe("ReceiptWarrantyComponent", () => {
     ({ id: 9, name: "Toaster", date: "2026-10-29T00:00:00Z", warrantyUntil, amount: "49", status: "OPEN" }) as Receipt;
 
   const setPreferences = (preferences: Record<string, unknown>) => {
-    const store = TestBed.inject(Store);
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userPreferences: preferences } });
+    seedStore(TestBed.inject(AuthStore), { userPreferences: preferences });
   };
 
   beforeEach(async () => {
@@ -32,7 +29,7 @@ describe("ReceiptWarrantyComponent", () => {
     webPush = { enableForWarranties: vi.fn(() => Promise.resolve()) };
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([AuthState, FeatureConfigState, SystemSettingsState])],
+      imports: [ReceiptWarrantyComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

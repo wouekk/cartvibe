@@ -1,19 +1,17 @@
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy, computed } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { Store } from "@ngxs/store";
 import { of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { CategoryTableState } from "src/store/category-table.state";
+import { CategoryTableStore } from "src/store/category-table.store";
 import { TableColumn } from "src/table/table-column.interface";
 import { TableComponent } from "src/table/table/table.component";
 import { CategoryService, CategoryView, PagedDataDataInner, PagedRequestCommand, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AppInitService } from "../../services/app-init.service";
-import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/category-table.state.actions";
 import { CategoryForm } from "../category-form/category-form.component";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -32,6 +30,10 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class CategoryTableComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly categoryTableStore = inject(CategoryTableStore);
+
   private readonly translation = inject(TranslationService);
 
   private readonly appInitService = inject(AppInitService);
@@ -46,13 +48,13 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
   public readonly table = viewChild.required(TableComponent);
 
-  public state = this.store.selectSignal(CategoryTableState.state);
+  public state = this.categoryTableStore.state;
 
   protected readonly Permission = Permission;
 
-  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesUpdate));
+  private readonly canUpdate = computed(() => this.authStore.hasAppPermission(Permission.AppCategoriesUpdate));
 
-  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesDelete));
+  private readonly canDelete = computed(() => this.authStore.hasAppPermission(Permission.AppCategoriesDelete));
 
   /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
   public readonly rowActions: readonly RowAction<CategoryView>[] = [
@@ -78,8 +80,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   constructor(
     private categoryService: CategoryService,
     private dialog: AppDialog,
-    private snackbarService: SnackbarService,
-    private store: Store,
+    private snackbarService: SnackbarService
   ) {}
 
   public dataSource = signal(new TableDataSource<PagedDataDataInner>([]));
@@ -119,9 +120,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   }
 
   private getCategories(): void {
-    const command: PagedRequestCommand = this.store.selectSnapshot(
-      CategoryTableState.state
-    );
+    const command: PagedRequestCommand = this.categoryTableStore.state();
 
     this.categoryService
       .getPagedCategories(command)
@@ -141,15 +140,15 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   public updatePageData(pageEvent: PageEvent) {
     const newPage = pageEvent.pageIndex + 1;
 
-    this.store.dispatch(new SetPage(newPage));
-    this.store.dispatch(new SetPageSize(pageEvent.pageSize));
+    this.categoryTableStore.setPage(newPage);
+    this.categoryTableStore.setPageSize(pageEvent.pageSize);
 
     this.getCategories();
   }
 
   public sorted(sortState: Sort): void {
-    this.store.dispatch(new SetOrderBy(sortState.active));
-    this.store.dispatch(new SetSortDirection(sortState.direction));
+    this.categoryTableStore.setOrderBy(sortState.active);
+    this.categoryTableStore.setSortDirection(sortState.direction);
 
     this.getCategories();
   }
@@ -186,7 +185,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
       },
     ] as TableColumn[];
 
-    const tableState = this.store.selectSnapshot(CategoryTableState.state);
+    const tableState = this.categoryTableStore.state();
     if (tableState.orderBy) {
       const column = columns.find(c => c.columnDef === tableState.orderBy);
       if (column) {

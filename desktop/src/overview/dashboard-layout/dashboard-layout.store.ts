@@ -1,9 +1,8 @@
-import { Injectable, signal } from "@angular/core";
+import { inject, Injectable, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { Actions, ofActionDispatched } from "@ngxs/store";
 import { catchError, map, Observable, of, take, tap } from "rxjs";
 import { DashboardLayoutService } from "../../open-api";
-import { Logout } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { DashboardLayout, parseLayout, serializeLayout } from "./dashboard-layout";
 
 /**
@@ -21,12 +20,11 @@ export class DashboardLayoutStore {
 
   private loading = false;
 
-  constructor(
-    private dashboardLayoutService: DashboardLayoutService,
-    actions: Actions
-  ) {
+  constructor(private dashboardLayoutService: DashboardLayoutService) {
     // The next person to sign in on this tab must not see the previous one's layout.
-    actions.pipe(ofActionDispatched(Logout), takeUntilDestroyed()).subscribe(() => this.clear());
+    inject(AuthStore)
+      .signedOut.pipe(takeUntilDestroyed())
+      .subscribe(() => this.clear());
   }
 
   public load(): void {

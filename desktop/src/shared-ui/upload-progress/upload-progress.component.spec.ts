@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule } from "@ngxs/store";
 import { UploadProgressComponent } from "./upload-progress.component";
 
 describe("UploadProgressComponent", () => {
@@ -10,7 +9,7 @@ describe("UploadProgressComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UploadProgressComponent, NgxsModule.forRoot([])],
+      imports: [UploadProgressComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
     fixture = TestBed.createComponent(UploadProgressComponent);

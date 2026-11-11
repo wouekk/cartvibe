@@ -1,17 +1,12 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { provideStore, Store } from "@ngxs/store";
 
 
 import { AboutComponent } from "./about.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { Permission } from "../../open-api";
-import { AboutState } from "../../store/about.state";
-import { SetAbout } from "../../store/about.state.actions";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
-import { FeatureConfigState } from "../../store/feature-config.state";
-import { SetFeatureConfig } from "../../store/feature-config.state.actions";
+import { AboutStore } from "../../store/about.store";
+import { AuthStore } from "../../store/auth.store";
 
 describe("AboutComponent", () => {
   let component: AboutComponent;
@@ -23,8 +18,7 @@ describe("AboutComponent", () => {
       imports: [AboutComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-        provideStore([AboutState, AuthState, FeatureConfigState])
+        provideHttpClientTesting()
       ]
     })
       .compileComponents();
@@ -66,9 +60,8 @@ describe("AboutComponent", () => {
   describe("a server that runs as root", () => {
     const warning = (): HTMLElement | null => fixture.nativeElement.querySelector('[data-testid="about-runs-as-root"]');
     const set = async (runsAsRoot: boolean, appPermissions: string[]): Promise<void> => {
-      const store = TestBed.inject(Store);
-      store.dispatch(new SetAbout({ version: "v0.19.0", buildDate: "unknown", runsAsRoot }));
-      store.dispatch(new SetPermissions(appPermissions, {}));
+      TestBed.inject(AboutStore).setAbout({ version: "v0.19.0", buildDate: "unknown", runsAsRoot });
+      TestBed.inject(AuthStore).setPermissions(appPermissions, {});
       await fixture.whenStable();
     };
 

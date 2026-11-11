@@ -1,6 +1,5 @@
 import { TestBed } from "@angular/core/testing";
-import { Store } from "@ngxs/store";
-import { ApplyShoppingListEvent, LoadShoppingLists } from "../store/shopping-list.state.actions";
+import { ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService } from "./shopping-list-stream.service";
 
 import type { Mock } from "vitest";
@@ -39,7 +38,8 @@ class FakeEventSource {
 
 describe("ShoppingListStreamService", () => {
   let service: ShoppingListStreamService;
-  let dispatch: Mock;
+  let applyEvent: Mock;
+  let load: Mock;
   let sources: FakeEventSource[];
 
   const latest = () => sources[sources.length - 1];
@@ -51,10 +51,11 @@ describe("ShoppingListStreamService", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    dispatch = vi.fn();
+    applyEvent = vi.fn();
+    load = vi.fn();
 
     TestBed.configureTestingModule({
-      providers: [{ provide: Store, useValue: { dispatch } }],
+      providers: [{ provide: ShoppingListStore, useValue: { applyEvent, load } }],
     });
 
     service = TestBed.inject(ShoppingListStreamService);
@@ -79,23 +80,24 @@ describe("ShoppingListStreamService", () => {
     latest().emit("ITEM_ADDED", { data: JSON.stringify(event) });
 
     expect(latest().url).toBe("/api/shopping-list/group/3/stream");
-    expect(dispatch).toHaveBeenCalledWith(new ApplyShoppingListEvent(event as any));
+    expect(applyEvent).toHaveBeenCalledWith(event);
   });
 
   it("skips a malformed frame instead of throwing", () => {
     service.connect(3);
     expect(() => latest().emit("ITEM_ADDED", { data: "{not json" })).not.toThrow();
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(applyEvent).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
   });
 
   it("does not refetch on the first open, but does after a reconnect", () => {
     service.connect(3);
     latest().open();
-    expect(dispatch).not.toHaveBeenCalledWith(new LoadShoppingLists(3));
+    expect(load).not.toHaveBeenCalledWith(3);
 
     // The browser's own reconnect after the server's 15-minute close fires open again.
     latest().open();
-    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(3));
+    expect(load).toHaveBeenCalledWith(3);
   });
 
   it("reconnects with backoff after the browser gives up on the stream", () => {
@@ -119,7 +121,7 @@ describe("ShoppingListStreamService", () => {
 
     setVisibility("visible");
 
-    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(3));
+    expect(load).toHaveBeenCalledWith(3);
     expect(sources).toHaveLength(2);
   });
 
@@ -133,7 +135,8 @@ describe("ShoppingListStreamService", () => {
 
     expect(source.closed).toBe(true);
     expect(sources).toHaveLength(1);
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(applyEvent).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
   });
 
   it("says whether changes made elsewhere arrive right now", () => {
@@ -177,12 +180,12 @@ describe("ShoppingListStreamService", () => {
     service.connect(1);
     latest().open();
     latest().failPermanently();
-    dispatch.mockClear();
+    load.mockClear();
     const before = sources.length;
 
     window.dispatchEvent(new Event("online"));
 
-    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+    expect(load).toHaveBeenCalledWith(1);
     expect(sources.length).toBe(before + 1);
   });
 
@@ -190,7 +193,7 @@ describe("ShoppingListStreamService", () => {
     service.connect(1);
     latest().open();
     const silent = latest();
-    dispatch.mockClear();
+    load.mockClear();
 
     // The server's heartbeat keeps a quiet stream alive...
     vi.advanceTimersByTime(60_000);
@@ -207,7 +210,7 @@ describe("ShoppingListStreamService", () => {
 
     latest().open();
     expect(service.status()).toBe("live");
-    expect(dispatch).toHaveBeenCalledWith(new LoadShoppingLists(1));
+    expect(load).toHaveBeenCalledWith(1);
   });
 
   it("does not wait for a heartbeat from a stream that never opened, or after disconnecting", () => {

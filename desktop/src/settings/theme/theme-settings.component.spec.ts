@@ -4,8 +4,6 @@ import { ThemeService } from "../../theme/theme.service";
 import { ThemeSettingsComponent } from "./theme-settings.component";
 import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
-import { NgxsModule } from "@ngxs/store";
-import { AuthState } from "../../store/auth.state";
 
 describe("ThemeSettingsComponent", () => {
   let fixture: ComponentFixture<ThemeSettingsComponent>;
@@ -16,7 +14,7 @@ describe("ThemeSettingsComponent", () => {
   beforeEach(async () => {
     window.localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [ThemeSettingsComponent, NgxsModule.forRoot([AuthState])],
+      imports: [ThemeSettingsComponent],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     theme = TestBed.inject(ThemeService);

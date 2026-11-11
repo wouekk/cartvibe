@@ -8,15 +8,12 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { provideRouter, RouterLink } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
-import { ShoppingListEventType, ShoppingListState } from "../../store/shopping-list.state";
-import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { AuthStore } from "../../store/auth.store";
+import { ShoppingListEventType } from "../../store/shopping-list.store";
+import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingTripsComponent } from "./shopping-trips.component";
 
 import type { Mock } from "vitest";
@@ -44,7 +41,7 @@ describe("ShoppingTripsComponent", () => {
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
 
   const render = async (permissions: string[]) => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 1: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: permissions });
     fixture = TestBed.createComponent(ShoppingTripsComponent);
     fixture.componentRef.setInput("listId", 1);
     fixture.componentRef.setInput("groupId", 1);
@@ -59,8 +56,7 @@ describe("ShoppingTripsComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState, ShoppingListState, SystemSettingsState]),
-        HlmButton,
+                HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
         MoneyComponent,
@@ -122,16 +118,11 @@ describe("ShoppingTripsComponent", () => {
 
   it("refetches when the stream says this list's trips changed, and only then", async () => {
     await render([...LIST_PERMISSIONS, Permission.GroupReceiptsRead]);
-    const store = TestBed.inject(Store);
 
-    store.dispatch(
-      new ApplyShoppingListEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 2 })
-    );
+    TestBed.inject(ShoppingListStore).applyEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 2 });
     expect(shoppingListService.getShoppingTrips).toHaveBeenCalledTimes(1);
 
-    store.dispatch(
-      new ApplyShoppingListEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 1 })
-    );
+    TestBed.inject(ShoppingListStore).applyEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 1 });
     expect(shoppingListService.getShoppingTrips).toHaveBeenCalledTimes(2);
   });
 });

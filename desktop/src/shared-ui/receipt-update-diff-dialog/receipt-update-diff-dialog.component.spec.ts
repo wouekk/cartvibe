@@ -3,9 +3,7 @@ import { CommonModule } from "@angular/common";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
-import { NgxsModule } from "@ngxs/store";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
-import { SystemSettingsState } from "../../store/system-settings.state";
 import { CollapsedDiffRow } from "../../utils/line-diff";
 import { ReceiptUpdateSnapshots } from "../../utils/receipt-update-description";
 import { ReceiptUpdateDiffDialogComponent, ReceiptUpdateDiffDialogData } from "./receipt-update-diff-dialog.component";
@@ -45,7 +43,7 @@ describe("ReceiptUpdateDiffDialogComponent", () => {
   const create = async (snapshots: ReceiptUpdateSnapshots) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-    imports: [TranslatePipe, AppDatePipe, CommonModule, NgxsModule.forRoot([SystemSettingsState]), ReceiptUpdateDiffDialogComponent],
+    imports: [TranslatePipe, AppDatePipe, CommonModule,ReceiptUpdateDiffDialogComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         provideZonelessChangeDetection(),

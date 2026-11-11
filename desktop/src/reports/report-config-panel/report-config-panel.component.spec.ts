@@ -2,7 +2,6 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angul
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS } from "src/constants";
 import {
@@ -12,7 +11,8 @@ import {
 } from "../../open-api";
 import { buildColumnGroup } from "../models/report-form.factory";
 import { ReportConfigPanelComponent } from "./report-config-panel.component";
-import { SystemSettingsState } from "src/store/system-settings.state";
+import { GroupStore } from "src/store/group.store";
+import { SystemSettingsStore } from "src/store/system-settings.store";
 
 import type { Mock } from "vitest";
 const GROUPS = [
@@ -56,13 +56,7 @@ describe("ReportConfigPanelComponent", () => {
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
-        {
-            provide: Store,
-            useValue: {
-                selectSignal: (selector: unknown) => signal(selector === SystemSettingsState.timeZone ? "America/New_York" : GROUPS),
-            },
-        },
-        { provide: AppDialog, useValue: dialog },
+                { provide: AppDialog, useValue: dialog },
     ],
     schemas: [NO_ERRORS_SCHEMA],
 })
@@ -71,6 +65,8 @@ describe("ReportConfigPanelComponent", () => {
       .overrideComponent(ReportConfigPanelComponent, { set: { template: "" } })
       .compileComponents();
 
+    TestBed.inject(SystemSettingsStore).setTimeZone("America/New_York");
+    TestBed.inject(GroupStore).setGroups(GROUPS as any);
     formBuilder = TestBed.inject(FormBuilder);
     form = buildForm(formBuilder);
     fixture = TestBed.createComponent(ReportConfigPanelComponent);

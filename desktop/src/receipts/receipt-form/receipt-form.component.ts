@@ -5,7 +5,6 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators, Reactiv
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { isSettled } from "../../utils/receipt-status";
 import { catchError, debounceTime, EMPTY, filter, finalize, forkJoin, map, of, startWith, switchMap, take, tap } from "rxjs";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
@@ -14,8 +13,7 @@ import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "src/constants";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants/receipt-status-options";
 import { FormMode } from "src/enums/form-mode.enum";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { LayoutState } from "src/store/layout.state";
-import { HideProgressBar, ShowProgressBar } from "src/store/layout.state.actions";
+import { LayoutStore } from "src/store/layout.store";
 import { UserAutocompleteComponent } from "src/user-autocomplete/user-autocomplete/user-autocomplete.component";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import {
@@ -32,8 +30,8 @@ import {
 import { SnackbarService } from "../../services";
 import { shakeInvalid } from "../../utils/shake";
 import { QueueMode, ReceiptQueueService } from "../../services/receipt-queue.service";
-import { AuthState, FeatureConfigState, GroupState, UserState } from "../../store";
-import { SystemSettingsState } from "../../store/system-settings.state";
+import { FeatureConfigStore, UserStore, GroupStore, AuthStore } from "../../store";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 import { calendarDayToLocalDate, nameForToday, todayInZone, toMidnightUtc } from "../../utils/app-time-zone";
 import { downloadFile } from "../../utils/file";
 import { receiptImageFileUrl } from "../../utils/receipt-image-url";
@@ -87,6 +85,18 @@ export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
     imports: [ReactiveFormsModule, FormHeaderComponent, FormSectionComponent, NgIf, AuditDetailSectionComponent, InputComponent, ReceiptCurrencyNoteComponent, DatepickerComponent, ReceiptWarrantyComponent, GroupAutocompleteComponent, UserAutocompleteComponent, SelectComponent, TextareaComponent, UploadImageComponent, AppIconComponent, HlmSpinner, CarouselComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, ReceiptProductsComponent, UploadProgressComponent, FormButtonBarComponent, CancelButtonComponent, SubmitButtonComponent, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, TranslatePipe, FormGetPipe, InputReadonlyPipe, HlmButton, HlmTooltip, RouterLink]
 })
 export class ReceiptFormComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
+  private readonly userStore = inject(UserStore);
+
+  private readonly systemSettingsStore = inject(SystemSettingsStore);
+
+  private readonly layoutStore = inject(LayoutStore);
+
+  private readonly featureConfigStore = inject(FeatureConfigStore);
+
   private readonly translation = inject(TranslationService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -105,15 +115,15 @@ export class ReceiptFormComponent implements OnInit {
 
   public readonly carouselComponent = viewChild(CarouselComponent);
 
-  public groups = this.store.selectSignal(GroupState.groupsWithoutAll);
+  public groups = this.groupStore.groupsWithoutAll;
 
-  public receiptListLink = this.store.selectSignal(GroupState.receiptListLink);
+  public receiptListLink = this.groupStore.receiptListLink;
 
-  public aiPoweredReceipts = this.store.selectSignal(FeatureConfigState.aiPoweredReceipts);
+  public aiPoweredReceipts = this.featureConfigStore.aiPoweredReceipts;
 
-  public showProgressBar = this.store.selectSignal(LayoutState.showProgressBar);
+  public showProgressBar = this.layoutStore.showProgressBar;
 
-  public userPreferences = this.store.selectSignal(AuthState.userPreferences);
+  public userPreferences = this.authStore.userPreferences;
 
   protected readonly FormMode = FormMode;
 
@@ -123,12 +133,8 @@ export class ReceiptFormComponent implements OnInit {
 
   // Inline category/tag creation is allowed only with the matching app create
   // permission (the receipt form otherwise restricts users to the granted set).
-  public canCreateCategories = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppCategoriesCreate)
-  );
-  public canCreateTags = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppTagsCreate)
-  );
+  public canCreateCategories = computed(() => this.authStore.hasAppPermission(Permission.AppCategoriesCreate));
+  public canCreateTags = computed(() => this.authStore.hasAppPermission(Permission.AppTagsCreate));
 
 
   public originalReceipt?: Receipt;
@@ -168,7 +174,7 @@ export class ReceiptFormComponent implements OnInit {
   // checks an update against the group the receipt is moving into).
   private readonly currentGroupId = signal<number | string | null | undefined>(undefined);
 
-  private readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+  private readonly soleGroupId = this.groupStore.soleGroupId;
 
   // A member of one group has nothing to pick (Phase 3 C3); the picker still
   // shows when the receipt is somehow elsewhere, so it can be moved back.
@@ -222,8 +228,7 @@ export class ReceiptFormComponent implements OnInit {
     private receiptService: ReceiptService,
     private router: Router,
     private injector: Injector,
-    private snackbarService: SnackbarService,
-    private store: Store,
+    private snackbarService: SnackbarService
   ) {}
 
   /** Leaves without saving: back to the receipt when editing one, to the receipts list when adding. */
@@ -302,9 +307,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   private setCancelLink(): void {
-    const selectedGroupId = this.store.selectSnapshot(
-      GroupState.selectedGroupId
-    );
+    const selectedGroupId = this.groupStore.selectedGroupId();
     this.cancelLink = `/receipts/group/${selectedGroupId}`;
   }
 
@@ -321,23 +324,17 @@ export class ReceiptFormComponent implements OnInit {
     // hasGroupPermission would deny - rendering the whole add form read-only.
     const groupId =
       this.mode === FormMode.add
-        ? (this.store.selectSnapshot(GroupState.addTargetGroupId) ??
-          Number.parseInt(this.store.selectSnapshot(GroupState.selectedGroupId)))
+        ? (this.groupStore.addTargetGroupId() ??
+          Number.parseInt(this.groupStore.selectedGroupId()))
         : (this.originalReceipt?.groupId ?? 0);
     const editPermission =
       this.mode === FormMode.add
         ? Permission.GroupReceiptsCreate
         : Permission.GroupReceiptsUpdate;
 
-    this.canEditReceipt = this.store.selectSignal(
-      AuthState.hasGroupPermission(groupId, editPermission)
-    );
-    this.canMagicFill = this.store.selectSignal(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsMagicFill)
-    );
-    this.canDuplicate = this.store.selectSignal(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsDuplicate)
-    );
+    this.canEditReceipt = computed(() => this.authStore.hasGroupPermission(groupId, editPermission));
+    this.canMagicFill = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsMagicFill));
+    this.canDuplicate = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsDuplicate));
   }
 
   /** "Looks right" under the lines on the view screen: settles the receipt without opening the edit form. */
@@ -441,14 +438,14 @@ export class ReceiptFormComponent implements OnInit {
     // the value app-autocomplete filters its option list by, and "0" matches only
     // groups whose name contains a zero.
     const addTargetGroupId: number | string =
-      this.store.selectSnapshot(GroupState.addTargetGroupId) ?? "";
+      this.groupStore.addTargetGroupId() ?? "";
 
     // A family member never types a name or who paid (Phase 3 C1/C2): a new
     // receipt is "Receipt {today}" (magic fill replaces it with the store name)
     // and paid by whoever is adding it. An unknown user id stays blank, so the
     // Paid By field shows and asks rather than posting 0.
-    const timeZone = this.store.selectSnapshot(SystemSettingsState.timeZone);
-    const currentUserId = Number(this.store.selectSnapshot(AuthState.userId)) || "";
+    const timeZone = this.systemSettingsStore.timeZone();
+    const currentUserId = Number(this.authStore.userId()) || "";
     const isAdd = this.mode === FormMode.add && !this.originalReceipt;
 
     this.form = this.formBuilder.group({
@@ -505,8 +502,8 @@ export class ReceiptFormComponent implements OnInit {
       this.tags = [];
       return;
     }
-    this.categories = this.store.selectSnapshot(AuthState.groupCategories(numericGroupId));
-    this.tags = this.store.selectSnapshot(AuthState.groupTags(numericGroupId));
+    this.categories = this.authStore.groupCategories(numericGroupId);
+    this.tags = this.authStore.groupTags(numericGroupId);
   }
 
   private listenForGroupChanges(): void {
@@ -519,14 +516,12 @@ export class ReceiptFormComponent implements OnInit {
         this.currentGroupId.set(groupId);
         this.setCategoryTagPoolsForGroup(groupId);
         const paidBy = this.form.get("paidByUserId");
-        const users = this.store.selectSnapshot(UserState.users);
+        const users = this.userStore.users();
         if (!groupId) {
           this.usersToOmit.set(users.map((u) => u.id.toString()));
           this.paidByAutocomplete()?.autocompleteComponent()?.clearFilter();
         } else {
-          const group = this.store.selectSnapshot(
-            GroupState.getGroupById(groupId)
-          );
+          const group = this.groupStore.getGroupById(groupId);
           const groupMembers = group?.groupMembers.map((u) =>
             u.userId.toString()
           );
@@ -671,7 +666,7 @@ export class ReceiptFormComponent implements OnInit {
       receiptImageId = receiptImage?.id;
     }
 
-    this.store.dispatch(new ShowProgressBar());
+    this.layoutStore.showProgress();
     this.receiptImageService
       .magicFillReceipt(receiptImageId, file)
       .pipe(
@@ -681,7 +676,7 @@ export class ReceiptFormComponent implements OnInit {
           // Patched values are changes to save, so Save stops being dimmed.
           this.form.markAsDirty();
         }),
-        finalize(() => this.store.dispatch(new HideProgressBar()))
+        finalize(() => this.layoutStore.hideProgress())
       )
       .subscribe();
   }

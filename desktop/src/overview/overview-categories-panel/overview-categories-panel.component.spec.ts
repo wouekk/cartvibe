@@ -3,7 +3,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import type { ChartConfiguration } from "chart.js";
 import { GroupOverviewCategory } from "../../open-api";
-import { StoreModule } from "../../store/store.module";
 import { DonutSegment } from "../overview-chart.utils";
 import { OverviewCategoriesPanelComponent } from "./overview-categories-panel.component";
 
@@ -53,7 +52,7 @@ describe("OverviewCategoriesPanelComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HostComponent, StoreModule],
+      imports: [HostComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 

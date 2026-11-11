@@ -4,6 +4,5 @@ export * from "./password.utils";
 export * from "./permission.utils";
 export * from "./sort-by-displayname";
 export * from "./status.utils";
-export * from "./app-data.util";
 export * from "./duration.utils";
 export * from "./receipt-table-columns";

@@ -2,11 +2,10 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { TagTableState } from "src/store/tag-table.state";
+import { TagTableStore } from "src/store/tag-table.store";
 import { ApiModule, TagService } from "../../open-api";
 import { TagFormComponent } from "../tag-form/tag-form.component";
 import { TagTableComponent } from "./tag-table.component";
@@ -16,7 +15,6 @@ import type { Mocked } from "vitest";
 describe("TagsListComponent", () => {
   let component: TagTableComponent;
   let fixture: ComponentFixture<TagTableComponent>;
-  let store: Store;
   let tagService: Mocked<TagService>;
 
   beforeEach(() => {
@@ -32,7 +30,7 @@ describe("TagsListComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([TagTableState]), TagTableComponent],
+TagTableComponent],
     providers: [
         { provide: TagService, useValue: tagServiceSpy },
         provideHttpClient(withInterceptorsFromDi()),
@@ -40,7 +38,6 @@ describe("TagsListComponent", () => {
     ]
 });
     fixture = TestBed.createComponent(TagTableComponent);
-    store = TestBed.inject(Store);
     tagService = TestBed.inject(TagService) as Mocked<TagService>;
     component = fixture.componentInstance;
   });
@@ -83,7 +80,7 @@ describe("TagsListComponent", () => {
       direction: "asc",
     });
 
-    expect(store.selectSnapshot(TagTableState.state)).toEqual({
+    expect(TestBed.inject(TagTableStore).state()).toEqual({
       page: 1,
       pageSize: 50,
       orderBy: "numberOfProducts",
@@ -110,7 +107,7 @@ describe("TagsListComponent", () => {
       pageSize: 100,
     } as any);
 
-    expect(store.selectSnapshot(TagTableState.state)).toEqual({
+    expect(TestBed.inject(TagTableStore).state()).toEqual({
       page: 3,
       pageSize: 100,
       orderBy: "name",

@@ -7,11 +7,11 @@ and the shared `src/shared-ui/task-table/`). Query side: `../../api/CLAUDE.md` â
 
 Type, Ran By, Started At and Ended At, through the shared filter pieces (`app-filter-field`, `utils/filter-form.ts`,
 `utils/filter-chips.ts`): a badge-counted Filter button and Reset in the header, a chip row, and
-`app-system-task-filter` as the dialog. `SystemTaskTableState.filter` is the one slice they all use.
+`app-system-task-filter` as the dialog. `SystemTaskTableStore.filter` is the one slice they all use.
 
 - **The filter belongs to the page, not to `app-task-table`.** The table has other hosts with their own table
   services, so the filter rides in as an optional `[filterProvider]` **function**. A value input would be one change
-  detection late: the page dispatches and calls `getTableData()` in the same turn, so a cleared chip would stay
+  detection late: the page writes the store and calls `getTableData()` in the same turn, so a cleared chip would stay
   applied. Hosts that leave it unbound send no filter.
 - **One refresh stream.** `TaskTableComponent.getTableData()` pushes onto a `Subject` that `listenForRefreshRequests()`
   `switchMap`s, with `catchError(() => EMPTY)` on the inner observable (an error through `switchMap` would complete the
@@ -24,7 +24,7 @@ Type, Ran By, Started At and Ended At, through the shared filter pieces (`app-fi
 - **Hydrated state predates the filter.** The slice was persisted before `filter` existed, so the selectors and the
   `SetSystemTaskFilterField` handler fall back to `buildDefaultSystemTaskFilter()`, a factory (a shared constant
   written into state could be corrupted by a later in-place edit).
-- Every filter write outside the dialog goes through `applyFilterChange()`: dispatch, `SetPage(1)`, refetch. The dialog's
+- Every filter write outside the dialog ends in `filterChanged()`: the store write, `setPage(1)`, refetch. The dialog's
   `afterClosed()` does the same.
 - **Dates go out as `yyyy-MM-dd`** through `toSystemTaskWireFilter` (over `toDateWireFilter`) where the request is
   built, never in the store: the persisted value returns to the datepicker, which would read a bare day as UTC

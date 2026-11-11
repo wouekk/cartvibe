@@ -1,117 +1,61 @@
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
-import { GroupState, SetSelectedDashboardId, SetSelectedGroupId } from "../store";
 import { GroupGuard } from "./group.guard";
+import { seedStore } from "../testing/seed-store";
+import { GroupStore } from "../store/group.store";
 
 import type { MockInstance } from "vitest";
 describe("GroupGuard", () => {
   let guard: GroupGuard;
-  let store: Store;
+  let groups: GroupStore;
   let navigateSpy: MockInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([GroupState]), RouterTestingModule],
+      imports: [RouterTestingModule],
     });
 
     navigateSpy = vi.spyOn(TestBed.inject(Router), "navigate");
     navigateSpy.mockReturnValue(Promise.resolve(true));
-    store = TestBed.inject(Store);
+    groups = TestBed.inject(GroupStore);
     guard = TestBed.inject(GroupGuard);
   });
+
+  const visit = (groupId: string) =>
+    guard.canActivate({ params: { groupId }, data: { groupGuardBasePath: "dashboard/group" } } as any, {} as any);
 
   it("should be created", () => {
     expect(guard).toBeTruthy();
   });
 
-  it("should return true", () => {
-    store.reset({ groups: { groups: [{ id: "1" }] } });
-    const result = guard.canActivate(
-      { params: { groupId: "1" } } as any,
-      {} as any
-    );
+  it("lets a household the person belongs to through", () => {
+    seedStore(groups, { groups: [{ id: "1" }] });
 
-    expect(result).toBe(true);
+    expect(visit("1")).toBe(true);
+    expect(navigateSpy).not.toHaveBeenCalled();
   });
 
-  it("should return false", () => {
-    store.reset({ groups: { groups: [{ id: "1" }] } });
-    let storeSpy = vi.spyOn(store, "dispatch");
+  it("sends an unknown household to the first one the person has", () => {
+    seedStore(groups, { groups: [{ id: "1" }] });
 
-    const result = guard.canActivate(
-      {
-        params: { groupId: "2" },
-        data: {
-          groupGuardBasePath: "dashboard/group",
-        },
-      } as any,
-      {} as any
-    );
-
-    expect(result).toBe(false);
+    expect(visit("2")).toBe(false);
     expect(navigateSpy).toHaveBeenCalledWith(["dashboard/group/1"]);
-    expect(storeSpy).toHaveBeenCalledWith(new SetSelectedGroupId("1"));
+    expect(groups.selectedGroupId()).toBe("1");
   });
 
-  it("should reset selected dashboard id", () => {
-    store.reset({ groups: { groups: [{ id: "1" }], selectedGroupId: "3" } });
-    let storeSpy = vi.spyOn(store, "dispatch");
+  it("makes the household of the address the open one", () => {
+    seedStore(groups, { groups: [{ id: "1" }], selectedGroupId: "3" });
 
-    const result = guard.canActivate(
-      {
-        params: { groupId: "1" },
-        data: {
-          groupGuardBasePath: "dashboard/group",
-        },
-      } as any,
-      {} as any
-    );
-
-    expect(result).toBe(true);
-    expect(storeSpy).toHaveBeenCalledWith(
-      new SetSelectedDashboardId(undefined)
-    );
+    expect(visit("1")).toBe(true);
+    expect(groups.selectedGroupId()).toBe("1");
   });
 
-  it("should reset selected dashboard id when group not found", () => {
-    store.reset({ groups: { groups: [{ id: "1" }], selectedGroupId: "3" } });
-    let storeSpy = vi.spyOn(store, "dispatch");
+  it("opens the first household when the open one is not in the address either", () => {
+    seedStore(groups, { groups: [{ id: "1" }], selectedGroupId: "3" });
 
-    const result = guard.canActivate(
-      {
-        params: { groupId: "70" },
-        data: {
-          groupGuardBasePath: "dashboard/group",
-        },
-      } as any,
-      {} as any
-    );
-
-    expect(result).toBe(false);
-    expect(storeSpy).toHaveBeenCalledWith(
-      new SetSelectedDashboardId(undefined)
-    );
-  });
-
-  it("should not reset selected dashboard id when group not found", () => {
-    store.reset({ groups: { groups: [{ id: "1" }], selectedGroupId: "70" } });
-    let storeSpy = vi.spyOn(store, "dispatch");
-
-    const result = guard.canActivate(
-      {
-        params: { groupId: "70" },
-        data: {
-          groupGuardBasePath: "dashboard/group",
-        },
-      } as any,
-      {} as any
-    );
-
-    expect(result).toBe(false);
-    expect(storeSpy).toHaveBeenCalledWith(
-      new SetSelectedDashboardId(undefined)
-    );
+    expect(visit("70")).toBe(false);
+    expect(groups.selectedGroupId()).toBe("1");
+    expect(navigateSpy).toHaveBeenCalledWith(["dashboard/group/1"]);
   });
 });

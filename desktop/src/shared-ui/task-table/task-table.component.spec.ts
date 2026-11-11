@@ -2,11 +2,9 @@ import { HttpTestingController, provideHttpClientTesting } from "@angular/common
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NgxsModule } from "@ngxs/store";
 import { FilterOperation, SystemTask, SystemTaskPagedRequestFilter, SystemTaskStatus, SystemTaskType } from "../../open-api";
 import { TABLE_SERVICE_INJECTION_TOKEN } from "../../services/injection-tokens/table-service";
 import { SystemTaskTableService } from "../../services/system-task-table.service";
-import { SystemTaskTableState } from "../../store/system-task-table.state";
 
 import { ReceiptUpdateDiffDialogComponent } from "../receipt-update-diff-dialog/receipt-update-diff-dialog.component";
 import { TaskTableComponent } from "./task-table.component";
@@ -20,7 +18,7 @@ describe("TaskTableComponent", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([SystemTaskTableState]), TaskTableComponent],
+    imports: [TaskTableComponent],
     providers: [
         {
             provide: TABLE_SERVICE_INJECTION_TOKEN,

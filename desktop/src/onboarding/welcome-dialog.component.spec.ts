@@ -2,22 +2,19 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
 import { registerRealLanguages } from "../i18n/i18n-test-utils";
 import { TranslationService } from "../i18n/translation.service";
 import { Permission, SystemSettingsService, UserPreferencesService } from "../open-api";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions, SetUserPreferences } from "../store/auth.state.actions";
-import { SystemSettingsState } from "../store/system-settings.state";
+import { AuthStore } from "../store/auth.store";
+import { SystemSettingsStore } from "../store/system-settings.store";
 import { ThemeService } from "../theme/theme.service";
 import { OnboardingService } from "./onboarding.service";
 import { WelcomeDialogComponent } from "./welcome-dialog.component";
 
 describe("WelcomeDialogComponent", () => {
   let fixture: ComponentFixture<WelcomeDialogComponent>;
-  let store: Store;
   const close = vi.fn();
   const updateUserPreferences = vi.fn();
   const getSystemSettings = vi.fn();
@@ -26,7 +23,7 @@ describe("WelcomeDialogComponent", () => {
   const element = (testId: string): HTMLElement | null => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
 
   const create = async (permissions: string[] = []) => {
-    store.dispatch(new SetPermissions(permissions, {}));
+    TestBed.inject(AuthStore).setPermissions(permissions, {});
     fixture = TestBed.createComponent(WelcomeDialogComponent);
     await fixture.whenStable();
   };
@@ -39,7 +36,7 @@ describe("WelcomeDialogComponent", () => {
     updateSystemSettings.mockReset().mockImplementation((body) => of(body));
 
     await TestBed.configureTestingModule({
-      imports: [WelcomeDialogComponent, NgxsModule.forRoot([AuthState, SystemSettingsState])],
+      imports: [WelcomeDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -51,8 +48,7 @@ describe("WelcomeDialogComponent", () => {
     }).compileComponents();
 
     registerRealLanguages(TestBed.inject(TranslationService));
-    store = TestBed.inject(Store);
-    store.dispatch(new SetUserPreferences({ id: 1, userId: 7, language: "en", onboardingPending: true } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ id: 1, userId: 7, language: "en", onboardingPending: true } as never);
   });
 
   afterEach(() => {
@@ -107,7 +103,7 @@ describe("WelcomeDialogComponent", () => {
 
     expect(updateSystemSettings).not.toHaveBeenCalled();
     expect(updateUserPreferences).toHaveBeenCalledWith(expect.objectContaining({ onboardingPending: false, language: "en" }));
-    expect(store.selectSnapshot(AuthState.userPreferences)?.onboardingPending).toBe(false);
+    expect(TestBed.inject(AuthStore).userPreferences()?.onboardingPending).toBe(false);
     expect(close).toHaveBeenCalledWith(true);
   });
 
@@ -123,7 +119,7 @@ describe("WelcomeDialogComponent", () => {
     expect(updateSystemSettings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 1, timeZone: "UTC", currencyDisplay: " zł", currencySymbolPosition: "END" })
     );
-    expect(store.selectSnapshot(SystemSettingsState.currencyDisplay)).toBe(" zł");
+    expect(TestBed.inject(SystemSettingsStore).currencyDisplay()).toBe(" zł");
     expect(close).toHaveBeenCalledWith(true);
   });
 });
@@ -134,22 +130,20 @@ describe("OnboardingService", () => {
   beforeEach(() => {
     open.mockReset();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
       providers: [provideZonelessChangeDetection(), { provide: AppDialog, useValue: { open } }],
     });
   });
 
   it("opens the welcome once for an account that has it pending, and not for others", () => {
-    const store = TestBed.inject(Store);
     TestBed.inject(OnboardingService);
 
-    store.dispatch(new SetUserPreferences({ id: 1, userId: 3, onboardingPending: false } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ id: 1, userId: 3, onboardingPending: false } as never);
     TestBed.tick();
     expect(open).not.toHaveBeenCalled();
 
-    store.dispatch(new SetUserPreferences({ id: 2, userId: 7, onboardingPending: true } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ id: 2, userId: 7, onboardingPending: true } as never);
     TestBed.tick();
-    store.dispatch(new SetUserPreferences({ id: 2, userId: 7, onboardingPending: true, language: "pl" } as never));
+    TestBed.inject(AuthStore).setUserPreferences({ id: 2, userId: 7, onboardingPending: true, language: "pl" } as never);
     TestBed.tick();
 
     expect(open).toHaveBeenCalledTimes(1);

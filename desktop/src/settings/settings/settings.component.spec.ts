@@ -6,16 +6,13 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { NgxsModule, Store } from '@ngxs/store';
 import { Permission } from '../../open-api';
-import { AuthState } from '../../store';
-import { SetPermissions } from '../../store/auth.state.actions';
+import { AuthStore } from "../../store";
 import { renderShallow } from "../../testing/render-shallow";
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
-  let store: Store;
 
   const tabNames = () => component.tabs().map((t) => t.name);
 
@@ -25,8 +22,7 @@ describe('SettingsComponent', () => {
     await TestBed.configureTestingModule({
     imports: [TranslatePipe,
         ...HlmTooltipImports,
-        NgxsModule.forRoot([AuthState]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         RouterModule, SettingsComponent,],
     providers: [
         {
@@ -37,7 +33,6 @@ describe('SettingsComponent', () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
   });
@@ -48,38 +43,32 @@ describe('SettingsComponent', () => {
   });
 
   it('renders no tabs when the user can read none of them (Theme and Language have their own pages)', () => {
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     fixture.detectChanges();
 
     expect(tabNames()).toEqual([]);
   });
 
   it('gates the User Profile tab on app.account.read', () => {
-    store.dispatch(new SetPermissions([Permission.AppAccountRead], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppAccountRead], {});
     fixture.detectChanges();
 
     expect(tabNames()).toEqual(['user-profile']);
   });
 
   it('gates the User Preferences tab on app.user-preferences.read', () => {
-    store.dispatch(
-      new SetPermissions([Permission.AppUserPreferencesRead], {})
-    );
+    TestBed.inject(AuthStore).setPermissions([Permission.AppUserPreferencesRead], {});
     fixture.detectChanges();
 
     expect(tabNames()).toEqual(['user-preferences']);
   });
 
   it('renders the tabs in order when all read permissions are present', () => {
-    store.dispatch(
-      new SetPermissions(
-        [
+    TestBed.inject(AuthStore).setPermissions([
           Permission.AppAccountRead,
           Permission.AppUserPreferencesRead,
         ],
-        {}
-      )
-    );
+        {});
     fixture.detectChanges();
 
     expect(tabNames()).toEqual(['user-profile', 'user-preferences']);

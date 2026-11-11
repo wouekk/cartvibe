@@ -2,14 +2,13 @@ import { Component, OnInit, inject, signal, viewChild, ChangeDetectionStrategy }
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { finalize, take, tap } from "rxjs";
 import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { GroupReceiptSettings, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
-import { AuthState, GroupState } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { codePointMaxLengthValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { quickScanAsksForNote } from "./quick-scan-field-config";
@@ -48,6 +47,10 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [DialogComponent, ReactiveFormsModule, UploadImageComponent, AppIconComponent, HlmAttachment, HlmAttachmentMedia, HlmAttachmentContent, HlmAttachmentTitle, HlmAttachmentDescription, HlmAttachmentActions, BrnButton, HlmButton, HlmAttachmentAction, GroupAutocompleteComponent, TextareaComponent, UploadProgressComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class QuickScanDialogComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);
 
   public form: FormGroup = new FormGroup({});
@@ -72,7 +75,7 @@ export class QuickScanDialogComponent implements OnInit {
   protected readonly finePointer = finePointerSignal();
 
   // The group picker only shows when there is a choice to make.
-  public readonly soleGroupId = this.store.selectSignal(GroupState.soleGroupId);
+  public readonly soleGroupId = this.groupStore.soleGroupId;
 
   private readonly queuedScans = inject(QueuedScanService);
 
@@ -80,8 +83,7 @@ export class QuickScanDialogComponent implements OnInit {
     private dialogRef: AppDialogRef<QuickScanDialogComponent>,
     private formBuilder: FormBuilder,
     private receiptService: ReceiptService,
-    private snackbarService: SnackbarService,
-    private store: Store
+    private snackbarService: SnackbarService
   ) {}
 
   public get groupIds(): FormArray {
@@ -104,12 +106,12 @@ export class QuickScanDialogComponent implements OnInit {
       fileData.url = URL.createObjectURL(fileData.file);
     }
     this.images.push(fileData);
-    const userPreferences = this.store.selectSnapshot(AuthState.userPreferences);
+    const userPreferences = this.authStore.userPreferences();
 
     // A member of exactly one household has no choice to make, so it is seeded and its picker hidden, ahead of
     // the person's default household, which could be stale.
     this.groupIds.push(new FormControl(
-      this.store.selectSnapshot(GroupState.soleGroupId)
+      this.groupStore.soleGroupId()
         ?? userPreferences?.quickScanDefaultGroupId
         ?? "",
       Validators.required
@@ -126,7 +128,7 @@ export class QuickScanDialogComponent implements OnInit {
       return undefined;
     }
 
-    return this.store.selectSnapshot(GroupState.getGroupById(groupId.toString()))?.groupReceiptSettings;
+    return this.groupStore.getGroupById(groupId.toString())?.groupReceiptSettings;
   }
 
   /**
@@ -241,8 +243,8 @@ export class QuickScanDialogComponent implements OnInit {
    * for one, so a note typed before switching to another household is not sent to it.
    */
   private buildScan(): QueuedScan {
-    const userPreferences = this.store.selectSnapshot(AuthState.userPreferences);
-    const paidBy = (Number(this.store.selectSnapshot(AuthState.userId)) || userPreferences?.quickScanDefaultPaidById || "") as number;
+    const userPreferences = this.authStore.userPreferences();
+    const paidBy = (Number(this.authStore.userId()) || userPreferences?.quickScanDefaultPaidById || "") as number;
     const status = (userPreferences?.quickScanDefaultStatus ?? "") as ReceiptStatus;
 
     return {

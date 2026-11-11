@@ -1,44 +1,25 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Group } from "../open-api";
-import { GroupState } from "../store";
+import { GroupStore } from "../store/group.store";
+import { seedStore } from "../testing/seed-store";
 import { GroupPipe } from "./group.pipe";
 
 describe("GroupPipe", () => {
   let pipe: GroupPipe;
-  let store: Store;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([GroupState]), GroupPipe],
-    providers: [GroupPipe],
-}).compileComponents();
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [GroupPipe] });
 
-    const groups: Group[] = [
-      {
-        id: 1,
-      } as Group,
-      { id: 2 } as Group,
-    ];
-
+    seedStore(TestBed.inject(GroupStore), { groups: [{ id: 1, name: "Home" } as Group, { id: 2, name: "Cabin" } as Group] });
     pipe = TestBed.inject(GroupPipe);
-    store = TestBed.inject(Store);
-
-    store.reset({
-      groups: {
-        groups: groups,
-      },
-    });
   });
 
   it("create an instance", () => {
     expect(pipe).toBeTruthy();
   });
 
-  it("should call group state", () => {
-    const spy = vi.spyOn(store, "selectSnapshot");
-    pipe.transform("hello");
-
-    expect(spy).toHaveBeenCalled();
+  it("finds the household by its id, and nothing for an id nobody has", () => {
+    expect(pipe.transform("2")?.name).toBe("Cabin");
+    expect(pipe.transform("hello")).toBeUndefined();
   });
 });

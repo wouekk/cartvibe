@@ -1,7 +1,5 @@
-import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TableComponent } from "src/table/table/table.component";
@@ -10,8 +8,7 @@ import { Group, GroupsService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
-import { AuthState, GroupState, RemoveGroup } from "../../store";
-import { GroupTableState } from "../../store/group-table.state";
+import { GroupStore, AuthStore } from "../../store";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -26,7 +23,6 @@ import { HasAppPermissionDirective } from "../../directives/has-app-permission.d
 import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
 import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
 import { AvatarComponent } from "../../avatar/avatar/avatar.component";
-import { AsyncPipe } from "@angular/common";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 
@@ -41,15 +37,18 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, AsyncPipe, TranslatePipe, AppDatePipe]
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, TranslatePipe, AppDatePipe]
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
+  private readonly groupStore = inject(GroupStore);
+
   private readonly translation = inject(TranslationService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly viewport = inject(ViewportService);
 
-  public groups = this.store.selectSignal(GroupState.groups);
+  public groups = this.groupStore.groups;
 
   /** The first answer replaces the empty source the table starts with; until then the list is still loading. */
   private readonly initialDataSource = this.dataSource();
@@ -72,13 +71,11 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
 
   protected readonly Permission = Permission;
 
-  public readonly appPermissions = this.store.selectSignal(AuthState.appPermissions);
+  public readonly appPermissions = this.authStore.appPermissions;
 
-  public readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  public readonly groupPermissions = this.authStore.groupPermissions;
 
-  public readonly canDeleteAnyGroup = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppGroupsDelete)
-  );
+  public readonly canDeleteAnyGroup = computed(() => this.authStore.hasAppPermission(Permission.AppGroupsDelete));
 
   /**
    * Mirrors the backend's CanDeleteGroup rule: an ordinary user must stay in at
@@ -92,7 +89,6 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   constructor(
     public override baseTableService: BaseTableService,
     private groupsService: GroupsService,
-    private store: Store,
     private snackbarService: SnackbarService,
     private dialog: AppDialog
   ) {
@@ -100,20 +96,11 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   }
 
   public ngOnInit(): void {
-    this.listenForFilterChanges();
+    this.getTableData();
   }
 
   public ngAfterViewInit(): void {
     this.initTable();
-  }
-
-  private listenForFilterChanges(): void {
-    this.store.select(GroupTableState.filter)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        tap(() => this.getTableData())
-      )
-      .subscribe();
   }
 
   private initTable(): void {
@@ -228,7 +215,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
                 this.snackbarService.success("Group successfully deleted");
                 // Keeps the GroupState cache in sync; a no-op for a group the
                 // caller is not a member of (an app.groups.delete cleanup).
-                this.store.dispatch(new RemoveGroup(group.id.toString()));
+                this.groupStore.removeGroup(group.id.toString());
                 // Refetch rather than swapping in the caller's own groups: this
                 // table is server-paged and may be showing the all-groups filter.
                 this.getTableData();

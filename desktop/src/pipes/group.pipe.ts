@@ -1,13 +1,12 @@
-import { Pipe, PipeTransform } from "@angular/core";
-import { Store } from "@ngxs/store";
+import { Pipe, PipeTransform, inject } from "@angular/core";
 import { Group } from "../open-api";
-import { GroupState } from "../store";
+import { GroupStore } from "../store";
 
 @Pipe({ name: "group" })
 export class GroupPipe implements PipeTransform {
-  constructor(private store: Store) {}
+  private readonly groupStore = inject(GroupStore);
 
   public transform(groupId: string): Group | undefined {
-    return this.store.selectSnapshot(GroupState.getGroupById(groupId));
+    return this.groupStore.getGroupById(groupId);
   }
 }

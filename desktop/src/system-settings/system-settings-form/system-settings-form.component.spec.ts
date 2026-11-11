@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { config, of, Subject, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
@@ -14,9 +13,7 @@ import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, ShopLo
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState } from "../../store/auth.state";
-import { SystemSettingsState } from "../../store/system-settings.state";
-import { SetTimeZone } from "../../store/system-settings.state.actions";
+import { SystemSettingsStore } from "../../store/system-settings.store";
 
 import { SystemSettingsFormComponent } from "./system-settings-form.component";
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
@@ -26,7 +23,6 @@ import { onTestFinished, type MockInstance } from "vitest";
 describe("SystemSettingsFormComponent", () => {
   let component: SystemSettingsFormComponent;
   let fixture: ComponentFixture<SystemSettingsFormComponent>;
-  let store: Store;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -34,8 +30,7 @@ describe("SystemSettingsFormComponent", () => {
     imports: [AutocompleteModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([SystemSettingsState, AuthState]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SharedUiModule, SystemSettingsFormComponent, CustomCurrencyPipe],
     providers: [
         provideZonelessChangeDetection(),
@@ -59,7 +54,6 @@ describe("SystemSettingsFormComponent", () => {
 })
       .compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SystemSettingsFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -561,12 +555,11 @@ describe("SystemSettingsFormComponent", () => {
       expect(component.form.getRawValue().timeZone).toEqual("America/New_York");
     });
 
-    it("dispatches the saved zone once the save succeeds", () => {
+    it("applies the saved zone to the app once the save succeeds", () => {
       const systemSettingsService = TestBed.inject(SystemSettingsService);
       const featureConfigService = TestBed.inject(FeatureConfigService);
       vi.spyOn(systemSettingsService, "updateSystemSettings").mockReturnValue(of(null as any));
       vi.spyOn(featureConfigService, "getFeatureConfig").mockReturnValue(of({} as any));
-      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       setRouteSettings({ timeZone: "UTC" });
       component.ngOnInit();
@@ -576,8 +569,7 @@ describe("SystemSettingsFormComponent", () => {
       expect(systemSettingsService.updateSystemSettings).toHaveBeenCalledWith(
         expect.objectContaining({ timeZone: "America/New_York" })
       );
-      expect(dispatchSpy).toHaveBeenCalledWith(new SetTimeZone("America/New_York"));
-      expect(store.selectSnapshot(SystemSettingsState.timeZone)).toEqual("America/New_York");
+      expect(TestBed.inject(SystemSettingsStore).timeZone()).toEqual("America/New_York");
     });
 
     it("saves the picked date format and applies it to the app at once", () => {
@@ -595,10 +587,10 @@ describe("SystemSettingsFormComponent", () => {
       expect(systemSettingsService.updateSystemSettings).toHaveBeenCalledWith(
         expect.objectContaining({ dateFormat: "YYYY-MM-DD" })
       );
-      expect(store.selectSnapshot(SystemSettingsState.dateFormat)).toEqual("YYYY-MM-DD");
+      expect(TestBed.inject(SystemSettingsStore).dateFormat()).toEqual("YYYY-MM-DD");
     });
 
-    it("does not dispatch a zone the server rejected", async () => {
+    it("does not apply a zone the server rejected", async () => {
       // The component leaves the failure to the interceptor, so RxJS reports it as unhandled on a timer; absorb it.
       config.onUnhandledError = () => {};
       onTestFinished(() => {
@@ -608,13 +600,12 @@ describe("SystemSettingsFormComponent", () => {
       vi
         .spyOn(systemSettingsService, "updateSystemSettings")
         .mockReturnValue(throwError(() => new Error("400")) as any);
-      const dispatchSpy = vi.spyOn(store, "dispatch");
 
       component.ngOnInit();
       component.form.get("timeZone")!.setValue("America/New_York");
       component.submit();
 
-      expect(dispatchSpy).not.toHaveBeenCalledWith(new SetTimeZone("America/New_York"));
+      expect(TestBed.inject(SystemSettingsStore).timeZone()).toEqual("UTC");
       await new Promise((resolve) => setTimeout(resolve));
     });
   });

@@ -30,7 +30,7 @@ export function monthFilterEntry(month: FilterMonth): ReceiptFilterEntry {
  * (a partial range, a `GREATER_THAN`, `WITHIN_CURRENT_MONTH`, nothing at all).
  *
  * Values arrive as `Date`s from the datepickers but as ISO **strings** once the
- * filter has been through the persisted NGXS state, so both are accepted.
+ * filter has been through the receipts list's kept state, so both are accepted.
  * Comparison is on calendar fields rather than on the serialized text, which
  * differs between the two forms.
  */

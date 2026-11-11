@@ -1,0 +1,215 @@
+import { TestBed } from "@angular/core/testing";
+import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
+import { FilterOperation, Group } from "../open-api";
+import { GroupStore } from "./group.store";
+import { seedStore } from "../testing/seed-store";
+import { defaultReceiptFilter, ReceiptTableStore } from "./receipt-table.store";
+
+describe("GroupStore receipt-filter reset on group change", () => {
+
+  const groups = [
+    { id: 1, name: "Group One" },
+    { id: 2, name: "Group Two" },
+  ] as Group[];
+
+  const nonDefaultFilter = {
+    ...defaultReceiptFilter,
+    name: { operation: FilterOperation.Contains, value: "coffee" },
+  } as any;
+
+  function seed(selectedGroupId: string): void {
+    seedStore(TestBed.inject(GroupStore), {
+      groups,
+      selectedGroupId,
+    });
+    seedStore(TestBed.inject(ReceiptTableStore), {
+      page: 3,
+      pageSize: 50,
+      orderBy: "created_at",
+      sortDirection: "desc",
+      filter: nonDefaultFilter,
+      columnConfig: DEFAULT_RECEIPT_TABLE_COLUMNS,
+    });
+  }
+
+  it("resets the receipt filter and page when switching to a different group", () => {
+    seed("1");
+
+    TestBed.inject(GroupStore).setSelectedGroupId("2");
+
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      defaultReceiptFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
+    expect(TestBed.inject(GroupStore).selectedGroupId()).toEqual("2");
+  });
+
+  it("preserves the receipt filter and page when re-selecting the same group", () => {
+    seed("1");
+
+    TestBed.inject(GroupStore).setSelectedGroupId("1");
+
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      nonDefaultFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(3);
+  });
+
+  it("resets when an empty payload resolves to a different group than the current", () => {
+    // Current group is 2; an empty payload resolves to groups[0] (id 1), a change.
+    seed("2");
+
+    TestBed.inject(GroupStore).setSelectedGroupId("");
+
+    expect(TestBed.inject(GroupStore).selectedGroupId()).toEqual("1");
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      defaultReceiptFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
+  });
+
+  it("resets the receipt filter and page when the active group is deleted", () => {
+    // Selected group is 2; deleting it falls back to groups[0] (id 1), a change.
+    seed("2");
+
+    TestBed.inject(GroupStore).removeGroup("2");
+
+    expect(TestBed.inject(GroupStore).selectedGroupId()).toEqual("1");
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      defaultReceiptFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
+  });
+
+  it("preserves the receipt filter and page when a non-active group is deleted", () => {
+    // Selected group is 1; deleting group 2 leaves the selection unchanged.
+    seed("1");
+
+    TestBed.inject(GroupStore).removeGroup("2");
+
+    expect(TestBed.inject(GroupStore).selectedGroupId()).toEqual("1");
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      nonDefaultFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(3);
+  });
+
+  it("falls back to the first remaining group when the active group at index 0 is deleted", () => {
+    // groups are [{id:1},{id:2}]; the active group (id 1) is at index 0. The
+    // fallback must come from the post-removal list ("2"), not the stale
+    // pre-removal array (which would wrongly re-select the deleted "1").
+    seed("1");
+
+    TestBed.inject(GroupStore).removeGroup("1");
+
+    expect(TestBed.inject(GroupStore).selectedGroupId()).toEqual("2");
+    expect(TestBed.inject(ReceiptTableStore).state().filter).toEqual(
+      defaultReceiptFilter
+    );
+    expect(TestBed.inject(ReceiptTableStore).page()).toEqual(1);
+  });
+});
+
+describe("GroupStore.soleGroupId", () => {
+
+  function seedGroups(groups: Partial<Group>[]): void {
+    seedStore(TestBed.inject(GroupStore), {
+      groups: groups as Group[],
+      selectedGroupId: "",
+    });
+  }
+
+  it("returns the id when the user belongs to exactly one group", () => {
+    seedGroups([{ id: 7, name: "My Receipts", isAllGroup: false }]);
+
+    expect(TestBed.inject(GroupStore).soleGroupId()).toEqual(7);
+  });
+
+  it("ignores the synthetic All group when counting", () => {
+    // The All group ships alongside every real group, so a single-group user
+    // still has two entries in state — it must not make the count 2.
+    seedGroups([
+      { id: 1, name: "All Groups", isAllGroup: true },
+      { id: 7, name: "My Receipts", isAllGroup: false },
+    ]);
+
+    expect(TestBed.inject(GroupStore).soleGroupId()).toEqual(7);
+  });
+
+  it("returns undefined when the user belongs to more than one group", () => {
+    seedGroups([
+      { id: 7, name: "My Receipts", isAllGroup: false },
+      { id: 8, name: "Household", isAllGroup: false },
+    ]);
+
+    expect(TestBed.inject(GroupStore).soleGroupId()).toBeUndefined();
+  });
+
+  it("returns undefined when only the All group is present", () => {
+    seedGroups([{ id: 1, name: "All Groups", isAllGroup: true }]);
+
+    expect(TestBed.inject(GroupStore).soleGroupId()).toBeUndefined();
+  });
+
+  it("returns undefined when there are no groups at all", () => {
+    seedGroups([]);
+
+    expect(TestBed.inject(GroupStore).soleGroupId()).toBeUndefined();
+  });
+});
+
+describe("GroupState.addTargetGroupId", () => {
+
+  const allGroup = { id: 1, name: "All Groups", isAllGroup: true };
+
+  function seed(groups: Partial<Group>[], selectedGroupId: string): void {
+    seedStore(TestBed.inject(GroupStore), {
+      groups: groups as Group[],
+      selectedGroupId,
+    });
+  }
+
+  it("returns the actively selected group when it is a real one", () => {
+    seed([allGroup, { id: 7 }, { id: 8 }], "8");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toEqual(8);
+  });
+
+  it("falls back to the only group when the All group is selected", () => {
+    // Where a fresh single-group user lands: the API sorts All first.
+    seed([allGroup, { id: 7 }], "1");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toEqual(7);
+  });
+
+  it("falls back to the only group when the selection is stale", () => {
+    // selectedGroupId is persisted, so it outlives a group the user has left.
+    seed([allGroup, { id: 7 }], "404");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toEqual(7);
+  });
+
+  it("falls back to the only group when nothing is selected", () => {
+    seed([allGroup, { id: 7 }], "");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toEqual(7);
+  });
+
+  it("is undefined on the All group when the user has several groups", () => {
+    seed([allGroup, { id: 7 }, { id: 8 }], "1");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toBeUndefined();
+  });
+
+  it("is undefined on a stale selection when the user has several groups", () => {
+    seed([allGroup, { id: 7 }, { id: 8 }], "404");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toBeUndefined();
+  });
+
+  it("is undefined when the user has no selectable group at all", () => {
+    seed([allGroup], "1");
+
+    expect(TestBed.inject(GroupStore).addTargetGroupId()).toBeUndefined();
+  });
+});

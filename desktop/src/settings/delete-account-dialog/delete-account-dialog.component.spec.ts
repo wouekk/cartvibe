@@ -10,7 +10,6 @@ import {
 import { CancelButtonComponent } from "src/shared-ui/cancel-button/cancel-button.component";
 
 import type { Mocked } from "vitest";
-import { StoreModule } from "../../store/store.module";
 describe("DeleteAccountDialogComponent", () => {
   let component: DeleteAccountDialogComponent;
   let fixture: ComponentFixture<DeleteAccountDialogComponent>;
@@ -34,7 +33,7 @@ describe("DeleteAccountDialogComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [StoreModule, ReactiveFormsModule, CancelButtonComponent, DeleteAccountDialogComponent],
+    imports: [ReactiveFormsModule, CancelButtonComponent, DeleteAccountDialogComponent],
     providers,
 }).compileComponents();
 

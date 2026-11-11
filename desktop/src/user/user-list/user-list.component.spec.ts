@@ -5,14 +5,12 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { NgxsModule, Store } from "@ngxs/store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
 import { ApiModule, User, UserService } from "../../open-api";
-import { AuthState } from "../../store";
-import { UserTableState } from "../../store/user-table.state";
 import { UserListComponent } from "./user-list.component";
+import { seedStore } from "../../testing/seed-store";
 
 describe("UserListComponent", () => {
   let component: UserListComponent;
@@ -22,8 +20,7 @@ describe("UserListComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, ApiModule,
-        NgxsModule.forRoot([AuthState, UserTableState]),
-        TableModule, UserListComponent],
+                TableModule, UserListComponent],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 
@@ -136,15 +133,14 @@ describe("UserListComponent", () => {
     }
   });
   it("offers each row only the actions the person may take: no delete on their own row, convert only for a name-only user", () => {
-    const store = TestBed.inject(Store);
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "1" } });
-    store.dispatch(new SetPermissions(["app.users.update", "app.users.delete"], {}));
+    seedStore(TestBed.inject(AuthStore), { userId: "1" });
+    TestBed.inject(AuthStore).setPermissions(["app.users.update", "app.users.delete"], {});
     const visible = (user: User) => component.rowActions.filter((action) => !action.visible || action.visible(user)).map((action) => action.key);
 
     expect(visible({ id: 1 } as User)).toEqual(["edit", "password"]);
     expect(visible({ id: 2, isDummyUser: true } as User)).toEqual(["edit", "password", "convert", "delete"]);
 
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     expect(visible({ id: 2 } as User)).toEqual([]);
   });
 
