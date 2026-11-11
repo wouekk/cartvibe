@@ -19,8 +19,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     2026-11-10). Sprint 6 took over the four commits of `feature/releases-and-ci` (another session's branch, still
     checked out in the main checkout: leave that checkout alone) and holds `feature/litestream-05`. Sprint 7's AI
     settings are proved against fake servers only: no provider key is available to the agent.
-  - Next, one branch each from `preview`: sprint 8 (fixed roles), 9 (identity-provider screens), 10 (app cleanup),
-    then 11 onward. The audit report lists what each holds.
+  - Sprint 8 (fixed roles, `feature/fixed-roles`, green CI 2026-11-11) is in `preview`, and the owner said each
+    later sprint goes into `:preview` as it comes. Its migration `fixed-roles-v1` is one-way. Its three rewritten
+    specs outside the smoke set (`group-delete-any`, `user-visibility`, `household-member-visibility`) have never
+    run.
+  - Next, one branch each from `preview`: sprint 9 (identity-provider screens, `feature/oidc-ui`, started), 10 (app
+    cleanup), then 11 onward. The audit report lists what each holds.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac
@@ -48,7 +52,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   three keys and say so.
 - The Dockhand stack must set `DB_ENGINE=sqlite`, `SECRET_KEY` and `ENCRYPTION_KEY`; add `stop_grace_period: 30s`.
   The server copies the database itself before it migrates (an `app-upgrade-*.db` file in `sqlite/backups` proves
-  it); that copy has never been seen on the NAS, so back up `sqlite/` by hand this once.
+  it); that copy has never been seen on the NAS, so back up `sqlite/` by hand this once. **`:preview` now turns
+  the roles into Admin and User (Owner and Member in a household) at its first start, and that cannot be taken
+  back** except by restoring that backup. After it: every person still signs in, an admin is still Admin, and
+  the people and household pages show the two roles.
 - After it: a photo scan, a HEIC and a PDF upload (also as an avatar), a report PDF and Excel, a household rename
   with receipt photos, a scan with a real AI key, day and night in an accent palette on phone and desktop.
 - Sprint 1: with the NAS stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows
