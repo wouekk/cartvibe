@@ -172,9 +172,14 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 - The household new accounts join is flagged `groups.is_household` (set for the first account's group; old installs by
   the data migration `mark-household-group-v1`). `FindHouseholdGroup` reads the flag, then falls back to the name
   "Household" (a database an import wrote).
-- A rename moves `data/<id>-<name>/` inside `GroupRepository.UpdateGroup`'s transaction (`groupFolderMove`, its last
-  step): no folder is nothing to move, a taken target folder refuses the rename, a failed move rolls the update back and
-  a failed commit moves the folder back. The old `Group.BeforeUpdate` hook (which ignored a failed move) is gone.
+- A rename touches nothing on disk: the household's receipt files are in `data/<id>/`, each named by its file id
+  (`api/CLAUDE.md`, Paths). Until 2026-11-11 the folder carried the name and `UpdateGroup` moved it inside its
+  transaction, which could refuse the rename; `id-file-paths-v1` moved the files of older installs once.
+- That migration only renames: it reads no file and deletes nothing but a folder it emptied. It finds a
+  household's old folder by the id its name starts with (not by today's name), can run again after a start that
+  was cut short, counts a file that was already missing without stopping, keeps a folder that still holds
+  something no receipt points at, and stops the start with the file and the reason when a file that is there
+  cannot be moved. An older version cannot find the files afterwards.
 
 ## Warranties
 

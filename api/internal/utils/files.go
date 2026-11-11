@@ -3,6 +3,7 @@ package utils
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -89,17 +90,20 @@ func ReadLastFileLine(filePath string) (string, error) {
 	return fileLines[len(fileLines)-1], nil
 }
 
-func BuildGroupPathString(groupId string, groupName string) (string, error) {
+// BuildGroupPathString is a household's folder of receipt files: data/<groupId>. The name is the numeric id only,
+// so nothing a person typed reaches the path. (Until 2026-11 the folder was data/<groupId>-<groupName>: a rename
+// had to move it, and every path built from it had to be checked against a crafted name.)
+func BuildGroupPathString(groupId string) (string, error) {
+	if !isNumericId(groupId) {
+		return "", fmt.Errorf("group id %q is not a number", groupId)
+	}
+
 	dataDir, err := GetDataDir()
 	if err != nil {
 		return "", err
 	}
 
-	groupPath := filepath.Join(dataDir, groupId+"-"+groupName)
-
-	// A crafted group name must not escape the data directory (CWE-22).
-	// filepath.Join cleans any ".." only after the untrusted name is already
-	// part of the path, so verify containment before returning.
+	groupPath := filepath.Join(dataDir, groupId)
 	if err := AssertWithinDataDir(groupPath); err != nil {
 		return "", err
 	}
@@ -107,8 +111,38 @@ func BuildGroupPathString(groupId string, groupName string) (string, error) {
 	return groupPath, nil
 }
 
-func BuildFileName(rid string, fid string, fname string) string {
-	return rid + "-" + fid + "-" + fname
+// BuildReceiptFilePathString is one receipt file: data/<groupId>/<fileId>. Both are numeric ids, and the file has
+// no extension: what it is is read from its bytes (FileData.FileType), and the name it was uploaded under lives in
+// the database only (FileData.Name).
+func BuildReceiptFilePathString(groupId string, fileId string) (string, error) {
+	if !isNumericId(fileId) {
+		return "", fmt.Errorf("file id %q is not a number", fileId)
+	}
+
+	groupPath, err := BuildGroupPathString(groupId)
+	if err != nil {
+		return "", err
+	}
+
+	path := filepath.Join(groupPath, fileId)
+	if err := AssertWithinDataDir(path); err != nil {
+		return "", err
+	}
+
+	return path, nil
+}
+
+// isNumericId reports a non-empty string of digits.
+func isNumericId(id string) bool {
+	if id == "" {
+		return false
+	}
+	for _, character := range id {
+		if character < '0' || character > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func GetMimeType(bytes []byte) *mimetype.MIME {

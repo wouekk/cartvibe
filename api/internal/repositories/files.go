@@ -34,7 +34,10 @@ func NewFileRepository(tx *gorm.DB) FileRepository {
 	return repository
 }
 
-func (repository FileRepository) BuildFilePath(receiptId string, receiptImageId string, receiptImageFileName string) (string, error) {
+// BuildFilePath is where a receipt's file is stored: data/<groupId>/<fileId>, the household being the receipt's.
+// Ids only: no name a person typed is part of it. The receipt is looked up for its household, on the repository's
+// transaction when it has one (a receipt created in it is not visible outside yet).
+func (repository FileRepository) BuildFilePath(receiptId string, receiptImageId string) (string, error) {
 	db := repository.GetDB()
 	var receipt models.Receipt
 
@@ -43,50 +46,16 @@ func (repository FileRepository) BuildFilePath(receiptId string, receiptImageId 
 		return "", err
 	}
 
-	groupPath, err := repository.BuildGroupPath(receipt.GroupId, "")
-	if err != nil {
-		return "", err
-	}
-
-	fileName := utils.BuildFileName(receiptId, receiptImageId, receiptImageFileName)
-	path := filepath.Join(groupPath, fileName)
-
-	// The file name component (which can originate from an upload or email
-	// attachment) must not escape the data directory either (CWE-22).
-	if err := utils.AssertWithinDataDir(path); err != nil {
-		return "", err
-	}
-
-	return path, nil
+	return utils.BuildReceiptFilePathString(utils.UintToString(receipt.GroupId), receiptImageId)
 }
 
-func (repository FileRepository) BuildGroupPath(groupId uint, alternateGroupName string) (string, error) {
-	db := repository.GetDB()
-	var groupNameToUse string
-
-	if len(alternateGroupName) > 0 {
-		groupNameToUse = alternateGroupName
-	} else {
-		var group models.Group
-		err := db.Model(models.Group{}).Where("id = ?", groupId).Select("name").Find(&group).Error
-		if err != nil {
-			return "", err
-		}
-
-		groupNameToUse = group.Name
-	}
-
-	strGroupId := utils.UintToString(groupId)
-	groupPath, err := utils.BuildGroupPathString(strGroupId, groupNameToUse)
-	if err != nil {
-		return "", err
-	}
-
-	return groupPath, nil
+// BuildGroupPath is a household's folder of receipt files: data/<groupId>.
+func (repository FileRepository) BuildGroupPath(groupId uint) (string, error) {
+	return utils.BuildGroupPathString(utils.UintToString(groupId))
 }
 
 func (repository FileRepository) GetBytesForFileData(fileData models.FileData) ([]byte, error) {
-	path, err := repository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
+	path, err := repository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID))
 
 	if err != nil {
 		return nil, err

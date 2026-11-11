@@ -59,27 +59,19 @@ func (repository ReceiptImageRepository) CreateReceiptImage(fileData models.File
 		return models.FileData{}, err
 	}
 
-	// Get initial group directory to see if it exists
-	filePath, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), "", fileData.Name)
-	if err != nil {
-		return models.FileData{}, err
-	}
-	groupDir, _ := filepath.Split(filePath)
-
 	err = db.Model(models.FileData{}).Create(&fileData).Error
 	if err != nil {
-		utils.RemoveDataPath(filePath)
 		return models.FileData{}, err
 	}
 
-	// Check if group's path exists
-	err = utils.EnsureDataDirectory(groupDir)
+	// The file's place is named by the row's id: data/<groupId>/<fileId>.
+	filePath, err := fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID))
 	if err != nil {
 		return models.FileData{}, err
 	}
 
-	// Rebuild file path with correct file id
-	filePath, err = fileRepository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
+	// A household gets its folder with its first file.
+	err = utils.EnsureDataDirectory(filepath.Dir(filePath))
 	if err != nil {
 		return models.FileData{}, err
 	}

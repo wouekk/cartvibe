@@ -788,39 +788,28 @@ func TestGetBytesFromImageBytes_InvalidTypeErrors(t *testing.T) {
 
 // ---------- DB-backed path helpers ----------
 
-func TestBuildGroupPath_WithAlternateName(t *testing.T) {
-	defer TruncateTestDb()
-
-	repository := NewFileRepository(nil)
-	got, err := repository.BuildGroupPath(42, "alt-name")
-	if err != nil {
-		utils.PrintTestError(t, err, nil)
-	}
-	if !strings.Contains(got, "42") || !strings.Contains(got, "alt-name") {
-		utils.PrintTestError(t, got, "contains 42 and alt-name")
-	}
-}
-
-func TestBuildGroupPath_LooksUpGroupByName(t *testing.T) {
+func TestBuildGroupPath_IsTheGroupsIdWhateverItsName(t *testing.T) {
 	defer TruncateTestDb()
 
 	db := GetDB()
-	group := models.Group{Name: "lookup-group"}
+	group := models.Group{Name: "A name with ../ in it"}
 	if err := db.Create(&group).Error; err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
 
-	repository := NewFileRepository(nil)
-	got, err := repository.BuildGroupPath(group.ID, "")
+	got, err := NewFileRepository(nil).BuildGroupPath(group.ID)
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
-	if !strings.Contains(got, "lookup-group") {
-		utils.PrintTestError(t, got, "contains lookup-group")
+	if filepath.Base(got) != utils.UintToString(group.ID) || filepath.Base(filepath.Dir(got)) != "data" {
+		utils.PrintTestError(t, got, "data/<group id>")
+	}
+	if strings.Contains(got, "name") {
+		utils.PrintTestError(t, got, "no part of the group's name")
 	}
 }
 
-func TestBuildFilePath_ComposesGroupAndFileName(t *testing.T) {
+func TestBuildFilePath_IsTheReceiptsGroupThenTheFileId(t *testing.T) {
 	defer TruncateTestDb()
 
 	db := GetDB()
@@ -838,15 +827,21 @@ func TestBuildFilePath_ComposesGroupAndFileName(t *testing.T) {
 	}
 
 	repository := NewFileRepository(nil)
-	got, err := repository.BuildFilePath(utils.UintToString(receipt.ID), "99", "photo.jpg")
+	got, err := repository.BuildFilePath(utils.UintToString(receipt.ID), "99")
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}
-	if !strings.Contains(got, "files-group") {
-		utils.PrintTestError(t, got, "contains files-group")
+	want, _ := utils.BuildReceiptFilePathString(utils.UintToString(group.ID), "99")
+	if got != want {
+		utils.PrintTestError(t, got, want)
 	}
-	if !strings.HasSuffix(got, ".jpg") {
-		utils.PrintTestError(t, got, "*.jpg")
+	if strings.Contains(got, "files-group") {
+		utils.PrintTestError(t, got, "no part of the group's name")
+	}
+
+	// A file id that is not a number never becomes a path.
+	if got, err := repository.BuildFilePath(utils.UintToString(receipt.ID), "99-photo.jpg"); err == nil {
+		utils.PrintTestError(t, got, "error: not a number")
 	}
 }
 
@@ -921,7 +916,7 @@ func TestGetBytesForFileData_ReadsAndReturnsBytes(t *testing.T) {
 
 	// Write the JPG fixture to the exact path BuildFilePath will construct.
 	repository := NewFileRepository(nil)
-	targetPath, err := repository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID), fileData.Name)
+	targetPath, err := repository.BuildFilePath(utils.UintToString(receipt.ID), utils.UintToString(fileData.ID))
 	if err != nil {
 		utils.PrintTestError(t, err, nil)
 	}

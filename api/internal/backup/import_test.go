@@ -169,7 +169,7 @@ func TestImportRestoresTheHouseholdIntoAFreshServer(t *testing.T) {
 	var file models.FileData
 	db.First(&file)
 	path, err := repositories.NewFileRepository(nil).
-		BuildFilePath(utils.UintToString(file.ReceiptId), utils.UintToString(file.ID), file.Name)
+		BuildFilePath(utils.UintToString(file.ReceiptId), utils.UintToString(file.ID))
 	if err != nil {
 		t.Fatalf("file path: %v", err)
 	}

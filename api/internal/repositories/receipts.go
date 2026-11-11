@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"gorm.io/gorm"
@@ -28,43 +27,36 @@ func NewReceiptRepository(tx *gorm.DB) ReceiptRepository {
 }
 
 func (repository ReceiptRepository) BeforeUpdateReceipt(currentReceipt models.Receipt, updatedReceipt models.Receipt) (err error) {
-	db := repository.GetDB()
+	// A receipt that moves to another household takes its files along: data/<old group>/<file> to
+	// data/<new group>/<file>.
 	if updatedReceipt.GroupId > 0 && currentReceipt.GroupId != updatedReceipt.GroupId && len(currentReceipt.ImageFiles) > 0 {
-		var oldGroup models.Group
-		var newGroup models.Group
+		oldGroupId := utils.UintToString(currentReceipt.GroupId)
+		newGroupId := utils.UintToString(updatedReceipt.GroupId)
 
-		err = db.Table("groups").Where("id = ?", currentReceipt.GroupId).Select("id", "name").Find(&oldGroup).Error
+		// A household gets its folder with its first file, so the destination may not have one yet.
+		newGroupPath, err := utils.BuildGroupPathString(newGroupId)
 		if err != nil {
 			return err
 		}
-
-		err = db.Table("groups").Where("id = ?", updatedReceipt.GroupId).Select("id", "name").Find(&newGroup).Error
-		if err != nil {
-			return err
-		}
-
-		oldGroupPath, err := utils.BuildGroupPathString(utils.UintToString(oldGroup.ID), oldGroup.Name)
-		if err != nil {
-			return err
-		}
-
-		newGroupPath, err := utils.BuildGroupPathString(utils.UintToString(newGroup.ID), newGroup.Name)
-		if err != nil {
+		if err := utils.EnsureDataDirectory(newGroupPath); err != nil {
 			return err
 		}
 
 		for _, fileData := range currentReceipt.ImageFiles {
-			filename := utils.BuildFileName(utils.UintToString(currentReceipt.ID), utils.UintToString(fileData.ID), fileData.Name)
-
-			oldFilePath := filepath.Join(oldGroupPath, filename)
-			newFilePathPath := filepath.Join(newGroupPath, filename)
-
-			err := utils.RenameDataPath(oldFilePath, newFilePathPath)
+			fileId := utils.UintToString(fileData.ID)
+			oldFilePath, err := utils.BuildReceiptFilePathString(oldGroupId, fileId)
 			if err != nil {
 				return err
 			}
-		}
+			newFilePath, err := utils.BuildReceiptFilePathString(newGroupId, fileId)
+			if err != nil {
+				return err
+			}
 
+			if err := utils.RenameDataPath(oldFilePath, newFilePath); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

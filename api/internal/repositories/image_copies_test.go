@@ -74,7 +74,7 @@ func TestImageCopyIsMadeOnceAsASmallJpeg(t *testing.T) {
 	}
 
 	// The second request reads the file: the original can be gone and the copy still answers.
-	original, _ := repository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID), fileData.Name)
+	original, _ := repository.BuildFilePath(utils.UintToString(fileData.ReceiptId), utils.UintToString(fileData.ID))
 	if err := os.Remove(original); err != nil {
 		t.Fatal(err)
 	}

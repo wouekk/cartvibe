@@ -192,6 +192,14 @@ it is doing.
   server; Astro 7.4.7 for the project page. The image is now built with Go 1.27 and Node 26 (the long-term
   release since October 2026), and the app's tests run on jsdom 31. Building from source needs Node 26.13 or newer;
   Go 1.26 still works.
+- **Receipt photos are stored by number (HH-01).** A photo used to be kept in a folder named after its household
+  and under the name it was uploaded with, so renaming a household moved a folder on your disk and could be
+  refused when that failed. Now each file is `data/<household number>/<file number>`, a rename touches nothing
+  on disk, and no name anyone typed is part of a path. The first start of this version moves your files once:
+  it only renames them (no photo is read, changed or deleted), says in the container's log how many it moved,
+  and can pick up where it stopped if it is interrupted. The names you uploaded the files with are still shown
+  and still used when you download or export. It cannot be taken back by an older version, which looks for the
+  files under the old names: keep the copy of your `data` folder from before the update until you are happy.
 - **An image for ARM too.** Every tag is now published for 64-bit ARM (a Raspberry Pi 4 or 5 with a 64-bit
   system, an ARM NAS or server) beside Intel and AMD, and Docker picks the right one by itself. Each is built and
   checked on a machine of its own kind. The ARM image passes the same build-time checks (photo and PDF
