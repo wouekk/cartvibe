@@ -67,18 +67,18 @@ describe('TableComponent', () => {
     const columns: TableColumn[] = [
       {
         columnHeader: 'header',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
         defaultSortDirection: 'asc',
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column1',
+        columnDef: 'column1',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column2',
+        columnDef: 'column2',
         sortable: false,
       },
     ];
@@ -95,17 +95,17 @@ describe('TableComponent', () => {
     const columns: TableColumn[] = [
       {
         columnHeader: 'header',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column1',
+        columnDef: 'column1',
         sortable: false,
       },
       {
         columnHeader: 'header',
-        matColumnDef: 'column2',
+        columnDef: 'column2',
         sortable: false,
       },
     ];
@@ -128,7 +128,7 @@ describe('TableComponent', () => {
     hostFixture.componentInstance.columns.set([
       {
         columnHeader: 'From the column',
-        matColumnDef: 'column',
+        columnDef: 'column',
         sortable: false,
         template: hostFixture.componentInstance.cell(),
       },

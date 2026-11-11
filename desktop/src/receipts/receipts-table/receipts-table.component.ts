@@ -103,7 +103,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private groupsService: GroupsService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private receiptExportService: ReceiptExportService,
     private receiptFilterService: ReceiptFilterService,
     private receiptService: ReceiptService,
@@ -318,7 +318,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       reconciled.length !== persisted.length ||
       reconciled.some(
         (column, index) =>
-          column.matColumnDef !== persisted[index].matColumnDef ||
+          column.columnDef !== persisted[index].columnDef ||
           column.visible !== persisted[index].visible ||
           column.order !== persisted[index].order
       );
@@ -331,7 +331,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     // A sort kept from before a column changed its key follows it (the Note column was first_comment).
     const orderBy = currentColumnKey(filterData.orderBy ?? "");
     const isKnownColumn = reconciled.some(
-      (column) => column.matColumnDef === orderBy
+      (column) => column.columnDef === orderBy
     );
 
     if (!isKnownColumn) {
@@ -398,7 +398,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     const allColumns = [
       {
         columnHeader: "Receipt Date",
-        matColumnDef: "date",
+        columnDef: "date",
         phone: "subtitle",
         template: this.dateCell(),
         sortable: true,
@@ -407,7 +407,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
         // The clickable Shop: the shop printed on the receipt (Auchan, Edeka, Rewe), read by the AI, or
         // the receipt's name when none was read. It sorts the same way (shop_name on the API).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["shop_name"],
-        matColumnDef: "shop_name",
+        columnDef: "shop_name",
         phone: "title",
         template: this.shopCell(),
         sortable: true,
@@ -415,46 +415,46 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
       {
         // Who added the receipt (the paid by user, which a family does not distinguish).
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["paid_by_user_id"],
-        matColumnDef: "paid_by_user_id",
+        columnDef: "paid_by_user_id",
         template: this.addedByCell(),
         sortable: true,
       },
       {
         columnHeader: "Amount",
-        matColumnDef: "amount",
+        columnDef: "amount",
         phone: "aside",
         template: this.amountCell(),
         sortable: true,
       },
       {
         columnHeader: "Categories",
-        matColumnDef: "categories",
+        columnDef: "categories",
         template: this.categoryCell(),
         sortable: false,
       },
       {
         columnHeader: "Tags",
-        matColumnDef: "tags",
+        columnDef: "tags",
         template: this.tagCell(),
         sortable: false,
       },
       {
         columnHeader: "Status",
-        matColumnDef: "status",
+        columnDef: "status",
         phone: "aside",
         template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Settled on",
-        matColumnDef: "resolved_date",
+        columnDef: "resolved_date",
         template: this.resolvedDateCell(),
         sortable: true,
       },
       {
         // The receipt's note, which the API returns and sorts on under this same key.
         columnHeader: RECEIPT_COLUMN_DISPLAY_NAMES["note"],
-        matColumnDef: "note",
+        columnDef: "note",
         template: this.noteCell(),
         sortable: true,
       },
@@ -465,17 +465,17 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     // A household that hides the note hides its column too, whatever the saved layout says.
     const noteHidden = !!this.group?.groupReceiptSettings?.hideNote;
     const visibleColumnConfigs = currentColumnConfig
-      .filter(config => config.visible && !(noteHidden && config.matColumnDef === "note"))
+      .filter(config => config.visible && !(noteHidden && config.columnDef === "note"))
       .sort((a, b) => a.order - b.order);
 
     const columns = visibleColumnConfigs
-      .map(config => allColumns.find(col => col.matColumnDef === config.matColumnDef))
+      .map(config => allColumns.find(col => col.columnDef === config.columnDef))
       .filter(col => col !== undefined) as TableColumn[];
 
     if (this.canEdit) {
       columns.push({
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       });
@@ -484,11 +484,11 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     // Derived from the columns that actually resolved, never from the stored
     // configuration: mat-table throws on a displayed id it has no definition for,
     // and a configuration naming a since-removed column is ordinary.
-    const displayColumns = ["select", ...columns.map(col => col.matColumnDef)];
+    const displayColumns = ["select", ...columns.map(col => col.columnDef)];
 
     const filter = this.store.selectSnapshot(ReceiptTableState.filterData);
     const orderByIndex = columns.findIndex(
-      (c) => c.matColumnDef === filter.orderBy
+      (c) => c.columnDef === filter.orderBy
     );
 
     if (orderByIndex >= 0) {
@@ -525,7 +525,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public filterButtonClicked(): void {
     const filter = this.store.selectSnapshot(ReceiptTableState.filterData).filter as any;
 
-    const dialogRef = this.matDialog.open(ReceiptFilterComponent, {
+    const dialogRef = this.dialog.open(ReceiptFilterComponent, {
       minWidth: "75%",
       maxWidth: "100%",
     });
@@ -671,7 +671,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   public configureColumnsButtonClicked(): void {
     const currentColumnConfig = this.store.selectSnapshot(ReceiptTableState.columnConfig);
 
-    const dialogRef = this.matDialog.open(ColumnConfigurationDialogComponent, {
+    const dialogRef = this.dialog.open(ColumnConfigurationDialogComponent, {
       ...DEFAULT_DIALOG_CONFIG,
       data: {
         currentColumns: currentColumnConfig,
@@ -729,7 +729,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public deleteReceipt(row: Receipt): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Delete Receipt");
     dialogRef.componentInstance.confirmText = marker("Delete");
@@ -859,7 +859,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public duplicateReceipt(row: Receipt): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: row.name });
@@ -896,7 +896,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   }
 
   public showStatusUpdateDialog(): void {
-    const ref = this.matDialog.open(
+    const ref = this.dialog.open(
       BulkStatusUpdateComponent,
       DEFAULT_DIALOG_CONFIG
     );

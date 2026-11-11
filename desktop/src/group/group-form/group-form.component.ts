@@ -104,7 +104,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     private router: Router,
     private store: Store,
     private activatedRoute: ActivatedRoute,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private sortByDisplayName: SortByDisplayName,
     private appInitService: AppInitService
   ) {
@@ -161,19 +161,19 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
     this.columns = [
       {
         columnHeader: "Name",
-        matColumnDef: "name",
+        columnDef: "name",
         template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Group Role"),
-        matColumnDef: "role",
+        columnDef: "role",
         template: this.roleCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: true,
       },
@@ -241,7 +241,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
   }
 
   public addGroupMemberClicked(): void {
-    const dialogRef = this.matDialog.open(GroupMemberFormComponent);
+    const dialogRef = this.dialog.open(GroupMemberFormComponent);
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
     dialogRef.componentInstance.headerText = marker("Add Group Member");
@@ -258,7 +258,7 @@ export class GroupFormComponent implements OnInit, AfterViewInit {
 
   public editGroupMemberClicked(index: number): void {
     const groupMember = this.groupMembers.at(index).value;
-    const dialogRef = this.matDialog.open(GroupMemberFormComponent);
+    const dialogRef = this.dialog.open(GroupMemberFormComponent);
 
     dialogRef.componentInstance.currentGroupMembers = this.groupMembers.value;
     dialogRef.componentInstance.groupMember = groupMember;

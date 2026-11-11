@@ -105,7 +105,7 @@ export class ShoppingListComponent {
     private store: Store,
     private formBuilder: FormBuilder,
     private shoppingListService: ShoppingListService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     this.addForm = buildShoppingListItemForm(this.formBuilder);
@@ -210,7 +210,7 @@ export class ShoppingListComponent {
   }
 
   public editItem(item: ShoppingListItem): void {
-    const dialogRef = this.matDialog.open(ShoppingListItemFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListItemFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.item = item;
   }
@@ -287,7 +287,7 @@ export class ShoppingListComponent {
   }
 
   private confirm(headerText: string, dialogContent: string, confirmText: string) {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
     dialogRef.componentInstance.confirmText = confirmText;

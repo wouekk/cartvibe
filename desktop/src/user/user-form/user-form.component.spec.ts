@@ -146,7 +146,7 @@ describe("UserFormComponent", () => {
     const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
 
     const user: User = {
       id: 1,
@@ -205,7 +205,7 @@ describe("UserFormComponent", () => {
     const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
 
     const user: User = {
       id: 1,
@@ -261,7 +261,7 @@ describe("UserFormComponent", () => {
     const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
     component.ngOnInit();
 
     component.form.patchValue({
@@ -305,7 +305,7 @@ describe("UserFormComponent", () => {
         throwError(() => ({ error: { username: "Username already exists" } })) as any
       );
 
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
     component.ngOnInit();
 
     component.form.patchValue({

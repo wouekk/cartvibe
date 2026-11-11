@@ -66,7 +66,7 @@
     <div class="flex flex-wrap justify-center">
       <app-button
         class="flex-none"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         icon="zoom_in"
         data-testid="carousel-zoom-in"
         [tooltip]="'Zoom In' | t"
@@ -75,7 +75,7 @@
       ></app-button>
       <app-button
         class="flex-none"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         icon="zoom_out"
         data-testid="carousel-zoom-out"
         [tooltip]="'Zoom Out' | t"
@@ -85,7 +85,7 @@
       @if (!(mode() | inputReadonly)) {
         <app-button
           class="flex-none"
-          matButtonType="iconButton"
+          buttonType="iconButton"
           icon="delete"
           data-testid="carousel-image-remove"
           [tooltip]="'Remove Image' | t"

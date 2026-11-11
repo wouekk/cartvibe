@@ -32,7 +32,7 @@ export class DummyUserConversionDialogComponent implements OnInit {
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService,
-    public matDialogRef: AppDialogRef<DummyUserConversionDialogComponent>
+    public dialogRef: AppDialogRef<DummyUserConversionDialogComponent>
   ) {}
 
   public ngOnInit(): void {
@@ -62,13 +62,13 @@ export class DummyUserConversionDialogComponent implements OnInit {
               new UpdateUser(userId, { ...this.user, isDummyUser: false })
             )
           ),
-          tap(() => this.matDialogRef.close(true))
+          tap(() => this.dialogRef.close(true))
         )
         .subscribe();
     }
   }
 
   public cancelButtonClicked(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

@@ -6,24 +6,24 @@
     <app-button
       data-testid="system-tasks-filter"
       icon="filter_alt"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       [tooltip]="'Filter System Tasks' | t"
       color="accent"
-      matBadgeColor="accent"
-      [matBadgeContent]="numFiltersApplied()"
+      badgeColor="accent"
+      [badgeContent]="numFiltersApplied()"
       (clicked)="filterButtonClicked()"
     ></app-button>
     <app-button
       *ngIf="(numFiltersApplied() ?? 0) > 0"
       data-testid="system-tasks-filter-reset"
       icon="restart_alt"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       [tooltip]="'Reset filter' | t"
       color="accent"
       (clicked)="resetFilterButtonClicked()"
     ></app-button>
     <app-button
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="refresh"
       color="accent"
       [tooltip]="'Refresh System Tasks' | t"

@@ -41,7 +41,7 @@
       [options]="operationOptions(def.type)" [optionsDisplayArray]="operationDisplay(def.type)"
       [inputFormControl]="filterGroup | formGet: def.field + '.operation'"></app-select>
 
-    <app-button matButtonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
+    <app-button buttonType="iconButton" icon="close" color="warn" [tooltip]="'Remove filter' | t"
       (clicked)="removeFilter(def.field)" data-testid="report-filter-remove"></app-button>
   </div>
 }

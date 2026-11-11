@@ -29,13 +29,13 @@ describe('ButtonComponent', () => {
 
   it('hides the badge for an empty count, but not for a real one', () => {
     for (const empty of [undefined, null, '', 0, '0']) {
-      fixture.componentRef.setInput('matBadgeContent', empty);
-      expect(component.matBadgeHidden()).toBe(true);
+      fixture.componentRef.setInput('badgeContent', empty);
+      expect(component.badgeHidden()).toBe(true);
     }
 
     for (const shown of [1, 12, 'New']) {
-      fixture.componentRef.setInput('matBadgeContent', shown);
-      expect(component.matBadgeHidden()).toBe(false);
+      fixture.componentRef.setInput('badgeContent', shown);
+      expect(component.badgeHidden()).toBe(false);
     }
   });
 });

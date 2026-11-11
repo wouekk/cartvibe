@@ -196,7 +196,7 @@ export class SidebarComponent {
 
   constructor(
     private authService: AuthService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private router: Router,
     private snackbarService: SnackbarService,
     private store: Store,
@@ -487,6 +487,6 @@ export class SidebarComponent {
   }
 
   public openAboutDialog(): void {
-    this.matDialog.open(AboutComponent, DEFAULT_DIALOG_CONFIG);
+    this.dialog.open(AboutComponent, DEFAULT_DIALOG_CONFIG);
   }
 }

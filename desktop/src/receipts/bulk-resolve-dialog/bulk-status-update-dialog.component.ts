@@ -23,7 +23,7 @@ export class BulkStatusUpdateComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    public matDialogRef: AppDialogRef<BulkStatusUpdateComponent>
+    public dialogRef: AppDialogRef<BulkStatusUpdateComponent>
   ) {}
 
   public ngOnInit(): void {
@@ -37,12 +37,12 @@ export class BulkStatusUpdateComponent implements OnInit {
   }
 
   public cancelButtonClicked(): void {
-    this.matDialogRef.close(undefined);
+    this.dialogRef.close(undefined);
   }
 
   public submitButtonClicked(): void {
     if (this.form.valid) {
-      this.matDialogRef.close(this.form.value);
+      this.dialogRef.close(this.form.value);
     }
   }
 }

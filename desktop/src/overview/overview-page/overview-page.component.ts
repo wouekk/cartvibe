@@ -1447,7 +1447,7 @@ export class OverviewPageComponent {
       return;
     }
 
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Discard changes");
     dialogRef.componentInstance.dialogContent = this.translation.t("Leave without saving your dashboard changes?");
     dialogRef.componentInstance.confirmText = marker("Discard");
@@ -1478,7 +1478,7 @@ export class OverviewPageComponent {
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private userPreferencesService: UserPreferencesService,
     private snackbarService: SnackbarService,
     private customCurrencyPipe: CustomCurrencyPipe,
@@ -1613,6 +1613,6 @@ export class OverviewPageComponent {
       to: period.to,
       ...filter,
     };
-    this.matDialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
+    this.dialog.open(OverviewDetailDialogComponent, { ...DEFAULT_DIALOG_CONFIG, data });
   }
 }

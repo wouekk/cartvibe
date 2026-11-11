@@ -38,7 +38,7 @@ export class AttachReceiptDialogComponent implements OnInit {
 
   constructor(
     private receiptService: ReceiptService,
-    private matDialogRef: AppDialogRef<AttachReceiptDialogComponent, number>
+    private dialogRef: AppDialogRef<AttachReceiptDialogComponent, number>
   ) {}
 
   public ngOnInit(): void {
@@ -61,10 +61,10 @@ export class AttachReceiptDialogComponent implements OnInit {
   }
 
   public pick(receipt: Receipt): void {
-    this.matDialogRef.close(receipt.id);
+    this.dialogRef.close(receipt.id);
   }
 
   public close(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 }

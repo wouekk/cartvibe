@@ -23,7 +23,7 @@ export class QueueStartMenuComponent implements OnInit {
 
   public readonly buttonIcon = input<string>("");
 
-  public readonly matButtonType = input<"matRaisedButton" | "iconButton" | "basic">("matRaisedButton");
+  public readonly buttonType = input<"raised" | "iconButton" | "basic">("raised");
 
   public readonly color = input<string>("primary");
 

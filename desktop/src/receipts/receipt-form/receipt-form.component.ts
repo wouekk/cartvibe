@@ -215,7 +215,7 @@ export class ReceiptFormComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private receiptImageService: ReceiptImageService,
     private receiptQueueService: ReceiptQueueService,
     private receiptService: ReceiptService,
@@ -607,7 +607,7 @@ export class ReceiptFormComponent implements OnInit {
 
   /** Remove from the image menu: asks first, since a stored image is deleted on the spot. */
   public confirmRemoveImage(): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Remove Image");
     dialogRef.componentInstance.confirmText = marker("Remove");
@@ -625,7 +625,7 @@ export class ReceiptFormComponent implements OnInit {
 
   /** Rename from the image menu: a new receipt just takes the name, a saved one is renamed on the server at once. */
   public renameReceipt(): void {
-    const dialogRef = this.matDialog.open(RenameReceiptDialogComponent, DEFAULT_DIALOG_CONFIG);
+    const dialogRef = this.dialog.open(RenameReceiptDialogComponent, DEFAULT_DIALOG_CONFIG);
     dialogRef.componentInstance.name = String(this.form.get("name")?.value ?? "");
 
     dialogRef
@@ -823,7 +823,7 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   public duplicateReceipt(): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
 
     dialogRef.componentInstance.headerText = marker("Duplicate Receipt");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you would like to duplicate the receipt {name}?", { name: this.originalReceipt?.name });
@@ -900,7 +900,7 @@ export class ReceiptFormComponent implements OnInit {
     // No maxHeight on purpose: leaving it undefined is what puts the CDK on its
     // flush-vertical path, giving the pane the full viewport height the canvas
     // stage then fills. Setting one silently re-centres the dialog.
-    this.expandedImageDialog = this.matDialog.open(this.expandedImageTemplate(), {
+    this.expandedImageDialog = this.dialog.open(this.expandedImageTemplate(), {
       // Full width on a phone, where 75% would leave an unusable sliver around the photo.
       width: window.innerWidth < 768 ? "100%" : "75%",
       maxWidth: "100vw",

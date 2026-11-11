@@ -84,7 +84,7 @@ export class SystemTaskTableComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private datePipe: DatePipe,
     private translation: TranslationService
   ) {}
@@ -98,7 +98,7 @@ export class SystemTaskTableComponent implements OnInit {
   }
 
   public filterButtonClicked(): void {
-    const dialogRef = this.matDialog.open(SystemTaskFilterComponent, {
+    const dialogRef = this.dialog.open(SystemTaskFilterComponent, {
       ...DEFAULT_DIALOG_CONFIG,
       minWidth: "75%",
       maxWidth: "100%",

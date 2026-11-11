@@ -185,13 +185,13 @@ describe("UserProfileComponent", () => {
   });
 
   it("should open delete account dialog when deleteAccount is called", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const dialogRefMock = {
       afterClosed: () => of(false),
       componentInstance: {},
     } as any;
 
-    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    const dialogSpy = vi.spyOn(dialog, "open").mockReturnValue(dialogRefMock);
 
     component.deleteAccount();
 
@@ -204,7 +204,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should delete account, dispatch logout, and navigate on confirmation", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const store = TestBed.inject(Store);
     const router = TestBed.inject(Router);
     const userService = TestBed.inject(UserService);
@@ -214,7 +214,7 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    vi.spyOn(dialog, "open").mockReturnValue(dialogRefMock);
     const deleteAccountSpy = vi.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
     const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
     const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
@@ -280,7 +280,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should re-open dialog when deleteAccount returns 401", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const store = TestBed.inject(Store);
     const userService = TestBed.inject(UserService);
 
@@ -293,7 +293,7 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    const dialogSpy = vi.spyOn(matDialog, "open")
+    const dialogSpy = vi.spyOn(dialog, "open")
       .mockReturnValueOnce(passwordDialogRef)
       .mockReturnValueOnce(cancelledDialogRef);
     vi.spyOn(userService, "deleteAccount").mockReturnValue(
@@ -308,12 +308,12 @@ describe("UserProfileComponent", () => {
   });
 
   it("keeps the password dialog for an account whose connections were linked, not provisioned", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
     const store = TestBed.inject(Store);
     component.connections.set([connection({ provisionedUser: false })]);
 
-    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue({
+    const dialogSpy = vi.spyOn(dialog, "open").mockReturnValue({
       afterClosed: () => of({ password: "userpassword" }),
       componentInstance: {},
     } as any);
@@ -328,14 +328,14 @@ describe("UserProfileComponent", () => {
   });
 
   it("offers a passwordless account its providers and navigates to the chosen one", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
     component.connections.set([
       connection({ providerName: "my idp", providerDisplayName: "My IdP" }),
       connection({ providerName: "google", providerDisplayName: "Google" }),
     ]);
 
-    const dialogSpy = vi.spyOn(matDialog, "open").mockReturnValue({
+    const dialogSpy = vi.spyOn(dialog, "open").mockReturnValue({
       afterClosed: () => of({ providerName: "my idp" }),
       componentInstance: {},
     } as any);
@@ -597,7 +597,7 @@ describe("UserProfileComponent", () => {
   });
 
   it("should not call deleteAccount API when dialog is cancelled", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
 
     const dialogRefMock = {
@@ -605,7 +605,7 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any;
 
-    vi.spyOn(matDialog, "open").mockReturnValue(dialogRefMock);
+    vi.spyOn(dialog, "open").mockReturnValue(dialogRefMock);
     const deleteAccountSpy = vi.spyOn(userService, "deleteAccount");
 
     component.deleteAccount();

@@ -31,9 +31,9 @@ describe("ColumnConfigurationDialogComponent", () => {
     // Initialize mock dialog data
     mockDialogData = {
       currentColumns: [
-        { matColumnDef: "date", visible: true, order: 0 },
-        { matColumnDef: "shop_name", visible: true, order: 1 },
-        { matColumnDef: "amount", visible: false, order: 2 }
+        { columnDef: "date", visible: true, order: 0 },
+        { columnDef: "shop_name", visible: true, order: 1 },
+        { columnDef: "amount", visible: false, order: 2 }
       ]
     };
 
@@ -89,19 +89,19 @@ describe("ColumnConfigurationDialogComponent", () => {
       component.ngOnInit();
 
       expect(component.columns[0]).toEqual({
-        matColumnDef: "date",
+        columnDef: "date",
         visible: true,
         order: 0,
         displayName: "Receipt Date"
       });
       expect(component.columns[1]).toEqual({
-        matColumnDef: "shop_name",
+        columnDef: "shop_name",
         visible: true,
         order: 1,
         displayName: "Shop"
       });
       expect(component.columns[2]).toEqual({
-        matColumnDef: "amount",
+        columnDef: "amount",
         visible: false,
         order: 2,
         displayName: "Amount"
@@ -110,29 +110,29 @@ describe("ColumnConfigurationDialogComponent", () => {
 
     it("should sort columns by order before mapping", () => {
       mockDialogData.currentColumns = [
-        { matColumnDef: "amount", visible: true, order: 2 },
-        { matColumnDef: "date", visible: true, order: 0 },
-        { matColumnDef: "shop_name", visible: true, order: 1 }
+        { columnDef: "amount", visible: true, order: 2 },
+        { columnDef: "date", visible: true, order: 0 },
+        { columnDef: "shop_name", visible: true, order: 1 }
       ];
 
       component.ngOnInit();
 
-      expect(component.columns[0].matColumnDef).toBe("date");
-      expect(component.columns[1].matColumnDef).toBe("shop_name");
-      expect(component.columns[2].matColumnDef).toBe("amount");
+      expect(component.columns[0].columnDef).toBe("date");
+      expect(component.columns[1].columnDef).toBe("shop_name");
+      expect(component.columns[2].columnDef).toBe("amount");
     });
 
     it("does not mutate a frozen (store-sourced) currentColumns array", () => {
       // The opener passes the NGXS snapshot, which is deep-frozen in dev mode.
       // Sorting it in place threw "TypeError: 0 is read-only"; we must copy first.
       mockDialogData.currentColumns = Object.freeze([
-        Object.freeze({ matColumnDef: "amount", visible: true, order: 2 }),
-        Object.freeze({ matColumnDef: "date", visible: true, order: 0 }),
-        Object.freeze({ matColumnDef: "shop_name", visible: true, order: 1 })
+        Object.freeze({ columnDef: "amount", visible: true, order: 2 }),
+        Object.freeze({ columnDef: "date", visible: true, order: 0 }),
+        Object.freeze({ columnDef: "shop_name", visible: true, order: 1 })
       ]) as ReceiptTableColumnConfig[];
 
       expect(() => component.ngOnInit()).not.toThrow();
-      expect(component.columns.slice(0, 3).map(col => col.matColumnDef)).toEqual([
+      expect(component.columns.slice(0, 3).map(col => col.columnDef)).toEqual([
         "date",
         "shop_name",
         "amount"
@@ -145,7 +145,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       component.ngOnInit();
 
       expect(component.columns.length).toEqual(DEFAULT_RECEIPT_TABLE_COLUMNS.length);
-      expect(component.columns[0].matColumnDef).toBe(DEFAULT_RECEIPT_TABLE_COLUMNS[0].matColumnDef);
+      expect(component.columns[0].columnDef).toBe(DEFAULT_RECEIPT_TABLE_COLUMNS[0].columnDef);
     });
 
     it("drops a persisted column that no longer resolves", () => {
@@ -154,13 +154,13 @@ describe("ColumnConfigurationDialogComponent", () => {
       // leaves an id behind that mat-table would reject.
       mockDialogData.currentColumns = [
         ...allBuiltInColumns(),
-        { matColumnDef: "unknown_column", visible: true, order: 9 }
+        { columnDef: "unknown_column", visible: true, order: 9 }
       ];
 
       component.ngOnInit();
 
       expect(
-        component.columns.some(col => col.matColumnDef === "unknown_column")
+        component.columns.some(col => col.columnDef === "unknown_column")
       ).toBe(false);
     });
 
@@ -269,7 +269,7 @@ describe("ColumnConfigurationDialogComponent", () => {
 
       component.drop(mockEvent);
 
-      expect(component.columns[0].matColumnDef).toBe(originalLastColumn.matColumnDef);
+      expect(component.columns[0].columnDef).toBe(originalLastColumn.columnDef);
       expect(component.columns[0].order).toBe(0);
     });
   });
@@ -289,7 +289,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       expect(component.columns.length).toEqual(DEFAULT_RECEIPT_TABLE_COLUMNS.length);
 
       DEFAULT_RECEIPT_TABLE_COLUMNS.forEach((defaultCol, index) => {
-        expect(component.columns[index].matColumnDef).toBe(defaultCol.matColumnDef);
+        expect(component.columns[index].columnDef).toBe(defaultCol.columnDef);
         expect(component.columns[index].visible).toBe(defaultCol.visible);
         expect(component.columns[index].order).toBe(defaultCol.order);
       });
@@ -299,7 +299,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       component.resetToDefaults();
 
       component.columns.forEach(column => {
-        const expectedDisplayName = RECEIPT_COLUMN_DISPLAY_NAMES[column.matColumnDef] || column.matColumnDef;
+        const expectedDisplayName = RECEIPT_COLUMN_DISPLAY_NAMES[column.columnDef] || column.columnDef;
         expect(column.displayName).toBe(expectedDisplayName);
       });
     });
@@ -308,10 +308,10 @@ describe("ColumnConfigurationDialogComponent", () => {
     it("should preserve displayName mapping when resetting", () => {
       component.resetToDefaults();
 
-      const dateColumn = component.columns.find(col => col.matColumnDef === "date");
+      const dateColumn = component.columns.find(col => col.columnDef === "date");
       expect(dateColumn?.displayName).toBe("Receipt Date");
 
-      const shopColumn = component.columns.find(col => col.matColumnDef === "shop_name");
+      const shopColumn = component.columns.find(col => col.columnDef === "shop_name");
       expect(shopColumn?.displayName).toBe("Shop");
     });
   });
@@ -327,7 +327,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       expect(mockDialogRef.close).toHaveBeenCalledWith(
         expect.arrayContaining([
           expect.objectContaining({
-            matColumnDef: expect.any(String),
+            columnDef: expect.any(String),
             visible: expect.any(Boolean),
             order: expect.any(Number)
           })
@@ -344,7 +344,7 @@ describe("ColumnConfigurationDialogComponent", () => {
       const result = mockDialogRef.close.mock.calls[mockDialogRef.close.mock.calls.length - 1][0];
       result.forEach((col: any) => {
         expect(col.displayName).toBeUndefined();
-        expect(col.matColumnDef).toBeDefined();
+        expect(col.columnDef).toBeDefined();
         expect(col.visible).toBeDefined();
         expect(col.order).toBeDefined();
       });
@@ -358,7 +358,7 @@ describe("ColumnConfigurationDialogComponent", () => {
 
       result.forEach((resultCol: ReceiptTableColumnConfig, index: number) => {
         const originalCol = component.columns[index];
-        expect(resultCol.matColumnDef).toBe(originalCol.matColumnDef);
+        expect(resultCol.columnDef).toBe(originalCol.columnDef);
         expect(resultCol.visible).toBe(originalCol.visible);
         expect(resultCol.order).toBe(originalCol.order);
       });
@@ -476,7 +476,7 @@ describe("ColumnConfigurationDialogComponent", () => {
 
       // Verify columns still have required properties
       component.columns.forEach((column, index) => {
-        expect(column.matColumnDef).toBeDefined();
+        expect(column.columnDef).toBeDefined();
         expect(typeof column.visible).toBe("boolean");
         expect(column.order).toBe(index);
         expect(column.displayName).toBeDefined();
@@ -488,8 +488,8 @@ describe("ColumnConfigurationDialogComponent", () => {
 
       component.ngOnInit();
 
-      expect(component.columns.map(col => col.matColumnDef)).toEqual(
-        DEFAULT_RECEIPT_TABLE_COLUMNS.map(col => col.matColumnDef)
+      expect(component.columns.map(col => col.columnDef)).toEqual(
+        DEFAULT_RECEIPT_TABLE_COLUMNS.map(col => col.columnDef)
       );
     });
   });

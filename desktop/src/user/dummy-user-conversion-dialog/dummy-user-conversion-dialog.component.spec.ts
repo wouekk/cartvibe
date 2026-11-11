@@ -54,7 +54,7 @@ describe("DummyUserConversionDialogComponent", () => {
   });
 
   it("should call close when cancel button is clicked", () => {
-    const dialogRefSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogRefSpy = vi.spyOn(component.dialogRef, "close");
     component.cancelButtonClicked();
 
     expect(dialogRefSpy).toHaveBeenCalledTimes(1);
@@ -70,7 +70,7 @@ describe("DummyUserConversionDialogComponent", () => {
     const storeSpy = vi.spyOn(store, "dispatch");
     storeSpy.mockReturnValue(of(undefined));
 
-    const dialogSpy = vi.spyOn(component.matDialogRef, "close");
+    const dialogSpy = vi.spyOn(component.dialogRef, "close");
     dialogSpy.mockReturnValue(undefined);
 
     vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue(

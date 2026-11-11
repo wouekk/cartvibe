@@ -241,37 +241,37 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
     this.columns = [
       {
         columnHeader: "Type",
-        matColumnDef: "type",
+        columnDef: "type",
         template: this.typeCell(),
         sortable: true,
       },
       {
         columnHeader: "Started At",
-        matColumnDef: "started_at",
+        columnDef: "started_at",
         template: this.startedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Ended At",
-        matColumnDef: "ended_at",
+        columnDef: "ended_at",
         template: this.endedAtCell(),
         sortable: true,
       },
       {
         columnHeader: "Status",
-        matColumnDef: "status",
+        columnDef: "status",
         template: this.statusCell(),
         sortable: true,
       },
       {
         columnHeader: "Description",
-        matColumnDef: "result_description",
+        columnDef: "result_description",
         template: this.resultDescriptionCell(),
         sortable: true,
       },
       {
         columnHeader: "Ran By",
-        matColumnDef: "ran_by_user_id",
+        columnDef: "ran_by_user_id",
         template: this.ranByUserIdCell(),
         sortable: true,
       }
@@ -282,7 +282,7 @@ export class TaskTableComponent implements OnInit, AfterViewInit {
     if (this.showSourceFileActions()) {
       this.columns.push({
         columnHeader: marker("Source File"),
-        matColumnDef: "source_file",
+        columnDef: "source_file",
         template: this.sourceFileCell(),
         sortable: false,
       });

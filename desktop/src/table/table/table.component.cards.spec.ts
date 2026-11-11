@@ -59,7 +59,7 @@ describe("TableComponent as cards on a phone", () => {
     await fixture.whenStable();
     const column = (id: string, header: string, sortable: boolean): TableColumn => ({
       columnHeader: header,
-      matColumnDef: id,
+      columnDef: id,
       elementKey: id,
       sortable,
       ...(roles[id] ? { phone: roles[id] } : {}),
@@ -69,7 +69,7 @@ describe("TableComponent as cards on a phone", () => {
       column("date", "Receipt Date", true),
       column("amount", "Amount", true),
       column("paidBy", "Added by", false),
-      { columnHeader: "Actions", matColumnDef: "actions", sortable: false, template: host.actions() },
+      { columnHeader: "Actions", columnDef: "actions", sortable: false, template: host.actions() },
     ]);
     host.displayedColumns.set([...extra, "shop", "date", "amount", "paidBy", "actions"]);
     await fixture.whenStable();
@@ -161,7 +161,7 @@ describe("TableComponent as cards on a phone", () => {
 
   it("offers no sort control for a table that cannot be sorted", async () => {
     await fixture.whenStable();
-    host.columns.set([{ columnHeader: "Shop", matColumnDef: "shop", elementKey: "shop", sortable: false }]);
+    host.columns.set([{ columnHeader: "Shop", columnDef: "shop", elementKey: "shop", sortable: false }]);
     host.displayedColumns.set(["shop"]);
     await fixture.whenStable();
 

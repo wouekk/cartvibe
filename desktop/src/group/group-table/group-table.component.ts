@@ -94,7 +94,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     private groupsService: GroupsService,
     private store: Store,
     private snackbarService: SnackbarService,
-    private matDialog: AppDialog
+    private dialog: AppDialog
   ) {
     super(baseTableService);
   }
@@ -124,31 +124,31 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
     this.columns = [
       {
         columnHeader: "Name",
-        matColumnDef: "name",
+        columnDef: "name",
         template: this.nameCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Number of Members"),
-        matColumnDef: "number_of_members",
+        columnDef: "number_of_members",
         template: this.numberOfMembersCell(),
         sortable: false,
       },
       {
         columnHeader: marker("Created At"),
-        matColumnDef: "created_at",
+        columnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Updated At"),
-        matColumnDef: "updated_at",
+        columnDef: "updated_at",
         template: this.updatedAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       },
@@ -209,7 +209,7 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   public deleteGroup(index: number): void {
     if (!this.deleteDisabled()) {
       const group = this.dataSource().data[index];
-      const dialogRef = this.matDialog.open(
+      const dialogRef = this.dialog.open(
         ConfirmationDialogComponent,
         DEFAULT_DIALOG_CONFIG
       );

@@ -31,7 +31,7 @@ class ImageViewerStubComponent {
 })
 class ButtonStubComponent {
   @Input() public buttonText?: string;
-  @Input() public matButtonType?: string;
+  @Input() public buttonType?: string;
 }
 
 describe("SourceFileViewerDialogComponent", () => {

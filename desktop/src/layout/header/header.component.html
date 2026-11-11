@@ -24,10 +24,10 @@
         #notificationsOrigin="cdkOverlayOrigin"
       >
         <app-button
-          matButtonType="iconButton"
+          buttonType="iconButton"
           icon="notifications"
           [tooltip]="'Notifications' | t"
-          [matBadgeContent]="notificationCount()"
+          [badgeContent]="notificationCount()"
           (clicked)="notificationsOpen.set(!notificationsOpen())"
         ></app-button>
         <ng-template

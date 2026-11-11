@@ -110,7 +110,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private claimsService: ClaimsService,
     private formBuilder: FormBuilder,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private route: ActivatedRoute,
     private router: Router,
     private snackbarService: SnackbarService,
@@ -343,7 +343,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   public deleteAccount(): void {
-    const dialogRef = this.matDialog.open<
+    const dialogRef = this.dialog.open<
       DeleteAccountDialogComponent,
       DeleteAccountDialogData,
       DeleteAccountDialogResult
@@ -401,8 +401,6 @@ export class UserProfileComponent implements OnInit {
 
   private readonly translation = inject(TranslationService);
 
-  private readonly dialog = inject(AppDialog);
-
   /** True from the confirmation until the server answered, so the button cannot fire twice. */
   public readonly signingOutEverywhere = signal(false);
 
@@ -412,7 +410,7 @@ export class UserProfileComponent implements OnInit {
    * would stay signed in, so a failure leaves this browser signed in too (the interceptor says what went wrong).
    */
   public signOutEverywhere(): void {
-    const ref = this.matDialog.open(ConfirmationDialogComponent);
+    const ref = this.dialog.open(ConfirmationDialogComponent);
     ref.componentInstance.headerText = marker("Sign out everywhere");
     ref.componentInstance.dialogContent = marker(
       "You will be signed out on every device, this one included, and connected assistants will have to connect again. Continue?"

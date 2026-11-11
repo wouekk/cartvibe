@@ -74,14 +74,14 @@ describe("GroupFormComponent", () => {
   });
 
   it("should add user to group member on add", () => {
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const formGroup = buildGroupMemberForm();
     formGroup.patchValue({
       userId: "2",
       groupId: "1",
       groupRoleId: 10,
     });
-    vi.spyOn(matDialog, "open").mockReturnValue({
+    vi.spyOn(dialog, "open").mockReturnValue({
       afterClosed: () => of(formGroup),
       componentInstance: { currentGroupMembers: [] },
     } as any);
@@ -107,13 +107,13 @@ describe("GroupFormComponent", () => {
         groupId: 1,
       },
     ];
-    const matDialog = TestBed.inject(AppDialog);
+    const dialog = TestBed.inject(AppDialog);
     const formGroup = buildGroupMemberForm();
     formGroup.patchValue({
       userId: 3,
       groupId: 1,
     });
-    vi.spyOn(matDialog, "open").mockReturnValue({
+    vi.spyOn(dialog, "open").mockReturnValue({
       afterClosed: () => of(formGroup),
       componentInstance: { currentGroupMembers: [] },
     } as any);

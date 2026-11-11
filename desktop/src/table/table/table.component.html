@@ -14,8 +14,8 @@
           @if (!defaultSort?.active) {
             <option value="" [selected]="!sortState().active">{{ 'Not sorted' | t }}</option>
           }
-          @for (column of sortableColumns(); track column.matColumnDef) {
-            <option [value]="column.matColumnDef" [selected]="sortState().active === column.matColumnDef">{{ column.columnHeader | t }}</option>
+          @for (column of sortableColumns(); track column.columnDef) {
+            <option [value]="column.columnDef" [selected]="sortState().active === column.columnDef">{{ column.columnHeader | t }}</option>
           }
         </select>
       </label>
@@ -46,12 +46,12 @@
             />
           }
           <div class="min-w-0 flex-1">
-            @for (column of layout.title; track column.matColumnDef) {
+            @for (column of layout.title; track column.columnDef) {
               <div class="font-medium break-words">
                 <ng-container [ngTemplateOutlet]="cell" [ngTemplateOutletContext]="{ column: column, element: element }"></ng-container>
               </div>
             }
-            @for (column of layout.subtitle; track column.matColumnDef) {
+            @for (column of layout.subtitle; track column.columnDef) {
               <div class="text-xs text-muted-foreground">
                 <ng-container [ngTemplateOutlet]="cell" [ngTemplateOutletContext]="{ column: column, element: element }"></ng-container>
               </div>
@@ -59,14 +59,14 @@
           </div>
           @if (layout.aside.length > 0) {
             <div class="flex shrink-0 flex-col items-end gap-1 text-right">
-              @for (column of layout.aside; track column.matColumnDef; let first = $first) {
+              @for (column of layout.aside; track column.columnDef; let first = $first) {
                 <div [class.font-bold]="first">
                   <ng-container [ngTemplateOutlet]="cell" [ngTemplateOutletContext]="{ column: column, element: element }"></ng-container>
                 </div>
               }
             </div>
           }
-          @for (column of layout.actions; track column.matColumnDef) {
+          @for (column of layout.actions; track column.columnDef) {
             <div class="-my-1.5 -mr-2 shrink-0">
               <ng-container [ngTemplateOutlet]="cell" [ngTemplateOutletContext]="{ column: column, element: element }"></ng-container>
             </div>
@@ -74,7 +74,7 @@
           @if (displayedColumns().includes("expand") && (element | isRowExpandable : rowExpandable())) {
             <app-button
               class="-my-1.5 -mr-2 shrink-0"
-              matButtonType="iconButton"
+              buttonType="iconButton"
               color="accent"
               [icon]="expandedElement === element ? 'expand_less' : 'expand_more'"
               (clicked)="expanderClicked($event, element)"
@@ -83,7 +83,7 @@
         </div>
         @if (layout.meta.length > 0) {
           <dl class="m-0 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-            @for (column of layout.meta; track column.matColumnDef) {
+            @for (column of layout.meta; track column.columnDef) {
               <div class="flex min-w-0 items-center gap-1.5">
                 <dt class="shrink-0 text-muted-foreground">{{ column.columnHeader | t }}</dt>
                 <dd class="m-0 min-w-0">
@@ -126,15 +126,15 @@
                 <button
                   type="button"
                   class="group/sort -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground motion-reduce:transition-none"
-                  [attr.data-testid]="'sort-' + column.matColumnDef"
+                  [attr.data-testid]="'sort-' + column.columnDef"
                   (click)="toggleSort(column)"
                 >
                   {{ column.columnHeader | t }}
                   <app-icon
                     class="text-[0.8rem]"
-                    [class.opacity-0]="sortState().active !== column.matColumnDef"
-                    [class.group-hover/sort:opacity-50]="sortState().active !== column.matColumnDef"
-                    [name]="sortState().active === column.matColumnDef && sortState().direction === 'desc' ? 'arrow_downward' : 'arrow_upward'"
+                    [class.opacity-0]="sortState().active !== column.columnDef"
+                    [class.group-hover/sort:opacity-50]="sortState().active !== column.columnDef"
+                    [name]="sortState().active === column.columnDef && sortState().direction === 'desc' ? 'arrow_downward' : 'arrow_upward'"
                   ></app-icon>
                 </button>
               } @else {
@@ -164,7 +164,7 @@
               <td hlmTd class="w-10">
                 @if (element | isRowExpandable : rowExpandable()) {
                   <app-button
-                    matButtonType="iconButton"
+                    buttonType="iconButton"
                     color="accent"
                     [icon]="expandedElement === element ? 'expand_less' : 'expand_more'"
                     (clicked)="expanderClicked($event, element)"

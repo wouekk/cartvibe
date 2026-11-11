@@ -168,7 +168,7 @@
                 <app-button
                   class="absolute right-2 top-2 z-10 rounded-full border border-border bg-background/85 backdrop-blur-sm [&_button]:min-h-11 [&_button]:min-w-11"
                   data-testid="receipt-image-menu"
-                  matButtonType="iconButton"
+                  buttonType="iconButton"
                   icon="more_vert"
                   color="accent"
                   [tooltip]="'Image actions' | t"
@@ -209,7 +209,7 @@
       <div class="flex flex-1 min-w-0">
         @if (queueIndex > 0) {
           <app-button
-            matButtonType="iconButton"
+            buttonType="iconButton"
             icon="arrow_back"
             [tooltip]="'Previous (Left Arrow)' | t"
             (clicked)="queuePrevious()"
@@ -230,7 +230,7 @@
         ></app-submit-button>
         @if (queueIndex > -1 && queueIndex != queueIds.length - 1) {
           <app-button
-            matButtonType="iconButton"
+            buttonType="iconButton"
             icon="arrow_forward"
             [tooltip]="'Next (Right Arrow)' | t"
             (clicked)="queueNext()"
@@ -253,7 +253,7 @@
     </span>
     <app-button
       [buttonText]="'Navigate' | t"
-      matButtonType="basic"
+      buttonType="basic"
       color="secondary"
       [buttonRouterLink]="['/receipts/' + duplicatedReceiptId() + '/view']"
       (clicked)="closeSuccessDuplicateSnackbar()"
@@ -266,7 +266,7 @@
     *ngIf="mode | inputReadonly"
     class="ms-1"
     color="accent"
-    matButtonType="iconButton"
+    buttonType="iconButton"
     [tooltip]="'Edit' | t"
     icon="edit"
     [disabled]="!canEditReceipt()"
@@ -277,7 +277,7 @@
       class="ms-1"
       data-testid="receipt-mark-done"
       color="primary"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       [tooltip]="'Mark as settled' | t"
       icon="check"
       (clicked)="markDone()"
@@ -288,7 +288,7 @@
     class="ms-1"
     data-testid="receipt-duplicate"
     color="accent"
-    matButtonType="iconButton"
+    buttonType="iconButton"
     [tooltip]="'Duplicate' | t"
     icon="file_copy"
     [disabled]="!canDuplicate()"
@@ -301,7 +301,7 @@
     *ngIf="!(mode | inputReadonly)"
     class="mb-6"
     color="accent"
-    matButtonType="iconButton"
+    buttonType="iconButton"
     icon="photo_library"
     [tooltip]="'Upload Image(s)' | t"
     [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
@@ -312,7 +312,7 @@
       <app-button
         class="mb-6"
         color="accent"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         icon="download"
         [tooltip]="'Download Image' | t"
         [disabled]="(showProgressBar() ?? false)"
@@ -322,14 +322,14 @@
     <app-button
       class="mb-6"
       color="accent"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       [icon]="showImages ? 'visibility_off' : 'visibility'"
       [tooltip]="showImages ? 'Hide Images' : 'Show Images'"
       [disabled]="(showProgressBar() ?? false)"
       (clicked)="toggleShowImages()"
     ></app-button>
     <app-button
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="zoom_in"
       [tooltip]="'Zoom In' | t"
       color="accent"
@@ -337,7 +337,7 @@
       (clicked)="zoomImageIn()"
     ></app-button>
     <app-button
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="zoom_out"
       [tooltip]="'Zoom Out' | t"
       color="accent"
@@ -351,7 +351,7 @@
       (images().length > 0 || filesToUpload().length > 0) &&
       aiPoweredReceipts()
     "
-    matButtonType="iconButton"
+    buttonType="iconButton"
     icon="receipt_long"
     [tooltip]="'Magic fill' | t"
     color="accent"
@@ -405,7 +405,7 @@
     <app-button
       class="cv-image-dialog__close"
       data-testid="receipt-image-fullscreen-close"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="close"
       [tooltip]="'Close' | t"
       (clicked)="closeExpandedImage()"

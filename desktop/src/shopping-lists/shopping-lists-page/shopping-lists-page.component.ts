@@ -262,7 +262,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private router: Router,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private shoppingListService: ShoppingListService,
     private shoppingListStreamService: ShoppingListStreamService,
     private snackbarService: SnackbarService
@@ -449,7 +449,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   private openRecipeImport(list: ShoppingList, extra: Partial<RecipeImportDialogData>): void {
     // The lists still being shopped, plus the open one in case it is a finished list.
     const lists = activeLists(this.lists());
-    this.matDialog.open(RecipeImportDialogComponent, {
+    this.dialog.open(RecipeImportDialogComponent, {
       width: "min(calc(100vw - 2rem), 36rem)",
       // The field is what a person came to fill in; the first tabbable thing is the mode tab above it.
       autoFocus: '[data-testid="recipe-import-url"] input, [data-testid="recipe-import-text"] textarea',
@@ -463,7 +463,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   }
 
   public addList(): void {
-    const dialogRef = this.matDialog.open(ShoppingListFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
 
     dialogRef
@@ -582,13 +582,13 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   }
 
   public renameList(list: ShoppingList): void {
-    const dialogRef = this.matDialog.open(ShoppingListFormDialogComponent);
+    const dialogRef = this.dialog.open(ShoppingListFormDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.list = list;
   }
 
   public deleteList(list: ShoppingList): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Delete List");
     dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Delete \"{name}\" and all of its items?", { name: list.name });

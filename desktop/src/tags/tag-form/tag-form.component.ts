@@ -29,7 +29,7 @@ export class TagFormComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: AppDialogRef<TagFormComponent>,
+    private dialogRef: AppDialogRef<TagFormComponent>,
     private categoryService: TagService,
     private snackService: SnackbarService,
     private duplicateValidator: DuplicateValidator
@@ -64,7 +64,7 @@ export class TagFormComponent implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Tag updated successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -75,7 +75,7 @@ export class TagFormComponent implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Tag created successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -83,6 +83,6 @@ export class TagFormComponent implements OnInit {
   }
 
   public closeDialog(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

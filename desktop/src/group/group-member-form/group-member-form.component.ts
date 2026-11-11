@@ -67,9 +67,9 @@ export class GroupMemberFormComponent implements OnInit {
   );
 
   constructor(
-    private matDialogRef: AppDialogRef<GroupMemberFormComponent>,
+    private dialogRef: AppDialogRef<GroupMemberFormComponent>,
     private store: Store,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private destroyRef: DestroyRef
   ) {
     // A new member defaults to the User role once the roles resolve; an existing
@@ -116,12 +116,12 @@ export class GroupMemberFormComponent implements OnInit {
   public previewRole(): void {
     const role = this.selectedRole();
     if (role) {
-      openRolePreviewDialog(this.matDialog, role);
+      openRolePreviewDialog(this.dialog, role);
     }
   }
 
   public closeModal(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 
   public submit(): void {
@@ -129,6 +129,6 @@ export class GroupMemberFormComponent implements OnInit {
       return;
     }
 
-    this.matDialogRef.close(this.form);
+    this.dialogRef.close(this.form);
   }
 }

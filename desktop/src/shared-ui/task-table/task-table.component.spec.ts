@@ -56,7 +56,7 @@ describe("TaskTableComponent", () => {
     httpTesting.expectOne("/api/systemTask/getPagedSystemTasks").flush({ data: [], totalCount: 0 });
 
     expect(component.displayedColumns).not.toContain("source_file");
-    expect(component.columns.some((column) => column.matColumnDef === "source_file")).toBe(false);
+    expect(component.columns.some((column) => column.columnDef === "source_file")).toBe(false);
   });
 
   it("adds the source file column before expand when the host opts in", () => {
@@ -70,7 +70,7 @@ describe("TaskTableComponent", () => {
 
     // mat-table throws on a displayed id with no matching column definition, and
     // "expand" has to stay last.
-    expect(component.columns.some((column) => column.matColumnDef === "source_file")).toBe(true);
+    expect(component.columns.some((column) => column.columnDef === "source_file")).toBe(true);
     expect(component.displayedColumns.indexOf("source_file")).toBeGreaterThan(-1);
     expect(component.displayedColumns.indexOf("source_file"))
       .toBeLessThan(component.displayedColumns.indexOf("expand"));

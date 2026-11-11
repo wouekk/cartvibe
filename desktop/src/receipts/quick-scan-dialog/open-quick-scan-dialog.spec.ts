@@ -14,12 +14,12 @@ describe("openQuickScanDialog", () => {
   }
 
   it("opens the quick scan dialog with the shared dialog config", () => {
-    const matDialog = dialogDouble();
+    const dialog = dialogDouble();
 
-    openQuickScanDialog(matDialog);
+    openQuickScanDialog(dialog);
 
-    expect(matDialog.open).toHaveBeenCalledTimes(1);
-    expect(matDialog.open).toHaveBeenCalledWith(
+    expect(dialog.open).toHaveBeenCalledTimes(1);
+    expect(dialog.open).toHaveBeenCalledWith(
       QuickScanDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -29,9 +29,9 @@ describe("openQuickScanDialog", () => {
   // refetch off this observable, so it has to be the dialog's own afterClosed.
   it("returns the dialog's afterClosed observable", async () => {
     const afterClosed = of("closed");
-    const matDialog = dialogDouble(afterClosed as any);
+    const dialog = dialogDouble(afterClosed as any);
 
-    const result = openQuickScanDialog(matDialog);
+    const result = openQuickScanDialog(dialog);
 
     expect(result).toBe(afterClosed);
     expect(await firstValueFrom(result)).toEqual("closed");

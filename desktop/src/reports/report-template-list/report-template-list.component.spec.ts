@@ -94,7 +94,7 @@ describe("ReportTemplateListComponent", () => {
       select: vi.fn(() => of(1)),
       dispatch: vi.fn(),
     };
-    const matDialog = {
+    const dialog = {
       open: vi.fn(() => ({
         componentInstance: dialogInstance,
         afterClosed: () => of(dialogResult),
@@ -111,7 +111,7 @@ describe("ReportTemplateListComponent", () => {
         { provide: Store, useValue: store },
         { provide: Router, useValue: router },
         { provide: SnackbarService, useValue: snackbar },
-        { provide: AppDialog, useValue: matDialog },
+        { provide: AppDialog, useValue: dialog },
     ],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();

@@ -28,7 +28,7 @@
     }
     @if (saveTemplateAllowed()) {
       <app-button
-        matButtonType="matRaisedButton"
+        buttonType="raised"
         [buttonText]="saveTemplateText()"
         icon="bookmark_add"
         [disabled]="!canSaveTemplate() || saving()"
@@ -38,7 +38,7 @@
     }
     @if (generateAllowed()) {
       <app-button
-        matButtonType="matRaisedButton"
+        buttonType="raised"
         [buttonText]="generating() ? 'Generating…' : 'Generate Report'"
         [icon]="generating() ? '' : 'play_arrow'"
         [disabled]="!canGenerate() || generating()"

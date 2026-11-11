@@ -1,14 +1,14 @@
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "../interfaces/receipt-table-column-config.interface";
 import { columnDisplayName, currentColumnKey, reconcileColumns } from "./receipt-table-columns";
 
-function config(matColumnDef: string, visible: boolean, order: number) {
-  return { matColumnDef, visible, order };
+function config(columnDef: string, visible: boolean, order: number) {
+  return { columnDef, visible, order };
 }
 
 /** The built-in columns as persisted. */
 function builtIns() {
   return DEFAULT_RECEIPT_TABLE_COLUMNS.map((column, index) =>
-    config(column.matColumnDef, column.visible, index)
+    config(column.columnDef, column.visible, index)
   );
 }
 
@@ -43,7 +43,7 @@ describe("receipt-table-columns", () => {
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged.some((column) => column.matColumnDef === "custom_7")).toBe(false);
+      expect(merged.some((column) => column.columnDef === "custom_7")).toBe(false);
     });
 
     it("preserves the persisted order and re-derives it contiguously", () => {
@@ -51,7 +51,7 @@ describe("receipt-table-columns", () => {
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged[0].matColumnDef).toBe(DEFAULT_RECEIPT_TABLE_COLUMNS[DEFAULT_RECEIPT_TABLE_COLUMNS.length - 1].matColumnDef);
+      expect(merged[0].columnDef).toBe(DEFAULT_RECEIPT_TABLE_COLUMNS[DEFAULT_RECEIPT_TABLE_COLUMNS.length - 1].columnDef);
       expect(merged.map((column) => column.order)).toEqual(merged.map((_, i) => i));
     });
 
@@ -59,15 +59,15 @@ describe("receipt-table-columns", () => {
     // opt-in, so an upgrade must not widen anyone's table.
     it("appends the Note column hidden to a layout saved before it existed", () => {
       const persisted = builtIns()
-        .filter((column) => column.matColumnDef !== "note")
+        .filter((column) => column.columnDef !== "note")
         .map((column) => ({ ...column, visible: true }));
 
       const merged = reconcileColumns(persisted);
 
-      const note = merged.find((column) => column.matColumnDef === "note");
+      const note = merged.find((column) => column.columnDef === "note");
       expect(note).toBeDefined();
       expect(note?.visible).toBe(false);
-      expect(merged[merged.length - 1].matColumnDef).toBe("note");
+      expect(merged[merged.length - 1].columnDef).toBe("note");
     });
 
     // A browser that switched the Comment column on keeps it, in its place, as the Note column.
@@ -75,15 +75,15 @@ describe("receipt-table-columns", () => {
       const persisted = [
         config("first_comment", true, 0),
         ...builtIns()
-          .filter((column) => column.matColumnDef !== "note")
+          .filter((column) => column.columnDef !== "note")
           .map((column, index) => ({ ...column, order: index + 1 })),
       ];
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged[0]).toEqual({ matColumnDef: "note", visible: true, order: 0 });
-      expect(merged.filter((column) => column.matColumnDef === "note")).toHaveLength(1);
-      expect(merged.some((column) => column.matColumnDef === "first_comment")).toBe(false);
+      expect(merged[0]).toEqual({ columnDef: "note", visible: true, order: 0 });
+      expect(merged.filter((column) => column.columnDef === "note")).toHaveLength(1);
+      expect(merged.some((column) => column.columnDef === "first_comment")).toBe(false);
       expect(merged).toHaveLength(DEFAULT_RECEIPT_TABLE_COLUMNS.length);
     });
 
@@ -95,16 +95,40 @@ describe("receipt-table-columns", () => {
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged.filter((column) => column.matColumnDef === "note")).toEqual([{ matColumnDef: "note", visible: true, order: 0 }]);
+      expect(merged.filter((column) => column.columnDef === "note")).toEqual([{ columnDef: "note", visible: true, order: 0 }]);
+      expect(merged).toHaveLength(DEFAULT_RECEIPT_TABLE_COLUMNS.length);
+    });
+
+    // Until 2026-11 a stored layout named each column under another key. A browser that chose its columns
+    // then keeps them: without this the whole layout would fall back to the defaults.
+    it("reads a layout stored under the older name of the column key", () => {
+      const stored = [...builtIns()]
+        .reverse()
+        .map((column, index) => ({ matColumnDef: column.columnDef, visible: index % 2 === 0, order: index }));
+
+      const merged = reconcileColumns(stored as any);
+
+      expect(merged.map((column) => column.columnDef)).toEqual(stored.map((column) => column.matColumnDef));
+      expect(merged.map((column) => column.visible)).toEqual(stored.map((column) => column.visible));
+      // Written back under today's key only.
+      expect(merged.every((column) => Object.keys(column).sort().join() === "columnDef,order,visible")).toBe(true);
+    });
+
+    it("reads the older key together with a renamed column", () => {
+      const stored = [{ matColumnDef: "first_comment", visible: true, order: 0 }];
+
+      const merged = reconcileColumns(stored as any);
+
+      expect(merged[0]).toEqual({ columnDef: "note", visible: true, order: 0 });
       expect(merged).toHaveLength(DEFAULT_RECEIPT_TABLE_COLUMNS.length);
     });
 
     it("heals a missing built-in column", () => {
-      const persisted = builtIns().filter((column) => column.matColumnDef !== "status");
+      const persisted = builtIns().filter((column) => column.columnDef !== "status");
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged.some((column) => column.matColumnDef === "status")).toBe(true);
+      expect(merged.some((column) => column.columnDef === "status")).toBe(true);
     });
 
     it("drops a column that is not built in", () => {
@@ -112,7 +136,7 @@ describe("receipt-table-columns", () => {
 
       const merged = reconcileColumns(persisted);
 
-      expect(merged.some((column) => column.matColumnDef === "bogus_column")).toBe(false);
+      expect(merged.some((column) => column.columnDef === "bogus_column")).toBe(false);
     });
   });
 });

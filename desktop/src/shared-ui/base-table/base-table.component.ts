@@ -23,7 +23,7 @@ export class BaseTableComponent<T> {
 
   public setInitialSortedColumn(state: PagedTableInterface, columns: TableColumn[]): void {
     if (state.orderBy) {
-      const column = columns.find((c) => c.matColumnDef === state.orderBy);
+      const column = columns.find((c) => c.columnDef === state.orderBy);
       if (column) {
         column.defaultSortDirection = state.sortDirection;
       }

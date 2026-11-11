@@ -57,7 +57,7 @@
 
     <app-button
       data-testid="receipts-overflow-menu"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="more_vert"
       [tooltip]="'More actions' | t"
       color="accent"
@@ -151,11 +151,11 @@
     class="relative inline-flex size-control flex-none items-center justify-center self-center [&_button]:size-control [&_button]:p-0"
     data-testid="receipts-filter"
     icon="filter_alt"
-    matButtonType="iconButton"
+    buttonType="iconButton"
     [tooltip]="'Filter Receipts' | t"
     color="accent"
-    matBadgeColor="accent"
-    [matBadgeContent]="numFiltersApplied()"
+    badgeColor="accent"
+    [badgeContent]="numFiltersApplied()"
     (clicked)="filterButtonClicked()"
   ></app-button>
   <app-button
@@ -164,7 +164,7 @@
     animate.leave="animate-out fade-out-0 duration-200 motion-reduce:animate-none"
     data-testid="receipts-filter-reset"
     icon="restart_alt"
-    matButtonType="iconButton"
+    buttonType="iconButton"
     [tooltip]="'Reset filter' | t"
     color="accent"
     (clicked)="resetFilterButtonClicked()"
@@ -291,7 +291,7 @@
       <app-button
         *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
         data-testid="receipt-mark-done"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         icon="check"
         [tooltip]="'Mark as settled' | t"
         color="primary"
@@ -301,7 +301,7 @@
     <app-button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsUpdate }"
       data-testid="receipt-read-with-ai"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="auto_awesome"
       [tooltip]="'Read with AI' | t"
       color="accent"
@@ -310,7 +310,7 @@
     <app-button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsDuplicate }"
       data-testid="receipt-duplicate"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="file_copy"
       [tooltip]="'Duplicate' | t"
       color="accent"
@@ -319,7 +319,7 @@
     <app-button
       *hasGroupPermission="{ groupId: element.groupId, permission: Permission.GroupReceiptsDelete }"
       data-testid="receipt-delete"
-      matButtonType="iconButton"
+      buttonType="iconButton"
       icon="delete"
       color="warn"
       [tooltip]="'Delete' | t"

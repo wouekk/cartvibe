@@ -88,7 +88,7 @@
     -->
     @if (element.allowedActions?.includes("generate")) {
       <app-button
-        matButtonType="iconButton"
+        buttonType="iconButton"
         color="accent"
         icon="play_arrow"
         [tooltip]="'Generate report' | t"
@@ -107,7 +107,7 @@
     }
     @if (element.allowedActions?.includes("duplicate")) {
       <app-button
-        matButtonType="iconButton"
+        buttonType="iconButton"
         color="accent"
         icon="content_copy"
         [tooltip]="'Duplicate' | t"

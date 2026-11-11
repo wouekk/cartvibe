@@ -186,7 +186,7 @@ export class ReceiptProductsComponent {
 
   public readonly tagChoices = computed<Tag[]>(() => byName(this.catalog().tags[this.groupId()] ?? []));
 
-  private readonly matDialog = inject(AppDialog);
+  private readonly dialog = inject(AppDialog);
 
   /** A category's name; the line's own copy of it when the category is not among the choices. */
   public categoryName(categoryId: number | null | undefined, fallback = ""): string {
@@ -335,7 +335,7 @@ export class ReceiptProductsComponent {
   }
 
   public remove(product: ReceiptProduct): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = marker("Remove product");
     dialogRef.componentInstance.confirmText = marker("Remove");
     dialogRef.componentInstance.dialogContent = this.translation.t("Remove \"{name}\" from this receipt?", { name: product.displayName || product.name });

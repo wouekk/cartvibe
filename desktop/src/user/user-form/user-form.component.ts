@@ -54,9 +54,9 @@ export class UserFormComponent implements OnInit {
     private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
     private userValidators: UserValidators,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private destroyRef: DestroyRef,
-    public matDialogRef: AppDialogRef<UserFormComponent>
+    public dialogRef: AppDialogRef<UserFormComponent>
   ) {
     // Pre-select the User role on the add form once the roles resolve. Syncing a
     // derived value into the reactive form is an imperative side effect, so an
@@ -163,7 +163,7 @@ export class UserFormComponent implements OnInit {
   public previewRole(): void {
     const role = this.selectedRole();
     if (role) {
-      openRolePreviewDialog(this.matDialog, role);
+      openRolePreviewDialog(this.dialog, role);
     }
   }
 
@@ -195,7 +195,7 @@ export class UserFormComponent implements OnInit {
               of(undefined)
             )
           ),
-          tap(() => this.matDialogRef.close(true)),
+          tap(() => this.dialogRef.close(true)),
           catchError(() => {
             // The interceptor surfaces the failure; keep the dialog open so the
             // admin can correct the input rather than losing it.
@@ -211,7 +211,7 @@ export class UserFormComponent implements OnInit {
           switchMap((u) => this.store.dispatch(new AddUser(u))),
           tap(() => {
             this.snackbarService.success("User successfully created");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           }),
           catchError((err) => {
             // Closing here would report a create that never happened and discard
@@ -230,6 +230,6 @@ export class UserFormComponent implements OnInit {
   }
 
   public closeModal(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

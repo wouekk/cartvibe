@@ -145,7 +145,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
 
   constructor(
     public override baseTableService: BaseTableService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService,
     private store: Store,
     private userService: UserService
@@ -163,38 +163,38 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     this.columns = [
       {
         columnHeader: "Username",
-        matColumnDef: "username",
+        columnDef: "username",
         template: this.usernameCell(),
         sortable: true,
       },
 
       {
         columnHeader: "Display Name",
-        matColumnDef: "display_name",
+        columnDef: "display_name",
         template: this.displaynameCell(),
         sortable: true,
       },
       {
         columnHeader: "Role",
-        matColumnDef: "app_role",
+        columnDef: "app_role",
         template: this.appRoleCell(),
         sortable: false,
       },
       {
         columnHeader: marker("Created At"),
-        matColumnDef: "created_at",
+        columnDef: "created_at",
         template: this.createdAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Updated At"),
-        matColumnDef: "updated_at",
+        columnDef: "updated_at",
         template: this.updatedAtCell(),
         sortable: true,
       },
       {
         columnHeader: marker("Actions"),
-        matColumnDef: "actions",
+        columnDef: "actions",
         template: this.actionsCell(),
         sortable: false,
       },
@@ -229,7 +229,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openUserFormDialog(user?: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       UserFormComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -244,7 +244,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openResetPasswordDialog(user: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ResetPasswordComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -253,7 +253,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
   }
 
   public openDummyUserConversionDialog(user: User): void {
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       DummyUserConversionDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );
@@ -267,7 +267,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
     const user = users[index];
 
     if (user.id.toString() !== userId) {
-      const dialogRef = this.matDialog.open(
+      const dialogRef = this.dialog.open(
         ConfirmationDialogComponent,
         DEFAULT_DIALOG_CONFIG
       );
@@ -305,7 +305,7 @@ export class UserListComponent extends BaseTableComponent<User> implements After
       return;
     }
 
-    const dialogRef = this.matDialog.open(
+    const dialogRef = this.dialog.open(
       ConfirmationDialogComponent,
       DEFAULT_DIALOG_CONFIG
     );

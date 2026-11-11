@@ -38,7 +38,7 @@
             icon="receipt_long"
             [buttonText]="'Quick Scan' | t"
             [tooltip]="aiConfigured() ? '' : ('Needs an AI API key' | t)"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-quick-scan"
             (clicked)="openQuickScan()"
           ></app-button>
@@ -47,7 +47,7 @@
           <app-button
             icon="playlist_add"
             [buttonText]="'New list' | t"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-new-list"
             [buttonRouterLink]="newListLink()"
             [buttonQueryParams]="{ new: 'list' }"
@@ -57,7 +57,7 @@
           icon="barcode_scanner"
           [buttonText]="'Check product' | t"
           [tooltip]="'Check a product barcode' | t"
-          matButtonType="matRaisedButton"
+          buttonType="raised"
           data-testid="overview-scan-product"
           (clicked)="scanProduct()"
         ></app-button>
@@ -66,7 +66,7 @@
             icon="tune"
             [buttonText]="'Customize' | t"
             [tooltip]="'Choose and arrange the dashboard panels' | t"
-            matButtonType="matRaisedButton"
+            buttonType="raised"
             data-testid="overview-customise"
             [buttonRouterLink]="customiseLink()"
           ></app-button>

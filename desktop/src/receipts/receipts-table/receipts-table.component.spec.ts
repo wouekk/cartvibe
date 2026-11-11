@@ -162,7 +162,7 @@ describe("ReceiptsTableComponent", () => {
 
     const withNoteShown = () =>
       DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
-        column.matColumnDef === "note" ? { ...column, visible: true } : column
+        column.columnDef === "note" ? { ...column, visible: true } : column
       );
 
     it("offers a sortable Note column, hidden until it is switched on", () => {
@@ -176,11 +176,11 @@ describe("ReceiptsTableComponent", () => {
 
       (component as any).setColumns();
 
-      // Its matColumnDef is also the orderBy the API sorts on, so both must be
+      // Its columnDef is also the orderBy the API sorts on, so both must be
       // exactly note.
       const column = component
         .columns()
-        .find((col) => col.matColumnDef === "note");
+        .find((col) => col.columnDef === "note");
       expect(column?.columnHeader).toEqual("Note");
       expect(column?.sortable).toEqual(true);
       expect(component.displayedColumns()).toContain("note");
@@ -193,9 +193,9 @@ describe("ReceiptsTableComponent", () => {
       (component as any).setColumns();
 
       expect(component.displayedColumns()).not.toContain("note");
-      expect(component.columns().some((col) => col.matColumnDef === "note")).toBe(false);
+      expect(component.columns().some((col) => col.columnDef === "note")).toBe(false);
       // The layout itself is kept: the column is back when the household shows the note again.
-      expect(store.selectSnapshot(ReceiptTableState.columnConfig).find((col) => col.matColumnDef === "note")?.visible).toBe(true);
+      expect(store.selectSnapshot(ReceiptTableState.columnConfig).find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     // mat-table throws on a displayed id it has no definition for, and a config
@@ -204,7 +204,7 @@ describe("ReceiptsTableComponent", () => {
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
+          { columnDef: "custom_99", visible: true, order: 9 },
         ])
       );
 
@@ -216,7 +216,7 @@ describe("ReceiptsTableComponent", () => {
           continue;
         }
         expect(
-          component.columns().some((col) => col.matColumnDef === displayed)
+          component.columns().some((col) => col.columnDef === displayed)
         ).toEqual(true);
       }
     });
@@ -227,7 +227,7 @@ describe("ReceiptsTableComponent", () => {
       store.dispatch(
         new SetColumnConfig([
           ...DEFAULT_RECEIPT_TABLE_COLUMNS,
-          { matColumnDef: "custom_99", visible: true, order: 9 },
+          { columnDef: "custom_99", visible: true, order: 9 },
         ])
       );
 
@@ -236,7 +236,7 @@ describe("ReceiptsTableComponent", () => {
       expect(
         store
           .selectSnapshot(ReceiptTableState.columnConfig)
-          .map((col) => col.matColumnDef)
+          .map((col) => col.columnDef)
       ).not.toContain("custom_99");
     });
 
@@ -267,7 +267,7 @@ describe("ReceiptsTableComponent", () => {
       store.dispatch(
         new SetColumnConfig(
           DEFAULT_RECEIPT_TABLE_COLUMNS.map((column) =>
-            column.matColumnDef === "note" ? { ...column, matColumnDef: "first_comment", visible: true } : column
+            column.columnDef === "note" ? { ...column, columnDef: "first_comment", visible: true } : column
           )
         )
       );
@@ -278,8 +278,8 @@ describe("ReceiptsTableComponent", () => {
       expect(sorted.orderBy).toEqual("note");
       expect(sorted.sortDirection).toEqual("asc");
       const layout = store.selectSnapshot(ReceiptTableState.columnConfig);
-      expect(layout.some((col) => col.matColumnDef === "first_comment")).toBe(false);
-      expect(layout.find((col) => col.matColumnDef === "note")?.visible).toBe(true);
+      expect(layout.some((col) => col.columnDef === "first_comment")).toBe(false);
+      expect(layout.find((col) => col.columnDef === "note")?.visible).toBe(true);
     });
 
     it("keeps a sort on a column that still exists", () => {

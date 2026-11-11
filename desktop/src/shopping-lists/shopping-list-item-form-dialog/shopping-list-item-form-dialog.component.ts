@@ -38,7 +38,7 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: AppDialogRef<ShoppingListItemFormDialogComponent, ShoppingListItem>,
+    private dialogRef: AppDialogRef<ShoppingListItemFormDialogComponent, ShoppingListItem>,
     private shoppingListService: ShoppingListService,
     private store: Store
   ) {}
@@ -68,13 +68,13 @@ export class ShoppingListItemFormDialogComponent implements OnInit {
               item,
             })
           );
-          this.matDialogRef.close(item);
+          this.dialogRef.close(item);
         })
       )
       .subscribe();
   }
 
   public closeDialog(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 }

@@ -104,7 +104,7 @@ export class ShoppingTripsComponent {
     private store: Store,
     private actions: Actions,
     private shoppingListService: ShoppingListService,
-    private matDialog: AppDialog,
+    private dialog: AppDialog,
     private snackbarService: SnackbarService
   ) {
     effect(() => {
@@ -163,7 +163,7 @@ export class ShoppingTripsComponent {
   }
 
   public attachExisting(): void {
-    const dialogRef = this.matDialog.open(AttachReceiptDialogComponent);
+    const dialogRef = this.dialog.open(AttachReceiptDialogComponent);
     dialogRef.componentInstance.groupId = this.groupId();
     dialogRef.componentInstance.attachedReceiptIds = this.trips()
       .map((trip) => trip.receipt?.id)
@@ -219,7 +219,7 @@ export class ShoppingTripsComponent {
   }
 
   private confirm(headerText: string, dialogContent: string, confirmText: string): Observable<unknown> {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
     dialogRef.componentInstance.headerText = headerText;
     dialogRef.componentInstance.dialogContent = dialogContent;
     dialogRef.componentInstance.confirmText = confirmText;

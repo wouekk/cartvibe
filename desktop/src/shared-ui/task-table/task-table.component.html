@@ -47,7 +47,7 @@
       <app-button
         data-testid="receipt-update-diff-open"
         icon="open_in_new"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         [tooltip]="'View changes' | t"
         (clicked)="openReceiptUpdateDialog(receiptUpdate.snapshots)"
       ></app-button>
@@ -68,7 +68,7 @@
       <app-button
         *ngIf="(element.resultDescription?.length || 0) > descriptionInlineMaxLength"
         icon="open_in_new"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         [tooltip]="'View full description' | t"
         data-testid="system-task-description-open"
         (clicked)="openDescriptionDialog(element)"
@@ -84,14 +84,14 @@
     <div class="flex items-center gap-1">
       <app-button
         icon="visibility"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         [tooltip]="'Preview source file' | t"
         data-testid="system-task-source-file-preview"
         (clicked)="openSourceFileDialog(element)"
       ></app-button>
       <app-button
         icon="download"
-        matButtonType="iconButton"
+        buttonType="iconButton"
         [tooltip]="'Download source file' | t"
         data-testid="system-task-source-file-download"
         (clicked)="downloadSourceFile(element)"

@@ -52,7 +52,7 @@ export class ColumnConfigurationDialogComponent implements OnInit {
     this.columns = reconcileColumns(columns).map(
       (col) => ({
         ...col,
-        displayName: columnDisplayName(col.matColumnDef),
+        displayName: columnDisplayName(col.columnDef),
       })
     );
   }

@@ -14,7 +14,7 @@ export class BaseButtonComponent {
 
   public readonly type = input<"button" | "menu" | "submit" | "reset">("button");
 
-  public readonly matButtonType = input<"matRaisedButton" | "iconButton" | "basic">("matRaisedButton");
+  public readonly buttonType = input<"raised" | "iconButton" | "basic">("raised");
 
   @Input() public icon: string = "";
 
@@ -28,13 +28,13 @@ export class BaseButtonComponent {
 
   public readonly tooltip = input<string>("");
 
-  public readonly matBadgeContent = input<any>();
+  public readonly badgeContent = input<any>();
 
-  public readonly matBadgeColor = input<"primary" | "accent" | "warn" | undefined>("primary");
+  public readonly badgeColor = input<"primary" | "accent" | "warn" | undefined>("primary");
 
   /** No badge for an empty count: nothing, an empty string or a zero (a red "0" says nothing). */
-  public readonly matBadgeHidden = computed(() => {
-    const content = this.matBadgeContent();
+  public readonly badgeHidden = computed(() => {
+    const content = this.badgeContent();
     return content === undefined || content === null || content === "" || content === 0 || content === "0";
   });
 

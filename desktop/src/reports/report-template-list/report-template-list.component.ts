@@ -76,7 +76,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
 
   private readonly router = inject(Router);
   private readonly store = inject(Store);
-  private readonly matDialog = inject(AppDialog);
+  private readonly dialog = inject(AppDialog);
   private readonly snackbar = inject(SnackbarService);
   private readonly runner = inject(ReportRunnerService);
   private readonly destroyRef = inject(DestroyRef);
@@ -150,13 +150,13 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
 
   private setColumns(): void {
     this.columns = [
-      { columnHeader: "Name", matColumnDef: "name", template: this.nameCell(), sortable: true },
-      { columnHeader: "Scope", matColumnDef: "scope", template: this.scopeCell(), sortable: false },
-      { columnHeader: "Grouping", matColumnDef: "grouping", template: this.groupingCell(), sortable: false },
-      { columnHeader: marker("Detail"), matColumnDef: "detail", template: this.detailCell(), sortable: false },
-      { columnHeader: marker("Formats"), matColumnDef: "formats", template: this.formatsCell(), sortable: false },
-      { columnHeader: marker("Updated"), matColumnDef: "updated_at", template: this.updatedCell(), sortable: true },
-      { columnHeader: "", matColumnDef: "actions", template: this.actionsCell(), sortable: false },
+      { columnHeader: "Name", columnDef: "name", template: this.nameCell(), sortable: true },
+      { columnHeader: "Scope", columnDef: "scope", template: this.scopeCell(), sortable: false },
+      { columnHeader: "Grouping", columnDef: "grouping", template: this.groupingCell(), sortable: false },
+      { columnHeader: marker("Detail"), columnDef: "detail", template: this.detailCell(), sortable: false },
+      { columnHeader: marker("Formats"), columnDef: "formats", template: this.formatsCell(), sortable: false },
+      { columnHeader: marker("Updated"), columnDef: "updated_at", template: this.updatedCell(), sortable: true },
+      { columnHeader: "", columnDef: "actions", template: this.actionsCell(), sortable: false },
     ];
     this.setInitialSortedColumn(
       this.baseTableService.getPagedRequestCommand() as PagedTableInterface,
@@ -241,7 +241,7 @@ export class ReportTemplateListComponent extends BaseTableComponent<ReportTempla
   }
 
   public delete(template: ReportTemplate): void {
-    const dialogRef = this.matDialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent, DEFAULT_DIALOG_CONFIG);
     dialogRef.componentInstance.headerText = marker("Delete Report Template");
     dialogRef.componentInstance.confirmText = marker("Delete");
     dialogRef.componentInstance.dialogContent = this.translation.t("Are you sure you want to delete \"{name}\"? This action is irreversible.", { name: template.name });

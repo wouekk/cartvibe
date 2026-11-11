@@ -31,7 +31,7 @@ export class CategoryForm implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: AppDialogRef<CategoryForm>,
+    private dialogRef: AppDialogRef<CategoryForm>,
     private categoryService: CategoryService,
     private snackService: SnackbarService,
     private duplicateValidator: DuplicateValidator
@@ -66,7 +66,7 @@ export class CategoryForm implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Category updated successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -77,7 +77,7 @@ export class CategoryForm implements OnInit {
           take(1),
           tap(() => {
             this.snackService.success("Category created successfully");
-            this.matDialogRef.close(true);
+            this.dialogRef.close(true);
           })
         )
         .subscribe();
@@ -85,6 +85,6 @@ export class CategoryForm implements OnInit {
   }
 
   public closeDialog(): void {
-    this.matDialogRef.close(false);
+    this.dialogRef.close(false);
   }
 }

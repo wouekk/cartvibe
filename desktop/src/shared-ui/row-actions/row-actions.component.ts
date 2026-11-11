@@ -75,7 +75,7 @@ export interface RowAction<T = any> {
             } @else {
               <app-button
                 [attr.data-testid]="action.testId"
-                matButtonType="iconButton"
+                buttonType="iconButton"
                 color="accent"
                 [icon]="action.icon"
                 [tooltip]="action.label | t"

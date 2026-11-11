@@ -71,7 +71,7 @@ export class TableComponent implements OnChanges {
   private readonly dataColumns = computed(() => {
     const columns = this.columns();
     return this.displayedColumns()
-      .map((id) => columns.find((column) => column.matColumnDef === id))
+      .map((id) => columns.find((column) => column.columnDef === id))
       .filter((column): column is TableColumn => !!column);
   });
 
@@ -84,7 +84,7 @@ export class TableComponent implements OnChanges {
     const columns = this.dataColumns();
     const titled = columns.some((column) => column.phone === "title");
     const roleOf = (column: TableColumn, index: number): TablePhoneRole =>
-      column.phone ?? (column.matColumnDef === "actions" ? "actions" : index === 0 && !titled ? "title" : "meta");
+      column.phone ?? (column.columnDef === "actions" ? "actions" : index === 0 && !titled ? "title" : "meta");
     const withRole = (role: TablePhoneRole) => columns.filter((column, index) => roleOf(column, index) === role);
 
     return {
@@ -106,7 +106,7 @@ export class TableComponent implements OnChanges {
       const column = this.columns().find((c) => c.defaultSortDirection);
       if (column) {
         this.defaultSort = {
-          active: column.matColumnDef,
+          active: column.columnDef,
           direction: column.defaultSortDirection ?? "desc",
         };
         this.sortState.set({ ...this.defaultSort });
@@ -184,12 +184,12 @@ export class TableComponent implements OnChanges {
 
   /** The column definition behind a displayed column id. */
   public columnFor(id: string): TableColumn | undefined {
-    return this.columns().find((column) => column.matColumnDef === id);
+    return this.columns().find((column) => column.columnDef === id);
   }
 
   public ariaSort(column: TableColumn): string | null {
     const state = this.sortState();
-    if (!column.sortable || state.active !== column.matColumnDef || !state.direction) {
+    if (!column.sortable || state.active !== column.columnDef || !state.direction) {
       return column.sortable ? "none" : null;
     }
 
@@ -205,16 +205,16 @@ export class TableComponent implements OnChanges {
     const state = this.sortState();
     const keepSorted = !!column.defaultSortDirection;
     let direction: Sort["direction"] = "asc";
-    if (state.active === column.matColumnDef) {
+    if (state.active === column.columnDef) {
       direction = state.direction === "asc" ? "desc" : state.direction === "desc" && !keepSorted ? "" : "asc";
     }
 
-    this.announceSortChange({ active: direction ? column.matColumnDef : "", direction });
+    this.announceSortChange({ active: direction ? column.columnDef : "", direction });
   }
 
   /** The card view's "Sort by": the chosen column, keeping the direction in use (the column's own, or ascending, at first). */
   public sortByColumn(id: string): void {
-    const column = this.sortableColumns().find((candidate) => candidate.matColumnDef === id);
+    const column = this.sortableColumns().find((candidate) => candidate.columnDef === id);
     if (!column) {
       this.announceSortChange({ active: "", direction: "" });
       return;

@@ -43,14 +43,14 @@ describe("BulkStatusUpdateComponent", () => {
   });
 
   it("should close dialog with undefined", () => {
-    const spy = vi.spyOn(component.matDialogRef, "close");
+    const spy = vi.spyOn(component.dialogRef, "close");
     component.cancelButtonClicked();
 
     expect(spy).toHaveBeenCalledWith(undefined);
   });
 
   it("should close dialog with form value", () => {
-    const spy = vi.spyOn(component.matDialogRef, "close");
+    const spy = vi.spyOn(component.dialogRef, "close");
     component.form.patchValue({
       status: ReceiptStatus.Open,
     });

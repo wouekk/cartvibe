@@ -24,7 +24,7 @@ export class ResetPasswordComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private matDialogRef: AppDialogRef<ResetPasswordComponent>,
+    private dialogRef: AppDialogRef<ResetPasswordComponent>,
     private snackbarService: SnackbarService,
     private userService: UserService
   ) {}
@@ -47,7 +47,7 @@ export class ResetPasswordComponent implements OnInit {
           take(1),
           tap(() => {
             this.snackbarService.success("Password successfully set");
-            this.matDialogRef.close();
+            this.dialogRef.close();
           })
         )
         .subscribe();
@@ -55,6 +55,6 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   public closeModal(): void {
-    this.matDialogRef.close();
+    this.dialogRef.close();
   }
 }

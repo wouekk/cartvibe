@@ -12,6 +12,6 @@ import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
  * component's template is a view child of that component, so the menu would
  * never see it and keyboard navigation would skip the entry.
  */
-export function openQuickScanDialog(matDialog: AppDialog): Observable<unknown> {
-  return matDialog.open(QuickScanDialogComponent, DEFAULT_DIALOG_CONFIG).afterClosed();
+export function openQuickScanDialog(dialog: AppDialog): Observable<unknown> {
+  return dialog.open(QuickScanDialogComponent, DEFAULT_DIALOG_CONFIG).afterClosed();
 }
