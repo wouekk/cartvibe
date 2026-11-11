@@ -10,16 +10,13 @@
 
 
 /**
- * Status of a receipt
+ * Where a receipt stands, OPEN (shown as \"To check\") or RESOLVED (\"Settled\"). The server still accepts the three statuses it had before 2026-11 and stores them as one of these (NEEDS_ATTENTION and DRAFT as OPEN, DECLINED as RESOLVED); it never returns them.
  */
-export type ReceiptStatus = 'OPEN' | 'NEEDS_ATTENTION' | 'RESOLVED' | 'DRAFT' | 'DECLINED' | '';
+export type ReceiptStatus = 'OPEN' | 'RESOLVED' | '';
 
 export const ReceiptStatus = {
     Open: 'OPEN' as ReceiptStatus,
-    NeedsAttention: 'NEEDS_ATTENTION' as ReceiptStatus,
     Resolved: 'RESOLVED' as ReceiptStatus,
-    Draft: 'DRAFT' as ReceiptStatus,
-    Declined: 'DECLINED' as ReceiptStatus,
     Empty: '' as ReceiptStatus
 };
 

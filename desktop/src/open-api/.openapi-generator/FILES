@@ -5,7 +5,6 @@ api/api.ts
 api/auth.service.ts
 api/backup.service.ts
 api/category.service.ts
-api/comment.service.ts
 api/dashboardLayout.service.ts
 api/exchangeRate.service.ts
 api/export.service.ts
@@ -57,7 +56,6 @@ model/category.ts
 model/categoryView.ts
 model/checkReceiptProcessingSettingsConnectivityCommand.ts
 model/claims.ts
-model/comment.ts
 model/currencyRate.ts
 model/currencyRateTable.ts
 model/currencySeparator.ts
@@ -159,7 +157,6 @@ model/updateDashboardLayoutCommand.ts
 model/updateGroupReceiptSettingsCommand.ts
 model/updateProfileCommand.ts
 model/upsertCategoryCommand.ts
-model/upsertCommentCommand.ts
 model/upsertGroupCommand.ts
 model/upsertGroupMemberCommand.ts
 model/upsertOidcProviderCommand.ts
@@ -172,7 +169,6 @@ model/upsertSystemSettingsCommand.ts
 model/upsertTagCommand.ts
 model/user.ts
 model/userPreferences.ts
-model/userShortcut.ts
 model/userView.ts
 param.ts
 variables.ts

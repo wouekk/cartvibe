@@ -25,55 +25,35 @@ export interface UpdateGroupReceiptSettingsCommand {
      */
     hideReceiptTags?: boolean;
     /**
-     * Hide receipt comments
+     * Take the note off the household\'s receipts (the form, the list and Quick Scan)
      */
-    hideComments?: boolean;
+    hideNote?: boolean;
     /**
-     * Show the paid by field in quick scan
+     * Quick Scan asks who paid
      */
     quickScanPaidByEnabled?: boolean;
-    /**
-     * Require the paid by field in quick scan
-     */
-    quickScanPaidByRequired?: boolean;
     quickScanDefaultPaidByType?: QuickScanDefaultPaidByType;
     /**
-     * Default paid by user id when paid by is optional and type is USER
+     * Who paid when a scan does not say; required when the type is USER
      */
     quickScanDefaultPaidById?: number;
     /**
-     * Show the status field in quick scan
+     * Quick Scan asks for the status
      */
     quickScanStatusEnabled?: boolean;
-    /**
-     * Require the status field in quick scan
-     */
-    quickScanStatusRequired?: boolean;
     quickScanDefaultStatus?: ReceiptStatus;
     /**
-     * Show the categories field in quick scan
+     * Quick Scan asks for categories
      */
     quickScanCategoriesEnabled?: boolean;
     /**
-     * Require the categories field in quick scan
-     */
-    quickScanCategoriesRequired?: boolean;
-    /**
-     * Show the tags field in quick scan
+     * Quick Scan asks for tags
      */
     quickScanTagsEnabled?: boolean;
     /**
-     * Require the tags field in quick scan
+     * Quick Scan asks for a note (not while hideNote is on)
      */
-    quickScanTagsRequired?: boolean;
-    /**
-     * Show the comment field in quick scan
-     */
-    quickScanCommentEnabled?: boolean;
-    /**
-     * Require the comment field in quick scan
-     */
-    quickScanCommentRequired?: boolean;
+    quickScanNoteEnabled?: boolean;
 }
 export namespace UpdateGroupReceiptSettingsCommand {
 }

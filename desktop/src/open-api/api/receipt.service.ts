@@ -127,7 +127,7 @@ export class ReceiptService {
 
     /**
      * Bulk receipt status update
-     * This will bulk update receipt statuses with the option of adding a comment to each [SYSTEM USER]
+     * This will bulk update receipt statuses [SYSTEM USER]
      * @param bulkStatusUpdateCommand Bulk status data
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -292,7 +292,7 @@ export class ReceiptService {
 
     /**
      * Create receipt with files
-     * Creates a receipt, its comments and its images in one atomic call: a failure anywhere leaves no receipt, image or file behind. Requires group.receipts.create in the receipt\&#39;s group. Every file must be an image or PDF (checked before anything is written). Returns 400 when the caller\&#39;s group role requires a comment (key &#x60;comments&#x60;) or an image (key &#x60;files&#x60;) that the request does not carry. [SYSTEM USER]
+     * Creates a receipt and its images in one atomic call: a failure anywhere leaves no receipt, image or file behind. Requires group.receipts.create in the receipt\&#39;s group. Every file must be an image or PDF (checked before anything is written). [SYSTEM USER]
      * @param receipt 
      * @param files Images (or PDFs) to attach to the new receipt. Together with the receipt they share the server\\\&#39;s 50 MB request body limit.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -793,14 +793,14 @@ export class ReceiptService {
      * @param statuses 
      * @param categoryIds 
      * @param tagIds 
-     * @param comments 
+     * @param notes 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, comments?: Array<string>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, notes?: Array<string>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, notes?: Array<string>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, notes?: Array<string>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public quickScanReceipt(files: Array<Blob>, groupIds: Array<number>, paidByUserIds: Array<number>, statuses: Array<ReceiptStatus>, categoryIds?: Array<string>, tagIds?: Array<string>, notes?: Array<string>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (files === null || files === undefined) {
             throw new Error('Required parameter files was null or undefined when calling quickScanReceipt.');
         }
@@ -918,13 +918,13 @@ export class ReceiptService {
                 localVarFormParams = localVarFormParams.append('tagIds', [...tagIds].join(COLLECTION_FORMATS['csv'])) as any || localVarFormParams;
             }
         }
-        if (comments) {
+        if (notes) {
             if (localVarUseForm) {
-                comments.forEach((element) => {
-                    localVarFormParams = localVarFormParams.append('comments', <any>element) as any || localVarFormParams;
+                notes.forEach((element) => {
+                    localVarFormParams = localVarFormParams.append('notes', <any>element) as any || localVarFormParams;
             })
             } else {
-                localVarFormParams = localVarFormParams.append('comments', [...comments].join(COLLECTION_FORMATS['csv'])) as any || localVarFormParams;
+                localVarFormParams = localVarFormParams.append('notes', [...notes].join(COLLECTION_FORMATS['csv'])) as any || localVarFormParams;
             }
         }
 

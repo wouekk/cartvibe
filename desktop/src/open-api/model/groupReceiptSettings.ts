@@ -11,6 +11,9 @@ import { ReceiptStatus } from './receiptStatus';
 import { QuickScanDefaultPaidByType } from './quickScanDefaultPaidByType';
 
 
+/**
+ * What a household set for its receipts. Quick Scan asks for nothing beside the photo unless a quickScan...Enabled switch adds a field to its dialog; no field is ever required, and what is not asked for gets a value by itself (see the two defaults).
+ */
 export interface GroupReceiptSettings { 
     id: number;
     createdAt: string;
@@ -37,55 +40,35 @@ export interface GroupReceiptSettings {
      */
     hideReceiptTags?: boolean;
     /**
-     * Hide receipt comments
+     * Take the note off the household\'s receipts (the form, the list and Quick Scan)
      */
-    hideComments?: boolean;
+    hideNote?: boolean;
     /**
-     * Show the paid by field in quick scan
+     * Quick Scan asks who paid
      */
     quickScanPaidByEnabled?: boolean;
-    /**
-     * Require the paid by field in quick scan
-     */
-    quickScanPaidByRequired?: boolean;
     quickScanDefaultPaidByType?: QuickScanDefaultPaidByType;
     /**
-     * Default paid by user id when paid by is optional and type is USER
+     * Who paid when a scan does not say and the type is USER
      */
     quickScanDefaultPaidById?: number;
     /**
-     * Show the status field in quick scan
+     * Quick Scan asks for the status
      */
     quickScanStatusEnabled?: boolean;
-    /**
-     * Require the status field in quick scan
-     */
-    quickScanStatusRequired?: boolean;
     quickScanDefaultStatus?: ReceiptStatus;
     /**
-     * Show the categories field in quick scan
+     * Quick Scan asks for categories
      */
     quickScanCategoriesEnabled?: boolean;
     /**
-     * Require the categories field in quick scan
-     */
-    quickScanCategoriesRequired?: boolean;
-    /**
-     * Show the tags field in quick scan
+     * Quick Scan asks for tags
      */
     quickScanTagsEnabled?: boolean;
     /**
-     * Require the tags field in quick scan
+     * Quick Scan asks for a note (not while hideNote is on)
      */
-    quickScanTagsRequired?: boolean;
-    /**
-     * Show the comment field in quick scan
-     */
-    quickScanCommentEnabled?: boolean;
-    /**
-     * Require the comment field in quick scan
-     */
-    quickScanCommentRequired?: boolean;
+    quickScanNoteEnabled?: boolean;
 }
 export namespace GroupReceiptSettings {
 }

@@ -11,10 +11,6 @@
 
 export interface BulkStatusUpdateCommand { 
     /**
-     * Optional comment to leave on each receipt
-     */
-    comment?: string;
-    /**
      * Status to update to
      */
     status: string;
