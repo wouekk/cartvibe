@@ -261,7 +261,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   `group.shopping-lists.update` and an open list). Two steps in one `AppDialog`: input (`app-settings-tabs` *Recipe URL* /
   *Paste ingredients*, `previewShoppingListRecipe`) and preview (title, portion bar, one `hlm-checkbox` row per
   ingredient, `importShoppingListRecipe`). A page that cannot be read (`failureReason`) switches to the paste tab with a
-  hint, without a toast; a 429 or 503 from nginx's throttle shows the "busy" hint. `recipe-scaling.ts` holds the maths:
+  hint, without a toast; a 429 (or 503) from the server's request limit shows the "busy" hint. `recipe-scaling.ts` holds the maths:
   the base quantity is never changed, `quantity = base × multiplier`, within 0.02 of a whole or a half it snaps (⅓ × 3 =
   1), else two decimals; a row without a quantity is not scaled. Servings (when the recipe has them) change the
   multiplier by `target / base`. A row says "On list" when an **open** item has the same normalised name (the API merges
@@ -331,7 +331,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - The look is a palette (Blue, Zinc, Indigo, Emerald, Violet; `PALETTES` in `src/theme/themes.ts`) times a mode
   (System, Day, Night). `ThemeService` keeps `mode` (`cartvibe.themeMode`: `system|light|dark`) and `palette`
   (`cartvibe.themePalette`, default zinc) per browser, writes `data-palette` and the `dark` class on `<html>`, and `isDark`
-  follows the OS on System. `index.html` applies both before first paint (its hash is in `docker/default.conf`).
+  follows the OS on System. `index.html` applies both before first paint (the server computes its hash for the Content-Security-Policy).
   Settings → Theme has the Appearance (`theme-mode-*`), Colour palette (`theme-palette-*`) and Interface size
   (`theme-size-*`) cards; the welcome has `welcome-theme-<mode>` and `welcome-palette-<key>` strips. The header has
   no theme control (removed 2026-11-10).
@@ -369,7 +369,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `dataGroups`, so every API, SSE, OAuth and MCP call goes to the network; `navigationUrls` excludes `/api`, `/oauth`,
   `/mcp` and `/.well-known`. `serviceWorkerBypassInterceptor` sends every `/api` HttpClient call with the
   `ngsw-bypass` header, so the worker never handles it (passing an upload through the worker cut its multipart body
-  short: Quick Scan logged `multipart: NextPart: EOF`); keep it first in `withInterceptors`. nginx serves `ngsw.json` and `ngsw-worker.js` with `no-cache`, which is how a new image
+  short: Quick Scan logged `multipart: NextPart: EOF`); keep it first in `withInterceptors`. The server sends `ngsw.json` and `ngsw-worker.js` with `no-cache`, which is how a new image
   is noticed. A bad worker means a stuck app: change the config with care and check
   `dist/cartvibe/browser/ngsw.json` after a build.
 - **`AppUpdateService`** (app initializer): when a new version is ready it activates it on the next navigation and

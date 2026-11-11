@@ -237,7 +237,23 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
       program runner, and the image build runs the API's exact commands under the shipped ImageMagick policy
       (`docker/checks/runtime-check.sh`). The picture tests are skipped on a machine without the programs and
       required in CI.
-    - Still to come, each on its own branch: Go serves the app and nginx goes; arm64 images.
+  - B9, step two (`feature/go-serves-app`, cut from `preview`, 2026-11-11): one process in the container. The
+    API answers on port 80 and serves the web app; nginx, its 227-line config and the two-process supervisor are
+    gone. `api/internal/edge` does what nginx did, with the same numbers: the six request limits per visitor
+    (counted as nginx counted them), the largest body per route, the visitor's address behind a private-network
+    proxy only, the security headers, HSTS behind TLS, compression, the cache rules, the single-page fallback.
+    - What got simpler: the Content-Security-Policy's script hash is computed from the page served, so the hash
+      in a config file, the script that compared the two and its CI step are gone; the limits name their paths
+      beside the router (S9 was a limit on a path the API never served); a test run raises the limits with one
+      variable instead of editing a config inside a running container.
+    - Port 80 as uid 10001: Docker 20.10 and newer allow it; where the kernel still reserves low ports the
+      entrypoint hands the API `NET_BIND_SERVICE`, which the compose files already keep. CI proves both, and that
+      the API says why when it has neither. bash stays PID 1 with the API as its one child, so a stop still
+      waits and the leftovers of a stopped ImageMagick or Chromium are still collected.
+    - Proved here before CI, which the removal of cgo and nginx made possible: the server run on the Windows PC
+      in production mode with the built app, driven by curl and a browser (sign-in, the Dashboard, pages opened
+      by their address, the service worker, compression, a 429, a 413, a clean console). Never on a Synology.
+    - Still to come, each on its own branch: arm64 images.
 
 ---
 

@@ -24,7 +24,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   notification. An add that revives a crossed-off item moves its `clientId` onto that item, so its repeat finds it
   too. Cross-off was already a "set". Any new write the app is to queue needs the same property before it is queued.
 - `GET /shopping-list/group/{groupId}` carries an `ETag` over the body and `Cache-Control: private, no-cache`; a
-  matching `If-None-Match` (weak or strong: nginx's gzip turns ours weak) answers 304 with no body, after the
+  matching `If-None-Match` (weak or strong: a proxy that compresses turns ours weak) answers 304 with no body, after the
   permission check. The browser does the revalidation by itself, so the app's code sees an ordinary 200.
 - **SSE** `GET /shopping-list/group/{groupId}/stream`: `ShoppingListHub` is in-process pub/sub (single container). Publish
   happens after the write commits and never blocks; a subscriber with a full 32-event buffer is dropped and refetches.
@@ -32,8 +32,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   (`main.go` has a 5-minute `WriteTimeout`), returns `(0, nil)` so `HandleRequest` writes no error body mid-stream,
   heartbeats every 25 s re-checking the permission, and ends after 15 minutes so a reconnect re-authenticates.
   The heartbeat is an event named `PING` (data `{}`), not a comment: the page reopens a stream that has been silent
-  for 70 s, which is how a phone out of signal stops showing "Live". `X-Accel-Buffering: no` plus a dedicated nginx
-  location disable proxy buffering. Trip changes send only `TRIPS_CHANGED` (no payload); clients refetch.
+  for 70 s, which is how a phone out of signal stops showing "Live". `X-Accel-Buffering: no` tells a reverse proxy
+  in front (the Synology one is nginx) not to buffer it, and the edge leaves the stream uncompressed. Trip changes send only `TRIPS_CHANGED` (no payload); clients refetch.
   `RECEIPT_READ` carries a `receiptId` and nothing of the receipt (`shoppingListId` 0): the product sweep sends it
   after every outcome of a read and Quick Scan after an inline read (`publishReceiptRead`), and the open receipt
   page refetches through the receipt's own call. Both callers build the service without an outer transaction.
@@ -46,7 +46,7 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `@graph`, `@type` a string or array, `Recipe` or a full URL) or `itemprop` microdata; text goes straight to the parser.
   A page that cannot be read still answers 200 with an empty `items` and a `failureReason` (`blocked`, `timeout`,
   `unreachable`, `not_found`, `not_html`, `too_large`, `invalid_url`, `no_recipe`, `no_ingredients`, `busy`: an open
-  string) so the desktop moves to pasting without a toast; a refused internal address is plain `unreachable`. nginx throttles the
+  string) so the desktop moves to pasting without a toast; a refused internal address is plain `unreachable`. The edge throttles the
   path (`recipe` zone, 10/min, 429) and `recipeFetchSlots` caps four fetches at once. Lines are normalised (entities,
   bullets, checkboxes, section headers, a quantity-only line merged into the next), parsed by `ParseLine` (quantity
   forms `½`, `1 ½`, `1/2`, `1,5`, ranges to the upper bound; the unit table in `units.go`; `de` / `d'` connectors;
@@ -229,8 +229,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
   `GET /backup/export?includeFiles=` need `app.backup.export` (admin only, not in `FamilyUserAppKeys`).
 - `TakeSnapshot` reads every table into CSV bytes inside **one transaction**. With `_txlock=immediate` a read transaction
   holds the write lock, so it holds rows only; `WriteZip` streams the photos after it closes and lists a file deleted in
-  between under `missingFiles`. The handler clears the write deadline (like the SSE stream), and nginx passes
-  `/api/backup/export` unbuffered.
+  between under `missingFiles`. The handler clears the write deadline (like the SSE stream), and the edge passes
+  `/api/backup/export` on as it is written, uncompressed.
 - Rows are read straight from the tables, not through `GetPagedReceiptsByGroupId`: a whole-household dump behind an
   admin key, so paid-by and member isolation do not apply (`authorization.md`). The All group is never written; its ids
   are in the manifest for report templates that cover it.
@@ -245,8 +245,8 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 
 - **Into an empty household only:** no receipts and no shopping lists (`HouseholdIsEmpty`), checked at the preview, at
   start and again inside the transaction, so a second import of the same file adds nothing.
-- `POST /backup/import` streams the multipart part to `temp/backups/<jobId>.zip` (`MaxUploadBytes` 4 GB; nginx passes
-  `/api/backup/import` unbuffered with the same cap) after clearing the read and write deadlines. It opens the ZIP,
+- `POST /backup/import` streams the multipart part to `temp/backups/<jobId>.zip` (`MaxUploadBytes` 4 GB; the edge allows
+  `/api/backup/import` the same) after clearing the read and write deadlines. It opens the ZIP,
   checks every entry's size and SHA-256 against the manifest, parses every table (`Parse`: a cell that cannot be read or
   a reference to a missing row is a *problem*, listed in the preview) and answers `BuildPreview`. A file that is not an
   export, is damaged or comes from a newer format answers 400 and leaves no job. Previewed jobs older than a day are

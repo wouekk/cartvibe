@@ -1,4 +1,4 @@
 *.sh text eol=lf
-# index.html holds the inline theme script whose hash is in docker/default.conf: the same bytes on every checkout.
+# index.html holds the inline theme script the Content-Security-Policy allows by its hash. The API computes the
+# hash from the file it serves (api/internal/edge), so this only keeps the file the same on every checkout.
 *.html text eol=lf
-docker/default.conf text eol=lf

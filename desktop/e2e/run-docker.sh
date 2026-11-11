@@ -12,11 +12,13 @@ case "${1:-}" in
     docker rm -f cartvibe runner >/dev/null 2>&1 || true
     docker network create e2e >/dev/null 2>&1 || true
     docker run -d --name cartvibe --network e2e -e TZ=Europe/Paris -e SECRET_KEY=ci-secret-key \
-      -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars -e DB_ENGINE=sqlite -e DB_FILENAME=app.db "$IMAGE" >/dev/null
-    # The specs together pass nginx's production request limits, which showed up as random empty tables: run the
-    # suite with the same config but generous rates (relax-rate-limits.sh says why).
-    for i in $(seq 1 30); do docker exec cartvibe test -f /etc/nginx/conf.d/default.conf 2>/dev/null && break; sleep 1; done
-    bash e2e/relax-rate-limits.sh cartvibe
+      -e ENCRYPTION_KEY=ci-encryption-key-of-thirty-two-chars -e DB_ENGINE=sqlite -e DB_FILENAME=app.db \
+      -e REQUEST_LIMIT_FACTOR=100 "$IMAGE" >/dev/null
+    # REQUEST_LIMIT_FACTOR: the specs run from one address, two at a time, and a spec provisions its data through
+    # the API before it opens a page, so together they pass the production request limits (10 requests a second,
+    # 30 sign-ins a minute), which showed up as random empty tables. One person's page load is 2 to 11 requests
+    # and never gets near them, so the limits are right for the product and wrong for a test run. The limits as
+    # written are proved in ci.yml ("The request limit answers 429").
     # The runner shares the app's network namespace so the page is on http://localhost (a secure context, like CI).
     docker run -d --name runner --network container:cartvibe \
       -v "$PWD/e2e:/w/e2e" -v "$PWD/playwright.config.ts:/w/playwright.config.ts" \

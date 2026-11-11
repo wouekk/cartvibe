@@ -23,7 +23,7 @@ func UploadReceiptImage(w http.ResponseWriter, r *http.Request) {
 	errMessage := "Error uploading image."
 	fileRepository := repositories.NewFileRepository(nil)
 
-	// The size limit used to be nginx alone (client_max_body_size); the API now refuses a larger body itself.
+	// The edge caps every API body at 50 MB (internal/edge/routes.go); this is the upload's own, tighter limit.
 	r.Body = http.MaxBytesReader(w, r.Body, constants.MultipartFormMaxSize+multipartOverhead)
 
 	// Each of these ends the request: going on after the error answer wrote a second one behind it and, with no

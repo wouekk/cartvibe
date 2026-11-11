@@ -6,8 +6,9 @@ import { QUIET_ERRORS } from "./http-interceptor";
 export const RATE_LIMIT_RETRY_DELAYS = [1000, 2000];
 
 /**
- * True for a 429 from the request limit in front of the API (nginx), which refuses a request before the API sees
- * it: its body is a page, not the API's `{ errorMsg }`. A 429 the API writes itself is an answer and is left alone.
+ * True for a 429 from the request limit in front of the API's handlers (api/internal/edge), which refuses a
+ * request before one sees it: its body is plain text, not the API's `{ errorMsg }`. A 429 the API writes itself
+ * is an answer and is left alone.
  */
 export function isRefusedByRequestLimit(error: unknown): boolean {
   return error instanceof HttpErrorResponse && error.status === 429 && !error.error?.errorMsg;

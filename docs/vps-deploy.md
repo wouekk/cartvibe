@@ -8,7 +8,7 @@ backups. The family NAS keeps using the root `docker-compose.yml`; this guide us
 | Service | What it does |
 |---|---|
 | `caddy` | The only public service (ports 80 and 443). Gets a Let's Encrypt certificate for your domain and forwards to the app. |
-| `cartvibe` | The app image from GHCR (nginx + Go API), unchanged from the NAS. |
+| `cartvibe` | The app image from GHCR (one Go server: the API and the web app), unchanged from the NAS. |
 | `litestream-restore` | Runs once before the app: restores the database from the bucket if there is none on disk yet. |
 | `litestream` | Copies every database change to the bucket about a second after it commits, plus a daily snapshot, kept 7 days (Litestream 0.5). |
 | `restic` | Every 6 hours backs up receipt images, trip photos, logos and logs; keeps 14 daily, 8 weekly, 6 monthly. |
@@ -52,7 +52,7 @@ Litestream only covers the SQLite database. The files go through restic, so you 
 6. **In the app** (System Settings): switch **Secure cookies** on (the site is HTTPS only now) and set the public URL
    fields to `https://<your domain>`.
 
-The image's nginx trusts `X-Forwarded-For` from private networks only, so the login and sign-up rate limits apply to
+The app trusts `X-Forwarded-For` from private networks only, so the login and sign-up rate limits apply to
 each visitor's real address behind Caddy.
 
 ## Updating

@@ -8,7 +8,7 @@
     <!--
       The demo's page (the `demo` build swaps it for src/index.html): no manifest and no home-screen metas, so the browser
       offers no install, and the stored look is read under the demo's own storage prefix (src/demo/demo-storage.ts),
-      otherwise the same first-paint script as index.html. The real page's hash in docker/default.conf does not apply
+      otherwise the same first-paint script as index.html. The real page's Content-Security-Policy (the server computes its script hash) does not apply
       here: the demo is static files on GitHub Pages.
     -->
     <meta name="theme-color" content="#151920" />

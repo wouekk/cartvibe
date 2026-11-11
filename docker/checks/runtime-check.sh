@@ -103,8 +103,7 @@ fc-match Arial family | grep -qi liberation || fail "Arial does not resolve to L
 
 # What the Dockerfile needs for hardening and entry.
 setpriv --version >/dev/null || fail "setpriv is missing"
-nginx -v >/dev/null 2>&1 || fail "nginx is missing"
-# The HEALTHCHECK speaks HTTP to nginx through bash's /dev/tcp (the image has no curl or wget): a closed port must
+# The HEALTHCHECK speaks HTTP to the API through bash's /dev/tcp (the image has no curl or wget): a closed port must
 # answer "refused", not "No such file" (a bash built without network redirections).
 bash -c 'exec 3<>/dev/tcp/127.0.0.1/9' 2>tcp.err
 grep -qi refused tcp.err || { cat tcp.err >&2; fail "bash cannot open a TCP connection (the HEALTHCHECK needs /dev/tcp)"; }

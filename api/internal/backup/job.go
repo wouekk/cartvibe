@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	// MaxUploadBytes caps an uploaded export (nginx allows the same on its import route).
+	// MaxUploadBytes caps an uploaded export (the edge allows the same on the import route: internal/edge/routes.go).
 	MaxUploadBytes = int64(4) << 30
 	// jobLease is how long a running import is left alone before a redelivered task may take it over
 	// (the container restarted mid-import; its transaction rolled back).

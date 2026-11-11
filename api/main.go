@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cartvibe/api/internal/edge"
 	config "cartvibe/api/internal/env"
 	"cartvibe/api/internal/imagetool"
 	"cartvibe/api/internal/logging"
@@ -11,17 +12,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 	// Embeds the IANA zone database so the app time zone setting resolves
 	// identically on an image without /usr/share/zoneinfo, rather than an
 	// accepted name silently falling back to UTC.
 	_ "time/tzdata"
-
-	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -112,8 +113,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	router := routers.BuildRootRouter()
-	httpServer := startHttpServer(router)
+	httpServer := startHttpServer(buildHandler())
 
 	<-stop
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Stopping...")
@@ -149,32 +149,82 @@ const (
 	backgroundShutdownTimeout = 10 * time.Second
 )
 
-// listenAddress is where the API listens. In the image nginx is the only client and sits in the same container, so
-// the API answers on the loopback interface only: with host networking it would otherwise be reachable past nginx
-// (its request limits and security headers). A development run keeps every interface (the dev server's proxy and
-// other tools reach it by name).
-func listenAddress() string {
-	if config.GetDeployEnv() == "prod" {
-		return "127.0.0.1:8081"
+// The image's defaults. A server run from the binary alone can move both.
+const (
+	// Where the image keeps the built web app (docker/Dockerfile copies it there).
+	defaultWebRoot = "/app/cartvibe-web"
+	// The container's port; the compose files map a port of the NAS onto it.
+	defaultProdListenAddress = ":80"
+	devListenAddress         = "0.0.0.0:8081"
+)
+
+// buildHandler is what answers a request. In the image that is the edge around the API's router: it serves the
+// web app's files and does what nginx used to do in front of the API (request limits, body sizes, security
+// headers, compression; internal/edge). A development run is the router alone: the dev server serves the app
+// and proxies /api to it.
+func buildHandler() http.Handler {
+	router := routers.BuildRootRouter()
+	if config.GetDeployEnv() != "prod" {
+		return router
 	}
 
-	return "0.0.0.0:8081"
+	webRoot := os.Getenv("WEB_ROOT")
+	if webRoot == "" {
+		webRoot = defaultWebRoot
+	}
+	// For test runs only (internal/edge.Config): unset, empty or unreadable is the limits as written.
+	limitFactor, _ := strconv.ParseFloat(os.Getenv("REQUEST_LIMIT_FACTOR"), 64)
+
+	return edge.New(router, edge.Config{
+		WebRoot:     webRoot,
+		LimitFactor: limitFactor,
+		Log:         func(message string) { logging.LogStd(logging.LOG_LEVEL_INFO, message) },
+	})
 }
 
-func startHttpServer(router *chi.Mux) *http.Server {
+// listenAddress is where the server listens. In the image it is the container's port 80, on every interface: the
+// API is its own front door (LISTEN_ADDRESS moves it, for a server run from the binary alone). A development run
+// listens on 8081 for the dev server's proxy.
+func listenAddress() string {
+	if config.GetDeployEnv() != "prod" {
+		return devListenAddress
+	}
+	if address := os.Getenv("LISTEN_ADDRESS"); address != "" {
+		return address
+	}
+	return defaultProdListenAddress
+}
+
+func startHttpServer(handler http.Handler) *http.Server {
 	srv := &http.Server{
-		Handler:      router,
-		Addr:         listenAddress(),
+		Handler: handler,
+		Addr:    listenAddress(),
+		// The whole request and the whole answer, uploads and downloads included. A live stream lifts its own
+		// write deadline (handlers/shopping_list_stream.go).
 		WriteTimeout: 5 * time.Minute,
 		ReadTimeout:  5 * time.Minute,
+		// With no proxy of ours in front, a connection that sends its request line a byte at a time, or sits
+		// idle between requests, is this server's to close.
+		ReadHeaderTimeout: 15 * time.Second,
+		IdleTimeout:       2 * time.Minute,
 	}
 	// A stream never finishes by itself, so Shutdown would wait for each until its deadline.
 	srv.RegisterOnShutdown(services.GetShoppingListHub().Close)
+
+	// Listening is done here, not in the goroutine, so a port that cannot be taken stops the start with its
+	// reason instead of leaving a process that serves nothing.
+	listener, err := net.Listen("tcp", srv.Addr)
+	if err != nil {
+		logging.LogStd(logging.LOG_LEVEL_FATAL, fmt.Sprintf(
+			"cannot listen on %s: %v. In a container the API binds port 80 itself: that needs Docker 20.10 or newer, "+
+				"or the NET_BIND_SERVICE capability the compose files keep (docker/entrypoint.sh hands it over where it is needed).",
+			srv.Addr, err))
+	}
 	logging.LogStd(logging.LOG_LEVEL_INFO, "Initialize completed")
-	logging.LogStd(logging.LOG_LEVEL_INFO, "Listening on port 8081")
+	logging.LogStd(logging.LOG_LEVEL_INFO, "Listening on "+srv.Addr)
 
 	go func() {
-		err := srv.ListenAndServe()
+		err := srv.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logging.LogStd(logging.LOG_LEVEL_FATAL, err.Error())
 		}

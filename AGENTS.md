@@ -45,8 +45,9 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
 
 ## Infrastructure
 
-- **One monolith image** from `docker/Dockerfile` (nginx :80 → Go on 127.0.0.1:8081); never add per-component
-  Dockerfiles. The runtime stage gets the API binary only, and `.dockerignore` keeps local data out of the context.
+- **One monolith image** from `docker/Dockerfile`, with one process in it: the Go API answers on port 80 and
+  serves the web app itself (`api/internal/edge`; since 2026-11-11 there is no nginx, and none is to be added
+  back). Never add per-component Dockerfiles. The runtime stage gets the API binary only, and `.dockerignore` keeps local data out of the context.
   Dependencies install from their manifests before the source is copied, so code-only builds reuse the cached layers;
   keep `VERSION`, `BUILD_DATE` and source copies below them.
 - **Hardening, keep all of it:** the API runs as uid 10001 through `setpriv`, and as root only when `ALLOW_ROOT=1`
@@ -54,8 +55,8 @@ build, run the specs, and check desktop and phone widths in day and night (Zinc 
   it is root); both compose files set `no-new-privileges` and drop every capability but the seven the start needs,
   and CI starts the image with exactly that set; our ImageMagick policy
   (`docker/imagemagick/policy.xml`) allows only the receipt formats, Ghostscript and receipt-sized limits, and the
-  upload check accepts the same formats (the build proves HEIC, PDF and TIFF still convert); nginx sends `server_tokens off` and the security
-  headers; the image is rebuilt weekly without the cache, and every image is scanned before it is pushed: a critical
+  upload check accepts the same formats (the build proves HEIC, PDF and TIFF still convert); every answer carries the security headers and none names
+  its server (`api/internal/edge`, which also holds the request limits and the body sizes); the image is rebuilt weekly without the cache, and every image is scanned before it is pushed: a critical
   finding that has a fix stops the publish (after one rebuild without the cache), and the full grype report is kept.
 - **The runtime stage installs no Recommends.** What the API needs (Tesseract, ghostscript, the fonts, the HEIC and
   Chromium pieces) is named in the Dockerfile and proved by `docker/checks/runtime-check.sh` at build time. A new

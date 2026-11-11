@@ -32,7 +32,7 @@ type loginFailures struct {
 	lockedUntil time.Time
 }
 
-// loginThrottle slows guessing per user name. nginx limits each address; this limits each account, so a guesser
+// loginThrottle slows guessing per user name. The edge limits each address (internal/edge); this limits each account, so a guesser
 // spread over many addresses still gets about a hundred tries a day on one name instead of tens of thousands, and
 // each refused try costs no bcrypt. The state is in memory: a restart forgets it, which only gives a guesser a few
 // more tries.

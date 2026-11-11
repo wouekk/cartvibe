@@ -59,9 +59,9 @@ stored key before the first paint and needs no copy of the list (an unknown key 
 - Charts read the tokens: categories use `--chart-1..5` plus `--muted-foreground` for "Other" (`overview-chart.utils.ts`),
   bars use `--primary`, faded muted and `--destructive` (over goal), via `readChartColors()`. `app-chart` recolours when
   `class` or `data-palette` changes on `<html>`.
-- The inline script in `index.html` sets `data-palette` and `dark` before the first paint. The CSP in `docker/default.conf`
-  allows it by hash: after changing the script, hash the text between `<script>` and `</script>` (base64 SHA-256) and update
-  the `script-src` value.
+- The inline script in `index.html` sets `data-palette` and `dark` before the first paint. The Content-Security-Policy
+  allows it by hash, and the server computes that hash from the page it serves (`api/internal/edge`): changing the
+  script needs no other change.
 - The favicon (`desktop/src/favicon.svg`) is a standalone file and cannot read page variables; it switches on the
   operating system's `prefers-color-scheme`, like the `theme-color` meta, which stays static. Update the favicon's two
   palettes if the identity changes.
