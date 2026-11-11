@@ -45,8 +45,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     `money-minor-units-v1`; a real upgrade on the PC gave every amount back as the same text; and
     `feature/contract-check` (`0959f4cc`, green CI): a test compares `swagger.yml` with the Go types field by
     field (the owner chose a check over a generator; three small inaccuracies of the contract are recorded in
-    the audit report, not corrected). **Next, in this order:** aisle order per shop; signal stores. Neither
-    is started. The working worktree is `.claude/worktrees/dependency-updates`.
+    the audit report, not corrected); and `feature/shop-order` (`04df4e63`, green CI): in Shop mode what is
+    left to buy is in the order the household crossed things off before (LIST-23), worked out in the web app
+    from the lists it holds, one order for the household (the owner's choice), no server or contract change;
+    seen in the built demo only. **Next, the last sprint 11 item:** signal stores in place of NGXS (not
+    started). The working worktree is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
   - Since cgo and nginx went, the PC can run the real server in production mode with the built app
@@ -133,6 +136,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   converted, 0 of them had more than two decimals" (a number other than 0 there is worth telling the agent).
   Every receipt, product line and the monthly goal read as before; the Dashboard's totals match what they were;
   sorting the receipts by amount and filtering by an exact amount (12.10) find the right ones.
+- Sprint 11, the usual order (`:preview`), on a phone: cross a list off item by item in the shop (three or
+  more), then on a later list with some of the same items switch Shop mode on: they come in the order you
+  walked, with one line above them saying so, and new items after them. Crossing one off must not make the
+  rest jump. Never seen with a real household's lists.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
