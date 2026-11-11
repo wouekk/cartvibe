@@ -38,7 +38,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     C code; `feature/go-serves-app` (`903574d1`): the API serves the web app and answers on port 80, nginx is
     gone from the image (`api/internal/edge`); `feature/arm64-image`: every tag is published for amd64 and
     arm64 (`:preview` carries both; the arm64 image passed its build checks and has never run anywhere).
-    **Next, in this order:** id-only file paths; money as integers; a generated contract; aisle order per
+    Also in `preview`: `feature/id-file-paths` (`24c3bb18`, green CI): a receipt file is
+    `data/<groupId>/<fileId>`, with the one-way migration `id-file-paths-v1`; a real upgrade was run on the PC
+    with the two binaries. **Next, in this order:** money as integers; a generated contract; aisle order per
     shop; signal stores. None is started. The working worktree is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
@@ -78,7 +80,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   back** except by restoring that backup. After it: every person still signs in, an admin is still Admin, and
   the people and household pages show the two roles. **Since sprint 10 the same first start also turns each
   receipt's comments into its one note, makes every receipt To check or Settled, and deletes the header
-  shortcuts, one-way as well.**
+  shortcuts, one-way as well.** **Since 2026-11-11 it also moves every receipt photo** from
+  `data/<id>-<household name>/…` to `data/<household id>/<file id>` (renames only; the log line "receipt files
+  are stored by id now" says how many). The database snapshot does not hold the photos, so **copy the `data`
+  folder too before this update**: an older version cannot find the files afterwards.
 - After it: a photo scan, a HEIC and a PDF upload (also as an avatar), a report PDF and Excel, a household rename
   with receipt photos, a scan with a real AI key, day and night in an accent palette on phone and desktop.
 - Sprint 1: with the NAS stopped the open app stays signed in and keeps its theme; Quick Scan on a phone shows
@@ -115,6 +120,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   version. Worth a look behind the Synology proxy: the shopping list still says *Live*, a page opened by its
   address (a bookmark of a receipt) opens, and signing in still works from two devices at once. Never run on
   a Synology.
+- Sprint 11, photos stored by number (`:preview`): after the first start the container's log has the line
+  "receipt files are stored by id now" with a count that matches the receipts' photos and "0 not found on disk"
+  (or a number that was already missing before). Old receipts still show and download their photos, a household
+  rename is instant, and File Station shows `data/<number>/` folders in place of the named ones.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
