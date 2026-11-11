@@ -45,6 +45,12 @@ and you can add `stop_grace_period: 30s` to your stack as the README shows, so a
 it is doing.
 
 ### Added
+- **The list in the order you usually shop.** In Shop mode, what is left to buy is sorted by where you crossed
+  things off on earlier trips, so the list follows your walk through the shop: fruit first if that is where you
+  start, the tills last. A line above the list says so. It needs at least one earlier list that was crossed off
+  one item at a time; something you have never bought comes after the rest; and outside Shop mode the list stays
+  as you wrote it. It is one order for the whole household, not one per shop, and it works with no signal
+  *(LIST-23)*.
 - **The month in one sentence on the Dashboard.** With a monthly goal set, the Dashboard opens with a line such as
   "142,85 € of 650,00 € spent this month. Left: 20 days, so 25,35 € a day stays on goal." Over the goal it says by
   how much instead *(DASH-12)*.

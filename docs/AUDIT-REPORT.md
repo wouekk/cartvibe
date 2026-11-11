@@ -296,6 +296,12 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
       `UpsertReceiptCommand` is silent about the currency fields the server fills itself. Say so if these
       should be corrected in `swagger.yml`; that regenerates the client.
     - Not checked: a property's type, which properties are required, and Go types sent without a schema.
+  - Aisle order (`feature/shop-order`, cut from `preview`, 2026-11-11; the owner chose one order for the
+    household over one per shop): in Shop mode what is left to buy is sorted by where items were crossed off on
+    earlier trips (LIST-23). Worked out in the web app from the lists it already holds: no server change, no
+    contract change, and it works with no signal. What it does not do: tell shops apart, or remember a trip
+    whose list was deleted or cleared of its crossed-off items. A server-side memory would fix the second; it
+    is not built. Seen working in the built demo (phone and desktop, day and night).
 
 ---
 

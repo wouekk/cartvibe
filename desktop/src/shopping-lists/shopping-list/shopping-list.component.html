@@ -45,8 +45,12 @@
   </form>
 }
 
+@if (inUsualOrder()) {
+  <!-- Shop mode sorts the list by where things were crossed off on earlier trips; said once, so the changed order is no surprise. -->
+  <p class="m-0 pb-2 text-xs text-muted-foreground" data-testid="shopping-list-usual-order">{{ 'In the order you usually pick things up.' | t }}</p>
+}
 <div class="border-t border-border/60" data-testid="shopping-list-active-items">
-  @for (item of activeItems(); track item.id) {
+  @for (item of shownItems(); track item.id) {
     <app-shopping-list-item
       [item]="item"
       [canUpdate]="canUpdate()"
