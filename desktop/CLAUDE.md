@@ -13,7 +13,9 @@ feature.
 - `npm start`: dev server on :4200, proxying `/api` to :8081 (`proxy.conf.json`). It does not start the API.
 - `npm run build` (output `dist/cartvibe/`). `npm test` runs the specs on **Vitest** through `ng test`
   (`@angular/build:unit-test`); `npm run test:ci` adds coverage (`coverage/cartvibe/cobertura-coverage.xml`). One spec:
-  `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`).
+  `npx ng test --include "src/path/x.spec.ts"` (quote the glob). Run `ng build` too (root `CLAUDE.md`). The build
+  warns when the first load passes 1.8 MB and fails at 2.0 MB (`budgets` in `angular.json`; it was 1.70 MB on
+  2026-11-11): find what grew before raising the figure.
 - `npm run build:demo` / `start:demo` / `check:demo` / `e2e:demo`: the demo on an in-memory API (`docs/demo.md`). `check:demo`
   proves it is not in the production bundle; a new endpoint the UI calls also needs an answer in `src/demo/backend`.
 - `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
@@ -64,7 +66,9 @@ feature.
   does it; give a new table's columns a `phone` role when the default reads badly), and a row has one `more_vert`
   menu (`app-row-actions`), never a row of icon buttons (`docs/features.md` → Navigation and settings screens).
 - **Icons:** `<app-icon name="receipt_long">` takes the Material name and draws the Lucide icon mapped in
-  `shared-ui/icon/icon-map.ts`; add a pair there for a new name.
+  `shared-ui/icon/icon-map.ts`; add a pair there for a new name. The map holds only the names the app uses (it
+  ships in the first load): a name nothing uses any more is taken out with its icon, and an unknown name draws a
+  circle, so a missing pair shows. The household icon is the one name that comes from stored data.
 - **Tests (Vitest, zoneless):** `angular.json` target `test` (builds with the JIT `build:test` configuration, runs
   isolated, `vitest.config.ts` sets the timeouts), `setup-vitest.ts` (stubs `ResizeObserver`, canvas and `chart.js`: `src/testing/chartjs.stub.ts` records the config it is given).
   Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +

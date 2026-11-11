@@ -176,8 +176,27 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
   - Proved by unit specs, the production and demo builds and the demo's Playwright suite. The rewritten real-app
     specs (`quick-scan-config`, `quick-scan-dialog-behavior`, `receipt-note-column`) have not run; CI's smoke set
     runs `quick-scan-dialog.spec` and `receipts.spec`.
-  - Still to do on the branch: D10, D11, C13, C11, C10, F6, F8, and the two things sprint 4 left for here (the
-    receipt page's review with one "Looks right" button, dialogs as bottom sheets on a phone).
+  - Done on 2026-11-11 as well:
+    - D11: the app's states and stored slices are listed once (`desktop/src/store/ngxs-states.ts`), for the app and
+      for the specs.
+    - D10: `UserPrefernces`, `BuildParamaterisedString`, `app-autocomlete` and `app-data.utill.ts` are spelled
+      right (the preferences table keeps its name, so nothing migrates).
+    - C13: every component, directive and pipe is standalone (Angular's migration, then repairs by hand; what it got
+      wrong is in `desktop/docs/features.md` → Modules). 28 feature and shared modules remain as bundles of imports
+      and as the targets of the lazy routes.
+    - C11, the names: `matDialog`, `matColumnDef`, `matButtonType` and the badge inputs lost the prefix (314
+      places down to one, which reads a column layout a browser stored under the old key).
+    - F8, the budget: the build warns above 1.8 MB of first load and fails at 2.0 MB (it is 1.68 MB). `@defer` was
+      measured earlier and left out with its reasons (`desktop/docs/features.md`): the charts and the barcode
+      reader are already loaded on demand.
+    - C10, in part: the icon map lost the 64 names (44 icons) nothing uses since the header shortcuts went.
+  - Decided differently from the audit, C10: templates keep naming icons through `app-icon` and the one map.
+    Registering icons per component would move about 100 kB out of the first load, but a missed registration
+    draws nothing and no build or spec reports it; with one map an unknown name draws a circle and a spec proves
+    every name draws. Say so if the per-component version is wanted anyway.
+  - Still to do on the branch: C11's second half (one button idiom in the templates), F6, and the two things
+    sprint 4 left for here (the receipt page's review with one "Looks right" button, dialogs as bottom sheets on
+    a phone).
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
 
 ---
