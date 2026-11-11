@@ -25,17 +25,18 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     run.
   - Sprint 9 (identity-provider screens, `feature/oidc-ui`) is in `preview` too: web app only, proved by component
     specs; no sign-in was made end to end, because the agent has no identity provider.
-  - **Sprint 10 (`feature/app-cleanup`, worktree `.claude/worktrees/dependency-updates`) is in `preview`** as far
-    as it has got (green CI on `6a0c7fd5`, 2026-11-11): one note per receipt, two statuses and a Quick Scan that
-    asks for nothing (three one-way data migrations), the renames, every component standalone, the Material-era
-    names gone, the bundle budget, the pruned icon map, the Dashboard's summary sentence, *Looks right* on a
-    to-check receipt, dialogs as sheets on a phone, two Dashboard panels as components. **Not in `preview`
-    yet, waiting for green CI on the branch:** the button wrapper is gone, and the two chart panels and the
-    Spent tile are components with their state. Nothing else of sprint 10 is left. `docs/AUDIT-REPORT.md`
+  - **Sprint 10 (`feature/app-cleanup`) is in `preview` in full** (green CI on `8eaf33af`, 2026-11-11): one note
+    per receipt, two statuses and a Quick Scan that asks for nothing (three one-way data migrations), the
+    renames, every component standalone, the Material-era names gone, one button idiom, the bundle budget, the
+    pruned icon map, the Dashboard's summary sentence, *Looks right* on a to-check receipt, dialogs as sheets on
+    a phone, and the Dashboard's panels and Spent tile as components with their state. `docs/AUDIT-REPORT.md`
     (sprint 10) has the detail and two decisions made differently from the audit, waiting for the owner's word:
-    icons stay on one map, and the six small Dashboard tiles stay as markup in the page. The rewritten real-app specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column`
-    have never run.
-  - After it, one branch each from `preview`: sprint 11 onward. The audit report lists what each holds.
+    icons stay on one map, and the six small Dashboard tiles stay as markup in the page. The rewritten real-app
+    specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column` have never run.
+  - **Sprint 11 onward, one branch each from `preview`.** First: `feature/no-cgo` (B9, step one: ImageMagick and
+    Tesseract run as programs, the server builds with `CGO_ENABLED=0`), in the worktree
+    `.claude/worktrees/dependency-updates`. Then Go serving the app without nginx, arm64 images, id-only file
+    paths, money as integers, a generated contract, aisle order per shop, signal stores.
   - The site's own tests refuse the words "hosted version" anywhere on the page ("self-hosted version" included).
 - **Decisions of 2026-11-10** (also in the audit report's table): `:latest` keeps following green `main`, and a `v*`
   tag adds `:vX.Y.Z` and `:X.Y`; the project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac

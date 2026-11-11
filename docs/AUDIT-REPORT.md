@@ -165,6 +165,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
   - Found on the way and fixed: the tab strip threw when its tabs were taken away, which happened for a moment
     after *Sign out everywhere*.
 - [ ] 10. App cleanup (`feature/app-cleanup`, cut from `preview`): C10, C11, C13, D6 to D11, F6, F8
+  - In `preview` in full since 2026-11-11 (green CI on `8eaf33af`); the box is ticked when it reaches `main`.
   - Done on the branch on 2026-11-11, D6 to D9: two receipt statuses, *To check* and *Settled* (the three others
     are rewritten once and read as one of the two wherever they still arrive); one note per receipt in place of the
     comment thread (each thread is joined into the note once, a single comment as written, several as "Name: text"
