@@ -33,12 +33,13 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     (sprint 10) has the detail and two decisions made differently from the audit, waiting for the owner's word:
     icons stay on one map, and the six small Dashboard tiles stay as markup in the page. The rewritten real-app
     specs `quick-scan-config`, `quick-scan-dialog-behavior` and `receipt-note-column` have never run.
-  - **Sprint 11 onward, one branch each from `preview`.** In `preview`, both with green CI on 2026-11-11:
-    `feature/no-cgo` (B9, step one, `11972ce3`): ImageMagick and Tesseract run as programs and the server has
-    no C code; `feature/go-serves-app` (B9, step two, `903574d1`): the API serves the web app and answers on
-    port 80, nginx is gone from the image (`api/internal/edge`). **Next, in this order:** arm64 images (the
-    workflow change is drafted, not applied); id-only file paths; money as integers; a generated contract;
-    aisle order per shop; signal stores. The working worktree is `.claude/worktrees/dependency-updates`.
+  - **Sprint 11 onward, one branch each from `preview`.** B9 is in `preview` in full, each step with green CI on
+    2026-11-11: `feature/no-cgo` (`11972ce3`): ImageMagick and Tesseract run as programs and the server has no
+    C code; `feature/go-serves-app` (`903574d1`): the API serves the web app and answers on port 80, nginx is
+    gone from the image (`api/internal/edge`); `feature/arm64-image`: every tag is published for amd64 and
+    arm64 (`:preview` carries both; the arm64 image passed its build checks and has never run anywhere).
+    **Next, in this order:** id-only file paths; money as integers; a generated contract; aisle order per
+    shop; signal stores. None is started. The working worktree is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
   - Since cgo and nginx went, the PC can run the real server in production mode with the built app
