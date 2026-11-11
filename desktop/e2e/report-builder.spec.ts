@@ -12,7 +12,7 @@ import {
 import { addFirstGroupToScope, addGroupToScopeByName, gotoReportBuilder, openComboboxAndPick } from './helpers/reports';
 
 // The Report Builder is gated by the app-level app.reports.read permission, which
-// the seeded Legacy Admin role carries (and Legacy User does not). Run the positive
+// the seeded Legacy Admin role carries (and User does not). Run the positive
 // flow as admin.
 test.use({ storageState: 'e2e/.auth/admin.json' });
 
@@ -89,7 +89,7 @@ test.describe('Report Builder', () => {
   });
 
   test('the /reports route is gated by app.reports.read', async ({ browser }) => {
-    // A regular user (Legacy User) lacks app.reports.read, so the route guard
+    // A regular user (User) lacks app.reports.read, so the route guard
     // redirects them away from /reports.
     const context = await browser.newContext({ storageState: 'e2e/.auth/user.json' });
     const page = await context.newPage();

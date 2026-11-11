@@ -27,8 +27,8 @@ type ReportDataService struct {
 	// built; ReportService sets it so one report resolves the zone once.
 	Location *time.Location
 
-	// Translator is the language of the person the report is for: field labels,
-	// statuses and the (Restricted) marker read in it. The zero value is English.
+	// Translator is the language of the person the report is for: field labels
+	// and statuses read in it. The zero value is English.
 	Translator i18n.Translator
 }
 
@@ -40,16 +40,8 @@ func NewReportDataService(tx *gorm.DB) ReportDataService {
 	return service
 }
 
-// Rows fetches a group's receipts, applies the three reporting access controls,
-// and maps the survivors to engine rows, one per receipt. The controls run in the
-// order they must:
-//
-//   - the request filter is narrowed to what the caller may see, so a restricted
-//     caller cannot probe for hidden categories/tags through the filter;
-//   - paid-by visibility is enforced in the query, so a receipt the caller may
-//     not see is never fetched (whole-receipt hiding);
-//   - line categories/tags the caller may not see read as (Restricted), so their
-//     spend still counts toward the totals in its own bucket rather than vanishing.
+// Rows fetches a group's receipts and maps them to engine rows, one per receipt.
+// The All group is expanded to the households the caller may read reports in.
 //
 // The returned catalog carries every built-in field.
 func (service ReportDataService) Rows(userId uint, groupId string, filter commands.ReceiptPagedRequestFilter) (reporting.FieldCatalog, []reporting.Row, error) {
@@ -73,10 +65,6 @@ type ReportRowSet struct {
 // RowsWithLines is Rows reading Category, Tag, Health and Planned off the
 // receipts' product lines (receiptsource.Source.RowsWithLines). When the report
 // cuts by one of them, a receipt is divided by its lines' amounts.
-//
-// A hidden category or tag becomes (Restricted) on the line itself, so the
-// division is the same for every viewer: a visible category's share never
-// depends on who is looking, and (Restricted) receives exactly the hidden lines.
 func (service ReportDataService) RowsWithLines(
 	userId uint,
 	groupId string,

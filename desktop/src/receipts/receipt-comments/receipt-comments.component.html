@@ -33,8 +33,7 @@
               </div>
               @if (
                 comment.value?.userId?.toString() === loggedInUserId() &&
-                (mode() === formMode.add || canDeleteComments()) &&
-                !isLastCommentLocked()
+                (mode() === formMode.add || canDeleteComments())
               ) {
                 <app-delete-button
                   data-testid="comment-delete"

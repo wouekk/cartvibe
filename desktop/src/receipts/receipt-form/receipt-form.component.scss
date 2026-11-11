@@ -71,8 +71,3 @@ app-form-section.cv-images-pane {
   z-index: 2;
 }
 
-// Inline hint for a role-required image/comment the receipt does not have yet.
-.cv-requirement-hint {
-  color: var(--destructive);
-  font-size: 0.875rem;
-}

@@ -76,7 +76,7 @@ feature.
   button bar is inline at the end of the form, never floating; Save/Cancel never go in the page header. Fields grouped
   in `app-form-section`, bound via the `formGet` pipe.
 - **`FormMode`:** in edit mode `app-submit-button` is dimmed while the form is pristine; add forms never are. State that
-  is not a control (grants, Magic Fill) marks the form dirty. Settings forms are always editable.
+  is not a control (Magic Fill) marks the form dirty. Settings forms are always editable.
 - **Dialog forms** submit through `(ngSubmit)` only. `disableWhenProgressBarIsShown` protects nothing unless something
   dispatches `ShowProgressBar` (only Magic Fill does).
 - **Validation messages** (`validation-messages.ts`) cover `required`, `email`, `min`, `max`, `minlength`,
@@ -93,8 +93,6 @@ feature.
   `app-add-button`; settings pages `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
 - **Small pieces:** `app-badge`, `app-filter-bar`, `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button`
   (silent on failure by design; hand-roll a toasting copy where the value matters).
-- **Grant picker** (`src/shared-ui/grant-picker/`): emits nothing while seeding, stops seeding once the user edits, and
-  passes a unique `inputId` to its autocompletes (otherwise N pickers share one DOM id).
 - **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   silently does nothing); clear with `FormArray.clear()`. Plain-string options need a `displayWith`.
 
@@ -186,7 +184,8 @@ feature.
   server relay was rejected). `localStorage` access is always guarded.
 - **System Settings:** the form holds every control whatever the tab, so a save sends the whole payload; a new tab goes
   into `allTabs` and the landing guard order. Embedded tables sit outside the `<form>`.
-- **Roles:** the UI offers Admin and User only; `RoleNamePipe` matches on id **and** scope (app and group ids collide).
+- **Roles are fixed:** Admin and User, in the app and in a household; nothing edits one and nothing narrows what a
+  household member sees. `RoleNamePipe` matches on id **and** scope (app and group ids collide).
 
 ## E2E (setup and per-spec notes: `docs/e2e.md`)
 
@@ -204,7 +203,8 @@ feature.
 
 ## Removed (do not resurrect without asking)
 
-The Flutter app; Angular Material, Bootstrap and ngx-bootstrap; login QR; the role editor (`/roles`); OIDC admin UI and
+The Flutter app; Angular Material, Bootstrap and ngx-bootstrap; login QR; the role editor (`/roles`), the grant picker
+(category and tag access per member), the "Isolate members" switch and role-required receipt fields; OIDC admin UI and
 login buttons; custom fields, the receipt summary, stored prompts, config import, system emails; items, shares and bill
 splitting; per-group widget dashboards; the month stepper as a date control and the header search box; the
 `showLargeImagePreviews` preference and the old image viewer.

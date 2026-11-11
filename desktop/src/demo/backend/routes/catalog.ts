@@ -5,7 +5,6 @@ import {
   GroupFilter,
   Tag,
   TagView,
-  UpdateGroupMemberGrantsCommand,
   UpdateGroupReceiptSettingsCommand,
   UpsertCategoryCommand,
   UpsertGroupCommand,
@@ -146,11 +145,10 @@ export function registerCatalog(router: DemoRouter): void {
       name: command.name,
       isDefault: command.isDefault ?? false,
       isAllGroup: false,
-      isolateMembers: command.isolateMembers ?? false,
       status: command.status,
       createdAt: `${ctx.db.today}T12:00:00Z`,
       groupReceiptSettings: { ...ctx.db.groups[0].groupReceiptSettings, id: nextId(ctx.db, "groupSettings"), groupId: id },
-      groupMembers: command.groupMembers.map((member) => ({ ...member, groupId: id, categoryGrants: [], tagGrants: [] })),
+      groupMembers: command.groupMembers.map((member) => ({ ...member, groupId: id })),
     };
     ctx.db.groups.push(group);
     return group;
@@ -164,14 +162,11 @@ export function registerCatalog(router: DemoRouter): void {
     const previous = new Map(group.groupMembers.map((member) => [member.userId, member]));
     group.name = command.name;
     group.status = command.status;
-    group.isolateMembers = command.isolateMembers ?? false;
     group.isDefault = command.isDefault ?? group.isDefault;
     // Like the API: an omitted icon or colour keeps the stored one.
     group.icon = command.icon ?? group.icon;
     group.color = command.color ?? group.color;
     group.groupMembers = command.groupMembers.map((member) => ({
-      categoryGrants: [],
-      tagGrants: [],
       ...previous.get(member.userId),
       ...member,
       groupId: group.id,
@@ -196,17 +191,6 @@ export function registerCatalog(router: DemoRouter): void {
     }
     group.groupReceiptSettings = { ...group.groupReceiptSettings, ...body<UpdateGroupReceiptSettingsCommand>(ctx) };
     return group.groupReceiptSettings;
-  });
-  router.put("/group/:groupId/member/:userId/grants", (ctx) => {
-    const group = ctx.db.groups.find((candidate) => candidate.id === idParam(ctx, "groupId"));
-    const member = group?.groupMembers.find((candidate) => candidate.userId === idParam(ctx, "userId"));
-    if (!member) {
-      return notFound("Member not found");
-    }
-    const command = body<UpdateGroupMemberGrantsCommand>(ctx);
-    member.categoryGrants = command.categoryGrants ?? [];
-    member.tagGrants = command.tagGrants ?? [];
-    return member;
   });
 
   // Users
@@ -266,8 +250,8 @@ export function registerCatalog(router: DemoRouter): void {
     return ok();
   });
 
-  // Roles (read-only: the family UI offers Admin and User, there is no role editor)
-  router.get("/role", ({ db }) => db.roles.map((role) => ({ ...role, categoryGrants: [], tagGrants: [], paidByUserGrants: [] })));
+  // Roles (read-only: they are fixed, Admin and User)
+  router.get("/role", ({ db }) => db.roles);
 }
 
 function removeUsers(db: DemoDb, ids: Set<number>): void {

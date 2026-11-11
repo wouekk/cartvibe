@@ -14,7 +14,6 @@ import { DirectivesModule } from "../directives";
 import { InputModule } from "../input";
 import { GroupDetailsComponent } from "./group-details/group-details.component";
 import { GroupFormComponent } from "./group-form/group-form.component";
-import { GrantPickerComponent } from "../shared-ui/grant-picker/grant-picker.component";
 import { GroupMemberFormComponent } from "./group-member-form/group-member-form.component";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings/group-receipt-settings.component";
 import { GroupRoutingModule } from "./group-routing.module";
@@ -54,7 +53,6 @@ import { RowActionsComponent } from "../shared-ui/row-actions/row-actions.compon
     TableModule,
     UserAutocompleteModule,
     AutocompleteModule,
-    GrantPickerComponent,
     HlmButton,
     ...HlmDropdownMenuImports,
     AppIconComponent,

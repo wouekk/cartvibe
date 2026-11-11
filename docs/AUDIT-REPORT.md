@@ -16,7 +16,7 @@ The owner approved carrying out everything in this report except S1. Where the r
 | S1 default `admin` / `admin` | Dropped | The bootstrap account stays as it is, and the self-service password change proposed with it is not built. The README and FAQ keep "change that password" |
 | No hosted plan | Final | CartVibe is self-hosted only. D1 (the cell runtime) is removed, not parked. `docker-compose.vps.yml`, `deploy/vps/` and `docs/vps-deploy.md` stay as an option for anyone who hosts it on their own server |
 | D15 identity-provider sign-in | Finish it | Provider buttons on the login page and a Providers tab in System Settings; nothing is deleted |
-| C14 roles | Fixed roles only | Admin and Member; everyone in a household sees everything in it. Role editing, grants, paid-by visibility and member isolation are removed |
+| C14 roles | Fixed roles only | Admin and User (decided 2026-11-10: those two names, in the app and in a household); everyone in a household sees everything in it. Role editing, grants, paid-by visibility, member isolation and the role rule that required a comment or a photo are removed |
 | B10 report PDFs | Keep Chromium | B10 is dropped; B9 still removes cgo and nginx |
 | C8 theme controls | Move to Settings, keep five palettes | The palette menu and day/night switch leave the header |
 | C4 `:latest` (decided 2026-11-10, with sprint 6) | Keep it on green `main` | The NAS deploys from `:latest`, so it stays the newest tested commit. Releases get `:vX.Y.Z` and `:X.Y` beside it; the README points other self-hosters at `:X.Y`. B3's "an alias for the newest release" is not done |
@@ -132,7 +132,25 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
   - Not verified against a live provider: no key is available here, so the structured settings are proved against
     fake servers only. The retry without them is what keeps a provider that refuses one from failing reads.
   - Left for sprint 11 (its own item there): storing files by id only.
-- [ ] 8. Fixed roles: C14
+- [ ] 8. Fixed roles (`feature/fixed-roles`, cut from `preview` with sprints 6 and 7 in it): C14
+  - Done on the branch on 2026-11-11. Four roles, written from code at every start and brought to exactly their
+    lists: Admin and User in the app, Owner and Member in a household (the app shows both pairs as Admin and User).
+    A new account is a User, the person who creates a household its Owner. Removed from the API, the contract and
+    the app: role create, update, delete and "make default"; custom roles and the Legacy User, Viewer and Editor
+    roles; category and tag grants on roles and on members, with the grant picker; paid-by visibility; member
+    isolation, with the household's switch; the per-template report matrix; the role rule that required a comment
+    or a photo on a receipt; the app-role flag that skipped the personal group. About 26,000 lines went, 19,000 of
+    them in the API (12,000 of those tests), and the contract is 500 lines shorter.
+  - One data migration (`fixed-roles-v1`) moves an older install over: anyone on another app role becomes an Admin
+    if that role could manage people or roles and a User otherwise; anyone on another household role becomes an
+    Owner if that role could change the household or its members and a Member otherwise; the other roles are
+    deleted and the six grant tables dropped. It cannot be undone; the snapshot a new version takes before it
+    migrates is the way back. Columns of the removed rules stay in existing databases, unused.
+  - What stays, on purpose: the permission keys and the gate on every handler (a role is still a list of keys, so
+    a third role later is a list in code); the All-group read gate; the rule that a category or tag sent by name
+    needs the create permission; the privilege ceiling on roster changes; the read-only role preview.
+  - Not verified: twelve Playwright specs whose subject is gone were deleted, and three were rewritten for the
+    fixed roles without a run (`desktop/docs/e2e.md`); of the rewritten specs CI runs `shopping-list` only.
 - [ ] 9. Identity-provider screens: D15
 - [ ] 10. App cleanup: C10, C11, C13, D6 to D11, F6, F8
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12

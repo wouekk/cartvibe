@@ -50,7 +50,7 @@ test.describe('Close chip select on select preference', () => {
     await createUserWithRole(adminPage, {
       username,
       password: NEW_USER_PASSWORD,
-      role: 'Legacy User',
+      role: 'User',
     });
     await admin.close();
 

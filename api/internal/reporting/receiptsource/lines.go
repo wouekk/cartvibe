@@ -19,8 +19,7 @@ const minimumShareScale = 2
 
 // Line is one priced product line of a receipt, as a report reads it: what it
 // cost and the labels it carries. The service layer builds it, resolving the
-// category's current name and marking what the caller may not see as
-// (Restricted), so this package reads no database.
+// category's current name, so this package reads no database.
 type Line struct {
 	Amount decimal.Decimal
 	// Category is the line's category name; "" is Uncategorized.

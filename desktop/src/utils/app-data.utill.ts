@@ -30,8 +30,7 @@ export function setAppData(store: Store, appData: AppData): Observable<any[]> {
     store.dispatch(
       new SetPermissions(
         appData.appPermissions ?? [],
-        appData.groupPermissions ?? {},
-        appData.groupReceiptRequirements ?? {}
+        appData.groupPermissions ?? {}
       )
     ),
     store.dispatch(new SetGroupCatalog(appData.groupCategories ?? {}, appData.groupTags ?? {})),

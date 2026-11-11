@@ -3,19 +3,16 @@ import { BrowserContext, expect, Page, test } from '@playwright/test';
 import { stubTokenRefresh } from './helpers/auth';
 import {
   apiDeleteGroupById,
-  apiDeleteRoleByName,
   createGroupWithMember,
-  createRole,
   uniqueName,
   withAdminApi,
 } from './helpers/provisioning';
 
 // Shopping lists, end to end against the real API: the add / cross off / re-add / clear flow, the
-// live SSE sync between two browsers, and the read-only view.
+// live SSE sync between two browsers, and a second member of the household using the same list.
 //
-// One provisioned group serves every test: the admin creates it (so is its Owner, holding every
-// group.shopping-lists.* permission) and adds e2e-user with the "Viewer" group preset, which grants
-// group.shopping-lists.read only once its other shopping-list permissions are switched off. Each test makes its own uniquely
+// One provisioned group serves every test: the admin creates it (so is its Owner) and adds e2e-user
+// as a Member, who holds every group.shopping-lists.* permission too. Each test makes its own uniquely
 // named list, so the tests do not collide.
 
 const ADMIN_STATE = 'e2e/.auth/admin.json';
@@ -57,41 +54,25 @@ test.describe('Shopping lists', () => {
   test.describe.configure({ mode: 'serial' });
 
   let adminContext: BrowserContext;
-  let roleName: string;
   let groupId: string;
 
   test.beforeAll(async ({ browser }) => {
-    roleName = uniqueName('shopping-viewer');
-
     adminContext = await browser.newContext({ storageState: ADMIN_STATE });
     const adminPage = await adminContext.newPage();
     await stubTokenRefresh(adminPage);
 
-    // The Legacy Viewer base also grants shopping-list create/update/delete (a household list is collaborative),
-    // so the read-only role switches those off.
-    await createRole(adminPage, {
-      name: roleName,
-      type: 'Group role',
-      preset: 'Viewer',
-      disablePermissions: [
-        { panelKey: 'group.shopping-lists', label: 'Create Shopping Lists' },
-        { panelKey: 'group.shopping-lists', label: 'Update Shopping Lists' },
-        { panelKey: 'group.shopping-lists', label: 'Delete Shopping Lists' },
-      ],
-    });
     groupId = await createGroupWithMember(adminPage, {
       groupName: uniqueName('shopping-grp'),
       memberDisplayName: 'E2E User',
-      roleName,
+      roleName: 'Member',
     });
   });
 
   test.afterAll(async () => {
     try {
       await withAdminApi(async (api) => {
-        // The group first (it takes its lists with it and frees the member's role), then the role.
+        // The group takes its lists with it.
         await apiDeleteGroupById(api, groupId);
-        await apiDeleteRoleByName(api, roleName, 'GROUP');
       });
     } catch {
       // Best-effort cleanup — don't mask a test failure with a cleanup error.
@@ -266,9 +247,9 @@ test.describe('Shopping lists', () => {
     });
   });
 
-  // Runs as the default project user (e2e-user), a Viewer: read only.
-  test('a viewer sees the lists but cannot change them', async ({ page }) => {
-    const listName = uniqueName('viewer');
+  // Runs as the default project user (e2e-user), a Member of the household: the list is everyone's.
+  test('a member sees the owner\'s list and adds to it', async ({ page }) => {
+    const listName = uniqueName('member');
     await withAdminApi(async (api) => {
       const res = await api.post(`/api/shopping-list/group/${groupId}`, { data: { name: listName } });
       expect(res.ok()).toBe(true);
@@ -281,15 +262,8 @@ test.describe('Shopping lists', () => {
     await selectList(page, listName);
     await expect(activeItem(page, 'Apples')).toBeVisible();
 
-    await expect(page.getByLabel('Add an item')).toHaveCount(0);
-    await expect(page.getByTestId('shopping-list-add')).toHaveCount(0);
-    await expect(page.getByTestId('shopping-list-import-recipe')).toHaveCount(0);
-    // The list menu stays (Share and Shop mode change nothing on the server) but offers no rename or copy.
-    await page.getByTestId('shopping-list-menu').click();
-    await expect(page.getByTestId('shopping-list-share')).toBeVisible();
-    await expect(page.getByTestId('shopping-list-rename')).toHaveCount(0);
-    await expect(page.getByTestId('shopping-list-copy')).toHaveCount(0);
-    await page.keyboard.press('Escape');
-    await expect(page.getByTestId('shopping-list-active-items').getByRole('checkbox').first()).toBeDisabled();
+    await addItem(page, 'Bread');
+    await expect(activeItem(page, 'Bread')).toBeVisible();
+    await expect(page.getByTestId('shopping-list-add')).toBeVisible();
   });
 });

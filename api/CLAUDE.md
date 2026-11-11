@@ -1,7 +1,7 @@
 # CartVibe API
 
 The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated here. Deep notes in `docs/`:
-`authorization.md` (visibility rationale, households, role-required fields), `oidc.md`, `sessions-cookies.md`,
+`authorization.md` (the fixed roles and why, the gates, households), `oidc.md`, `sessions-cookies.md`,
 `domain.md` (shopping lists, products, trips, Dashboard, currencies, search, receipts, sweeps), `shop-logos.md`,
 `activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite).
 
@@ -34,7 +34,7 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   carry `Validate()`; `permissions/` and `reporting/` are pure.
 - Repositories are built with `NewXRepository(tx)`: `nil` reads the one process database (`repositories.GetDB()`), a
   transaction makes every query of that repository run inside it. A repository that builds a sibling passes its own
-  `tx` on. One process serves one household database; the in-memory caches (role permissions, grants, list streams,
+  `tx` on. One process serves one household database; the in-memory caches (role permissions, list streams,
   the OIDC provider cache) are keyed by plain ids for that reason.
 - **Map-form `Updates`** whenever a bool, empty string or zero must be written: GORM's struct form skips zero values, so
   a toggled-off flag or cleared description would stick. Repositories that assign fields one at a time
@@ -132,32 +132,20 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   `POST /user/signOutEverywhere` needs sign-in only: it ends the caller's own sessions, browsers and MCP connectors
   alike (`docs/sessions-cookies.md`).
 
-### Visibility layers (rationale: `docs/authorization.md`)
+### Who sees what (rationale: `docs/authorization.md`)
 
-- **Receipt reads go through `GetPagedReceiptsByGroupId`** (or the `HandleRequest` receipt gate for one receipt): it is
-  the only path applying the All-group per-group read gate, paid-by visibility, member isolation and the category/tag
-  filter rules. For the All view it needs both a `GroupReadableResolver` and a `CategoryTagVisibilityResolver` and fails
-  closed with one.
-- **Category/tag grants** compose two layers by intersection (role ceiling ∩ member grants). Restricted-and-empty means
-  see nothing; non-members are unrestricted. The fail-closed flags (`CategoryGrantsRestricted`, `TagGrantsRestricted`,
-  `PaidByVisibilityRestricted`, `ReportTemplateGrantsRestricted`, `RequiresIndividual*Grants`) keep a configuration
-  restricted after cascades empty its rows.
-- Member grant rows have no FK to memberships: keep the explicit `DeleteMemberGrants*` / `DeleteOrphanedMemberGrants`
-  calls in user delete, group delete and `UpdateGroup`, or a rejoining user silently regains revoked visibility.
-  `UpdateGroup` reads `GetMemberGrantFlagsForGroup` before writing and carries each retained member's flags forward.
-- Reads strip hidden categories/tags, aggregations substitute `(Restricted)`, writes 403 out-of-grant ids
-  (`ValidateCategoryTagSelection`; a new-by-name one needs the `.create` permission), filters are intersected with
-  grants. `UpdateReceipt` re-adds hidden associations (`MergeHiddenReceiptCategoriesTags`) before its wholesale replace.
-- **Paid-by visibility** hides whole receipts; the caller's own id is unioned at resolution and never cached. The
-  predicate goes into SQL before any count or `LIMIT` (search included).
-- **Member isolation** is per (viewer, group), never a union; `SeesAllMembers` roles are the supervisor exemption. Rosters
-  are filtered at serialization, hidden payers' receipts drop out with paid-by, `CreatedBy` fields are nulled, hidden
-  authors' comments and activities are dropped (activities in SQL before count), notifications suppressed. A payer
-  outside the creator's visible set is a 403 on write.
-- **Moving a receipt** needs `group.receipts.create` on the destination and runs the selection checks there.
+- **Everyone in a household sees all of it** (2026-11): every receipt whoever paid, every category and tag, every
+  member, comment and activity. The permission keys of the caller's role are the only gate. There are no category or
+  tag grants, no paid-by visibility, no member isolation, no per-template report matrix and no role-required receipt
+  fields: do not add a rule that narrows what one member sees of another's without the owner's word.
+- **Receipt lists go through `GetPagedReceiptsByGroupId`** (one receipt: the `HandleRequest` receipt gate). Its
+  `GroupReadableResolver` is the one thing the All view needs: the All group is a real membership on the default role,
+  so the resolver drops every household where the caller lacks the read permission. Pass `nil` only from internal code.
+- **A category or tag sent by name** creates a row in the shared catalog, so a receipt write needs
+  `app.categories.create` / `app.tags.create` for it (`enforceNewCategoryTagPermission`); any existing one may be picked.
+- **Moving a receipt** needs `group.receipts.create` on the destination, and the All group is never a destination.
 - **Roster changes** (`AuthorizeGroupMemberChanges`): CRUD gate per added/changed/removed member plus a privilege
-  ceiling (only roles whose permissions are a subset of the caller's). Per-member grants have their own permission
-  `group.members.grants.update` and endpoint.
+  ceiling (only roles whose permissions are a subset of the caller's), so a Member cannot make anyone an Owner.
 - MCP tools and REST share enforcement in the service: `ReceiptService.GetReceiptForUser` (its REST handler
   intentionally skips the declarative gate) and `SearchReceiptsForUser`, which only the MCP search tool calls since
   the REST search route was removed; it enforces `app.receipts.search` itself.
@@ -200,17 +188,24 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
 - `permissions/registry.go` is the catalog; `GET /permission` serves it; `registry_test.go` pins it to the swagger enum.
   Keys are `scope.domain[.sub].action`, CRUD-granular. Wildcards are honoured in granted strings only.
 - `PermissionService` scope-guards keys: an `app.*` key in a group check is an error. The role permission list is cached
-  per role and evicted on role update/delete; assignment is read fresh.
-- Role CRUD (`services/roles.go`): system roles are immutable, scope cannot change, an assigned or default role cannot be
-  deleted. Extra role flags persist through separate methods to avoid long runs of transposable bools.
-- `SeedSystemRoles` runs on every boot (add-only, keyed on name): Legacy Admin / Owner hold every key, so a new key
-  reaches admins next boot; the family roles **User** (`FamilyUserAppKeys`) and **Member** (`FamilyMemberGroupKeys`) get
-  a new key only by adding it there. Only Admin and User are offered in the UI; names are shared with the desktop's
-  `utils/family-roles.ts`. Public `SignUp` strips a submitted `AppRoleID`.
-- Reporting is admin-by-default: Legacy User lacks `app.reports.*`. `app.categories.read` / `app.tags.read` are
-  admin-only; other users get `AppData.groupCategories` / `groupTags`, filtered per group.
-- `AppData` carries effective permissions for UI gating only. Households and role-required receipt fields:
-  `docs/authorization.md`.
+  per role for the life of the process (roles change only at start, before a request is served); assignment is read fresh.
+- **The roles are fixed** (2026-11): Admin and User in the app (rows `Legacy Admin` and `User`), Owner and Member in a
+  household (`Legacy Owner` and `Member`). No route creates, changes or deletes a role; `GET /role` lists them so the
+  people pages can assign one by id. `RoleRepository.CreateAppRole` / `CreateGroupRole` exist for tests that need a
+  narrower role to prove a gate refuses.
+- **The code is the roles' source of truth.** `SeedSystemRoles` runs on every start (keyed on name, so ids never
+  change) and brings each row to exactly its list: `LegacyAppAdminKeys` / `LegacyGroupOwnerKeys` are every key of
+  their scope, so a new key reaches admins and owners at the next start; `FamilyUserAppKeys` / `FamilyMemberGroupKeys`
+  are fixed lists, and a key added to or taken off one is given or taken away at the next start. `EnsureDefaultRoles`
+  marks User (what a new account gets, sign-up and provider sign-in included) and Owner (what the person who creates
+  a household gets). Public `SignUp` strips a submitted `AppRoleID`. Names are shared with the desktop's
+  `utils/family-roles.ts`.
+- The data migration `fixed-roles-v1` moved older installs onto the four roles (`repositories/fixed_roles.go`): another
+  app role that could manage people or roles became Admin, any other User; another household role that could change
+  the household or its members became Owner, any other Member. It cannot be undone.
+- Reporting is admin-only: a User holds no `app.reports.*`, a Member no `group.reports.read`.
+  `AppData.groupCategories` / `groupTags` carry the whole pool for every household the caller is in.
+- `AppData` carries effective permissions for UI gating only. Households: `docs/authorization.md`.
 
 ## 5. Time zone
 
@@ -328,7 +323,7 @@ which day an instant falls on and what "today" means.
   (`docs/domain.md`). Keep that true before letting the app queue any other write.
 - **Categories and tags live on product lines** (`receipt_products.category_id`, `receipt_product_tags`); a person's
   choice (`category_overridden`, `classificationOverridden`) survives sweeps, renames and Read again.
-  `ReceiptProduct.MarshalJSON` serializes nil tags as `[]`. Receipt-level categories/tags still drive grants and filters.
+  `ReceiptProduct.MarshalJSON` serializes nil tags as `[]`. Receipt-level categories/tags still drive the list filters.
 - `CreateReceiptImage` is the one hook that queues a product read. Group and receipt deletion remove products,
   extraction, lists, trips and corrections explicitly.
 - Money totals are folded in Go (`services/group_overview.go`); every month in the window is seeded, arrays never null.
@@ -359,6 +354,13 @@ The database is fresh-only since the clean-schema rework; these are gone from co
   `tools/celllint` and the twin-cell tests. There is no hosted plan; one process serves one household database.
 - `GET /api/search` (the header search box it served is gone; receipts are searched through the list's filter, and the
   MCP tool calls the service), and the `numWorkers` setting, which nothing read.
+- Everything that let a role be edited or narrowed what a household member sees (2026-11-11, audit C14): role
+  create/update/delete/default (`POST|PUT|DELETE /role…`, `app.roles.create|update|delete`), custom roles and the
+  Legacy User / Viewer / Editor rows, category and tag grants on roles and members
+  (`PUT /group/{id}/member/{userId}/grants`, `group.members.grants.update`), paid-by visibility, member isolation
+  (`Group.isolateMembers`), the per-template report matrix (`GET /report/template/options`), role-required receipt
+  fields (`AppData.groupReceiptRequirements`) and `AppRole.skipDefaultGroupCreation`. The six grant tables are
+  dropped by `fixed-roles-v1`; the columns stay in existing databases, unused.
 - Valkey and `hibiken/asynq` (2026-11-10): `VALKEY_*`, the queue names and priorities (`TaskQueueConfiguration`,
   `QueueName`), `taskConcurrency`, and `POST /systemSettings/restartTaskServer` with its permission
   `app.system-settings.restart-task-server` (a role that still lists it is unaffected). The

@@ -21,22 +21,11 @@ export class ReceiptCommentsComponent implements OnInit {
   public readonly receiptId = input<number>();
   public readonly groupId = input<number>();
   public readonly commentsUpdated = output<FormArray>();
-  // Set by the receipt form when the caller's group role requires a comment:
-  // in edit mode the last saved comment then offers no delete (the server
-  // refuses it anyway). Add-mode comments are unsaved, so they stay deletable.
-  public readonly preventDeletingLastComment = input<boolean>(false);
 
   // commentsArray is not reactive, so its length is mirrored into a signal on
-  // every mutation - the receipt form reads it for its required-comment check.
+  // every mutation: the template reads it to draw the list.
   private readonly commentCountSignal = signal(0);
   public readonly commentCount = this.commentCountSignal.asReadonly();
-
-  public readonly isLastCommentLocked = computed(
-    () =>
-      this.preventDeletingLastComment() &&
-      this.mode() === FormMode.edit &&
-      this.commentCount() <= 1
-  );
 
   public canCreateComments!: Signal<boolean>;
 

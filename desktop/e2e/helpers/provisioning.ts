@@ -7,10 +7,10 @@ import {
 } from '@playwright/test';
 import { creds, type Role } from './auth';
 
-// Shared provisioning for permission e2e specs. Roles, users and groups are created and torn down through the admin
-// API: the role editor and the custom-role pickers are gone since the family rework. `DELETE /api/user/{id}`
-// hard-deletes, and deleting a group frees its members' group-role assignment, so the API tears down cleanly (a role in
-// use cannot be deleted: user and group first, then the role).
+// Shared provisioning for the e2e specs. Users and groups are created and torn down through the admin API, on the
+// four fixed roles (Admin and User in the app, Owner and Member in a household): nothing creates a role.
+// `DELETE /api/user/{id}` hard-deletes and deleting a group takes its memberships with it, so the API tears down
+// cleanly.
 
 export function uniqueName(tag: string): string {
   // Two workers can mint a name in the same millisecond (a delete by name then removes the wrong twin), so a random
@@ -23,93 +23,6 @@ export function uniqueName(tag: string): string {
 export function midMonthIso(): string {
   return `${new Date().toISOString().slice(0, 7)}-15T00:00:00Z`;
 }
-
-export interface CreateRoleOptions {
-  name: string;
-  /** Role-type card to pick, e.g. 'Application role' | 'Group role'. */
-  type: 'Application role' | 'Group role';
-  /** Starting template button, matched by (sub)string, e.g. 'Start from scratch' | 'Viewer'. */
-  preset: string;
-  /** Resource categories to flip fully on, e.g. ['Account', 'Notifications', 'Groups']. */
-  enableCategories?: string[];
-  /**
-   * Individual permissions to switch OFF after applying the preset. Identify the
-   * accordion by its resource key (key minus last segment, e.g. 'group.comments')
-   * and the row by its label (e.g. 'Read Comments').
-   */
-  disablePermissions?: { panelKey: string; label: string }[];
-  /**
-   * Group-role paid-by visibility (the "Visible paid-by users" picker). Pin
-   * "Their own receipts" and/or specific users by display name. Leaving both
-   * unset keeps the role unrestricted (members see every payer's receipts).
-   */
-  paidByOwn?: boolean;
-  paidByUsers?: string[];
-  /**
-   * App-role only: tick "Don't create a personal group for new users with this
-   * role" in the "Group creation" card, so accounts created with the role skip
-   * the automatic "My Receipts" group (the virtual "All" group is still made).
-   */
-  skipDefaultGroup?: boolean;
-  /**
-   * Group-role category/tag grants (the shared app-grant-picker), by NAME. This
-   * is the ceiling a member's individual assignment narrows within. Leaving both
-   * unset keeps the role unrestricted (members see every category/tag).
-   */
-  categoryGrants?: string[];
-  tagGrants?: string[];
-  /**
-   * Flips "Require an individual category/tag assignment for each member", so a
-   * member with no assignment sees nothing instead of the role's set.
-   */
-  requiresIndividualCategories?: boolean;
-  requiresIndividualTags?: boolean;
-  /**
-   * Group-role only: ticks "Require a comment on receipts" / "Require an image
-   * on receipts", so members must keep at least one of each on the group's
-   * receipts (enforced server-side on create, update and delete-last).
-   */
-  requireReceiptComment?: boolean;
-  requireReceiptImage?: boolean;
-}
-
-// Permission keys behind the role form's presets and toggles. The role editor UI is gone (the family rework offers
-// Admin and User only), so a spec's custom role is created through the API from the same names the form used.
-const PRESET_BASE_ROLES: Record<string, { scope: 'APP' | 'GROUP'; base: string | null }> = {
-  'Start from scratch': { scope: 'APP', base: null },
-  'Read Only': { scope: 'APP', base: 'Legacy User' },
-  Administrator: { scope: 'APP', base: 'Legacy Admin' },
-  Viewer: { scope: 'GROUP', base: 'Legacy Viewer' },
-  'Receipt Editor': { scope: 'GROUP', base: 'Legacy Editor' },
-  'Group Manager': { scope: 'GROUP', base: 'Legacy Owner' },
-};
-
-// "Toggle all <Category> permissions" -> key prefix.
-const CATEGORY_PREFIXES: Record<string, string> = {
-  Account: 'app.account.',
-  Notifications: 'app.notifications.',
-  Groups: 'app.groups.',
-  Reports: 'app.reports.',
-  Receipts: 'group.receipts.',
-};
-
-// Permission row label -> key.
-const PERMISSION_LABEL_KEYS: Record<string, string> = {
-  'Delete Any Group': 'app.groups.delete',
-  'Create Reports For Any Group': 'app.reports.createAll',
-  'Duplicate All Report Templates': 'app.reports.duplicateAll',
-  'Duplicate Report Templates': 'app.reports.duplicate',
-  'Generate All Reports': 'app.reports.generateAll',
-  'Generate Reports': 'app.reports.generate',
-  'Save Report Templates': 'app.reports.create',
-  'Update All Report Templates': 'app.reports.updateAll',
-  'Update Report Templates': 'app.reports.update',
-  'Create Comments': 'group.comments.create',
-  'Delete Comments': 'group.comments.delete',
-  'Create Shopping Lists': 'group.shopping-lists.create',
-  'Update Shopping Lists': 'group.shopping-lists.update',
-  'Delete Shopping Lists': 'group.shopping-lists.delete',
-};
 
 interface RoleRow {
   id: number;
@@ -131,109 +44,19 @@ async function apiUsersByDisplayName(api: APIRequestContext): Promise<Map<string
   return new Map(users.map((u) => [u.displayName, u.id]));
 }
 
-async function namesToIds(
-  api: APIRequestContext,
-  path: 'category' | 'tag',
-  names?: string[],
-): Promise<number[] | undefined> {
-  if (!names?.length) {
-    return undefined;
-  }
-  const rows = (await (await api.get(`/api/${path}`)).json()) as { id: number; name: string }[];
-  return names.map((name) => {
-    const row = rows.find((r) => r.name === name);
-    if (!row) {
-      throw new Error(`${path} ${name} not found`);
-    }
-    return row.id;
-  });
-}
-
 /**
- * Creates a custom role through the admin API from the form's option names (preset, resource categories switched on,
- * single permissions switched off). Replaces the removed role editor UI; the [page] argument is kept so specs still
- * pass their admin page and is not used.
+ * Creates a user on one of the two app roles through the admin API (the Add User dialog's role select has no
+ * accessible name): 'Legacy Admin' is the row the app shows as Admin, 'User' is everyone else.
  */
-export async function createRole(_page: Page | null, opts: CreateRoleOptions): Promise<void> {
-  const scope: 'APP' | 'GROUP' = opts.type === 'Group role' ? 'GROUP' : 'APP';
-  const preset = PRESET_BASE_ROLES[opts.preset];
-  if (!preset) {
-    throw new Error(`unknown role preset ${opts.preset}`);
-  }
-  await withAdminApi(async (api) => {
-    const roles = await apiListRoles(api);
-    const universe = new Set<string>(roles.filter((r) => r.scope === scope).flatMap((r) => r.permissions ?? []));
-    const base = preset.base ? roles.find((r) => r.name === preset.base && r.scope === scope) : undefined;
-    const permissions = new Set<string>(base?.permissions ?? []);
-    for (const category of opts.enableCategories ?? []) {
-      const prefix = CATEGORY_PREFIXES[category];
-      if (!prefix) {
-        throw new Error(`unknown permission category ${category}`);
-      }
-      [...universe].filter((key) => key.startsWith(prefix)).forEach((key) => permissions.add(key));
-    }
-    for (const { label } of opts.disablePermissions ?? []) {
-      const key = PERMISSION_LABEL_KEYS[label];
-      if (!key) {
-        throw new Error(`unknown permission label ${label}`);
-      }
-      permissions.delete(key);
-    }
-    const users = opts.paidByUsers?.length ? await apiUsersByDisplayName(api) : null;
-    const res = await api.post('/api/role', {
-      data: {
-        name: opts.name,
-        description: '',
-        scope,
-        permissions: [...permissions],
-        ...(opts.skipDefaultGroup ? { skipDefaultGroupCreation: true } : {}),
-        ...(opts.paidByOwn ? { includeOwnPaidReceipts: true } : {}),
-        ...(users ? { paidByUserGrants: opts.paidByUsers!.map((n) => users.get(n)!) } : {}),
-        categoryGrants: await namesToIds(api, 'category', opts.categoryGrants),
-        tagGrants: await namesToIds(api, 'tag', opts.tagGrants),
-        ...(opts.requiresIndividualCategories ? { requiresIndividualCategoryGrants: true } : {}),
-        ...(opts.requiresIndividualTags ? { requiresIndividualTagGrants: true } : {}),
-        ...(opts.requireReceiptComment ? { requireReceiptComment: true } : {}),
-        ...(opts.requireReceiptImage ? { requireReceiptImage: true } : {}),
-      },
-    });
-    if (!res.ok()) {
-      throw new Error(`create role ${opts.name} failed: HTTP ${res.status()} ${await res.text()}`);
-    }
-  });
-}
-
-/** Creates a user assigned the app role [opts.role] through the admin API (the Add User dialog's role select has no accessible name). */
 export async function createUserWithRole(
   _page: Page | null,
-  opts: { username: string; password: string; role: string; createdWithRole?: boolean },
+  opts: { username: string; password: string; role: 'Legacy Admin' | 'User' },
 ): Promise<void> {
-  // A new account is greeted by a welcome dialog that covers the page (UserPreferences.onboardingPending). The
-  // account can only switch it off itself, and a custom role may lack app.user-preferences.*, so the user starts on
-  // Legacy User, turns the dialog off, and only then gets the requested role. `createdWithRole` skips that and
-  // creates the account on the role at once, for specs about what the role does at creation time (the welcome
-  // dialog does not matter to an API-only account).
   await withAdminApi(async (api) => {
     const roles = await apiListRoles(api);
     const role = roles.find((r) => r.name === opts.role && r.scope === 'APP');
-    const starter = roles.find((r) => r.name === 'Legacy User' && r.scope === 'APP');
-    if (!role || !starter) {
+    if (!role) {
       throw new Error(`app role ${opts.role} not found`);
-    }
-    if (opts.createdWithRole) {
-      const direct = await api.post('/api/user', {
-        data: {
-          username: opts.username,
-          password: opts.password,
-          displayName: opts.username,
-          isDummyUser: false,
-          appRoleId: role.id,
-        },
-      });
-      if (!direct.ok()) {
-        throw new Error(`create user ${opts.username} failed: HTTP ${direct.status()} ${await direct.text()}`);
-      }
-      return;
     }
     const res = await api.post('/api/user', {
       data: {
@@ -241,34 +64,28 @@ export async function createUserWithRole(
         password: opts.password,
         displayName: opts.username,
         isDummyUser: false,
-        appRoleId: starter.id,
+        appRoleId: role.id,
       },
     });
     if (!res.ok()) {
       throw new Error(`create user ${opts.username} failed: HTTP ${res.status()} ${await res.text()}`);
     }
+    // A new account is greeted by a welcome dialog that covers the page (UserPreferences.onboardingPending), and
+    // only the account itself can switch it off. Both roles hold app.user-preferences.*.
     await withApiAsCreds(opts.username, opts.password, async (userApi) => {
       const preferences = (await (await userApi.get('/api/userPreferences')).json()) as Record<string, unknown>;
       await userApi.put('/api/userPreferences', { data: { ...preferences, onboardingPending: false } });
     });
-    if (role.id !== starter.id) {
-      const users = (await (await api.get('/api/user/')).json()) as { id: number; username: string }[];
-      const created = users.find((u) => u.username === opts.username)!;
-      const update = await api.put(`/api/user/${created.id}`, { data: { ...created, appRoleId: role.id } });
-      if (!update.ok()) {
-        throw new Error(`assign ${opts.role} to ${opts.username} failed: HTTP ${update.status()} ${await update.text()}`);
-      }
-    }
   });
 }
 
 /**
- * Creates a group owned by the admin with [opts.memberDisplayName] added as [opts.roleName] (a custom group role the
- * household member picker would not offer), and returns the new group's id.
+ * Creates a group owned by the admin with [opts.memberDisplayName] added on one of the two household roles
+ * ('Legacy Owner' is the row the app shows as Admin, 'Member' is everyone else), and returns the new group's id.
  */
 export async function createGroupWithMember(
   _page: Page | null,
-  opts: { groupName: string; memberDisplayName: string; roleName: string },
+  opts: { groupName: string; memberDisplayName: string; roleName: 'Legacy Owner' | 'Member' },
 ): Promise<string> {
   return withAdminApi(async (api) => {
     const roles = await apiListRoles(api);
@@ -660,71 +477,6 @@ export async function apiCreateReportTemplate(
   return { id: template.id, name: template.name };
 }
 
-export interface UpsertRolePayload {
-  name: string;
-  scope: 'APP' | 'GROUP';
-  permissions: string[];
-  reportTemplateGrants?: { reportTemplateId: number; permissions: string[] }[];
-  /**
-   * Category/tag ids a GROUP role's members may see. This is the CEILING that a
-   * member's individual assignment narrows within — the two intersect. Empty (or
-   * omitted) means unrestricted, matching the backend's grant convention.
-   */
-  categoryGrants?: number[];
-  tagGrants?: number[];
-  /**
-   * When true, a member holding this role with NO individual assignment sees
-   * nothing at all rather than falling back to the role's set — so forgetting to
-   * assign a new member fails closed.
-   */
-  requiresIndividualCategoryGrants?: boolean;
-  requiresIndividualTagGrants?: boolean;
-  /** GROUP roles only: members must keep a comment / an image on receipts. */
-  requireReceiptComment?: boolean;
-  requireReceiptImage?: boolean;
-}
-
-/**
- * Creates a role via the admin API and returns its id. Unlike createRole (which
- * drives the UI), this is for provisioning a role whose exact permission set /
- * report-template matrix a test needs precisely — e.g. a group role granting
- * group.reports.read plus a specific reportTemplateGrants matrix.
- */
-export async function apiCreateRole(
-  api: APIRequestContext,
-  opts: UpsertRolePayload,
-): Promise<{ id: number }> {
-  api = retryOn503(api);
-  const res = await api.post('/api/role', {
-    data: { description: '', ...opts },
-  });
-  if (!res.ok()) {
-    throw new Error(`create role failed: HTTP ${res.status()} ${await res.text()}`);
-  }
-  const role = (await res.json()) as { id: number };
-  return { id: role.id };
-}
-
-/**
- * Updates the role [id] in place (scope carried in the body). Used to set a group
- * role's reportTemplateGrants matrix AFTER the templates it references exist (the
- * matrix references template ids, which need the group, which needs the role — so
- * the role is created first and its matrix filled here).
- */
-export async function apiUpdateRole(
-  api: APIRequestContext,
-  id: number,
-  opts: UpsertRolePayload,
-): Promise<void> {
-  api = retryOn503(api);
-  const res = await api.put(`/api/role/${id}`, {
-    data: { description: '', ...opts },
-  });
-  if (!res.ok()) {
-    throw new Error(`update role failed: HTTP ${res.status()} ${await res.text()}`);
-  }
-}
-
 /** Deletes the report template [id] (requires app.reports.delete on the caller). */
 export async function apiDeleteReportTemplateById(
   api: APIRequestContext,
@@ -878,52 +630,7 @@ async function putGroupReceiptSettings(
   }
 }
 
-// --- Per-member category/tag grants ------------------------------------------
-
-/**
- * Replaces one group member's individual category/tag assignment, returning the
- * RAW response so a spec can assert the status (200 / 400 out-of-ceiling / 403
- * missing group.members.grants.update / 404 non-member) rather than only the
- * happy-path effect.
- *
- * [groupId]/[userId] go in the URL because that is what the endpoint authorizes
- * against; [body] may carry contradicting ids to prove the URL wins.
- */
-export async function apiSetMemberGrants(
-  api: APIRequestContext,
-  groupId: number | string,
-  userId: number,
-  body: { categoryGrants?: number[]; tagGrants?: number[] } & Record<string, unknown>,
-) {
-  return api.put(`/api/group/${groupId}/member/${userId}/grants`, { data: body });
-}
-
-/**
- * The category/tag names the calling user can actually SEE in [groupId], read
- * from appData's per-group catalogs.
- *
- * This is deliberately the assertion surface for effective visibility: it is the
- * very array the desktop's receipt-form pickers render from, so it tests the real
- * delivery path rather than a parallel one. Names (not ids) so failures read
- * clearly.
- */
-export async function apiMemberCatalog(
-  api: APIRequestContext,
-  groupId: number | string,
-): Promise<{ categories: string[]; tags: string[] }> {
-  const appData = (await (await api.get('/api/user/appData')).json()) as {
-    groupCategories?: Record<string, { name?: string }[]>;
-    groupTags?: Record<string, { name?: string }[]>;
-  };
-  const key = String(groupId);
-  const names = (entries?: { name?: string }[]) =>
-    (entries ?? []).map((e) => e.name ?? '').sort();
-
-  return {
-    categories: names(appData.groupCategories?.[key]),
-    tags: names(appData.groupTags?.[key]),
-  };
-}
+// --- Household members -------------------------------------------------------
 
 /** Replaces a group's whole member roster (the wholesale UpdateGroup path). */
 export async function apiSetGroupRoster(
@@ -948,47 +655,15 @@ export async function apiSetGroupRoster(
   });
 }
 
-/** Returns a group's members (including their individual grant ids). */
+/** Returns a group's members. */
 export async function apiGetGroupMembers(
   api: APIRequestContext,
   groupId: number | string,
-): Promise<
-  {
-    userId: number;
-    groupRoleId: number;
-    categoryGrants?: number[] | null;
-    tagGrants?: number[] | null;
-  }[]
-> {
+): Promise<{ userId: number; groupRoleId: number }[]> {
   const group = (await (await api.get(`/api/group/${groupId}`)).json()) as {
-    groupMembers: {
-      userId: number;
-      groupRoleId: number;
-      categoryGrants?: number[] | null;
-      tagGrants?: number[] | null;
-    }[];
+    groupMembers: { userId: number; groupRoleId: number }[];
   };
   return group.groupMembers;
-}
-
-/**
- * Deletes the [scope] role named [name]. Only succeeds once it's unassigned, so
- * call after the user/group that referenced it is gone.
- */
-export async function apiDeleteRoleByName(
-  api: APIRequestContext,
-  name: string,
-  scope: 'APP' | 'GROUP',
-): Promise<void> {
-  const roles = (await (await api.get('/api/role')).json()) as {
-    id: number;
-    name: string;
-    scope: string;
-  }[];
-  const role = roles.find((r) => r.name === name && r.scope === scope);
-  if (role) {
-    await api.delete(`/api/role/${role.id}?scope=${scope}`);
-  }
 }
 
 /**

@@ -1,173 +1,124 @@
 # Authorization in depth
 
-Purpose: the rationale behind roles, grants, paid-by and member isolation and the All-group gate. `api/CLAUDE.md` holds the rules; read this before changing any of these layers.
+Purpose: the rationale behind the fixed roles, the permission gate and the All-group gate. `api/CLAUDE.md` holds the
+rules; read this before changing who may do or see what.
+
+## The model: four fixed roles, and a household that shares everything
+
+Since 2026-11 (audit item C14) there are four roles and nothing an admin can tune:
+
+| Scope | Role | Row name | Holds |
+|---|---|---|---|
+| app | Admin | `Legacy Admin` | every app key |
+| app | User | `User` | `FamilyUserAppKeys`: own account and preferences, notifications, search, the shared categories and tags, the AI page |
+| household | Owner (shown as Admin) | `Legacy Owner` | every group key |
+| household | Member (shown as User) | `Member` | `FamilyMemberGroupKeys`: receipts, comments, shopping lists, the activity log |
+
+Inside a household everyone sees everything: every receipt whoever paid, every category and tag, every member,
+comment and activity. What differs between an Owner and a Member is what they may change about the household
+itself (its name and look, its receipt settings, its members, deleting it) and whether they read its reports.
+
+Why it was cut down. The model before it was built for a company: seven seeded roles, custom roles, category and tag
+grants on two layers, paid-by visibility, member isolation, a per-template report matrix and role-required receipt
+fields, in ten tables, with fail-closed flags to keep a half-deleted configuration restricted. The app offered two
+roles and no page to edit any of it, so the code a mistake in which is a privacy bug was the code nobody could reach.
+A family does not hide receipts from each other.
+
+Do not rebuild a layer of it in passing. A rule that narrows what one member sees of another's is a product decision
+for the owner, and it would have to come back whole: in the list, the single read, search, export, reports, the
+Dashboard, notifications and the MCP tools at once.
 
 ## Roles and the permission registry
 
 - `internal/permissions/registry.go` is the source of truth (`Descriptor{Key, Label, Description, Category, Scope}`).
   Keys are `scope.domain[.sub].action`, CRUD-granular, with standalone non-CRUD actions (`group.activities.rerun`).
   `permissions/registry_test.go` keeps the registry and the swagger `Permission` enum in step.
-- **Catalog vs data.** The enum is the catalog (`Role.permissions`, `UpsertRoleCommand.permissions`, the `permission`
-  query param). A user's effective permissions on `AppData` (`appPermissions`, `groupPermissions`) are data and ride as
-  plain strings: they may be wildcards, and a closed enum on them failed whole AppData payloads twice in the past.
-  Pinned by `TestAppDataEffectivePermissionsAreUntypedStrings`.
+- **Catalog vs data.** The enum is the catalog (`Role.permissions`, the `permission` query param). A user's effective
+  permissions on `AppData` (`appPermissions`, `groupPermissions`) are data and ride as plain strings: a closed enum on
+  them failed whole AppData payloads twice in the past. Pinned by `TestAppDataEffectivePermissionsAreUntypedStrings`.
 - **Matcher** (`permissions/matcher.go`, pure): `HasAll` (AND, the default) and `HasAny` over granted strings. `*` matches
   anything, a trailing `group.*` any deeper key, a mid-segment `*` one segment. No required key means deny. A `:sub`
   suffix is matched literally (`:any` superset semantics are not implemented).
-- **Seeded roles.** `SeedSystemRoles` creates the immutable Legacy Admin / User / Viewer / Editor / Owner and the family
-  roles **User** (app, `FamilyUserAppKeys`) and **Member** (group, `FamilyMemberGroupKeys`). Reconciliation is keyed on
-  name and **add-only**: a missing permission is added on boot, nothing is removed. Legacy Admin and Legacy Owner are
-  dynamic over the registry (every app / every group key), so a new key reaches admins on the next boot. Legacy User
-  deliberately omits `app.users.read` (admin user list), `app.categories.read` / `app.tags.read` (the global catalogs;
-  users get per-group filtered ones on AppData) and the reporting app permissions (reporting is admin-by-default).
-- **Defaults.** Exactly one default role per scope (`IsDefault`). `EnsureDefaultRoles` flags Legacy User / Legacy Owner
-  only when a scope has none, so an admin's choice is never overridden; the default cannot be deleted
-  (`ErrRoleIsDefault`). `CreateUser` gives the first account Legacy Admin (so the bootstrap admin is never locked out),
-  others the default. Assignment is best-effort: an unresolvable role leaves the FK nil rather than failing creation.
-  Public `SignUp` strips a caller-supplied `AppRoleID`.
-- **`AppRole.SkipDefaultGroupCreation`** (app scope only) skips the personal group at creation time only. A missing role
-  falls back to creating the group; any other lookup error rolls the creation back (a transient DB error must not decide
-  which groups an account gets).
-- **Permission cache** (`services/permission_cache.go`) caches a role's permission list by `scope + roleId`, evicted in
-  `RoleService.UpdateRole` / `DeleteRole`. Assignment is resolved fresh on every check.
+- **The code is the roles.** `SeedSystemRoles` runs on every start, keyed on the row name so the ids people are assigned
+  by never change, and brings each row to exactly its list: a key the row lacks is added, a key that left the list or
+  the registry is removed. Admin and Owner are dynamic over the registry (every app key, every group key), so a new
+  key reaches them at the next start. User and Member are fixed lists in `permissions/family.go`: a key reaches a
+  family member only by being added there, and `permissions/fixed_roles_test.go` pins both lists and what stays with
+  the Admin and the Owner.
+- **Defaults.** `EnsureDefaultRoles` marks User as the default app role and Owner as the default household role on
+  every start, and no other. `CreateUser` gives the first account Admin (so the bootstrap admin is never locked out)
+  and every other account without an explicit role the default; that covers sign-up (which strips a submitted
+  `AppRoleID`) and provider sign-in. Assignment is best-effort: an unresolvable role leaves the FK nil rather than
+  failing creation. The person who creates a household is its Owner.
+- **Nothing edits a role.** `GET /role` is the only role route (`app.roles.read`, so the people pages can assign a role
+  by id). `RoleRepository.CreateAppRole` / `CreateGroupRole` are kept for tests: a narrower role is how a test proves
+  that a gate refuses.
+- **Permission cache** (`services/permission_cache.go`) caches a role's permission list by `scope + roleId` for the life
+  of the process: the lists change only at start, before a request is served. Assignment is resolved fresh on every
+  check.
+- **Moving an older install** (`repositories/fixed_roles.go`, data migration `fixed-roles-v1`): everyone on another app
+  role becomes Admin when that role could manage people or roles (`app.users.update`, or the retired
+  `app.roles.update`: either could have made itself anything), and User otherwise; every membership on another
+  household role becomes Owner when that role could change the household or its members (`group.update`,
+  `group.members.update`), and Member otherwise. Someone with no role keeps none. The other roles are deleted and the
+  six grant tables dropped. It runs once, in one transaction, after the snapshot a new version takes; it cannot be
+  undone. The columns the removed rules lived in stay, unused, because migrations are additive.
 
-## Category/tag grants
+## The handler gate
 
-Two layers composed by **intersection**: group-role grants (the ceiling, shared) and group-member grants
-(`GroupMemberCategoryGrant` / `GroupMemberTagGrant`, keyed `(UserID, GroupID, id)`, per membership). Union could only
-add, so an individual assignment could never restrict anyone; intersection also keeps a role an auditable ceiling and
-makes widening a role safe. Member grants hang off the membership because categories are global but visibility always
-resolves in a group.
+`HandleRequest` (`handlers/generic_handler.go`) resolves the permissions a handler declares from the database. A
+receipt named by id is judged in its own household: the gate reads the receipt's `group_id` and checks the declared
+group permissions there, and an id that does not exist answers the same 403 as a refusal. That one place covers the
+single read, images, comments, duplicate, update, delete and the multi-id export.
 
-```text
-role requires individual && member unconfigured -> see nothing (fail closed)
-effective = ALL
-if the role grants a non-empty set          -> effective ∩= role set
-if the membership opted into restriction    -> effective ∩= membership set
-if neither narrows                          -> unrestricted
-```
+`ReceiptService.GetReceiptForUser` is the same rule as a service, shared by the REST read and the MCP tool: read
+permission in the receipt's household, checked again after the full load in case the receipt moved in between.
 
-- `GetGroupCategoryIdsForUser` / `GetGroupTagIdsForUser` return `(set, unrestricted, err)`: `unrestricted` = see all
-  (`nil` set); restricted + empty set = see nothing. A non-member is unrestricted: grants only narrow; the handler gate is
-  the access control.
-- **Fail-closed flags.** `GroupMember.CategoryGrantsRestricted` / `TagGrantsRestricted` and
-  `GroupRoleDefinition.PaidByVisibilityRestricted` / `ReportTemplateGrantsRestricted` are derived on save from the
-  submitted sets, so a configuration whose rows are emptied by a cascade stays restricted instead of widening.
-  `RequiresIndividualCategoryGrants` / `...TagGrants` make an unassigned member see nothing. They are persisted by
-  `SetGroupRoleIndividualGrantConfig`, separate from `CreateGroupRole` / `UpdateGroupRole` to avoid four adjacent
-  transposable bools.
-- **Write surface** `PUT /group/{groupId}/member/{userId}/grants` with its own permission `group.members.grants.update`:
-  folding it into `group.members.update` would let a restricted roster manager widen their own visibility. Ids come from
-  the URL; submitted ids are checked for existence and against the role ceiling (`GrantCeilingViolation`), so the
-  empty-intersection state is unreachable through the API.
-- **Lifecycle.** Member grant rows have no FK to `group_members`, and teardown deletes memberships with raw deletes.
-  Orphans would be re-adopted when a removed user rejoins, silently restoring revoked visibility. `DeleteMemberGrants*`
-  and `DeleteOrphanedMemberGrants` are called from `UserService.DeleteUser`, `GroupService.DeleteGroup` and
-  `GroupRepository.UpdateGroup`.
-- **`UpdateGroup` carries the flags forward.** It rebuilds `GroupMember` rows from the command (flags at zero) and writes
-  them twice, so it reads `GetMemberGrantFlagsForGroup` first and re-applies them; recomputing from surviving rows would
-  defeat the fail-closed purpose. Pinned by `TestUpdateGroupPreservesRetainedMemberGrantFlags`.
-- `GroupMember.CategoryGrants` / `TagGrants` are `gorm:"-"` view fields filled by `LoadMemberGrantsForGroup(s)`, kept out
-  of GORM associations so `UpdateGroup`'s association write never touches them.
-- **Caching.** The role layer is cached by group-role id (`services/grant_cache.go`); the member layer is not (one
-  indexed lookup, batched per group by `newReceiptGrantFilter`).
-- **Enforcement** is `services/grant_filter.go`: reads strip (`FilterReceiptCategoriesTags*`); aggregations substitute a
-  `(Restricted)` bucket (`SubstituteRestrictedCategoriesTags` for receipt-level ones; reports and the Dashboard do it
-  per product line in the line's receipt group, and the Dashboard shows no tile for a hidden tag);
-  writes check `ValidateCategoryTagSelection` (403), and a new-by-name category/tag needs `app.categories.create` /
-  `app.tags.create`; list/export filters are narrowed by `IntersectReceiptFilterWithGrants` so a hidden id cannot probe
-  existence. Holders of `app.categories.read` / `app.tags.read` bypass (`userBypassesGrants`).
-- **Update keeps hidden associations.** `UpdateReceipt` replaces associations wholesale, so
-  `MergeHiddenReceiptCategoriesTags` re-adds what the caller cannot see (after the selection check), and the response is
-  stripped again.
-- **AI candidates.** `ReceiptProcessingService.UserId` (0 for system) restricts the categories offered to the model to the
-  triggering user's grants.
-
-## Paid-by visibility
-
-Row-level: `GroupRolePaidByUserGrant` plus `IncludeOwnPaidReceipts`. The caller's own id is unioned at resolution time,
-never cached (the cache is role-keyed). There is no app-level bypass. A restricted empty set becomes the `IN (0)`
-sentinel.
-
-- **Paged list** (`GetPagedReceiptsByGroupId`): the predicate is added before the count. Single group:
-  `paid_by_user_id IN (allowed)`; All view: a per-group disjunction.
-- **Single receipt** (`HandleRequest`): the `ReceiptId(s)` blocks select `paid_by_user_id` and `enforcePaidByVisibility`
-  403s. That one place covers get, images, comments, duplicate source, update/delete and the multi-id export.
-  `HasAccess` calls `ReceiptPaidByVisible` itself so the desktop route guard agrees. `SkipPaidByVisibilityCheck` exists on
-  `structs.Handler` for an accounting endpoint that must see every row; nothing sets it today.
-- **Search** applies `ApplyPaidByDisjunction` in SQL before its `LIMIT`: a post-filter would let hidden receipts fill the
-  limit.
-- Write-side (which payer one may set) is governed by member isolation below, not by paid-by.
-- **The household export** (`GET /backup/export`, `app.backup.export`) is the one read that applies none of these layers:
-  it is a whole-household dump for moving servers, so the key is admin-only (Legacy Admin, never `FamilyUserAppKeys`).
-  The import (`app.backup.import`, admin-only too) writes payers and memberships as the file has them, without the
-  creator-visibility check; it only runs into an empty household.
+A category or tag sent by name instead of by id is created by the receipt write, so that write also needs
+`app.categories.create` / `app.tags.create` (`enforceNewCategoryTagPermission`). Any existing category or tag may be
+picked by anyone who may write the receipt.
 
 ## The All group read gate
 
-The synthetic All group is a real membership with an unrestricted role. Expanding it without re-checking each group let
-members read receipts and category names in groups whose role denies it. So `GetPagedReceiptsByGroupId` takes a
-`GroupReadableResolver` (`PermissionService.GroupPermissionResolver`) and drops every group where the caller lacks the
-permission its direct path needs (`group.receipts.read`, or `group.reports.read` for reports), before the scope, the
-paid-by disjunction and the count. The `CategoryTagVisibilityResolver` must be passed with it (the call fails closed
-otherwise): it turns a category/tag filter into a per-group disjunction (`applyAllGroupCategoryTagFilter`), because
-`IntersectReceiptFilterWithGrants` is a no-op on the All membership. AppData's All-group catalog is the union of the
-real groups' visible sets. Search applies the same per-group read filter.
+The synthetic All group is a real membership, on the default role. Expanding it without re-checking each household
+would let a member read receipts in a household whose role denies it. So `GetPagedReceiptsByGroupId` takes a
+`GroupReadableResolver` (`PermissionService.GroupPermissionResolver`) and drops every household where the caller lacks
+the permission its direct path needs (`group.receipts.read`, or `group.reports.read` for reports), before the scope
+and the count. Search applies the same per-household read filter. AppData's catalog for the All group is the whole
+pool, as for any household.
 
 As a destination the All group is refused (400) before the create check in every create, quick scan and move path
-(`isAllGroupDestination`), because its role would satisfy `group.receipts.create` and sidestep every real group's
-controls. Moving a receipt also requires `group.receipts.create` on the destination and runs the selection checks there.
+(`isAllGroupDestination`), because its role would satisfy `group.receipts.create` and the receipt would belong to no
+household. Moving a receipt also requires `group.receipts.create` on the destination.
 
 ## Group member management
 
 `UpdateGroup` replaces the roster. `GroupService.AuthorizeGroupMemberChanges` diffs it and, per added / role-changed /
 removed row, requires `group.members.create|update|delete` and a **privilege ceiling**: the caller may only assign,
 replace or remove a role whose permissions are a subset of their own (closes GHSA-89mm-9qfv-cjg3, self-escalation to
-owner or evicting the owner). 403 `ErrGroupMemberChangeForbidden`.
+owner or evicting the owner). 403 `ErrGroupMemberChangeForbidden`. With two household roles it reads: only an Owner
+changes the roster, and a Member cannot.
 
 `middleware.CanDeleteGroup` (the "don't delete your last group" guard) short-circuits for `app.groups.delete` holders; it
 is not the authorization gate. `DeleteGroup` declares `OrAppPermissions: [app.groups.delete]` beside `group.delete`.
 
-## Member isolation
-
-`Group.IsolateMembers`: inside it a member cannot discover other members (directory, roster, receipts, comments,
-activities, notifications). `GroupRoleDefinition.SeesAllMembers` is the supervisor exemption (sees everyone, visible to
-everyone). Resolved **per (viewer, group)**, never as a union: co-members are visible only through a shared non-isolated
-group and only on that group's surfaces. A cross-group aggregate may therefore omit a hidden group's money; the
-isolation guarantee wins.
-
-- `GetVisibleUserIdsForUserInGroup` (per group) feeds every group-scoped surface: `app.users.read`, a non-isolated group,
-  or a supervisor role ⇒ unrestricted; a plain member ⇒ self ∪ supervisors; a non-member of an isolated group ⇒ self only
-  (an `app.groups.read` holder must not see the roster); a non-member of an open group ⇒ unrestricted.
-  `UserVisibleInGroup` is the single-row form; batch callers memoize via `groupVisibilityResolver`.
-- `GetVisibleUserIdsForUser` (union) is used only for the flat `appData.users` directory, which clients use to resolve
-  names.
-- Enforcement: rosters filtered at serialization (`FilterGroupMembersForGroup(s)`, MCP `list_groups`), not inside
-  `GetGroupsForUser`; receipts by intersecting into the paid-by set (`paidByAllowedForGroup`), so a hidden payer's
-  receipt disappears everywhere; `member_masking.go` nulls `CreatedBy` fields (nulled, not `(Restricted)`: presence must
-  not be announced) and drops hidden authors' comments; activities filtered in SQL before count/limit
-  (`applyActivityVisibilityDisjunction`); comment notifications suppressed (`AuthorVisibilityResolver`).
-- Writes: `enforceReceiptMemberVisibilitySelection` / `ValidateReceiptUserSelection` reject a payer outside the creator's
-  visible set for the receipt's group.
-
 ## Report-template access
 
-Three layers ANDed in `services/report_authz.go` (`CanActOnTemplate`, `VisibleTemplateIds`, `AllowedActionsForTemplate`,
-`CanReportOverGroups`): the app action permission `app.reports.<action>`; the group ceiling (`group.reports.read` in every
-group the template covers, from the `report_template_groups` index); and the per-template matrix
-`GroupRoleReportTemplateGrant`. `app.reports.<action>All` bypasses the last two. The six template handlers enforce in
-the body because the declarative gate is AND-only. The matrix is UX scoping: the ad-hoc `/report/generate` and a fresh
-duplicate are not bound by it, and neither can widen data access beyond the group ceiling and grants, which every
-generation re-resolves.
+Two layers ANDed in `services/report_authz.go` (`CanActOnTemplate`, `VisibleTemplateIds`, `AllowedActionsForTemplate`,
+`CanReportOverGroups`): the app action permission `app.reports.<action>`, and the group ceiling (`group.reports.read`
+in every household the template covers, from the `report_template_groups` index). `app.reports.<action>All` bypasses
+the ceiling. The template handlers enforce in the body because the declarative gate is AND-only. Reports are an
+Admin's: a User holds no report permission and a Member no `group.reports.read`.
 
-## Households and role-required fields
+## The household export
 
-- First user and household: the first account gets a group named `Household` (`HouseholdGroupName`); later accounts join
-  it as Member (`joinHouseholdGroup`) and get no personal group. Without a Household group, accounts get "My Receipts".
-  Every account also gets the All group.
-- Role-required receipt fields (`RequireReceiptComment` / `RequireReceiptImage`) are resolved, never read raw:
-  `ResolveReceiptRequirements` waives the comment when the group hides comments or the caller lacks
-  `group.comments.create`, the image when the group hides images, and requires nothing for non-members, role-less members
-  and the All group. Enforced as 400 validator errors on both creates, update (against stored comments/images, target
-  group), deleting the last comment/image, and quick scan. `AppData.groupReceiptRequirements` lists only groups with a
-  requirement, `{}` when none.
+`GET /backup/export` (`app.backup.export`) is a whole-install dump for moving servers: every household and person,
+without secrets. The key is admin-only (never in `FamilyUserAppKeys`). The import (`app.backup.import`, admin-only
+too) runs only into an empty household; a role name it does not know (an export from before fixed roles) becomes
+Member, and every imported person is a User.
+
+## Households
+
+The first account gets a group named `Household` (`HouseholdGroupName`, flagged `is_household`); later accounts join
+it as Member (`joinHouseholdGroup`) and get no personal group. An install without a Household group (one that
+predates it) gives accounts a personal "My Receipts". Every account also gets the All group.

@@ -1,53 +1,7 @@
-import { PermissionScope } from "../open-api";
 import { marker } from "../i18n/marker";
 
-/**
- * A role applies to exactly one scope. The "Role type" choice drives the
- * available templates, the permission list, and the summary.
- */
-export type RoleType = "app" | "group";
-
-export interface RoleTypeMeta {
-  id: RoleType;
-  name: string;
-  /** Material icon name. */
-  icon: string;
-  description: string;
-  scope: PermissionScope;
-}
-
-export interface RolePreset {
-  id: string;
-  name: string;
-  description: string;
-  /** Material icon name. */
-  icon: string;
-  /**
-   * Resolves the preset to a set of permission keys. The full registry keys
-   * (already filtered to the active scope) are passed in so presets can be
-   * computed dynamically and stay resilient to unknown keys.
-   */
-  resolve: (scopeKeys: readonly string[]) => Set<string>;
-}
-
-export const ROLE_TYPES: RoleTypeMeta[] = [
-  {
-    id: "app",
-    name: marker("Application role"),
-    icon: "apps",
-    description:
-      marker("Controls app-wide capabilities — users, settings, prompts and more."),
-    scope: PermissionScope.App,
-  },
-  {
-    id: "group",
-    name: marker("Group role"),
-    icon: "workspaces",
-    description:
-      marker("Controls what a member can do inside a group — receipts, dashboards, activity."),
-    scope: PermissionScope.Group,
-  },
-];
+// How the role preview names a role's permissions. The roles are fixed, so there are no presets to pick
+// from any more: what is left of this file is the labelling the preview dialog needs.
 
 /**
  * Derives the resource key for a permission: the full key minus its last
@@ -56,122 +10,6 @@ export const ROLE_TYPES: RoleTypeMeta[] = [
 export function resourceKeyOf(permissionKey: string): string {
   const lastDot = permissionKey.lastIndexOf(".");
   return lastDot === -1 ? permissionKey : permissionKey.slice(0, lastDot);
-}
-
-/** Filters the registry keys down to those that exist, preserving resilience. */
-function intersect(wanted: readonly string[], available: readonly string[]): Set<string> {
-  const availableSet = new Set(available);
-  return new Set(wanted.filter((k) => availableSet.has(k)));
-}
-
-const USER_MANAGER_RESOURCES = new Set(["app.users"]);
-
-const GROUP_MANAGER_KEYS = [
-  "group.receipts.create",
-  "group.receipts.read",
-  "group.receipts.update",
-  "group.receipts.delete",
-  "group.receipts.duplicate",
-  "group.receipts.magic-fill",
-  "group.comments.create",
-  "group.comments.delete",
-  "group.activities.read",
-  "group.activities.rerun",
-  "group.view",
-  "group.update",
-  "group.shopping-lists.create",
-  "group.shopping-lists.read",
-  "group.shopping-lists.update",
-  "group.shopping-lists.delete",
-];
-
-const RECEIPT_EDITOR_KEYS = [
-  "group.receipts.create",
-  "group.receipts.read",
-  "group.receipts.update",
-  "group.receipts.duplicate",
-  "group.receipts.magic-fill",
-  "group.comments.create",
-  "group.view",
-  // Uses the group's lists (add, check off) without creating or deleting lists.
-  "group.shopping-lists.read",
-  "group.shopping-lists.update",
-];
-
-const VIEWER_KEYS = [
-  "group.receipts.read",
-  "group.activities.read",
-  "group.view",
-  "group.shopping-lists.read",
-];
-
-export const APP_PRESETS: RolePreset[] = [
-  {
-    id: "admin",
-    name: marker("Administrator"),
-    description: marker("Everything in the app"),
-    icon: "shield_person",
-    resolve: (keys) => new Set(keys),
-  },
-  {
-    id: "user-mgr",
-    name: marker("User Manager"),
-    description: marker("Manage users & keys"),
-    icon: "manage_accounts",
-    resolve: (keys) =>
-      new Set(keys.filter((k) => USER_MANAGER_RESOURCES.has(resourceKeyOf(k)))),
-  },
-  {
-    id: "app-viewer",
-    name: marker("Read Only"),
-    description: marker("View settings only"),
-    icon: "visibility",
-    resolve: (keys) => new Set(keys.filter((k) => k.endsWith(".read"))),
-  },
-  {
-    id: "custom",
-    name: "Custom",
-    description: marker("Start from scratch"),
-    icon: "tune",
-    resolve: () => new Set<string>(),
-  },
-];
-
-export const GROUP_PRESETS: RolePreset[] = [
-  {
-    id: "manager",
-    name: marker("Group Manager"),
-    description: marker("Run groups & receipts"),
-    icon: "workspaces",
-    resolve: (keys) => intersect(GROUP_MANAGER_KEYS, keys),
-  },
-  {
-    id: "editor",
-    name: marker("Receipt Editor"),
-    description: marker("Add & edit receipts"),
-    icon: "edit_note",
-    resolve: (keys) => intersect(RECEIPT_EDITOR_KEYS, keys),
-  },
-  {
-    id: "viewer",
-    name: marker("Viewer"),
-    description: marker("Read-only access"),
-    icon: "visibility",
-    resolve: (keys) => intersect(VIEWER_KEYS, keys),
-  },
-  {
-    id: "custom",
-    name: "Custom",
-    description: marker("Start from scratch"),
-    icon: "tune",
-    resolve: () => new Set<string>(),
-  },
-];
-
-export const CUSTOM_PRESET_ID = "custom";
-
-export function presetsForType(type: RoleType): RolePreset[] {
-  return type === "app" ? APP_PRESETS : GROUP_PRESETS;
 }
 
 /**
@@ -199,7 +37,6 @@ export function iconForResource(resourceKey: string): string {
 const RESOURCE_NAME_OVERRIDES: Record<string, string> = {
   "receipt-processing-settings": marker("Receipt Processing"),
   "system-settings": marker("System Settings"),
-  "system-emails": marker("System Emails"),
   "system-tasks": marker("System Tasks"),
 };
 

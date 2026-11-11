@@ -47,41 +47,6 @@
       ></app-checkbox>
     </app-form-section>
 
-    @if (grantRows().length) {
-      <app-form-section [headerText]="'Category &amp; tag access' | t">
-        <div class="hint hint-inline">
-          {{ 'Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.' | t }}
-        </div>
-
-        @for (row of grantRows(); track row.groupId) {
-          <div
-            class="not-first:mt-5"
-            [attr.data-testid]="'grant-section-' + row.groupId"
-          >
-            <h3 class="mb-2 flex items-center gap-2 text-base font-semibold">
-              {{ row.groupName }}
-              @if (row.roleName) {
-                <span class="rounded-full bg-chart-4/12 px-2 py-0.5 text-xs font-medium text-chart-4">{{ row.roleName }}</span>
-              }
-            </h3>
-            <!-- Per group, not per section: what an empty selection means depends on
-                 the role in THAT group. -->
-            <div class="hint hint-inline" [attr.data-testid]="'grant-hint-' + row.groupId">
-              {{ emptySelectionHint(row) | t }}
-            </div>
-            <app-grant-picker
-              [categoryPool]="categoryPool()"
-              [tagPool]="tagPool()"
-              [selectedCategoryIds]="row.current.categoryIds"
-              [selectedTagIds]="row.current.tagIds"
-              [ceiling]="row.ceiling"
-              (grantsChange)="onGrantsChange(row.groupId, $event)"
-            ></app-grant-picker>
-          </div>
-        }
-      </app-form-section>
-    }
-
     <div class="flex items-center justify-end gap-2">
       <app-cancel-button (clicked)="closeModal()"></app-cancel-button>
       <app-submit-button [mode]="submitMode"></app-submit-button>

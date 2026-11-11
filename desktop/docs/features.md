@@ -446,12 +446,12 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   another provider empties it and the key, and the API refuses a cloud setting without a model and returns
   `ai.ErrNoModelChosen` instead of falling back (the old fallbacks were Claude Opus and `gpt-3.5-turbo`). Save buttons
   take `.cv-unsaved` from the form's dirty state (`../DESIGN.md`).
-- **Roles:** the UI offers Admin and User only (`src/utils/family-roles.ts`); user and member forms load assignable
-  roles with `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group
-  role ids collide). There is no role editor.
-- **Per-member grants** (`user-form`, `group-member-form`) write through `PUT /group/{groupId}/member/{userId}/grants`,
-  gated per group on `group.members.grants.update` (no app-level bypass); only changed rows are sent. The empty-
-  selection sentence comes from `emptySelectionHint(row)`, since under a require-individual role empty means nothing.
+- **Roles:** they are fixed, two per scope, and the pickers show both as Admin and User (`src/utils/family-roles.ts`
+  maps the row names `Legacy Admin` / `User` and `Legacy Owner` / `Member`). User and member forms load them with
+  `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group role ids
+  collide). The eye beside a role picker opens a read-only list of what the role allows
+  (`roles/role-preview/`). Nothing edits a role, and nothing narrows what a member of a household sees: there is no
+  category or tag access per person, no "isolate members" switch and no role-required receipt field.
 - **Manage Categories / Tags** refresh AppData after each change (`refreshAfterChange`) so pickers see new names; the
   category form provides `DuplicateValidator` itself (root-injector dialogs).
 - **Delete account** for a passwordless (provider-provisioned) account confirms through the provider instead of a
@@ -488,10 +488,6 @@ The long form of points the guide states briefly.
   `confirmText = marker("Delete")`, a removal `marker("Remove")`; those two (`DESTRUCTIVE_CONFIRM_TEXTS`) turn the
   button red through `app-dialog-footer [submitDestructive]`. The dialog starts the focus on the question
   (`cdkFocusInitial`), not on Cancel, whose tooltip would pop open.
-- **Grant picker** (`src/shared-ui/grant-picker/`, used by `user-form` and `group-member-form`): emits nothing while
-  seeding itself, stops seeding once the user edits (inputs keep changing after mount), and passes a unique `inputId`
-  to its autocompletes (otherwise N pickers share one DOM id). Row building and diff-and-save live in
-  `member-grant-assignment.ts`.
 - **Chip pickers** (`app-autocomlete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   has no `push()` and the picker silently does nothing); clear with `FormArray.clear()`. A single-select goes
   `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain

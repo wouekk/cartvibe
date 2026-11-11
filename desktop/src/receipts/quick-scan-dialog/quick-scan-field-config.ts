@@ -46,17 +46,11 @@ export interface QuickScanFieldConfigOptions {
   // required, so a member who cannot comment is never locked out of quick scan, and
   // a comment sent anyway is dropped by the server.
   canCreateComments: boolean;
-  // Whether the caller's group role requires a comment on this group's receipts
-  // (AppData's groupReceiptRequirements, already resolved server-side). ORed in:
-  // it shows AND requires the comment even when the group's quick-scan config
-  // leaves it off, matching the backend's ResolveQuickScanFields. It still yields
-  // to hideComments and the comment permission, which the server waives it for.
-  roleRequiresComment?: boolean;
 }
 
 export function resolveQuickScanFieldConfig(
   settings: GroupReceiptSettings | undefined,
-  { hasGroup, canCreateComments, roleRequiresComment = false }: QuickScanFieldConfigOptions
+  { hasGroup, canCreateComments }: QuickScanFieldConfigOptions
 ): QuickScanFieldConfig {
   if (!hasGroup) {
     return NO_GROUP_QUICK_SCAN_FIELDS;
@@ -65,7 +59,7 @@ export function resolveQuickScanFieldConfig(
   const showPaidBy = settings?.quickScanPaidByEnabled ?? true;
   // Phase 3 C3/C6: a scan starts as "To check", so status is never asked; and none of paid-by,
   // status, categories or tags is required any more (the server falls back to defaults). Only the
-  // comment keeps its required rules, which a role can also set.
+  // comment keeps its required rule, which the household sets.
   const showStatus = false;
   const showCategories = settings?.quickScanCategoriesEnabled ?? false;
   const showTags = settings?.quickScanTagsEnabled ?? false;
@@ -73,9 +67,7 @@ export function resolveQuickScanFieldConfig(
   // comment too -- without changing the stored toggle (mirrors the backend's
   // GroupReceiptSettings.IsQuickScanCommentShown).
   const commentAllowed = !(settings?.hideComments ?? false) && canCreateComments;
-  const roleComment = roleRequiresComment && commentAllowed;
-  const showComment =
-    ((settings?.quickScanCommentEnabled ?? false) && commentAllowed) || roleComment;
+  const showComment = (settings?.quickScanCommentEnabled ?? false) && commentAllowed;
 
   return {
     showPaidBy,
@@ -87,7 +79,6 @@ export function resolveQuickScanFieldConfig(
     showTags,
     requireTags: false,
     showComment,
-    requireComment:
-      (showComment && (settings?.quickScanCommentRequired ?? false)) || roleComment,
+    requireComment: showComment && (settings?.quickScanCommentRequired ?? false),
   };
 }

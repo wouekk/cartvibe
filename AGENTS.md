@@ -15,8 +15,8 @@ need, fill in what it should not have to (paid by = the logged-in user), and kee
 working defaults.
 
 The main pieces are live-synced shopping lists, a customisable Dashboard (the landing page), receipts whose product
-lines the AI reads and labels (category, health, planned or not), monthly goals and reports. Only Admin and User roles
-are offered; the UI ships in five languages.
+lines the AI reads and labels (category, health, planned or not), monthly goals and reports. There are two fixed
+roles, Admin and User, and everyone in a household sees all of it; the UI ships in five languages.
 
 ## Product rules
 

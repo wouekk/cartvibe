@@ -42,7 +42,10 @@ The look of every UI change: `DESIGN.md`. Local toolchains and manual steps: `do
   SQLite, and migrations are additive.
 - **IMPORTANT:** authorization is server-side and read from the database, never the JWT; details in `api/CLAUDE.md`.
 - The synthetic "All" group is never a destination (no lists, receipts or backfills in it).
-- New group permissions go in `permissions/registry.go` and the swagger `Permission` enum.
+- New permissions go in `permissions/registry.go` and the swagger `Permission` enum; a User or a Member gets one only
+  when it is added to their list in `permissions/family.go`. The roles are fixed and everyone in a household sees all
+  of it: no role editing, and no rule that hides one member's receipts, categories or tags from another
+  (`api/docs/authorization.md`).
 - A receipt `date` is a calendar day stored as midnight UTC; "today", "this month" and timestamps use the app time zone.
   Filters send `yyyy-MM-dd`.
 - Keep `LICENSE`, `NOTICE.md` and the upstream credit in `README.md` and `site/`; never rewrite history. Releases are

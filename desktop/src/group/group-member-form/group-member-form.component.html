@@ -26,36 +26,6 @@
       ></app-button>
     </div>
 
-    @if (grantsReady() && grantRow(); as row) {
-      <!-- Grants have their own group-scoped permission, separate from the
-           group.members.update that opens this dialog, and the endpoint allows no
-           app-level bypass — so a roster manager without it must not see editable
-           controls that only produce a rejected request. -->
-      <div
-        class="mt-4"
-        data-testid="member-grant-section"
-        *hasGroupPermission="{
-          groupId: row.groupId,
-          permission: Permission.GroupMembersGrantsUpdate
-        }"
-      >
-        <h3 class="mb-2 text-base font-semibold">{{ 'Category &amp; tag access' | t }}</h3>
-        <div class="hint hint-inline" data-testid="member-grant-hint">
-          {{ 'Limit this member to specific categories and tags. This narrows within what their group role already allows — it can never widen it.' | t }}
-          {{ emptySelectionHint(row) | t }}
-          {{ 'Saved immediately when you save this member.' | t }}
-        </div>
-        <app-grant-picker
-          [categoryPool]="categoryPool()"
-          [tagPool]="tagPool()"
-          [selectedCategoryIds]="row.current.categoryIds"
-          [selectedTagIds]="row.current.tagIds"
-          [ceiling]="row.ceiling"
-          (grantsChange)="onGrantsChange(row.groupId, $event)"
-        ></app-grant-picker>
-      </div>
-    }
-
     <app-dialog-footer [editing]="!!groupMember" (cancelClicked)="closeModal()"></app-dialog-footer>
   </form>
 </app-dialog>

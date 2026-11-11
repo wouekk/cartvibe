@@ -7,7 +7,7 @@ import { gotoReceiptsTable, openReceiptsOverflowMenu } from './helpers/receipts-
 // snapshot in place, so ngOnInit threw and the dialog never rendered. These
 // tests open the dialog (the core regression) and round-trip a couple of
 // configurations. The default chromium project uses e2e/.auth/user.json
-// (e2e-user = Legacy User), which can read its own group's receipts.
+// (e2e-user = User), which can read its own group's receipts.
 
 test.describe('Receipt table column configuration', () => {
   test.beforeEach(async ({ page }) => {

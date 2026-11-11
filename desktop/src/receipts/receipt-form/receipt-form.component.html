@@ -118,14 +118,6 @@
                 (fileLoaded)="imageFileLoaded($event)"
               >
               </app-upload-image>
-              @if (isImageMissing()) {
-                <div
-                  class="cv-requirement-hint"
-                  data-testid="receipt-image-required-hint"
-                >
-                  {{ 'Your role requires at least one image on this group\'s receipts.' | t }}
-                </div>
-              }
               @if (!(images().length > 0 || filesToUpload().length > 0) && !(mode | inputReadonly)) {
                 <button
                   type="button"
@@ -243,25 +235,16 @@
      never by saving the receipt. -->
 @if (!this.selectedGroup()?.groupReceiptSettings?.hideComments) {
   <section class="mb-6 w-full">
-    @if (isCommentMissing()) {
-      <div
-        class="cv-requirement-hint mb-2"
-        data-testid="receipt-comment-required-hint"
-      >
-        {{ 'Your role requires at least one comment on this group\'s receipts.' | t }}
-      </div>
-    }
     <!-- Keyed on the receipt id: the queue re-uses this form for the next
          receipt, and the comments child only reads its inputs on init, so
          without a fresh instance it would keep the previous receipt's
-         comments (and the required-comment check would count them). -->
+         comments. -->
     @for (receipt of [originalReceipt]; track receipt?.id) {
       <app-receipt-comments
         [receiptId]="$safeNavigationMigration(receipt?.id)"
         [groupId]="$safeNavigationMigration(receipt?.groupId)"
         [comments]="receipt?.comments ?? []"
         [mode]="mode"
-        [preventDeletingLastComment]="isCommentDeletionLimited()"
         (commentsUpdated)="updateComments($event)"
       ></app-receipt-comments>
     }
@@ -416,8 +399,7 @@
         hlmDropdownMenuItem
         variant="destructive"
         data-testid="receipt-image-remove"
-        [attr.title]="isLastImageLocked() ? ('An image is required, so the last one cannot be removed' | t) : null"
-        [disabled]="!canEditReceipt() || isLastImageLocked() || (showProgressBar() ?? false)"
+        [disabled]="!canEditReceipt() || (showProgressBar() ?? false)"
         (click)="confirmRemoveImage()"
       >
         <app-icon name="delete"></app-icon>
