@@ -3,7 +3,7 @@
 The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated here. Deep notes in `docs/`:
 `authorization.md` (the fixed roles and why, the gates, households), `oidc.md`, `sessions-cookies.md`,
 `domain.md` (shopping lists, products, trips, Dashboard, currencies, search, receipts, sweeps), `shop-logos.md`,
-`activity-source-files.md`, `sandbox.md` (cloud sandbox boot and the real cgo suite).
+`activity-source-files.md`, `sandbox.md` (cloud sandbox boot, and the picture tests there).
 
 ## 1. Build and test
 
@@ -11,15 +11,17 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   when a patch release fixes stdlib advisories, which only `govulncheck` reports). Images and CI use `golang:1.27-trixie`
   (since 2026-11-10; the directive stays at 1.26.10, so a machine with Go 1.26 still builds),
   which sets `GOTOOLCHAIN=local` itself, so check the image digest before raising the directive.
-- CI's `test-api` runs the race detector on the packages where goroutines meet (the *Race detector* step of `ci.yml` lists them; the whole suite under `-race` ran past 25 minutes, and it needs cgo, so not on the Windows PC), and also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
-  are in `ci.yml`) and `govulncheck`, each a failure. Neither tool runs through `go-without-cgo.sh` on Windows; vet does.
+- CI's `test-api` runs the race detector on the packages where goroutines meet (the *Race detector* step of `ci.yml` lists them; the whole suite under `-race` ran past 25 minutes, and the detector needs cgo and a C compiler, so not on the Windows PC), and also runs `go vet`, `staticcheck` (SA, S1 and U1000; not ST, not SA1029: the list and the reasons
+  are in `ci.yml`) and `govulncheck`, each a failure.
 - Accepted advisory: GO-2026-5932 (`x/crypto/openpgp`, unmaintained, not imported). The excelize GHSA set is fixed in
   the tagged `github.com/xuri/excelize/v2` v2.11.1 (in `go.mod` since 2026-11-10; a pseudo-version held the fixes
   until then). Production only writes XLSX.
-- The cgo bindings (ImageMagick 7, Tesseract) are not available on the Windows PC. `scripts/go-without-cgo.sh vet ./...`
-  (or `test <pkg>`) stubs them; image/OCR tests and a few temp-path tests fail there only. Never build the server with it.
-  One stubbed test panics and ends the `repositories` package early, hiding every test after it: run that package
-  with `-skip TestBuildDisplayImageString_PdfRasterizes`.
+- **The API has no C code** (since 2026-11-11): `go build`, `go vet` and `go test` run as they are on any machine
+  with Go, and the image builds it with `CGO_ENABLED=0` (CI's Build step too, so C code cannot come back
+  unnoticed). ImageMagick and Tesseract are programs the API starts (`internal/imagetool`, section 7). A test that
+  converts or reads a picture begins with `imagetooltest.RequireMagick(t)` / `RequireTesseract(t)`
+  (`TextPicture` needs `gs`): skipped on a machine without the program, such as the Windows PC, and a failure in
+  CI. A skip is not a pass: name those tests as not run. A few temp-path tests still fail on Windows only.
 - PDF tests: `scripts/install-test-chromium.sh` once, then `scripts/test-pdf.sh`. Elsewhere set `CHROMIUM_BINARY_PATH`
   (default `/usr/bin/chromium`); without a browser the HTML-to-PDF tests fail and `internal/services` reports FAIL.
 - **CI is the judge.** Run the packages you touched locally where the toolchain allows, and say which tests did not run.
@@ -280,6 +282,16 @@ which day an instant falls on and what "today" means.
 - Vision images are normalized (`FileRepository.NormalizeImageForVision`); the stored original is untouched. Tesseract
   is the only OCR engine, and reads in the five languages the app ships in (`ocrLanguages`; the image installs the
   data and `runtime-check.sh` proves each).
+- **ImageMagick and Tesseract run as programs** (`internal/imagetool`: `Convert` for `magick`, `ReadText` for
+  `tesseract`), never through a shell, each run bounded in time. Rules:
+  - **Hand over bytes, never a stored path.** ImageMagick reads a file name as instructions (`[0]`, `*`, `@`, a
+    `fmt:` prefix) and a household's folder name is a person's choice; `Convert` writes the bytes to a name of its
+    own in a directory made for the call.
+  - Files, not pipes: the image's policy refuses `-`.
+  - A new or changed `magick` / `tesseract` command is added to `docker/checks/runtime-check.sh` as well: the Go
+    tests run under Debian's policy in CI, the image build is what proves a command under ours.
+  - Tesseract is called with `--psm 6` and an empty `page_separator`: what the library did by default, so receipts
+    read as they did before.
 - **Prompts are code** (`services/receipt_prompt.go`). A receipt answer keeps the prompted fields only
   (`onlyPromptedReceiptFields`): the AI never sets tags, payer, status, household or the note, and never a switched-off
   category. A new field the AI may fill is added to the prompt and to that function together. Read `../docs/ai-prompts.md` before changing a prompt. `foodGroupResolver` maps AI category names onto

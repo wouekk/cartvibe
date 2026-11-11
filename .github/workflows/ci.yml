@@ -82,13 +82,17 @@ jobs:
       - uses: actions/checkout@v7
       - name: Mark workspace as safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      # The libraries the build links, plus what only the tests run (Chromium, a PDF-enabled ImageMagick policy).
-      - name: Install app dependencies
-        run: bash set-up-dependencies.sh --with-test-tools
+      # The programs the tests start: ImageMagick, Ghostscript, Tesseract, Chromium (and a PDF-enabled ImageMagick
+      # policy). The build itself needs none of them.
+      - name: Install the programs the tests run
+        run: bash set-up-dependencies.sh
         working-directory: ./api
+      # Built the way the image builds it: without cgo, so C code cannot come back unnoticed.
       - name: Build
         run: go build -v ./...
         working-directory: ./api
+        env:
+          CGO_ENABLED: "0"
       - name: Vet
         run: go vet ./...
         working-directory: ./api
@@ -120,8 +124,8 @@ jobs:
         working-directory: ./api
       # The race detector, on the code where goroutines meet: the job workers, the two SQLite pools, the list
       # streams, the sign-in back-off, the provider cache, the log file. Not on everything: the whole suite under
-      # it was still running after 25 minutes (password hashing alone is many times slower). It needs cgo, which
-      # this container has and the Windows stub build does not.
+      # it was still running after 25 minutes (password hashing alone is many times slower). The detector itself
+      # needs cgo and a C compiler, which this container has and the Windows PC does not.
       - name: Race detector
         if: ${{ !cancelled() }}
         run: |

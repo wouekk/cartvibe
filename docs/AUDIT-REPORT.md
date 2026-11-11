@@ -226,6 +226,18 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     no state of its own, so a component each would be a list of inputs. The overview is one request, so they
     load and fail together either way. Say so if a component per tile is wanted anyway.
 - [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
+  - B9 and C6, step one (`feature/no-cgo`, cut from `preview`, 2026-11-11): the server has no C code. ImageMagick
+    and Tesseract are programs it starts (`api/internal/imagetool`), with the same operations in the same order
+    as the bindings ran; the two Go modules are gone and the image builds the API with `CGO_ENABLED=0`, as a
+    static binary. It now builds and tests with plain `go` on the Windows PC and cross-compiles to arm64 (both
+    done here); the stub script `go-without-cgo.sh` is deleted. A stored path is never handed to ImageMagick,
+    which reads a file name as instructions: the bytes are. Tesseract is called with the page mode the library
+    used by default, so receipts read as before.
+    - New tests: the OCR path (a picture prepared and read back, which nothing tested while it needed cgo), the
+      program runner, and the image build runs the API's exact commands under the shipped ImageMagick policy
+      (`docker/checks/runtime-check.sh`). The picture tests are skipped on a machine without the programs and
+      required in CI.
+    - Still to come, each on its own branch: Go serves the app and nginx goes; arm64 images.
 
 ---
 

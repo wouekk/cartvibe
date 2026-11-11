@@ -46,8 +46,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - **Dependabot:** all nine pull requests of 2026-11-10 are dealt with in `preview`. They close when it reaches
   `main` (#21 and #22 were redone by hand, so Dependabot closes those at its next run).
 - `i18n-audit-en-pl.md` and `docs/plans/` (untracked) are the owner's.
-- `staticcheck` and `govulncheck` do not run through `go-without-cgo.sh`: copy `api/` aside with the stub `replace`
-  lines in its `go.mod` and run them on the copy. The race detector runs in CI only (it needs cgo).
+- On `feature/no-cgo` the API has no C code: plain `go vet`, `go test`, `staticcheck` and `govulncheck` run on the
+  PC (`go-without-cgo.sh` is gone). The picture tests are skipped there (no `magick`, `tesseract`, `gs`), so only
+  CI proves them. The race detector runs in CI only (it needs cgo and a C compiler).
 - Playwright: on the Mac `failed-activity-source-file` and `system-task-filter` fail on `main` (15 skipped behind
   them); never run: `app-time-zone`, `report-period-date-field`. The real-app specs need a live API, which this PC
   cannot run in Docker: a new spec's taps and ids can be proved against the built demo (`desktop/docs/e2e.md`).

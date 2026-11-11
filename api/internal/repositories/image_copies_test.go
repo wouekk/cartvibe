@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"cartvibe/api/internal/imagetool/imagetooltest"
 	"cartvibe/api/internal/models"
 	"cartvibe/api/internal/utils"
 
@@ -47,6 +48,8 @@ func cleanUpImageCopies(t *testing.T) {
 
 // Needs ImageMagick, so it runs in CI and not under the Windows stubs.
 func TestImageCopyIsMadeOnceAsASmallJpeg(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	cleanUpImageCopies(t)
 	repository := NewFileRepository(nil)
 	fileData := storeTestImage(t, 3000, 1500)

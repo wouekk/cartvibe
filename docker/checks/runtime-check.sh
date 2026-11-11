@@ -16,9 +16,10 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 cd "$work" || exit 1
 
-# The API's shared libraries.
-if ldd /app/cartvibe-api/api | grep "not found"; then
-  fail "the API links a library this image does not install"
+# The API binary is static (built without cgo): it must not need a library of this image.
+if ldd /app/cartvibe-api/api >ldd.out 2>&1; then
+  cat ldd.out >&2
+  fail "the API binary links shared libraries; it is built with CGO_ENABLED=0"
 fi
 
 # HEIC: the coder is registered, and a real file decodes (the file is made by a different image, with an encoder).
@@ -40,6 +41,25 @@ grep -qi receipt ocr.txt 2>/dev/null || fail "Tesseract did not read the word dr
 for lang in eng pol deu fra spa; do
   tesseract --list-langs 2>&1 | grep -qx "$lang" || fail "Tesseract has no data for $lang"
 done
+
+# The API's own commands (api/internal/imagetool and its callers), under this image's policy: a file without an
+# extension in a directory of its own, "[0]" for the first frame, the output named by its format. Keep them in step
+# with FileRepository.ConvertHeicToJpg, toOpaqueJpeg, ConvertPdfToJpg and OcrService.prepareImage /
+# ReadImageWithTesseract: a command the policy refuses must fail here, not on the NAS.
+mkdir api && cp /tmp/checks/tiny.heic api/heic && cp text.pdf api/pdf
+magick 'api/heic[0]' -quality 95 jpeg:api/heic-out 2>api.err \
+  || { cat api.err >&2; fail "the API's HEIC to JPEG command fails"; }
+magick 'api/heic[0]' -auto-orient -background white -alpha remove -colorspace sRGB -filter Lanczos -resize '2048x2048>' -strip -quality 85 jpeg:api/vision-out 2>api.err \
+  || { cat api.err >&2; fail "the API's image-for-the-AI command fails"; }
+[ "$(magick identify -format %m api/vision-out 2>/dev/null)" = "JPEG" ] || fail "the image for the AI is not a JPEG"
+magick -density 300 api/pdf -background white -alpha remove -alpha off -append jpeg:api/pdf-out 2>api.err \
+  || { cat api.err >&2; fail "the API's PDF to JPEG command fails"; }
+[ "$(magick identify -format %m api/pdf-out 2>/dev/null)" = "JPEG" ] || fail "the PDF did not become one JPEG"
+magick 'api/pdf-out[0]' -filter Lanczos -resize '3000x3000>' -trim +repage -type bilevel -blur 0x1.5 -sharpen 0x1 -enhance +contrast -deskew 0.4 png:api/ocr-in 2>api.err \
+  || { cat api.err >&2; fail "the API's prepare-for-OCR command fails"; }
+tesseract api/ocr-in stdout -l eng+pol+deu+fra+spa --psm 6 -c page_separator= -c 'tessedit_char_blacklist=|~`^_{}[]<>\' >api/ocr.txt 2>api.err \
+  || { cat api.err >&2; fail "the API's Tesseract command fails"; }
+grep -qi receipt api/ocr.txt || { cat api/ocr.txt >&2; fail "the API's OCR path did not read the word drawn into the PDF"; }
 
 # A PDF with no text (the original check) and the policy: vector and script formats stay refused.
 magick -size 40x40 xc:white blank.pdf && magick blank.pdf blank.jpg || fail "a blank PDF does not convert"

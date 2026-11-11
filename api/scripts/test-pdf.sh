@@ -8,8 +8,8 @@
 #   ./scripts/test-pdf.sh -run Render_Basic  # extra `go test` flags are passed on
 #   ./scripts/test-pdf.sh --print-path       # only print the browser it would use
 #
-# It goes through go-without-cgo.sh, so the PDF tests that need ImageMagick (PDF rasterizing, file type
-# sniffing, AI image encoding) still fail on a machine without it; only CI or the Docker image proves those.
+# The PDF tests that also need ImageMagick (drawing a printed page back to pixels) are skipped on a machine
+# without `magick`; CI runs them.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -53,5 +53,5 @@ if ! command -v gs >/dev/null 2>&1; then
 fi
 
 echo "Using $CHROMIUM_BINARY_PATH"
-"$here/go-without-cgo.sh" test ./internal/services/ -count=1 \
+go test ./internal/services/ -count=1 \
   -run 'HtmlToPdf|IsRequestAllowed|Generate_PdfDocument' "$@"

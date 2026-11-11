@@ -1,6 +1,7 @@
 package services
 
 import (
+	"cartvibe/api/internal/imagetool/imagetooltest"
 	"strings"
 	"testing"
 	"time"
@@ -106,6 +107,8 @@ func TestInlineProductPromptSharesTheProductRules(t *testing.T) {
 }
 
 func TestQuickScanStoresTheProductsOfItsOwnAnswer(t *testing.T) {
+	imagetooltest.RequireMagick(t)
+
 	defer repositories.TruncateTestDb()
 
 	created, _, _, err := runQuickScan(
