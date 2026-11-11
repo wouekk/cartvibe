@@ -30,13 +30,12 @@ describe("TagsListComponent", () => {
     } as any));
 
     TestBed.configureTestingModule({
-    declarations: [TagTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([TagTableState])],
+        NgxsModule.forRoot([TagTableState]), TagTableComponent],
     providers: [
         { provide: TagService, useValue: tagServiceSpy },
-        provideHttpClient(withInterceptorsFromDi()), 
+        provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
     ]
 });

@@ -12,13 +12,11 @@ describe('ButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ButtonComponent],
-      imports: [TranslatePipe, 
+    imports: [TranslatePipe,
         HlmButton,
         ...HlmTooltipImports,
-        RouterTestingModule,
-      ],
-    }).compileComponents();
+        RouterTestingModule, ButtonComponent,],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ButtonComponent);
     component = fixture.componentInstance;

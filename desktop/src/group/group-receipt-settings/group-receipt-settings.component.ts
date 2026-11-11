@@ -16,6 +16,15 @@ import {
 import { SnackbarService } from "../../services/index";
 import { AuthState, UpdateGroup } from "../../store/index";
 import { marker } from "../../i18n/marker";
+import { FormComponent } from "../../shared-ui/form/form.component";
+import { AuditDetailSectionComponent } from "../../shared-ui/audit-detail-section/audit-detail-section.component";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { UserAutocompleteComponent } from "../../user-autocomplete/user-autocomplete/user-autocomplete.component";
+import { StatusSelectComponent } from "../../shared-ui/status-select/status-select.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /**
  * A household's receipt settings: what the receipt form leaves out, whether Quick Scan asks for a note, and the
@@ -27,7 +36,7 @@ import { marker } from "../../i18n/marker";
     templateUrl: "./group-receipt-settings.component.html",
     styleUrl: "./group-receipt-settings.component.scss",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormComponent, AuditDetailSectionComponent, FormSectionComponent, CheckboxComponent, SelectComponent, UserAutocompleteComponent, StatusSelectComponent, TranslatePipe, FormGetPipe]
 })
 export class GroupReceiptSettingsComponent extends BaseFormComponent implements OnInit {
   public originalGroup!: Group;

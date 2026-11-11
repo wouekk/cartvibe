@@ -5,11 +5,12 @@ import { finalize, take } from "rxjs";
 import { AiType } from "../../constants/ai-type";
 import { AiModel, ReceiptProcessingSettingsService } from "../../open-api";
 import { InputModule } from "../../input/input.module";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { SelectModule } from "../../select/select.module";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { marker } from "../../i18n/marker";
 import { providerCompany } from "../ai-settings-shared";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The model field for a cloud provider (Claude, Gemini, ChatGPT): a dropdown of the models the API key can use, fetched
@@ -23,7 +24,7 @@ import { providerCompany } from "../ai-settings-shared";
   templateUrl: "./ai-model-field.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [AppIconComponent, HlmButton, InputModule, PipesModule, SelectModule],
+  imports: [AppIconComponent, HlmButton, InputModule, TranslatePipe, SelectModule],
 })
 export class AiModelFieldComponent {
   private readonly receiptProcessingSettingsService = inject(ReceiptProcessingSettingsService);

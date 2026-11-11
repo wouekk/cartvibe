@@ -3,7 +3,7 @@ import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, 
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import type { ScriptableContext } from "chart.js";
 
@@ -48,7 +48,7 @@ import { DisplayCurrencyService } from "../../services/display-currency.service"
 import { centerTextPlugin, goalLinePlugin, pointerPlugin } from "../../shared-ui/chart/chart-plugins";
 import { ChartColors } from "../../shared-ui/chart/chart-colors";
 import { chartFontSize } from "../../shared-ui/chart/chart-scale";
-import { ChartSpec } from "../../shared-ui/chart/chart.component";
+import { ChartSpec, ChartComponent } from "../../shared-ui/chart/chart.component";
 import { htmlTooltip, tooltipCard } from "../../shared-ui/chart/chart-tooltip";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
@@ -109,6 +109,30 @@ import { barRange, isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedP
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
+import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { PeriodPickerComponent } from "../period-picker/period-picker.component";
+import { HlmSwitch } from "../../ui/switch/lib/hlm-switch";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { HlmTHead, HlmTh, HlmTable, HlmTr, HlmTBody, HlmTd } from "../../ui/table/lib/hlm-table";
+import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
+import { StatusChipComponent } from "../../shared-ui/status-chip/status-chip.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { WarrantyMenuComponent } from "../../warranties/warranty-menu/warranty-menu.component";
+import { OverviewShoppingPanelComponent } from "../overview-shopping-panel/overview-shopping-panel.component";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
+import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
+import { TranslatePipe, TranslateDataPipe, PluralPipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { UserPipe } from "../../pipes/user.pipe";
 
 /** Receipts listed per height step of the receipts panel. */
 const RECENT_RECEIPT_COUNT = 6;
@@ -173,12 +197,48 @@ const UNCATEGORIZED = marker("Uncategorized");
  * only itself.
  */
 @Component({
-  selector: "app-overview-page",
-  templateUrl: "./overview-page.component.html",
-  standalone: false,
-  // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
-  changeDetection: ChangeDetectionStrategy.Eager,
-  providers: [CurrencyPipe, CustomCurrencyPipe],
+    selector: "app-overview-page",
+    templateUrl: "./overview-page.component.html",
+    // The export formats money like the rest of the app; the pipe is declared in PipesModule and needs CurrencyPipe.
+    changeDetection: ChangeDetectionStrategy.Eager,
+    providers: [CurrencyPipe, CustomCurrencyPipe],
+    imports: [
+        SettingsTabsComponent,
+        BrnButton,
+        HlmButton,
+        AppIconComponent,
+        ButtonComponent,
+        PeriodPickerComponent,
+        HlmSwitch,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        RouterLink,
+        MoneyComponent,
+        ChartComponent,
+        HlmTHead,
+        HlmTh,
+        HlmTable,
+        HlmTr,
+        HlmTBody,
+        HlmTd,
+        ShopMonogramComponent,
+        StatusChipComponent,
+        AddButtonComponent,
+        WarrantyMenuComponent,
+        OverviewShoppingPanelComponent,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmDropdownMenuSeparator,
+        DisplayCurrencyPipe,
+        TranslatePipe,
+        TranslateDataPipe,
+        PluralPipe,
+        AppDatePipe,
+        UserPipe,
+    ],
 })
 export class OverviewPageComponent {
   public readonly groupId = toSignal(

@@ -26,7 +26,6 @@ import {
   ShoppingListService,
   UserPreferences,
 } from "../../open-api";
-import { PipesModule } from "../../pipes/pipes.module";
 import { AuthState } from "../../store/auth.state";
 import { FeatureConfigState } from "../../store/feature-config.state";
 import { SetFeatureConfig } from "../../store/feature-config.state.actions";
@@ -111,9 +110,8 @@ describe("OverviewPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [OverviewPageComponent],
-      imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), PipesModule, SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports],
-      providers: [
+    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState, ShoppingListState, SystemSettingsState, UserState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
+    providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -123,9 +121,9 @@ describe("OverviewPageComponent", () => {
         { provide: OverviewService, useValue: overviewService },
         { provide: ReceiptService, useValue: receiptService },
         { provide: ShoppingListService, useValue: { getShoppingListsForGroup: vi.fn(() => of([])) } },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     query.next(convertToParamMap({}));
     TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead] }));

@@ -10,13 +10,12 @@ describe("AddButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AddButtonComponent],
-      imports: [ButtonModule, RouterLink],
-      providers: [
+    imports: [ButtonModule, RouterLink, AddButtonComponent],
+    providers: [
         provideZonelessChangeDetection(),
         { provide: ActivatedRoute, useValue: {} },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(AddButtonComponent);
     component = fixture.componentInstance;

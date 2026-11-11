@@ -8,8 +8,7 @@ import { AutocompleteComponent } from "./autocomplete/autocomplete.component";
 import { OptionDisplayPipe } from "./autocomplete/option-display.pipe";
 
 @NgModule({
-  declarations: [AutocompleteComponent, OptionDisplayPipe],
-  imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, AppIconComponent, ...HlmAutocompleteImports],
-  exports: [AutocompleteComponent],
+    imports: [TranslatePipe, PluralPipe, CommonModule, ReactiveFormsModule, AppIconComponent, ...HlmAutocompleteImports, AutocompleteComponent, OptionDisplayPipe],
+    exports: [AutocompleteComponent],
 })
 export class AutocompleteModule {}

@@ -7,7 +7,6 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
-import { PipesModule } from "src/pipes/pipes.module";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { SetColumnConfig, SetReceiptFilterData } from "src/store/receipt-table.actions";
 import { ReceiptTableState } from "src/store/receipt-table.state";
@@ -30,13 +29,12 @@ describe("ReceiptsTableComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ReceiptsTableComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         NgxsModule.forRoot([ReceiptTableState, AuthState, GroupState, UserState]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
-        PipesModule],
+        ReceiptsTableComponent],
     providers: [
         {
             provide: ActivatedRoute,

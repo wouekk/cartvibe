@@ -10,10 +10,9 @@ describe("TextareaComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TextareaComponent],
-      imports: [TranslatePipe, ReactiveFormsModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    imports: [TranslatePipe, ReactiveFormsModule, TextareaComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(TextareaComponent);
     component = fixture.componentInstance;

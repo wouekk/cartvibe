@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { Observable, take, tap } from "rxjs";
@@ -9,15 +9,27 @@ import { ApplyShoppingListEvent } from "../../store/shopping-list.state.actions"
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { nameForToday } from "../../utils/app-time-zone";
 import { marker } from "../../i18n/marker";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { InputComponent } from "../../input/input/input.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 export const SHOPPING_LIST_NAME_MAX_LENGTH = 100;
 
 /** Creates a shopping list in a group, or renames one. Closes with the saved list. */
 @Component({
-  selector: "app-shopping-list-form-dialog",
-  templateUrl: "./shopping-list-form-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-shopping-list-form-dialog",
+    templateUrl: "./shopping-list-form-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        DialogComponent,
+        ReactiveFormsModule,
+        InputComponent,
+        DialogFooterComponent,
+        TranslatePipe,
+        FormGetPipe,
+    ],
 })
 export class ShoppingListFormDialogComponent implements OnInit {
   @Input() public groupId!: number;

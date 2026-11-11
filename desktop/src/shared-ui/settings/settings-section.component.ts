@@ -1,15 +1,15 @@
 import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The settings card: a hairline surface with a title row, a body of flat `cv-section` rows and an optional footer
  * (status text left, actions right). Projected `[sectionActions]` sit in the header on the right.
  */
 @Component({
-  selector: "app-settings-section",
-  standalone: false,
-  host: { class: "block min-w-0" },
-  changeDetection: ChangeDetectionStrategy.Eager,
-  template: `
+    selector: "app-settings-section",
+    host: { class: "block min-w-0" },
+    changeDetection: ChangeDetectionStrategy.Eager,
+    template: `
     <section [class]="cardClass()" [attr.data-testid]="testId()">
       @if (title() || description()) {
         <div class="cv-card__head">
@@ -32,6 +32,7 @@ import { Component, computed, input, ChangeDetectionStrategy } from "@angular/co
       <ng-content select="[sectionFooter]"></ng-content>
     </section>
   `,
+    imports: [TranslatePipe],
 })
 export class SettingsSectionComponent {
   public readonly title = input<string>("");

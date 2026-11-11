@@ -10,10 +10,9 @@ describe("SettingsTabsComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports],
-      declarations: [SettingsTabsComponent],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports, SettingsTabsComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
     fixture = TestBed.createComponent(SettingsTabsComponent);
     fixture.componentRef.setInput("tabs", [
       { value: "a", label: "A" },

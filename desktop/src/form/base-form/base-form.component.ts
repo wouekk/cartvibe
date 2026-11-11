@@ -8,9 +8,8 @@ import { FormCommand } from "../interfaces/form-command";
 
 @Component({
     selector: "app-base-form",
-    template: "", // a base class: subclasses bring their own template
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class BaseFormComponent {
   protected readonly FormMode = FormMode;

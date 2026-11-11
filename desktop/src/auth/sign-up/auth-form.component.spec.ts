@@ -13,7 +13,6 @@ import { SetFeatureConfig } from '../../store/feature-config.state.actions';
 import { ButtonModule } from '../../button';
 import { FeatureDirective } from '../../directives/feature.directive';
 import { InputModule } from '../../input';
-import { PipesModule } from '../../pipes/pipes.module';
 import { AppInitService } from '../../services/app-init.service';
 import { SnackbarService } from '../../services/snackbar.service';
 import { SignInTransitionService } from '../../services/sign-in-transition.service';
@@ -35,17 +34,15 @@ describe('AuthForm', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [AuthForm, FeatureDirective],
     imports: [ButtonModule,
         HlmButton,
         AppIconComponent,
         CartVibeLogoComponent,
         InputModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, GroupState]),
-        PipesModule,
         ReactiveFormsModule,
         ApiModule,
-        RouterTestingModule],
+        RouterTestingModule, AuthForm, FeatureDirective],
     providers: [
         SnackbarService,
         AppInitService,

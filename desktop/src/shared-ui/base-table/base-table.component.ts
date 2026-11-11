@@ -7,9 +7,8 @@ import { TableColumn } from "../../table/table-column.interface";
 
 @Component({
     selector: "app-base-table",
-    template: "", // a base class: subclasses bring their own template
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class BaseTableComponent<T> {
   public columns: TableColumn[] = [];

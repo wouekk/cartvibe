@@ -9,12 +9,12 @@ describe('DatepickerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DatepickerComponent],
-      imports: [
+    imports: [
         CommonModule,
         ReactiveFormsModule,
-      ],
-    }).compileComponents();
+        DatepickerComponent,
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(DatepickerComponent);
     component = fixture.componentInstance;

@@ -21,11 +21,10 @@ describe('SelectComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
-      imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule, TranslatePipe],
-      providers: [OptionDisplayPipe, provideZonelessChangeDetection()],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    imports: [...HlmSelectImports, ...HlmInputImports, ReactiveFormsModule, TranslatePipe, SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
+    providers: [OptionDisplayPipe, provideZonelessChangeDetection()],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(SelectComponent);
     component = fixture.componentInstance;

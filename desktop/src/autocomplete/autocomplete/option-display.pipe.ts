@@ -1,9 +1,8 @@
 import { Pipe, PipeTransform } from "@angular/core";
 
-@Pipe({
-    name: "optionDisplay",
-    standalone: false
-})
+// The autocomplete's own pipe. The select has another one under the same name (src/select/pipes): a component
+// imports exactly one of the two.
+@Pipe({ name: "optionDisplay" })
 export class OptionDisplayPipe implements PipeTransform {
   public transform(
     option: any,

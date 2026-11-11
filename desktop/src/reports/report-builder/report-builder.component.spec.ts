@@ -31,6 +31,7 @@ import { ReportBuilderComponent } from "./report-builder.component";
 
 
 import type { Mock } from "vitest";
+import { renderShallow } from "../../testing/render-shallow";
 describe("ReportBuilderComponent", () => {
   let fixture: ComponentFixture<ReportBuilderComponent>;
   let component: ReportBuilderComponent;
@@ -56,20 +57,21 @@ describe("ReportBuilderComponent", () => {
     snackbar = { success: vi.fn() };
     activatedRoute.snapshot.data = {};
 
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(ReportBuilderComponent, [TranslatePipe], NO_ERRORS_SCHEMA);
     await TestBed.configureTestingModule({
-      declarations: [ReportBuilderComponent],
-      // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
-      // generateAllowed), which resolve through the hasAnyAppPermission selector.
-      imports: [TranslatePipe, NgxsModule.forRoot([AuthState])],
-      providers: [
+    // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
+    // generateAllowed), which resolve through the hasAnyAppPermission selector.
+    imports: [TranslatePipe, NgxsModule.forRoot([AuthState]), ReportBuilderComponent],
+    providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
         { provide: ReportRunnerService, useValue: runner },
         { provide: SnackbarService, useValue: snackbar },
         { provide: ActivatedRoute, useValue: activatedRoute },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     store = TestBed.inject(Store);
 

@@ -5,13 +5,25 @@ import { CurrencySeparator, CurrencySymbolPosition } from "../../open-api/index"
 import { PasswordGeneratorService } from "../../services/password-generator.service";
 import { SystemSettingsState } from "../../store/system-settings.state";
 import { InputInterface } from "../input.interface";
+import { ReactiveFormsModule } from "@angular/forms";
+import { NgxMaskDirective } from "ngx-mask";
+import { BrnFieldControl, BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { BrnInput } from "@spartan-ng/brain/input";
+import { HlmInput } from "../../ui/input/lib/hlm-input";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AsyncPipe } from "@angular/common";
 
 @Component({
-  selector: "app-input",
-  templateUrl: "./input.component.html",
-  styleUrls: ["./input.component.scss"],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-input",
+    templateUrl: "./input.component.html",
+    styleUrls: ["./input.component.scss"],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReactiveFormsModule, NgxMaskDirective, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, BrnButton, HlmButton, BrnTooltip, HlmTooltip, AppIconComponent, TranslatePipe, AsyncPipe]
 })
 export class InputComponent
   extends BaseInputComponent

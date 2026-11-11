@@ -8,10 +8,9 @@ describe("SettingsPageComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [SettingsPageComponent],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [TranslatePipe, SettingsPageComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
     fixture = TestBed.createComponent(SettingsPageComponent);
   });
 

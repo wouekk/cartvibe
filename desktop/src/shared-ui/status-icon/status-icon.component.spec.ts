@@ -9,9 +9,8 @@ describe('StatusIconComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [StatusIconComponent],
-      imports: [AppIconComponent],
-    })
+    imports: [AppIconComponent, StatusIconComponent],
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(StatusIconComponent);

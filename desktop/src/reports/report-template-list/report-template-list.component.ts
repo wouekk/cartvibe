@@ -11,7 +11,7 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { TableDataSource } from "../../table/table-types";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { EMPTY, catchError, finalize, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG, DEFAULT_HOST_CLASS } from "../../constants";
@@ -34,6 +34,15 @@ import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateTableService } from "./report-template-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { TableComponent } from "../../table/table/table.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.component";
+import { DeleteButtonComponent } from "../../shared-ui/delete-button/delete-button.component";
+import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 /**
  * The Reports landing page: a paged table of saved report templates. Each row
@@ -43,12 +52,24 @@ import { TranslationService } from "../../i18n/translation.service";
  * Detail/Formats columns are read out of each template's stored configuration.
  */
 @Component({
-  selector: "app-report-template-list",
-  templateUrl: "./report-template-list.component.html",
-  host: DEFAULT_HOST_CLASS,
-  providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-report-template-list",
+    templateUrl: "./report-template-list.component.html",
+    host: DEFAULT_HOST_CLASS,
+    providers: [{ provide: BaseTableService, useClass: ReportTemplateTableService }],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        TableHeaderComponent,
+        AddButtonComponent,
+        TableComponent,
+        AppIconComponent,
+        RouterLink,
+        ButtonComponent,
+        EditButtonComponent,
+        DeleteButtonComponent,
+        TranslatePipe,
+        TranslateDataPipe,
+        AppDatePipe,
+    ],
 })
 export class ReportTemplateListComponent extends BaseTableComponent<ReportTemplate> implements AfterViewInit {
   private readonly translation = inject(TranslationService);

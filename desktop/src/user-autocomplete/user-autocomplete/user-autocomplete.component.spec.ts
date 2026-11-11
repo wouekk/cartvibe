@@ -13,14 +13,13 @@ describe("UserAutocompleteComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [UserAutocompleteComponent],
-      imports: [StoreModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [
+    imports: [StoreModule, UserAutocompleteComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(UserAutocompleteComponent);
     component = fixture.componentInstance;

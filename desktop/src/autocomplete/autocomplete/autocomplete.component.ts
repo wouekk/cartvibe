@@ -5,6 +5,21 @@ import { Store } from "@ngxs/store";
 import { defer, map, Observable, of, startWith } from "rxjs";
 import { BaseInputComponent } from "../../base-input";
 import { AuthState } from "../../store/auth.state";
+import { NgTemplateOutlet, AsyncPipe } from "@angular/common";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { BrnFieldControl } from "@spartan-ng/brain/field";
+import { BrnAutocomplete, BrnAutocompleteAnchor, BrnAutocompleteContent, BrnAutocompleteEmpty, BrnAutocompleteList, BrnAutocompleteItem } from "@spartan-ng/brain/autocomplete";
+import { BrnPopover, BrnPopoverContent } from "@spartan-ng/brain/popover";
+import { HlmAutocomplete } from "../../ui/autocomplete/lib/hlm-autocomplete";
+import { HlmInputGroup } from "../../ui/input-group/lib/hlm-input-group";
+import { HlmAutocompleteInput } from "../../ui/autocomplete/lib/hlm-autocomplete-input";
+import { HlmAutocompletePortal } from "../../ui/autocomplete/lib/hlm-autocomplete-portal";
+import { HlmAutocompleteContent } from "../../ui/autocomplete/lib/hlm-autocomplete-content";
+import { HlmAutocompleteEmpty } from "../../ui/autocomplete/lib/hlm-autocomplete-empty";
+import { HlmAutocompleteList } from "../../ui/autocomplete/lib/hlm-autocomplete-list";
+import { HlmAutocompleteItem } from "../../ui/autocomplete/lib/hlm-autocomplete-item";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { OptionDisplayPipe } from "./option-display.pipe";
 
 /** What picking an option reports: its value, and the id of the "Add ..." entry when a new value was typed. */
 export interface AutocompleteSelection {
@@ -19,7 +34,7 @@ const CREATE_SENTINEL = Symbol("create");
     templateUrl: "./autocomplete.component.html",
     styleUrls: ["./autocomplete.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgTemplateOutlet, AppIconComponent, BrnFieldControl, BrnAutocomplete, BrnPopover, HlmAutocomplete, BrnAutocompleteAnchor, HlmInputGroup, HlmAutocompleteInput, BrnPopoverContent, HlmAutocompletePortal, BrnAutocompleteContent, HlmAutocompleteContent, BrnAutocompleteEmpty, HlmAutocompleteEmpty, BrnAutocompleteList, HlmAutocompleteList, BrnAutocompleteItem, HlmAutocompleteItem, TranslatePipe, AsyncPipe, OptionDisplayPipe]
 })
 export class AutocompleteComponent
   extends BaseInputComponent

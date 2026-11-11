@@ -15,16 +15,24 @@ import { GroupTableState } from "../../store/group-table.state";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { hasAll, hasAny } from "../../utils/permission.utils";
 import { ViewportService } from "../../services/viewport.service";
 import { GroupTableEditButtonPipe } from "./group-table-edit-button.pipe";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { AvatarComponent } from "../../avatar/avatar/avatar.component";
+import { AsyncPipe } from "@angular/common";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 @Component({
     selector: "app-group-table",
     templateUrl: "./group-table.component.html",
-
     host: DEFAULT_HOST_CLASS,
     providers: [
         {
@@ -33,7 +41,7 @@ import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, AsyncPipe, TranslatePipe, AppDatePipe]
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);

@@ -8,8 +8,6 @@ import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { firstValueFrom, of, throwError } from "rxjs";
-import { PipesModule } from "src/pipes/pipes.module";
-import { DirectivesModule } from "../../directives";
 import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AuthState, FeatureConfigState, Logout, UserState } from "../../store";
@@ -35,15 +33,11 @@ describe("UserProfileComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UserProfileComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         ColorSwatchesComponent,
-        DirectivesModule,
-        PipesModule,
         NgxsModule.forRoot([AuthState, FeatureConfigState, UserState]),
-        PipesModule,
-        ReactiveFormsModule],
+        ReactiveFormsModule, UserProfileComponent],
     providers: [
         {
             provide: ActivatedRoute,

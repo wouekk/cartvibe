@@ -3,7 +3,6 @@ import { Component, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/
 @Component({
     selector: 'app-receipt-list-icon',
     templateUrl: './receipt-list-icon.component.html',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ReceiptListIconComponent {}

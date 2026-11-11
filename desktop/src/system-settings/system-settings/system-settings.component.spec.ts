@@ -17,23 +17,22 @@ describe("SystemSettingsComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SystemSettingsComponent],
-      imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([AuthState])],
-      providers: [
+    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([AuthState]), SystemSettingsComponent],
+    providers: [
         provideZonelessChangeDetection(),
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              queryParams: {
-                tab: "settings",
-              },
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    queryParams: {
+                        tab: "settings",
+                    },
+                }
             }
-          }
         }
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    })
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+})
       .compileComponents();
 
     store = TestBed.inject(Store);

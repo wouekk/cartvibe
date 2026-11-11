@@ -5,6 +5,7 @@ import { AutocompleteComponent } from "src/autocomplete/autocomplete/autocomplet
 import { GroupMemberUserService } from "src/services/group-member-user.service";
 import { User } from "../../open-api";
 import { UserState } from "../../store";
+import { NgIf } from "@angular/common";
 
 @Component({
     selector: "app-user-autocomplete",
@@ -12,7 +13,7 @@ import { UserState } from "../../store";
     styleUrls: ["./user-autocomplete.component.scss"],
     providers: [GroupMemberUserService],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, AutocompleteComponent]
 })
 export class UserAutocompleteComponent {
   constructor(

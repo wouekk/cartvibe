@@ -10,15 +10,14 @@ describe("BackButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BackButtonComponent],
-      imports: [TranslatePipe, ButtonModule],
-      providers: [
+    imports: [TranslatePipe, ButtonModule, BackButtonComponent],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {},
+            provide: ActivatedRoute,
+            useValue: {},
         },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BackButtonComponent);
     component = fixture.componentInstance;

@@ -7,7 +7,6 @@ import { ActivatedRoute, Router, provideRouter } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
-import { PipesModule } from "src/pipes/pipes.module";
 import { SelectModule } from "src/select/select.module";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
@@ -30,20 +29,17 @@ describe("GroupFormComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [GroupFormComponent, GroupMemberFormComponent],
     imports: [ApiModule,
         ButtonModule,
         CheckboxModule,
-        PipesModule,
         InputModule,
         NgxsModule.forRoot([AuthState]),
-        PipesModule,
         ReactiveFormsModule,
         SelectModule,
         SharedUiModule,
         TableModule,
         UserAutocompleteModule,
-        GroupLookPickerComponent],
+        GroupLookPickerComponent, GroupFormComponent, GroupMemberFormComponent],
     providers: [
         provideRouter([]),
         {

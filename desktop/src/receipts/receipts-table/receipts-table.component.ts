@@ -1,10 +1,10 @@
 import { TranslationService } from "../../i18n/translation.service";
-import { CurrencyPipe, DatePipe } from "@angular/common";
+import { CurrencyPipe, DatePipe, NgTemplateOutlet, NgIf } from "@angular/common";
 import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
@@ -37,7 +37,7 @@ import {
 import { SnackbarService } from "../../services";
 import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, UserState } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
@@ -54,17 +54,50 @@ import { QuickScanLauncher } from "../quick-scan-dialog/quick-scan-launcher.serv
 import { BulkStatusUpdateComponent } from "../bulk-resolve-dialog/bulk-status-update-dialog.component";
 import { ColumnConfigurationDialogComponent } from "../column-configuration-dialog/column-configuration-dialog.component";
 import { marker } from "../../i18n/marker";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { HlmInputGroup } from "../../ui/input-group/lib/hlm-input-group";
+import { HlmInputGroupAddon } from "../../ui/input-group/lib/hlm-input-group-addon";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { BrnFieldControl, BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { BrnInput } from "@spartan-ng/brain/input";
+import { HlmInput } from "../../ui/input/lib/hlm-input";
+import { HlmInputGroupInput } from "../../ui/input-group/lib/hlm-input-group-input";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { HlmInputGroupButton } from "../../ui/input-group/lib/hlm-input-group-button";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { QueueStartMenuComponent } from "../../shared-ui/queue-start-menu/queue-start-menu.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { PeriodPickerComponent } from "../../overview/period-picker/period-picker.component";
+import { HlmBadge } from "../../ui/badge/lib/hlm-badge";
+import { ShopMonogramComponent } from "../../shared-ui/shop-monogram/shop-monogram.component";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
+import { MoneyComponent } from "../../shared-ui/money/money.component";
+import { ReceiptCurrencyNoteComponent } from "../receipt-currency-note/receipt-currency-note.component";
+import { StatusChipComponent } from "../../shared-ui/status-chip/status-chip.component";
+import { EditButtonComponent } from "../../shared-ui/edit-button/edit-button.component";
+import { HasGroupPermissionDirective } from "../../directives/has-group-permission.directive";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { NamePipe } from "../../pipes/name.pipe";
+import { UserPipe } from "../../pipes/user.pipe";
 
 @Component({
-  selector: "app-receipts-table",
-  templateUrl: "./receipts-table.component.html",
-  host: DEFAULT_HOST_CLASS,
-  // The chip labels are built in TS rather than the template, so the formatting
-  // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs
-  // CurrencyPipe, neither of which is providedIn: "root".
-  providers: [CurrencyPipe, CustomCurrencyPipe, DatePipe],
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-receipts-table",
+    templateUrl: "./receipts-table.component.html",
+    host: DEFAULT_HOST_CLASS,
+    // The chip labels are built in TS rather than the template, so the formatting
+    // pipes are injected. CustomCurrencyPipe is declared in PipesModule and needs
+    // CurrencyPipe, neither of which is providedIn: "root".
+    providers: [CurrencyPipe, CustomCurrencyPipe, DatePipe],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, ButtonComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   constructor(

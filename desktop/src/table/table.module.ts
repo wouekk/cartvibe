@@ -11,16 +11,14 @@ import { RowExpandablePipe } from "./table/row-expandable.pipe";
 import { TableComponent } from "./table/table.component";
 
 @NgModule({
-  declarations: [TableComponent, RowExpandablePipe],
-  imports: [TranslatePipe, PluralPipe, 
-    CommonModule,
-    AppIconComponent,
-    ButtonModule,
-    HlmButton,
-    ...HlmCheckboxImports,
-    ...HlmInputImports,
-    ...HlmTableImports,
-  ],
-  exports: [TableComponent],
+    imports: [TranslatePipe, PluralPipe,
+        CommonModule,
+        AppIconComponent,
+        ButtonModule,
+        HlmButton,
+        ...HlmCheckboxImports,
+        ...HlmInputImports,
+        ...HlmTableImports, TableComponent, RowExpandablePipe,],
+    exports: [TableComponent],
 })
 export class TableModule {}

@@ -1,10 +1,16 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { take, tap } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { TagService, TagView, UpsertTagCommand } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { InputComponent } from "../../input/input/input.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-tag-form",
@@ -12,7 +18,7 @@ import { SnackbarService } from "../../services";
     styleUrls: ["./tag-form.component.scss"],
     providers: [DuplicateValidator],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, InputComponent, CheckboxComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class TagFormComponent implements OnInit {
   @Input() public headerText: string = "";

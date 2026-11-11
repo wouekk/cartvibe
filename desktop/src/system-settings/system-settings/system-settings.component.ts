@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { NavigationEnd, Router } from "@angular/router";
+import { NavigationEnd, Router, RouterOutlet } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { filter } from "rxjs";
 import { Permission } from "../../open-api";
@@ -8,6 +8,8 @@ import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
 import { AuthState } from "../../store";
 import { marker } from "../../i18n/marker";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { FilterBarComponent } from "../../shared-ui/filter-bar/filter-bar.component";
 
 interface SystemSettingsTab extends TabConfig {
   readPermission: Permission;
@@ -22,7 +24,7 @@ interface SystemSettingsTab extends TabConfig {
     selector: "app-system-settings",
     templateUrl: "./system-settings.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, FilterBarComponent, RouterOutlet]
 })
 export class SystemSettingsComponent implements OnInit {
   public tabs: TabConfig[] = [];

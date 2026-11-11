@@ -4,8 +4,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
 import { ButtonModule } from "../../button";
-import { DirectivesModule } from "../../directives";
-import { PipesModule } from "../../pipes";
 import { StoreModule } from "../../store/store.module";
 
 import { QuickScanButtonComponent } from "./quick-scan-button.component";
@@ -16,14 +14,13 @@ describe("QuickScanButtonComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [QuickScanButtonComponent],
-      imports: [ButtonModule, PipesModule, DirectivesModule, StoreModule],
-      providers: [
+    imports: [ButtonModule, StoreModule, QuickScanButtonComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
-      ]
-    });
+    ]
+});
     fixture = TestBed.createComponent(QuickScanButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

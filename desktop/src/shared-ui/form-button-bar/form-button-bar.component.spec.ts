@@ -8,8 +8,8 @@ describe('FormButtonBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FormButtonBarComponent ]
-    })
+    imports: [FormButtonBarComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(FormButtonBarComponent);

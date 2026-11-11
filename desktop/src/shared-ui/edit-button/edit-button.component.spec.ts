@@ -9,15 +9,14 @@ describe("EditButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EditButtonComponent],
-      imports: [ButtonModule],
-      providers: [
+    imports: [ButtonModule, EditButtonComponent],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {},
+            provide: ActivatedRoute,
+            useValue: {},
         },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(EditButtonComponent);
     component = fixture.componentInstance;

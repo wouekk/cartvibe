@@ -9,7 +9,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
-import { DirectivesModule } from "../../directives";
 import { ApiModule, User, UserService } from "../../open-api";
 import { AuthState } from "../../store";
 import { UserTableState } from "../../store/user-table.state";
@@ -21,12 +20,10 @@ describe("UserListComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UserListComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, ApiModule,
-        DirectivesModule,
         NgxsModule.forRoot([AuthState, UserTableState]),
-        TableModule],
+        TableModule, UserListComponent],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 

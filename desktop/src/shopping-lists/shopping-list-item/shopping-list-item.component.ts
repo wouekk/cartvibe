@@ -6,6 +6,19 @@ import { UserState } from "../../store/user.state";
 import { isLocalItem } from "../shopping-list-pending";
 import { HEALTH_CHOICES, SEASONALITY_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { formatShoppingListItemAmount } from "../shopping-list-item-form";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
+import { AvatarComponent } from "../../avatar/avatar/avatar.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmDropdownMenuSubTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-sub-trigger";
+import { HlmDropdownMenuSub } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-sub";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /** A person's correction of an item's tags; seasonality is only sent when they chose one. */
 export interface ShoppingListItemClassification {
@@ -19,10 +32,26 @@ export interface ShoppingListItemClassification {
  * on), sized for a thumb in a shop; edit, tag corrections and delete sit in a trailing menu.
  */
 @Component({
-  selector: "app-shopping-list-item",
-  templateUrl: "./shopping-list-item.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-shopping-list-item",
+    templateUrl: "./shopping-list-item.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        AppIconComponent,
+        FoodTagsComponent,
+        AvatarComponent,
+        BrnButton,
+        HlmButton,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmDropdownMenuSubTrigger,
+        HlmDropdownMenuSub,
+        TranslatePipe,
+    ],
 })
 export class ShoppingListItemComponent {
   public readonly item = input.required<ShoppingListItem>();

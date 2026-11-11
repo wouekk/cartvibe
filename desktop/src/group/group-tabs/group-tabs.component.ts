@@ -2,13 +2,15 @@ import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
 import { TabConfig } from "src/shared-ui/tabs/tab-config.interface";
 import { marker } from "../../i18n/marker";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { TabsComponent } from "../../shared-ui/tabs/tabs.component";
 
 @Component({
     selector: "app-group-tabs",
     templateUrl: "./group-tabs.component.html",
     styleUrls: ["./group-tabs.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, TabsComponent]
 })
 export class GroupTabsComponent {
   public tabs: TabConfig[] = [];

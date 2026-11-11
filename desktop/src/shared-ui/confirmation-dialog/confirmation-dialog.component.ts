@@ -1,6 +1,9 @@
 import { Component, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
+import { DialogComponent } from '../dialog/dialog.component';
+import { DialogFooterComponent } from '../dialog-footer/dialog-footer.component';
+import { TranslateDataPipe } from '../../i18n/translate.pipe';
 
 /** The confirm labels that delete or remove something. */
 export const DESTRUCTIVE_CONFIRM_TEXTS = [marker("Delete"), marker("Remove")];
@@ -10,7 +13,7 @@ export const DESTRUCTIVE_CONFIRM_TEXTS = [marker("Delete"), marker("Remove")];
     templateUrl: './confirmation-dialog.component.html',
     styleUrls: ['./confirmation-dialog.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, DialogFooterComponent, TranslateDataPipe]
 })
 export class ConfirmationDialogComponent {
   constructor(private dialogRef: AppDialogRef<ConfirmationDialogComponent>) {}

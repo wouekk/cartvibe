@@ -1,4 +1,4 @@
-import { PluralPipe, TranslatePipe } from "../i18n/translate.pipe";
+import { TranslatePipe } from "../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
@@ -6,7 +6,7 @@ import { AppIconComponent } from "../shared-ui/icon/icon.component";
 @Component({
     selector: "app-alert",
     standalone: true,
-    imports: [TranslatePipe, PluralPipe, 
+    imports: [TranslatePipe, 
         CommonModule,
         AppIconComponent
     ],

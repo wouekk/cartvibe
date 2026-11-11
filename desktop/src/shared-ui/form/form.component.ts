@@ -1,13 +1,20 @@
 import { Component, TemplateRef, computed, input, output, ChangeDetectionStrategy } from "@angular/core";
-import { FormGroup } from "@angular/forms";
+import { FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { FormMode } from "src/enums/form-mode.enum";
 import { FormConfig } from "src/interfaces";
+import { SettingsSectionComponent } from "../settings/settings-section.component";
+import { EditButtonComponent } from "../edit-button/edit-button.component";
+import { NgTemplateOutlet, NgIf } from "@angular/common";
+import { SubmitButtonComponent } from "../submit-button/submit-button.component";
+import { FormHeaderComponent } from "../form-header/form-header.component";
+import { FormButtonBarComponent } from "../form-button-bar/form-button-bar.component";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 @Component({
     selector: "app-form",
     templateUrl: "./form.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [ReactiveFormsModule, SettingsSectionComponent, EditButtonComponent, NgTemplateOutlet, SubmitButtonComponent, FormHeaderComponent, FormButtonBarComponent, NgIf, InputReadonlyPipe]
 })
 export class FormComponent {
   public readonly formConfig = input.required<FormConfig>();

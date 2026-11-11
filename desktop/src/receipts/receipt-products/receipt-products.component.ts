@@ -10,7 +10,7 @@ import { Store } from "@ngxs/store";
 import { catchError, concatMap, EMPTY, filter, Subject, Subscription, switchMap, take, timer } from "rxjs";
 import { Category, Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView, Tag, UpsertReceiptProductCommand } from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
 import { AuthState } from "../../store";
@@ -20,6 +20,8 @@ import { hasAll } from "../../utils/permission.utils";
 import { parseAmountInput } from "./product-amount";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 
 /** While a read is queued or running and the live stream cannot be used, the section checks back this often. */
 const REFRESH_INTERVAL_MS = 30_000;
@@ -55,7 +57,7 @@ const STATUS_TEXT: { [status: string]: string } = {
   host: { class: "block" },
   templateUrl: "./receipt-products.component.html",
   standalone: true,
-  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, MoneyComponent, PipesModule],
+  imports: [CommonModule, FoodTagsComponent, HlmButton, AppIconComponent, ...HlmDropdownMenuImports, MoneyComponent, TranslatePipe, CustomCurrencyPipe],
   // customCurrency delegates to CurrencyPipe, which PipesModule does not provide.
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [CurrencyPipe],

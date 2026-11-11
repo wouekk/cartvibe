@@ -15,7 +15,6 @@ import {
   User,
   UserService,
 } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, GroupState, SetGroups, UpdateUser, UserState } from "../../store";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -53,12 +52,10 @@ describe("UserFormComponent", () => {
   beforeEach(async () => {
     getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
-    declarations: [UserFormComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [NgxsModule.forRoot([AuthState, UserState, GroupState]),
         ReactiveFormsModule,
-        PipesModule,
-        ApiModule],
+        ApiModule, UserFormComponent],
     providers: [
         provideZonelessChangeDetection(),
         {

@@ -15,7 +15,6 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { LayoutState } from "src/store/layout.state";
 import { ShoppingListState } from "src/store/shopping-list.state";
-import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthState, FeatureConfigState, GroupState, SetFeatureConfig, SetSelectedGroupId } from "../../store";
@@ -58,10 +57,8 @@ describe("SidebarComponent", () => {
     isHandset.set(false);
 
     await TestBed.configureTestingModule({
-    declarations: [SidebarComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, NgxsModule.forRoot([AuthState, LayoutState, GroupState, FeatureConfigState, ShoppingListState]),
-        DirectivesModule,
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
@@ -69,11 +66,11 @@ describe("SidebarComponent", () => {
         ...HlmSidebarImports,
         RouterTestingModule,
         SharedUiModule,
-        ApiModule],
+        ApiModule, SidebarComponent],
     providers: [
-      provideZonelessChangeDetection(),
-      provideHttpClient(withInterceptorsFromDi()),
-      { provide: ViewportService, useValue: { isHandset } },
+        provideZonelessChangeDetection(),
+        provideHttpClient(withInterceptorsFromDi()),
+        { provide: ViewportService, useValue: { isHandset } },
     ]
 }).compileComponents();
 

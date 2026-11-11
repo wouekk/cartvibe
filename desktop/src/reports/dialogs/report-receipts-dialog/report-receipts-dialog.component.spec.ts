@@ -13,7 +13,6 @@ import {
   ReportRequestCommand,
   ReportService,
 } from "../../../open-api";
-import { PipesModule } from "../../../pipes";
 import { SystemSettingsState } from "../../../store/system-settings.state";
 import {
   ReportReceiptsDialogComponent,
@@ -53,33 +52,28 @@ function configure(
 } {
   const reportService = { getReportReceipts: vi.fn(() => response) };
   TestBed.configureTestingModule({
-    declarations: [ReportReceiptsDialogComponent],
-    imports: [PipesModule],
+    imports: [ReportReceiptsDialogComponent],
     providers: [
-      provideZonelessChangeDetection(),
-      { provide: ReportService, useValue: reportService },
-      { provide: AppDialogRef, useValue: { close: vi.fn() } },
-      // The row pipes (user, customCurrency) read the store; nothing here asserts
-      // on them. The app time zone is the one value the subtitle reads.
-      {
-        provide: Store,
-        useValue: {
-          selectSnapshot: vi.fn((selector) =>
-            selector === SystemSettingsState.timeZone ? "America/New_York" : {}
-          ),
-          selectSignal: vi.fn((selector) =>
-            signal(selector === SystemSettingsState.timeZone ? "America/New_York" : {})
-          ),
+        provideZonelessChangeDetection(),
+        { provide: ReportService, useValue: reportService },
+        { provide: AppDialogRef, useValue: { close: vi.fn() } },
+        // The row pipes (user, customCurrency) read the store; nothing here asserts
+        // on them. The app time zone is the one value the subtitle reads.
+        {
+            provide: Store,
+            useValue: {
+                selectSnapshot: vi.fn((selector) => selector === SystemSettingsState.timeZone ? "America/New_York" : {}),
+                selectSignal: vi.fn((selector) => signal(selector === SystemSettingsState.timeZone ? "America/New_York" : {})),
+            },
         },
-      },
-      CurrencyPipe,
-      {
-        provide: APP_DIALOG_DATA,
-        useValue: { command, period: MAY_2026, receiptCount: 5, ...data } as ReportReceiptsDialogData,
-      },
+        CurrencyPipe,
+        {
+            provide: APP_DIALOG_DATA,
+            useValue: { command, period: MAY_2026, receiptCount: 5, ...data } as ReportReceiptsDialogData,
+        },
     ],
     schemas: [NO_ERRORS_SCHEMA],
-  });
+});
   const fixture = TestBed.createComponent(ReportReceiptsDialogComponent);
   return { fixture, component: fixture.componentInstance, reportService };
 }

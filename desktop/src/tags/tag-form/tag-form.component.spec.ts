@@ -6,9 +6,9 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { of } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { ApiModule, TagService, TagView } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { TagFormComponent } from "./tag-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { StoreModule } from "../../store/store.module";
 
 describe("CategoryForm", () => {
   let component: TagFormComponent;
@@ -16,11 +16,9 @@ describe("CategoryForm", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [TagFormComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ApiModule,
-        PipesModule,
-        ReactiveFormsModule],
+    imports: [StoreModule, ApiModule,
+        ReactiveFormsModule, TagFormComponent],
     providers: [
         DuplicateValidator,
         {

@@ -2,10 +2,9 @@ import { Component, Input, input, output, ChangeDetectionStrategy } from "@angul
 import { FormMode } from "src/enums/form-mode.enum";
 
 @Component({
-  selector: "app-form-button",
-  template: "", // a base class: subclasses bring their own template
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-form-button",
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class FormButtonComponent {
   public readonly mode = input<FormMode | undefined>(FormMode.view);

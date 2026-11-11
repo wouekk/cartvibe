@@ -10,16 +10,16 @@ import { NotificationComponent } from "./notification/notification.component";
 import { NotificationsListComponent } from "./notifications-list/notifications-list.component";
 
 @NgModule({
-  declarations: [NotificationsListComponent, NotificationComponent],
-  imports: [
-    AppDatePipe,
-    TranslatePipe,
-    ButtonModule,
-    CommonModule,
-    HlmButton,
-    RouterModule,
-    SharedUiModule,
-  ],
-  exports: [NotificationsListComponent],
+    imports: [
+        AppDatePipe,
+        TranslatePipe,
+        ButtonModule,
+        CommonModule,
+        HlmButton,
+        RouterModule,
+        SharedUiModule,
+        NotificationsListComponent, NotificationComponent,
+    ],
+    exports: [NotificationsListComponent],
 })
 export class NotificationsModule {}

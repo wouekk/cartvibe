@@ -8,7 +8,6 @@ import { ApiModule, NotificationsService } from "../../open-api";
 import { GroupState } from "../../store";
 import { AuthState } from "../../store/auth.state";
 import { SetPermissions } from "../../store/auth.state.actions";
-import { DirectivesModule } from "../../directives/directives.module";
 import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SystemSettingsState } from "../../store/system-settings.state";
@@ -23,14 +22,12 @@ describe("NotificationComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [NotificationComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
         NgxsModule.forRoot([GroupState, AuthState, SystemSettingsState]),
-        DirectivesModule,
-        RouterTestingModule],
+        RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
 

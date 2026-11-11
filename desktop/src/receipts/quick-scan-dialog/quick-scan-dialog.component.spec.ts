@@ -14,7 +14,6 @@ import { LayoutState } from "src/store/layout.state";
 import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { SnackbarService } from "../../services";
 import { QueuedScanService } from "../../services/queued-scan.service";
 import { AuthState, GroupState } from "../../store";
@@ -30,13 +29,11 @@ describe("QuickScanDialogComponent", () => {
   beforeEach(() => {
     URL.createObjectURL = vi.fn().mockReturnValue("blob");
     TestBed.configureTestingModule({
-    declarations: [QuickScanDialogComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         NgxsModule.forRoot([AuthState, GroupState, LayoutState]),
-        PipesModule,
         ReactiveFormsModule,
-        SharedUiModule],
+        SharedUiModule, QuickScanDialogComponent],
     providers: [
         {
             provide: ActivatedRoute,

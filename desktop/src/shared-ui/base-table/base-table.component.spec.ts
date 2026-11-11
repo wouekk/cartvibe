@@ -12,15 +12,14 @@ describe("BaseTableComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BaseTableComponent],
-      imports: [TranslatePipe, NgxsModule.forRoot([])],
-      providers: [
+    imports: [TranslatePipe, NgxsModule.forRoot([]), BaseTableComponent],
+    providers: [
         {
-          provide: BaseTableService,
-          useValue: {}
+            provide: BaseTableService,
+            useValue: {}
         }
-      ]
-    })
+    ]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(BaseTableComponent);

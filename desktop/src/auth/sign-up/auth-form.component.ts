@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { Component, OnInit, signal, ChangeDetectionStrategy, inject } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { BehaviorSubject, catchError, EMPTY, finalize, switchMap, take, tap, } from "rxjs";
 import { AppData, AuthService, FeatureConfigService, OidcProviderSummary } from "src/open-api";
@@ -13,6 +13,16 @@ import { UserValidators } from "../../validators";
 import { marker } from "../../i18n/marker";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
 import { buildOidcLoginUrl, oidcErrorMessage } from "../../utils/oidc";
+import { CartVibeLogoComponent } from "../../shared-ui/cartvibe-logo/cartvibe-logo.component";
+import { NgIf, AsyncPipe } from "@angular/common";
+import { InputComponent } from "../../input/input/input.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { FeatureDirective } from "../../directives/feature.directive";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-auth-form",
@@ -20,7 +30,7 @@ import { buildOidcLoginUrl, oidcErrorMessage } from "../../utils/oidc";
     host: { class: "cv-auth-bg relative isolate flex min-h-dvh items-center justify-center bg-background p-6 max-sm:p-3" },
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CartVibeLogoComponent, ReactiveFormsModule, NgIf, InputComponent, ButtonComponent, FeatureDirective, RouterLink, BrnButton, HlmButton, AppIconComponent, AsyncPipe, TranslatePipe, FormGetPipe]
 })
 export class AuthForm implements OnInit {
   public form: FormGroup = new FormGroup({});

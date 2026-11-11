@@ -6,13 +6,25 @@ import { TranslationService } from "../../i18n/translation.service";
 import { TableColumn, TablePhoneRole } from "../table-column.interface";
 import { PageEvent, Sort, TableDataSource } from "../table-types";
 import { marker } from "../../i18n/marker";
+import { BrnFieldControl, BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { BrnInput } from "@spartan-ng/brain/input";
+import { HlmInput } from "../../ui/input/lib/hlm-input";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HlmCheckbox } from "../../ui/checkbox/lib/hlm-checkbox";
+import { NgTemplateOutlet } from "@angular/common";
+import { ButtonComponent } from "../../button/button/button.component";
+import { HlmTable, HlmTHead, HlmTr, HlmTh, HlmTBody, HlmTd } from "../../ui/table/lib/hlm-table";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { RowExpandablePipe } from "./row-expandable.pipe";
 
 @Component({
-  selector: "app-table",
-  host: { class: "block overflow-hidden rounded-xl border border-border bg-card" },
-  templateUrl: "./table.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-table",
+    host: { class: "block overflow-hidden rounded-xl border border-border bg-card" },
+    templateUrl: "./table.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, BrnButton, HlmButton, AppIconComponent, HlmCheckbox, NgTemplateOutlet, ButtonComponent, HlmTable, HlmTHead, HlmTr, HlmTh, HlmTBody, HlmTd, TranslatePipe, RowExpandablePipe]
 })
 export class TableComponent implements OnChanges {
   public readonly columns = input<TableColumn[]>([]);

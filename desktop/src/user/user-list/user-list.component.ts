@@ -21,8 +21,18 @@ import { ResetPasswordComponent } from "../reset-password/reset-password.compone
 import { UserFormComponent } from "../user-form/user-form.component";
 import { UserTableService } from "./user-table.service";
 import { marker } from "../../i18n/marker";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { TranslationService } from "../../i18n/translation.service";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { NgIf } from "@angular/common";
+import { ButtonComponent } from "../../button/button/button.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
+import { RoleNamePipe } from "../../pipes/role-name.pipe";
 
 @Component({
     selector: "app-user-list",
@@ -36,7 +46,7 @@ import { TranslationService } from "../../i18n/translation.service";
         }
     ],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, NgIf, ButtonComponent, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe, AppDatePipe, RoleNamePipe]
 })
 export class UserListComponent extends BaseTableComponent<User> implements AfterViewInit {
   private readonly translation = inject(TranslationService);

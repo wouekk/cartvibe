@@ -1,5 +1,7 @@
 import { Component, Input, input, ChangeDetectionStrategy } from "@angular/core";
 import { isSettled, isToCheck, receiptStatusLabel } from "../../utils/receipt-status";
+import { NgClass } from "@angular/common";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * A receipt's status as a family reads it: "To check" in yellow, "Settled" in green. A
@@ -9,7 +11,7 @@ import { isSettled, isToCheck, receiptStatusLabel } from "../../utils/receipt-st
     selector: "app-status-chip",
     templateUrl: "./status-chip.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, TranslatePipe]
 })
 export class StatusChipComponent {
   @Input() public status: string = "";

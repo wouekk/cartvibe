@@ -10,10 +10,9 @@ describe('TableHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [ TableHeaderComponent ],
-      providers: [ provideZonelessChangeDetection() ]
-    })
+    imports: [TranslatePipe, TableHeaderComponent],
+    providers: [provideZonelessChangeDetection()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(TableHeaderComponent);
@@ -45,14 +44,14 @@ describe('TableHeaderComponent', () => {
 // used for rich subtitles that need markup (e.g. an inline link) rather than the
 // plain-string `subtitle` input.
 @Component({
-  template: `
+    template: `
     <app-table-header headerText="Hosted">
       <p table-header-subtitle>
         Projected <a href="#">Manage Users</a>
       </p>
     </app-table-header>
   `,
-  standalone: false,
+    imports: [TranslatePipe, TableHeaderComponent],
 })
 class TableHeaderHostComponent {}
 
@@ -61,10 +60,9 @@ describe('TableHeaderComponent — projected subtitle', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [TableHeaderComponent, TableHeaderHostComponent],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [TranslatePipe, TableHeaderComponent, TableHeaderHostComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     fixture = TestBed.createComponent(TableHeaderHostComponent);
     await fixture.whenStable();

@@ -11,11 +11,10 @@ describe("CancelButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CancelButtonComponent],
-      imports: [TranslatePipe, ButtonModule],
-      providers: [{ provide: ActivatedRoute, useValue: {} }],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    imports: [TranslatePipe, ButtonModule, CancelButtonComponent],
+    providers: [{ provide: ActivatedRoute, useValue: {} }],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(CancelButtonComponent);
     component = fixture.componentInstance;

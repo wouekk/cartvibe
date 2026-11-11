@@ -1,5 +1,6 @@
 import { Component, input, model, ChangeDetectionStrategy } from "@angular/core";
 import { FilterTab } from "./filter-tab.interface";
+import { SettingsTabsComponent } from "../settings/settings-tabs.component";
 
 /**
  * Generic, reusable segmented filter bar — the standard pattern for simple
@@ -17,10 +18,10 @@ import { FilterTab } from "./filter-tab.interface";
  * ></app-filter-bar>
  */
 @Component({
-  selector: "app-filter-bar",
-  templateUrl: "./filter-bar.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-filter-bar",
+    templateUrl: "./filter-bar.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [SettingsTabsComponent],
 })
 export class FilterBarComponent {
   public readonly tabs = input.required<FilterTab[]>();

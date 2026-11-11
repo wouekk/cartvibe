@@ -13,7 +13,7 @@ describe("BaseInputComponent validation messages", () => {
 
   beforeEach(async () => {
     localStorage.clear();
-    await TestBed.configureTestingModule({ imports: [TranslatePipe], declarations: [BaseInputComponent] }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [TranslatePipe, BaseInputComponent] }).compileComponents();
     translation = TestBed.inject(TranslationService);
     registerRealLanguages(translation);
     fixture = TestBed.createComponent(BaseInputComponent);

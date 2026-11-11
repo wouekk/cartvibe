@@ -8,7 +8,6 @@ import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import { GroupsService, Permission, QuickScanDefaultPaidByType, ReceiptStatus } from "../../open-api";
-import { PipesModule } from "../../pipes/index";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { SetPermissions } from "../../store/auth.state.actions";
@@ -43,30 +42,29 @@ describe("GroupReceiptSettingsComponent", () => {
 
   const configureTestBed = async (mode: FormMode = FormMode.edit, options: TestBedOptions = {}) => {
     await TestBed.configureTestingModule({
-      declarations: [GroupReceiptSettingsComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [SharedUiModule, StoreModule, PipesModule],
-      providers: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [SharedUiModule, StoreModule, GroupReceiptSettingsComponent],
+    providers: [
         FormBuilder,
         GroupsService,
         { provide: Router, useValue: { navigate: vi.fn().mockResolvedValue(true) } },
         Store,
         SnackbarService,
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-                formConfig: { mode },
-                group: options.group ?? buildGroup(),
-              },
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {
+                        formConfig: { mode },
+                        group: options.group ?? buildGroup(),
+                    },
+                },
             },
-          },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     httpTestingController = TestBed.inject(HttpTestingController);
     // Permissions must land before the first change-detection pass: ngOnInit reads them once.

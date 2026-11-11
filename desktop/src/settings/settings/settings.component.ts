@@ -5,13 +5,15 @@ import { Permission } from "../../open-api";
 import { AuthState } from "../../store";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
 import { marker } from "../../i18n/marker";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { TabsComponent } from "../../shared-ui/tabs/tabs.component";
 
 @Component({
     selector: "app-settings",
     templateUrl: "./settings.component.html",
     host: DEFAULT_HOST_CLASS,
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, TabsComponent]
 })
 export class SettingsComponent {
   private readonly canReadProfile = this.store.selectSignal(

@@ -1,8 +1,13 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from "@angular/core";
-import { FormControl, FormGroup } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
 import { codePointMaxLengthValidator, trimmedRequiredValidator } from "../../validators";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { InputComponent } from "../../input/input/input.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /** Mirrors the API's RenameReceiptCommand limit. */
 export const RECEIPT_NAME_MAX_LENGTH = 255;
@@ -12,10 +17,17 @@ export const RECEIPT_NAME_MAX_LENGTH = 255;
  * cancelled; saving it is the caller's job, since a receipt that is not saved yet has nothing to persist to.
  */
 @Component({
-  selector: "app-rename-receipt-dialog",
-  templateUrl: "./rename-receipt-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-rename-receipt-dialog",
+    templateUrl: "./rename-receipt-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        DialogComponent,
+        ReactiveFormsModule,
+        InputComponent,
+        DialogFooterComponent,
+        TranslatePipe,
+        FormGetPipe,
+    ],
 })
 export class RenameReceiptDialogComponent implements OnInit {
   @Input() public name: string = "";

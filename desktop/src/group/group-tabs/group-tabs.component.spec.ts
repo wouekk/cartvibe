@@ -12,10 +12,9 @@ describe("GroupTabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [GroupTabsComponent],
-      imports: [ReactiveFormsModule, NgxsModule.forRoot([FeatureConfigState, AuthState])],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([FeatureConfigState, AuthState]), GroupTabsComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(GroupTabsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -10,7 +10,6 @@ import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
 import { RECEIPT_NOTE_MAX_LENGTH } from "src/constants/receipt-note.constant";
 import { FormMode } from "src/enums/form-mode.enum";
-import { PipesModule } from "src/pipes/pipes.module";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
@@ -33,31 +32,27 @@ describe("ReceiptFormComponent", () => {
   beforeEach(async () => {
     routeDataSubject = new BehaviorSubject<any>({});
     await TestBed.configureTestingModule({
-      declarations: [ReceiptFormComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ApiModule,
-        PipesModule,
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [ApiModule,
         StoreModule,
-        PipesModule,
         ReactiveFormsModule,
         SharedUiModule,
-        UserAutocompleteModule,
-      ],
-      providers: [
+        UserAutocompleteModule, ReceiptFormComponent,],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {}, queryParams: {}
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {}, queryParams: {}
+                },
+                data: routeDataSubject,
+                params: of({})
             },
-            data: routeDataSubject,
-            params: of({})
-          },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ReceiptFormComponent);
     component = fixture.componentInstance;

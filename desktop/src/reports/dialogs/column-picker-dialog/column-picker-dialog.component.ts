@@ -21,6 +21,15 @@ import { ReportColumnValue } from "../../models/report-command.mapper";
 import { deriveColumnName, validateFormulaExpr } from "../../models/report-column.util";
 import { nextReportRowId } from "../../models/report-form.factory";
 import { marker } from "../../../i18n/marker";
+import { DialogComponent } from "../../../shared-ui/dialog/dialog.component";
+import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
+import { SelectComponent } from "../../../select/select/select.component";
+import { InputComponent } from "../../../input/input/input.component";
+import { NgClass } from "@angular/common";
+import { ButtonComponent } from "../../../button/button/button.component";
+import { CancelButtonComponent } from "../../../shared-ui/cancel-button/cancel-button.component";
+import { TranslatePipe } from "../../../i18n/translate.pipe";
+import { FormGetPipe } from "../../../pipes/form-get.pipe";
 
 export interface ColumnPickerDialogData {
   dimensions: ReportField[];
@@ -65,11 +74,21 @@ const LOCKED_SUBTITLE = marker("The column this grouping level adds to the repor
  * the backend is the authoritative validator.
  */
 @Component({
-  selector: "app-column-picker-dialog",
-  templateUrl: "./column-picker-dialog.component.html",
-  styleUrls: ["./column-picker-dialog.component.scss"],
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-column-picker-dialog",
+    templateUrl: "./column-picker-dialog.component.html",
+    styleUrls: ["./column-picker-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        DialogComponent,
+        AppIconComponent,
+        SelectComponent,
+        InputComponent,
+        NgClass,
+        ButtonComponent,
+        CancelButtonComponent,
+        TranslatePipe,
+        FormGetPipe,
+    ],
 })
 export class ColumnPickerDialogComponent {
   private readonly formBuilder = inject(FormBuilder);

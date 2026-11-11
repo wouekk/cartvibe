@@ -8,9 +8,9 @@ import { AlertComponent } from "../alert/alert.component";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
-import { DirectivesModule } from "../directives";
+
 import { InputModule } from "../input";
-import { PipesModule } from "../pipes";
+
 import { ReceiptProcessingSettingsModule } from "../receipt-processing-settings/receipt-processing-settings.module";
 import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
@@ -25,18 +25,10 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
 
 
 @NgModule({
-  declarations: [
-    SystemSettingsComponent,
-    SystemSettingsFormComponent,
-    SystemTaskFilterComponent,
-    SystemTaskTableComponent,
-  ],
-  imports: [
+    imports: [
     ButtonModule,
     CommonModule,
-    DirectivesModule,
     InputModule,
-    PipesModule,
     ReactiveFormsModule,
     ReceiptProcessingSettingsModule,
     SharedUiModule,
@@ -50,7 +42,11 @@ import { SystemTaskTableComponent } from "./system-task-table/system-task-table.
     SelectModule,
     AlertComponent,
     ExchangeRatesComponent,
-  ]
+    SystemSettingsComponent,
+    SystemSettingsFormComponent,
+    SystemTaskFilterComponent,
+    SystemTaskTableComponent,
+]
 })
 export class SystemSettingsModule {
 }

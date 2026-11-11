@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { ReceiptStatus } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { BulkStatusUpdateComponent } from "./bulk-status-update-dialog.component";
+import { StoreModule } from "../../store/store.module";
 
 describe("BulkStatusUpdateComponent", () => {
   let component: BulkStatusUpdateComponent;
@@ -12,18 +12,17 @@ describe("BulkStatusUpdateComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BulkStatusUpdateComponent],
-      imports: [ReactiveFormsModule, PipesModule],
-      providers: [
+    imports: [StoreModule, ReactiveFormsModule, BulkStatusUpdateComponent],
+    providers: [
         {
-          provide: AppDialogRef,
-          useValue: {
-            close: (arg: any) => {},
-          },
+            provide: AppDialogRef,
+            useValue: {
+                close: (arg: any) => { },
+            },
         },
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BulkStatusUpdateComponent);
     component = fixture.componentInstance;

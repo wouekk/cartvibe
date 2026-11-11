@@ -11,10 +11,9 @@ describe("BreadcrumbComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BreadcrumbComponent],
-      imports: [TranslatePipe, AppIconComponent, RouterModule.forRoot([])],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [TranslatePipe, AppIconComponent, RouterModule.forRoot([]), BreadcrumbComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BreadcrumbComponent);
     component = fixture.componentInstance;

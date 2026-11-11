@@ -9,7 +9,6 @@ import { of } from "rxjs";
 import { InputReadonlyPipe } from "src/pipes/input-readonly.pipe";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { Permission, UserPreferences, UserPreferencesService } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { SetPermissions } from "../../store/auth.state.actions";
 import { StoreModule } from "../../store/store.module";
 
@@ -21,28 +20,27 @@ describe("UserPreferencesComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [UserPreferencesComponent, InputReadonlyPipe],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
         ReactiveFormsModule,
         StoreModule,
-        PipesModule,
-        SharedUiModule
-      ],
-      providers: [
+        SharedUiModule,
+        UserPreferencesComponent, InputReadonlyPipe
+    ],
+    providers: [
         UserPreferencesService,
         {
-          provide: ActivatedRoute,
-          useValue: { snapshot: { data: { formConfig: {} } } },
+            provide: ActivatedRoute,
+            useValue: { snapshot: { data: { formConfig: {} } } },
         },
         {
-          provide: Router,
-          useValue: { navigate: vi.fn().mockResolvedValue(true) },
+            provide: Router,
+            useValue: { navigate: vi.fn().mockResolvedValue(true) },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    });
+    ]
+});
     fixture = TestBed.createComponent(UserPreferencesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

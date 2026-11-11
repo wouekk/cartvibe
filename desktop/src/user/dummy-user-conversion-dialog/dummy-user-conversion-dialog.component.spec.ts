@@ -6,7 +6,6 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { SnackbarService } from "../../services";
 import { UpdateUser } from "../../store";
 import { StoreModule } from "../../store/store.module";
@@ -18,25 +17,24 @@ describe("DummyUserConversionDialogComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [DummyUserConversionDialogComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [
         ApiModule,
         StoreModule,
-        PipesModule,
-      ],
-      providers: [
+        DummyUserConversionDialogComponent,
+    ],
+    providers: [
         SnackbarService,
         {
-          provide: AppDialogRef,
-          useValue: {
-            close: () => { },
-          },
+            provide: AppDialogRef,
+            useValue: {
+                close: () => { },
+            },
         },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    });
+    ]
+});
     fixture = TestBed.createComponent(DummyUserConversionDialogComponent);
     component = fixture.componentInstance;
     component.user = {} as any;

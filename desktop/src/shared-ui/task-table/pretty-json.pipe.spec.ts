@@ -6,10 +6,9 @@ describe("PrettyJsonPipe", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [PrettyJsonPipe],
-      imports: [],
-      providers: [PrettyJsonPipe]
-    });
+    imports: [PrettyJsonPipe],
+    providers: [PrettyJsonPipe]
+});
 
     pipe = TestBed.inject(PrettyJsonPipe);
   });

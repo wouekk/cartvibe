@@ -3,9 +3,9 @@ import { NgModule } from "@angular/core";
 import { ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { ButtonModule } from "../button/button.module";
-import { DirectivesModule } from "../directives/directives.module";
+
 import { InputModule } from "../input/input.module";
-import { PipesModule } from "../pipes/pipes.module";
+
 import { CartVibeLoaderComponent } from "../shared-ui/cartvibe-loader/cartvibe-loader.component";
 import { CartVibeSplashComponent } from "../shared-ui/cartvibe-splash/cartvibe-splash.component";
 import { CartVibeLogoComponent } from "../shared-ui/cartvibe-logo/cartvibe-logo.component";
@@ -14,14 +14,11 @@ import { AuthRoutingModule } from "./auth-routing.module";
 import { AuthForm } from "./sign-up/auth-form.component";
 
 @NgModule({
-  declarations: [AuthForm],
-  imports: [
+    imports: [
     AuthRoutingModule,
     ButtonModule,
     CommonModule,
-    DirectivesModule,
     InputModule,
-    PipesModule,
     ReactiveFormsModule,
     NgOptimizedImage,
     CartVibeLoaderComponent,
@@ -29,8 +26,9 @@ import { AuthForm } from "./sign-up/auth-form.component";
     CartVibeLogoComponent,
     HlmButton,
     AppIconComponent,
-  ],
-  exports: [AuthForm],
+    AuthForm,
+],
+    exports: [AuthForm],
 })
 export class AuthModule {
 }

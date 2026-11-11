@@ -10,10 +10,9 @@ describe('FormListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [FormListComponent],
-            schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [TranslatePipe, FormListComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(FormListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

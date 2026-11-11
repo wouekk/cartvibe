@@ -1,10 +1,9 @@
 import { Component, computed, Input, input, output, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
-  selector: "app-base-button",
-  standalone: false,
-  template: "", // a base class: subclasses bring their own template
-  changeDetection: ChangeDetectionStrategy.Eager,
+    selector: "app-base-button",
+    template: "", // a base class: subclasses bring their own template
+    changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class BaseButtonComponent {
   public readonly buttonClass = input<string>("");

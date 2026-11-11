@@ -12,10 +12,9 @@ describe('StatusSelectComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [StatusSelectComponent],
-      imports: [SelectModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [SelectModule, StatusSelectComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(StatusSelectComponent);
     component = fixture.componentInstance;
     fixture.componentRef.setInput('inputFormControl', new FormControl());

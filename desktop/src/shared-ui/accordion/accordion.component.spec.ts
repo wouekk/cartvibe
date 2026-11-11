@@ -9,11 +9,11 @@ describe('AccordionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AccordionComponent],
-      imports: [
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    imports: [
+        AccordionComponent
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(AccordionComponent);

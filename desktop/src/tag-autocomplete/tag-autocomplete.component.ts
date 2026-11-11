@@ -2,15 +2,16 @@ import { Component, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { Tag } from "../open-api/index";
-import { PipesModule } from "../pipes/index";
+
+import { TranslatePipe } from "../i18n/translate.pipe";
 
 @Component({
     selector: "app-tag-autocomplete",
     standalone: true,
     imports: [
-        AutocompleteModule,
-        PipesModule
-    ],
+    AutocompleteModule,
+    TranslatePipe
+],
     templateUrl: "./tag-autocomplete.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: "./tag-autocomplete.component.scss"

@@ -6,10 +6,9 @@ describe('OptionDisplayPipe', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [OptionDisplayPipe],
-      imports: [],
-      providers: [OptionDisplayPipe],
-    }).compileComponents();
+    imports: [OptionDisplayPipe],
+    providers: [OptionDisplayPipe],
+}).compileComponents();
 
     pipe = TestBed.inject(OptionDisplayPipe);
   });

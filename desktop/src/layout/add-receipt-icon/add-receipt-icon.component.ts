@@ -5,7 +5,6 @@ import { Component, Input, ViewEncapsulation, ChangeDetectionStrategy } from '@a
     templateUrl: './add-receipt-icon.component.html',
     styleUrls: ['./add-receipt-icon.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class AddReceiptIconComponent {}

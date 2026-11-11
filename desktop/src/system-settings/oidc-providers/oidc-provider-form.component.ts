@@ -10,7 +10,7 @@ import { marker } from "../../i18n/marker";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { InputModule } from "../../input";
 import { OidcProviderService, OidcProviderView, UpsertOidcProviderCommand } from "../../open-api";
-import { PipesModule } from "../../pipes";
+
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
@@ -22,6 +22,7 @@ import {
   redirectUriFor,
   slugFromDisplayName,
 } from "./oidc-provider.util";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 export interface OidcProviderFormData {
   /** The provider to change; without one the dialog adds a provider. */
@@ -44,11 +45,11 @@ export interface OidcProviderFormData {
     CheckboxModule,
     HlmButton,
     InputModule,
-    PipesModule,
+    FormGetPipe,
     ReactiveFormsModule,
     SharedUiModule,
-    TranslatePipe,
-  ],
+    TranslatePipe
+],
 })
 export class OidcProviderFormComponent implements OnInit {
   private readonly data = inject<OidcProviderFormData | null>(APP_DIALOG_DATA, { optional: true }) ?? {};

@@ -1,4 +1,4 @@
-import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { Store } from "@ngxs/store";
@@ -18,7 +18,7 @@ interface Link {
 
 @Component({
     selector: "app-about",
-    imports: [TranslatePipe, PluralPipe, 
+    imports: [TranslatePipe, 
         AppDatePipe,
         CommonModule,
         SharedUiModule

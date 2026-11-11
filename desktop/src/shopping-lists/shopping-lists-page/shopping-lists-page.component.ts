@@ -42,15 +42,48 @@ import { shoppingListToText } from "../shopping-list-share";
 import { ShoppingListFormDialogComponent } from "../shopping-list-form-dialog/shopping-list-form-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
+import { TableHeaderComponent } from "../../shared-ui/table-header/table-header.component";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
+import { ShoppingListComponent } from "../shopping-list/shopping-list.component";
+import { ShoppingTripsComponent } from "../shopping-trips/shopping-trips.component";
+import { NgTemplateOutlet } from "@angular/common";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 const SENDING = marker("Sending: {count}");
 const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
 
 @Component({
-  selector: "app-shopping-lists-page",
-  templateUrl: "./shopping-lists-page.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-shopping-lists-page",
+    templateUrl: "./shopping-lists-page.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        TableHeaderComponent,
+        AddButtonComponent,
+        AppIconComponent,
+        BrnButton,
+        HlmButton,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        CdkMenu,
+        HlmDropdownMenu,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmDropdownMenuSeparator,
+        ShoppingListComponent,
+        ShoppingTripsComponent,
+        NgTemplateOutlet,
+        TranslatePipe,
+    ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   private readonly translation = inject(TranslationService);

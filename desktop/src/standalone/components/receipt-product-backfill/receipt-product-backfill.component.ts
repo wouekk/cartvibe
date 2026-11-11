@@ -1,4 +1,4 @@
-import { PluralPipe, TranslatePipe } from "../../../i18n/translate.pipe";
+import { TranslatePipe } from "../../../i18n/translate.pipe";
 import { Component, computed, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../../shared-ui/icon/icon.component";
@@ -19,7 +19,7 @@ import { hasAll } from "../../../utils/permission.utils";
   templateUrl: "./receipt-product-backfill.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [TranslatePipe, PluralPipe, HlmButton, AppIconComponent],
+  imports: [TranslatePipe, HlmButton, AppIconComponent],
 })
 export class ReceiptProductBackfillComponent {
   public readonly groupId = input.required<number>();

@@ -6,9 +6,9 @@ import { RouterLink } from "@angular/router";
 import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
-import { DirectivesModule } from "../directives";
+
 import { InputModule } from "../input";
-import { PipesModule } from "../pipes";
+
 import { SelectModule } from "../select/select.module";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { TableModule } from "../table/table.module";
@@ -22,16 +22,13 @@ import {
 
 
 @NgModule({
-  declarations: [ReceiptProcessingSettingsChildSystemTaskAccordionComponent],
-  imports: [
+    imports: [
     CommonModule,
-    DirectivesModule,
     TableModule,
     SharedUiModule,
     RouterLink,
     ReactiveFormsModule,
     InputModule,
-    PipesModule,
     SelectModule,
     AutocompleteModule,
     AiTypePipe,
@@ -40,11 +37,12 @@ import {
     UrlHintPipe,
     ButtonModule,
     ...HlmTooltipImports,
-    CheckboxModule
-  ],
-  exports: [
+    CheckboxModule,
     ReceiptProcessingSettingsChildSystemTaskAccordionComponent
-  ]
+],
+    exports: [
+        ReceiptProcessingSettingsChildSystemTaskAccordionComponent
+    ]
 })
 export class ReceiptProcessingSettingsModule {
 }

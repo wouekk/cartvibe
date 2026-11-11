@@ -25,14 +25,14 @@ describe("ReportFiltersComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ReportFiltersComponent],
-      providers: [
+    imports: [ReportFiltersComponent],
+    providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
         { provide: Store, useValue: store },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     formBuilder = TestBed.inject(FormBuilder);
     destroyRef = TestBed.inject(DestroyRef);

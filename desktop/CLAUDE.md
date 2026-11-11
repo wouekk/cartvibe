@@ -18,8 +18,9 @@ feature.
   proves it is not in the production bundle; a new endpoint the UI calls also needs an answer in `src/demo/backend`.
 - `npm run i18n:extract`, `i18n:check` (CI, before the specs), `i18n:sync -- --lang xx`: see Translations.
 - `npm run check:traps` (CI, before the specs; `tools/check-traps.cjs` lists the traps and why): no import of
-  `environment.development`, no `[attr.aria-label]` glued with `+`, the counts of `standalone: false` and of
-  Material-era names only go down (`tools/trap-baseline.json`; after lowering one run it with `--update`), and
+  `environment.development`, no `[attr.aria-label]` glued with `+`, no `standalone: false` (the count is 0 and
+  only goes down), the count of Material-era names only goes down (`tools/trap-baseline.json`; after lowering it
+  run the check with `--update`), and
   `package.json` / `swagger.yml` stay at version `0.0.0`. `test:ci` fails under the coverage floor in
   `angular.json` (set two points under the figures of 2026-11-10).
 - `npm run e2e` / `e2e:ui` / `e2e:install`: Playwright, needs a live API (`docs/e2e.md`).
@@ -29,8 +30,14 @@ feature.
 ## Stack conventions
 
 - No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
-  describe the past. Most components are still `standalone: false` in NgModules; new leaf components may be
-  standalone, a non-standalone one must be declared (and exported if another module uses it).
+  describe the past.
+- **Every component, directive and pipe is standalone** and lists what its template uses in its own `imports`.
+  The `*.module.ts` files that remain only bundle and export (and carry the lazy routes); nothing is declared in
+  one, and a provider belongs on the component that injects it or at the root, never in a module. Traps:
+  - `app.config.ts`'s `importProvidersFrom(...)` carries the router and the API client. Without it the app builds,
+    every spec passes and the page is empty: only `npm run e2e:demo` notices, so run it after touching that file.
+  - Two pipes are named `optionDisplay` (the select's and the autocomplete's, with different arguments); a
+    component imports exactly one.
 - **State:** NGXS in `src/store/`; read with `store.selectSignal(...)` or `selectSnapshot`, never `@Select` / `| async`.
   The states and the persisted slices (`ngxsStorageKeys`) are listed once, in `src/store/ngxs-states.ts`, for the app
   and for the specs' `StoreModule`; the shopping lists keep their own copy in
@@ -64,6 +71,12 @@ feature.
   `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
   `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
   specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocompleteComponent` needs `AuthState`.
+  Every spec gets what the app provides at its root (`src/testing/test-providers.ts`, the target's
+  `providersFile`: the input mask's configuration, the router, `CurrencyPipe`); a spec's own `Router` or
+  `ActivatedRoute` still wins. A component under test renders its real children, so give the spec the store they
+  read (`StoreModule`, the app's own). A spec that mocks the store or the router instead leaves the children out
+  with `renderShallow(Component, [its pipes])` (`src/testing/render-shallow.ts`), and a test host imports what it
+  hosts.
 - **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
   (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`chart.js`), not

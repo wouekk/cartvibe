@@ -9,10 +9,9 @@ describe("CopyButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CopyButtonComponent],
-      imports: [ButtonModule],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [ButtonModule, CopyButtonComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     fixture = TestBed.createComponent(CopyButtonComponent);
     component = fixture.componentInstance;

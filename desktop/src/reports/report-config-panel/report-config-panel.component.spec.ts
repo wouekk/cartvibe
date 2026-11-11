@@ -52,21 +52,20 @@ describe("ReportConfigPanelComponent", () => {
     dialog = { open: vi.fn() };
 
     await TestBed.configureTestingModule({
-      declarations: [ReportConfigPanelComponent],
-      providers: [
+    imports: [ReportConfigPanelComponent],
+    providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
         {
-          provide: Store,
-          useValue: {
-            selectSignal: (selector: unknown) =>
-              signal(selector === SystemSettingsState.timeZone ? "America/New_York" : GROUPS),
-          },
+            provide: Store,
+            useValue: {
+                selectSignal: (selector: unknown) => signal(selector === SystemSettingsState.timeZone ? "America/New_York" : GROUPS),
+            },
         },
         { provide: AppDialog, useValue: dialog },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    })
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+})
       // This suite exercises the component's public API, not its template; an empty
       // template keeps the harness free of the shared pipes/child components.
       .overrideComponent(ReportConfigPanelComponent, { set: { template: "" } })

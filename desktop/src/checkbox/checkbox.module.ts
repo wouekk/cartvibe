@@ -9,15 +9,13 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { SharedUiModule } from 'src/shared-ui/shared-ui.module';
 
 @NgModule({
-  declarations: [CheckboxComponent],
-  imports: [TranslatePipe, PluralPipe, 
-    CommonModule,
-    ReactiveFormsModule,
-    ...HlmCheckboxImports,
-    AppIconComponent,
-    ...HlmTooltipImports,
-    SharedUiModule,
-  ],
-  exports: [CheckboxComponent],
+    imports: [TranslatePipe, PluralPipe,
+        CommonModule,
+        ReactiveFormsModule,
+        ...HlmCheckboxImports,
+        AppIconComponent,
+        ...HlmTooltipImports,
+        SharedUiModule, CheckboxComponent,],
+    exports: [CheckboxComponent],
 })
 export class CheckboxModule {}

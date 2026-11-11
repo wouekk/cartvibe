@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { finalize, take, tap } from "rxjs";
@@ -16,6 +16,23 @@ import { quickScanAsksForNote } from "./quick-scan-field-config";
 import { marker } from "../../i18n/marker";
 import { buttonVariants } from "@spartan-ng/helm/button";
 import { finePointerSignal } from "../../utils/fine-pointer";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HlmAttachment } from "../../ui/attachment/lib/hlm-attachment";
+import { HlmAttachmentMedia } from "../../ui/attachment/lib/hlm-attachment-media";
+import { HlmAttachmentContent } from "../../ui/attachment/lib/hlm-attachment-content";
+import { HlmAttachmentTitle } from "../../ui/attachment/lib/hlm-attachment-title";
+import { HlmAttachmentDescription } from "../../ui/attachment/lib/hlm-attachment-description";
+import { HlmAttachmentActions } from "../../ui/attachment/lib/hlm-attachment-actions";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { HlmAttachmentAction } from "../../ui/attachment/lib/hlm-attachment-action";
+import { GroupAutocompleteComponent } from "../../shared-ui/group-autocomplete/group-autocomplete.component";
+import { TextareaComponent } from "../../textarea/textarea/textarea.component";
+import { UploadProgressComponent } from "../../shared-ui/upload-progress/upload-progress.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 /**
  * Quick Scan: photos in, receipts out. Each photo becomes its own receipt, read by the AI. Nothing but the photo
@@ -25,10 +42,10 @@ import { finePointerSignal } from "../../utils/fine-pointer";
  */
 @Component({
     selector: "app-quick-scan-dialog",
-  host: { class: "block" },
+    host: { class: "block" },
     templateUrl: "./quick-scan-dialog.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [DialogComponent, ReactiveFormsModule, UploadImageComponent, AppIconComponent, HlmAttachment, HlmAttachmentMedia, HlmAttachmentContent, HlmAttachmentTitle, HlmAttachmentDescription, HlmAttachmentActions, BrnButton, HlmButton, HlmAttachmentAction, GroupAutocompleteComponent, TextareaComponent, UploadProgressComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
 export class QuickScanDialogComponent implements OnInit {
   public readonly uploadImageComponent = viewChild.required(UploadImageComponent);

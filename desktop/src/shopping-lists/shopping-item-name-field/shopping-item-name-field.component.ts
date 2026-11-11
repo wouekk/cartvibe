@@ -3,8 +3,9 @@ import { FormControl } from "@angular/forms";
 import { BrnAutocomplete } from "@spartan-ng/brain/autocomplete";
 import { HlmAutocompleteImports } from "@spartan-ng/helm/autocomplete";
 import { startWith } from "rxjs";
-import { PipesModule } from "../../pipes/pipes.module";
+
 import { filterItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /**
  * The shopping list's "Add an item" box: free text, with the household's earlier items offered as they type (spartan's
@@ -15,7 +16,7 @@ import { filterItemSuggestions, ItemSuggestion } from "../shopping-item-suggesti
   selector: "app-shopping-item-name-field",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [...HlmAutocompleteImports, PipesModule],
+  imports: [...HlmAutocompleteImports, TranslatePipe],
   templateUrl: "./shopping-item-name-field.component.html",
   host: { class: "block" },
 })

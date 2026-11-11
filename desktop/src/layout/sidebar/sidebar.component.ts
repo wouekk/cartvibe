@@ -1,7 +1,7 @@
 import { Component, computed, effect, ElementRef, inject, Injector, linkedSignal, ViewEncapsulation, ChangeDetectionStrategy, afterNextRender, viewChild, DestroyRef } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Data, NavigationEnd, Router } from "@angular/router";
+import { Data, NavigationEnd, Router, RouterLinkActive, RouterLink, RouterOutlet } from "@angular/router";
 import { Store } from "@ngxs/store";
 import { catchError, filter, map, of, startWith, switchMap, take } from "rxjs";
 import { SetPage } from "src/store/receipt-table.actions";
@@ -14,9 +14,9 @@ import { ViewportService } from "../../services/viewport.service";
 import { AuthState, GroupState, Logout, SetSelectedGroupId } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { shownHousehold } from "../../utils/shown-household";
-import { TabBarItem } from "../tab-bar/tab-bar.component";
+import { TabBarItem, TabBarComponent } from "../tab-bar/tab-bar.component";
 import { allowedManagementTabs } from "../../shared-ui/management-tabs/management-tabs.component";
-import { provideIcons } from "@ng-icons/core";
+import { provideIcons, NgIcon } from "@ng-icons/core";
 import {
   lucideBot,
   lucideCheck,
@@ -43,6 +43,37 @@ import {
 } from "@ng-icons/lucide";
 import { HlmSidebarService } from "@spartan-ng/helm/sidebar";
 import { marker } from "../../i18n/marker";
+import { HlmSidebarWrapper } from "../../ui/sidebar/lib/hlm-sidebar-wrapper";
+import { HlmSidebar } from "../../ui/sidebar/lib/hlm-sidebar";
+import { HlmSidebarHeader } from "../../ui/sidebar/lib/hlm-sidebar-header";
+import { HlmSidebarMenu } from "../../ui/sidebar/lib/hlm-sidebar-menu";
+import { HlmSidebarMenuItem } from "../../ui/sidebar/lib/hlm-sidebar-menu-item";
+import { AvatarComponent } from "../../avatar/avatar/avatar.component";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmSidebarMenuButton } from "../../ui/sidebar/lib/hlm-sidebar-menu-button";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuLabel } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-label";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { HlmSidebarContent } from "../../ui/sidebar/lib/hlm-sidebar-content";
+import { HlmSidebarGroup } from "../../ui/sidebar/lib/hlm-sidebar-group";
+import { NgTemplateOutlet } from "@angular/common";
+import { BrnCollapsible, BrnCollapsibleTrigger, BrnCollapsibleContent } from "@spartan-ng/brain/collapsible";
+import { HlmCollapsible } from "../../ui/collapsible/lib/hlm-collapsible";
+import { HlmCollapsibleTrigger } from "../../ui/collapsible/lib/hlm-collapsible-trigger";
+import { HlmCollapsibleContent } from "../../ui/collapsible/lib/hlm-collapsible-content";
+import { HlmSidebarMenuSub } from "../../ui/sidebar/lib/hlm-sidebar-menu-sub";
+import { HlmSidebarMenuSubItem } from "../../ui/sidebar/lib/hlm-sidebar-menu-sub-item";
+import { HlmSidebarMenuSubButton } from "../../ui/sidebar/lib/hlm-sidebar-menu-sub-button";
+import { HlmSidebarFooter } from "../../ui/sidebar/lib/hlm-sidebar-footer";
+import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-separator";
+import { HlmSidebarRail } from "../../ui/sidebar/lib/hlm-sidebar-rail";
+import { HlmSidebarInset } from "../../ui/sidebar/lib/hlm-sidebar-inset";
+import { DemoBannerComponent, DemoFooterComponent } from "../../demo/demo-runtime";
+import { HeaderComponent } from "../header/header.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 /** The nav items name Material icons; the sidebar draws the matching Lucide ones, like spartan's own. */
 const LUCIDE_ICONS: Record<string, string> = {
@@ -86,33 +117,75 @@ interface ManageNavItem {
     templateUrl: "./sidebar.component.html",
     styleUrls: ["./sidebar.component.scss"],
     encapsulation: ViewEncapsulation.None,
-    standalone: false,
     changeDetection: ChangeDetectionStrategy.Eager,
     providers: [
-      provideIcons({
-        lucideBot,
-        lucideCheck,
-        lucideChartLine,
-        lucideChevronDown,
-        lucideChevronsUpDown,
-        lucideEllipsisVertical,
-        lucideInfo,
-        lucideLanguages,
-        lucideLayoutDashboard,
-        lucideLogOut,
-        lucidePalette,
-        lucideReceiptText,
-        lucideSettings,
-        lucideShapes,
-        lucideShieldCheck,
-        lucideShoppingCart,
-        lucideSlidersHorizontal,
-        lucideTag,
-        lucideTextCursorInput,
-        lucideUser,
-        lucideUserCog,
-        lucideUsers,
-      }),
+        provideIcons({
+            lucideBot,
+            lucideCheck,
+            lucideChartLine,
+            lucideChevronDown,
+            lucideChevronsUpDown,
+            lucideEllipsisVertical,
+            lucideInfo,
+            lucideLanguages,
+            lucideLayoutDashboard,
+            lucideLogOut,
+            lucidePalette,
+            lucideReceiptText,
+            lucideSettings,
+            lucideShapes,
+            lucideShieldCheck,
+            lucideShoppingCart,
+            lucideSlidersHorizontal,
+            lucideTag,
+            lucideTextCursorInput,
+            lucideUser,
+            lucideUserCog,
+            lucideUsers,
+        }),
+    ],
+    imports: [
+        HlmSidebarWrapper,
+        HlmSidebar,
+        HlmSidebarHeader,
+        HlmSidebarMenu,
+        HlmSidebarMenuItem,
+        AvatarComponent,
+        BrnTooltip,
+        HlmSidebarMenuButton,
+        CdkMenuTrigger,
+        HlmDropdownMenuTrigger,
+        NgIcon,
+        CdkMenu,
+        HlmDropdownMenu,
+        HlmDropdownMenuLabel,
+        CdkMenuItem,
+        HlmDropdownMenuFocusOnHover,
+        HlmDropdownMenuItem,
+        HlmSidebarContent,
+        HlmSidebarGroup,
+        NgTemplateOutlet,
+        BrnCollapsible,
+        HlmCollapsible,
+        BrnCollapsibleTrigger,
+        HlmCollapsibleTrigger,
+        BrnCollapsibleContent,
+        HlmCollapsibleContent,
+        HlmSidebarMenuSub,
+        HlmSidebarMenuSubItem,
+        HlmSidebarMenuSubButton,
+        RouterLinkActive,
+        RouterLink,
+        HlmSidebarFooter,
+        HlmDropdownMenuSeparator,
+        HlmSidebarRail,
+        HlmSidebarInset,
+        DemoBannerComponent,
+        HeaderComponent,
+        RouterOutlet,
+        DemoFooterComponent,
+        TabBarComponent,
+        TranslatePipe,
     ],
 })
 export class SidebarComponent {

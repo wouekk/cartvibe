@@ -11,7 +11,6 @@ import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input/index";
 import { FormMode } from "../../enums/form-mode.enum";
 import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, ShopLogoService, SystemSettingsService } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
@@ -31,15 +30,13 @@ describe("SystemSettingsFormComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SystemSettingsFormComponent, CustomCurrencyPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [AutocompleteModule,
         CheckboxModule,
         InputModule,
         NgxsModule.forRoot([SystemSettingsState, AuthState]),
-        PipesModule,
         ReactiveFormsModule,
-        SharedUiModule],
+        SharedUiModule, SystemSettingsFormComponent, CustomCurrencyPipe],
     providers: [
         provideZonelessChangeDetection(),
         CustomCurrencyPipe,

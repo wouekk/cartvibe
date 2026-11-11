@@ -19,10 +19,9 @@ describe("FilterBarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [FilterBarComponent, SettingsTabsComponent],
-      imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports],
-      providers: [provideZonelessChangeDetection()],
-    }).compileComponents();
+    imports: [AppIconComponent, TranslatePipe, ...HlmTabsImports, FilterBarComponent, SettingsTabsComponent],
+    providers: [provideZonelessChangeDetection()],
+}).compileComponents();
 
     fixture = TestBed.createComponent(FilterBarComponent);
     component = fixture.componentInstance;

@@ -1,6 +1,7 @@
 import { Component, OnChanges, SimpleChanges, input, ChangeDetectionStrategy } from "@angular/core";
 import { FormControl } from "@angular/forms";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants";
+import { SelectComponent } from "../../select/select/select.component";
 
 /** A picker of the two receipt statuses, "To check" and "Settled", with an empty choice on request. */
 @Component({
@@ -8,7 +9,7 @@ import { RECEIPT_STATUS_OPTIONS } from "src/constants";
     templateUrl: "./status-select.component.html",
     styleUrls: ["./status-select.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SelectComponent]
 })
 export class StatusSelectComponent implements OnChanges {
   public readonly inputFormControl = input.required<FormControl>();

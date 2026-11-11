@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { NgxsModule } from "@ngxs/store";
-import { PipesModule } from "src/pipes/pipes.module";
 import { ApiModule } from "../../open-api";
 import { ResetPasswordComponent } from "./reset-password.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -15,13 +14,10 @@ describe("ResetPasswordComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ResetPasswordComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        PipesModule,
         NgxsModule.forRoot([]),
-        PipesModule,
-        ReactiveFormsModule],
+        ReactiveFormsModule, ResetPasswordComponent],
     providers: [{ provide: AppDialogRef, useValue: {} }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 

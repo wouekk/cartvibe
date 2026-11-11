@@ -8,6 +8,7 @@ import { Permission } from "../../open-api";
 import { AuthState } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
+import { SettingsTabsComponent } from "../settings/settings-tabs.component";
 
 /** One tab of Settings → Management: a page of its own, shown to who may read it. */
 export interface ManagementTab {
@@ -42,10 +43,9 @@ export function managementTabForUrl(url: string): ManagementTab | undefined {
  * own addresses, so links into a household or a user still work). Switching a tab opens that page.
  */
 @Component({
-  selector: "app-management-tabs",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
+    selector: "app-management-tabs",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
     <app-settings-tabs
       data-testid="management-tabs"
       [tabs]="tabs()"
@@ -53,6 +53,7 @@ export function managementTabForUrl(url: string): ManagementTab | undefined {
       (valueChange)="select($event)"
     ></app-settings-tabs>
   `,
+    imports: [SettingsTabsComponent],
 })
 export class ManagementTabsComponent {
   private readonly router = inject(Router);

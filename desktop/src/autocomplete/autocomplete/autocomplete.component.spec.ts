@@ -16,17 +16,14 @@ describe("AutocompleteComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      // OptionDisplayPipe renders the chips. Only the panel-behavior cases
-      // below reach it - they are the only ones that let change detection
-      // run over the multiple-mode branch of the template.
-      declarations: [AutocompleteComponent, BaseInputComponent, OptionDisplayPipe],
-      imports: [
+    imports: [
         TranslatePipe,
         NgxsModule.forRoot([AuthState]),
         ReactiveFormsModule,
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    }).compileComponents();
+        AutocompleteComponent, BaseInputComponent, OptionDisplayPipe,
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+}).compileComponents();
 
     fixture = TestBed.createComponent(AutocompleteComponent);
     component = fixture.componentInstance;

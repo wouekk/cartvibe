@@ -5,7 +5,7 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../shared-ui/icon/icon.component";
 import { ButtonModule } from "../button";
 import { PeriodPickerComponent } from "./period-picker/period-picker.component";
-import { PipesModule } from "../pipes/pipes.module";
+
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
 import { HlmTableImports } from "@spartan-ng/helm/table";
 import { ChartComponent } from "../shared-ui/chart/chart.component";
@@ -21,7 +21,6 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { HlmSwitchImports } from "@spartan-ng/helm/switch";
 
 @NgModule({
-  declarations: [OverviewPageComponent],
-  imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, PipesModule, SharedUiModule, OverviewShoppingPanelComponent, WarrantyMenuComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports],
+    imports: [ChartComponent, HlmBadge, DisplayCurrencyPipe, ...HlmCheckboxImports, ...HlmTableImports, MoneyComponent, ShopMonogramComponent, ButtonModule, CommonModule, HlmButton, AppIconComponent, PeriodPickerComponent, OverviewRoutingModule, SharedUiModule, OverviewShoppingPanelComponent, WarrantyMenuComponent, ...HlmDropdownMenuImports, ...HlmSwitchImports, OverviewPageComponent],
 })
 export class OverviewModule {}

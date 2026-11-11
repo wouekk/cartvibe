@@ -6,8 +6,7 @@ import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
-  declarations: [RadioGroupComponent],
-  imports: [TranslatePipe, PluralPipe, CommonModule, ...HlmRadioGroupImports, ReactiveFormsModule],
-  exports: [RadioGroupComponent],
+    imports: [TranslatePipe, PluralPipe, CommonModule, ...HlmRadioGroupImports, ReactiveFormsModule, RadioGroupComponent],
+    exports: [RadioGroupComponent],
 })
 export class RadioGroupModule {}

@@ -23,6 +23,18 @@ import {
   regionName,
   WARRANTY_PERIOD_CHOICES,
 } from "../../utils/warranty-period";
+import { FormComponent } from "../../shared-ui/form/form.component";
+import { FeatureDirective } from "../../directives/feature.directive";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { GroupAutocompleteComponent } from "../../shared-ui/group-autocomplete/group-autocomplete.component";
+import { UserAutocompleteComponent } from "../../user-autocomplete/user-autocomplete/user-autocomplete.component";
+import { StatusSelectComponent } from "../../shared-ui/status-select/status-select.component";
+import { InputComponent } from "../../input/input/input.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 /** The select cannot show an option whose value is "", so "from the browser" and Automatic have values of their own. */
 const FROM_BROWSER = "browser";
@@ -38,7 +50,7 @@ pluralMarker("year", "years");
     templateUrl: "./user-preferences.component.html",
     styleUrls: ["./user-preferences.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [FormComponent, FeatureDirective, FormSectionComponent, GroupAutocompleteComponent, UserAutocompleteComponent, StatusSelectComponent, InputComponent, SelectComponent, CheckboxComponent, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserPreferencesComponent extends BaseFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);

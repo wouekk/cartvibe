@@ -11,14 +11,13 @@ describe("TabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [TabsComponent],
-            providers: [{
-        provide: ActivatedRoute,
-        useValue: {}
-      }],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [TranslatePipe, TabsComponent],
+    providers: [{
+            provide: ActivatedRoute,
+            useValue: {}
+        }],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(TabsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

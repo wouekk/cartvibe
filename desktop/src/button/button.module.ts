@@ -10,8 +10,7 @@ import { BaseButtonComponent } from "./base-button/base-button.component";
 import { ButtonComponent } from "./button/button.component";
 
 @NgModule({
-  declarations: [ButtonComponent, BaseButtonComponent],
-  imports: [TranslatePipe, PluralPipe, CommonModule, HlmBadge, HlmButton, AppIconComponent, ...HlmTooltipImports, RouterModule],
-  exports: [ButtonComponent],
+    imports: [TranslatePipe, PluralPipe, CommonModule, HlmBadge, HlmButton, AppIconComponent, ...HlmTooltipImports, RouterModule, ButtonComponent, BaseButtonComponent],
+    exports: [ButtonComponent],
 })
 export class ButtonModule {}

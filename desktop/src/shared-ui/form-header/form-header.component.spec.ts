@@ -10,10 +10,9 @@ describe('FormHeaderComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslatePipe, TranslateDataPipe],
-      declarations: [FormHeaderComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    });
+    imports: [TranslatePipe, TranslateDataPipe, FormHeaderComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+});
     fixture = TestBed.createComponent(FormHeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

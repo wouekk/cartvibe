@@ -10,10 +10,9 @@ describe("GroupPipe", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [GroupPipe],
-      imports: [NgxsModule.forRoot([GroupState])],
-      providers: [GroupPipe],
-    }).compileComponents();
+    imports: [NgxsModule.forRoot([GroupState]), GroupPipe],
+    providers: [GroupPipe],
+}).compileComponents();
 
     const groups: Group[] = [
       {

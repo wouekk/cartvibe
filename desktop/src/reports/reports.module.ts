@@ -10,9 +10,9 @@ import { AutocompleteModule } from "../autocomplete/autocomplete.module";
 import { ButtonModule } from "../button";
 import { CheckboxModule } from "../checkbox/checkbox.module";
 import { DatepickerModule } from "../datepicker/datepicker.module";
-import { DirectivesModule } from "../directives";
+
 import { InputModule } from "../input";
-import { PipesModule } from "../pipes";
+
 import { SelectModule } from "../select/select.module";
 import { TableModule } from "../table/table.module";
 import { TextareaModule } from "../textarea/textarea.module";
@@ -29,7 +29,22 @@ import { ReportTemplateListComponent } from "./report-template-list/report-templ
 import { ReportsRoutingModule } from "./reports-routing.module";
 
 @NgModule({
-  declarations: [
+    imports: [
+    ...HlmButtonImports,
+    AutocompleteModule,
+    ButtonModule,
+    CheckboxModule,
+    CommonModule,
+    DatepickerModule,
+    InputModule,
+    AppIconComponent,
+    ReactiveFormsModule,
+    ReportsRoutingModule,
+    SelectModule,
+    SharedUiModule,
+    TableModule,
+    TextareaModule,
+    UserAutocompleteModule,
     AddGroupDialogComponent,
     ColumnPickerDialogComponent,
     ReportBuilderComponent,
@@ -40,25 +55,6 @@ import { ReportsRoutingModule } from "./reports-routing.module";
     ReportReceiptsDialogComponent,
     ReportSectionComponent,
     ReportTemplateListComponent,
-  ],
-  imports: [
-    ...HlmButtonImports,
-    AutocompleteModule,
-    ButtonModule,
-    CheckboxModule,
-    CommonModule,
-    DatepickerModule,
-    DirectivesModule,
-    InputModule,
-    AppIconComponent,
-    PipesModule,
-    ReactiveFormsModule,
-    ReportsRoutingModule,
-    SelectModule,
-    SharedUiModule,
-    TableModule,
-    TextareaModule,
-    UserAutocompleteModule,
-  ],
+],
 })
 export class ReportsModule {}

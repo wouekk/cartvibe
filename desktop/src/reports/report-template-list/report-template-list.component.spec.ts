@@ -21,6 +21,8 @@ import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateListComponent } from "./report-template-list.component";
 
 import type { Mock } from "vitest";
+import { renderShallow } from "../../testing/render-shallow";
+import { AppDatePipe } from "../../pipes/app-date.pipe";
 function makeTemplate(id: number, name: string): ReportTemplate {
   return {
     id,
@@ -99,19 +101,20 @@ describe("ReportTemplateListComponent", () => {
       })),
     };
 
+    // The children are left out: this spec mocks what they would read.
+    renderShallow(ReportTemplateListComponent, [TranslatePipe, TranslateDataPipe, AppDatePipe], NO_ERRORS_SCHEMA);
     await TestBed.configureTestingModule({
-      declarations: [ReportTemplateListComponent],
-      imports: [TranslatePipe, TranslateDataPipe, CommonModule],
-      providers: [
+    imports: [TranslatePipe, TranslateDataPipe, CommonModule, ReportTemplateListComponent],
+    providers: [
         provideZonelessChangeDetection(),
         { provide: ReportRunnerService, useValue: runner },
         { provide: Store, useValue: store },
         { provide: Router, useValue: router },
         { provide: SnackbarService, useValue: snackbar },
         { provide: AppDialog, useValue: matDialog },
-      ],
-      schemas: [NO_ERRORS_SCHEMA],
-    }).compileComponents();
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+}).compileComponents();
 
     // Installed before createComponent because the builder-entry gate reads the selector
     // at field init. Call through (default) so selectSignal still receives a real selector

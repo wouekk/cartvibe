@@ -8,6 +8,10 @@ import {
   ReportReceiptsDialogData,
 } from "../dialogs/report-receipts-dialog/report-receipts-dialog.component";
 import { ReportBuilderValue, toReportRequestCommand } from "../models/report-command.mapper";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { TranslatePipe, PluralPipe } from "../../i18n/translate.pipe";
 
 /**
  * The live preview pane: renders the engine's HTML for the current configuration
@@ -16,11 +20,17 @@ import { ReportBuilderValue, toReportRequestCommand } from "../models/report-com
  * opens the receipts drill-in.
  */
 @Component({
-  selector: "app-report-preview-panel",
-  host: { class: "block h-full" },
-  templateUrl: "./report-preview-panel.component.html",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-report-preview-panel",
+    host: { class: "block h-full" },
+    templateUrl: "./report-preview-panel.component.html",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        BrnButton,
+        HlmButton,
+        AppIconComponent,
+        TranslatePipe,
+        PluralPipe,
+    ],
 })
 export class ReportPreviewPanelComponent {
   public readonly form = input.required<FormGroup>();

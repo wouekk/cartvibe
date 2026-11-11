@@ -6,9 +6,9 @@ import { AppDialogRef } from "../../dialog/app-dialog";
 import { of } from "rxjs";
 import { DuplicateValidator } from "src/validators/duplicate-validator";
 import { ApiModule, CategoryService, CategoryView } from "../../open-api";
-import { PipesModule } from "../../pipes";
 import { CategoryForm } from "./category-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { StoreModule } from "../../store/store.module";
 
 describe("CategoryForm", () => {
   let component: CategoryForm;
@@ -16,11 +16,9 @@ describe("CategoryForm", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [CategoryForm],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ApiModule,
-        PipesModule,
-        ReactiveFormsModule],
+    imports: [StoreModule, ApiModule,
+        ReactiveFormsModule, CategoryForm],
     providers: [
         DuplicateValidator,
         {
@@ -45,15 +43,14 @@ describe("CategoryForm", () => {
   it("provides its own duplicate validator, so a dialog opened from the root injector renders", () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      declarations: [CategoryForm],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ApiModule, PipesModule, ReactiveFormsModule],
-      providers: [
-        { provide: AppDialogRef, useValue: { close: () => {} } },
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [StoreModule, ApiModule, ReactiveFormsModule, CategoryForm],
+    providers: [
+        { provide: AppDialogRef, useValue: { close: () => { } } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    });
+    ],
+});
 
     const standalone = TestBed.createComponent(CategoryForm);
     standalone.detectChanges();

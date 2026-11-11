@@ -3,6 +3,10 @@ import { Store } from "@ngxs/store";
 import { Group, User } from "../../open-api";
 import { UserState } from "../../store/user.state";
 import { groupColorStyle, isGroupIcon } from "../../constants/group-look";
+import { BrnTooltip } from "@spartan-ng/brain/tooltip";
+import { HlmTooltip } from "../../ui/tooltip/lib/hlm-tooltip";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { SlicePipe } from "@angular/common";
 
 /** The address of a person's avatar photo; the version makes a new photo a new address (the browser caches a day). */
 export function avatarPhotoUrl(userId: number, avatarUpdatedAt: string): string {
@@ -18,7 +22,7 @@ export function avatarPhotoUrl(userId: number, avatarUpdatedAt: string): string 
     selector: "app-avatar",
     templateUrl: "./avatar.component.html",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [BrnTooltip, HlmTooltip, AppIconComponent, SlicePipe]
 })
 export class AvatarComponent {
   public readonly user = input<User>();

@@ -9,9 +9,8 @@ describe('BaseButtonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslatePipe],
-      declarations: [BaseButtonComponent]
-    })
+    imports: [TranslatePipe, BaseButtonComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(BaseButtonComponent);

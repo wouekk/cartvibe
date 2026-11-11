@@ -20,8 +20,7 @@ const ROWS: Row[] = [
 ];
 
 @Component({
-  standalone: false,
-  template: `
+    template: `
     <ng-template #actions let-element="element"><button type="button" [attr.data-testid]="'row-menu-' + element.id">Menu</button></ng-template>
     <ng-template #expanded let-element="element"><p data-testid="row-details">Details of {{ element.shop }}</p></ng-template>
     <app-table
@@ -33,6 +32,7 @@ const ROWS: Row[] = [
       (sorted)="sorts.push($event)"
     ></app-table>
   `,
+    imports: [TableModule],
 })
 class HostComponent {
   public readonly actions = viewChild.required<TemplateRef<unknown>>("actions");
@@ -78,10 +78,9 @@ describe("TableComponent as cards on a phone", () => {
   beforeEach(async () => {
     isHandset.set(true);
     await TestBed.configureTestingModule({
-      declarations: [HostComponent],
-      imports: [TableModule],
-      providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: ViewportService, useValue: { isHandset } }],
-    }).compileComponents();
+    imports: [TableModule, HostComponent],
+    providers: [provideZonelessChangeDetection(), provideRouter([]), { provide: ViewportService, useValue: { isHandset } }],
+}).compileComponents();
 
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;

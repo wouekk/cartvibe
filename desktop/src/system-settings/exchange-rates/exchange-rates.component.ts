@@ -1,4 +1,4 @@
-import { PluralPipe, TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -28,7 +28,7 @@ interface RateRow {
   templateUrl: "./exchange-rates.component.html",
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [TranslatePipe, PluralPipe, CommonModule, HlmButton, AppIconComponent],
+  imports: [TranslatePipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
   private readonly translation = inject(TranslationService);

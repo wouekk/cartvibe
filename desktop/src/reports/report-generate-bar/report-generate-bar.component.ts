@@ -2,6 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, input, output, inject } f
 import { marker } from "../../i18n/marker";
 import { FormGroup } from "@angular/forms";
 import { TranslationService } from "../../i18n/translation.service";
+import { NgClass } from "@angular/common";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 interface FormatChip {
   key: string;
@@ -15,11 +19,16 @@ interface FormatChip {
  * so the button just shows an in-flight state while the request is running.
  */
 @Component({
-  selector: "app-report-generate-bar",
-  host: { class: "block flex-none" },
-  templateUrl: "./report-generate-bar.component.html",
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: "app-report-generate-bar",
+    host: { class: "block flex-none" },
+    templateUrl: "./report-generate-bar.component.html",
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgClass,
+        AppIconComponent,
+        ButtonComponent,
+        TranslatePipe,
+    ],
 })
 export class ReportGenerateBarComponent {
   private readonly translation = inject(TranslationService);

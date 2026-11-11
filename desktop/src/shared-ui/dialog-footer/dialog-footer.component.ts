@@ -2,13 +2,16 @@ import { Component, Input, TemplateRef, computed, input, output, ChangeDetection
 import { Store } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
 import { LayoutState } from "src/store/layout.state";
+import { NgIf, NgTemplateOutlet } from "@angular/common";
+import { CancelButtonComponent } from "../cancel-button/cancel-button.component";
+import { SubmitButtonComponent } from "../submit-button/submit-button.component";
 
 @Component({
     selector: "app-dialog-footer",
     templateUrl: "./dialog-footer.component.html",
     styleUrls: ["./dialog-footer.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgIf, NgTemplateOutlet, CancelButtonComponent, SubmitButtonComponent]
 })
 export class DialogFooterComponent {
   @Input() public additionalButtonsTemplate?: TemplateRef<any>;

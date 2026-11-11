@@ -1,5 +1,6 @@
 import { Component, DestroyRef, inject, input, OnDestroy, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { marker } from "../../i18n/marker";
+import { ButtonComponent } from "../../button/button/button.component";
 
 /**
  * Generic copy-to-clipboard icon button.
@@ -14,11 +15,11 @@ import { marker } from "../../i18n/marker";
  *   <app-copy-button [text]="jsonBlob" tooltip="Copy JSON"></app-copy-button>
  */
 @Component({
-  selector: "app-copy-button",
-  templateUrl: "./copy-button.component.html",
-  styleUrl: "./copy-button.component.scss",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-copy-button",
+    templateUrl: "./copy-button.component.html",
+    styleUrl: "./copy-button.component.scss",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ButtonComponent],
 })
 export class CopyButtonComponent implements OnDestroy {
   public readonly text = input.required<string>();

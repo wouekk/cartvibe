@@ -12,21 +12,19 @@ describe("ReceiptProcessingSettingsChildSystemTaskAccordionComponent", () => {
   
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ReceiptProcessingSettingsChildSystemTaskAccordionComponent],
-      providers: [
+    imports: [ReceiptProcessingSettingsChildSystemTaskAccordionComponent],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: {
-              data: {
-              }
+            provide: ActivatedRoute,
+            useValue: {
+                snapshot: {
+                    data: {}
+                }
             }
-          }
         }
-      ],
-
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
       .compileComponents();
 
     fixture = TestBed.createComponent(ReceiptProcessingSettingsChildSystemTaskAccordionComponent);

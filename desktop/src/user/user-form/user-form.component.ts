@@ -1,6 +1,6 @@
 import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { FormBuilder, FormControl, FormGroup, Validators, } from "@angular/forms";
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
@@ -17,14 +17,24 @@ import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dialog.component";
 import { SnackbarService, TokenRefreshService } from "../../services";
 import { AddUser, AuthState, UpdateUser } from "../../store";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { InputComponent } from "../../input/input/input.component";
+import { NgIf } from "@angular/common";
+import { SelectComponent } from "../../select/select/select.component";
+import { ButtonComponent } from "../../button/button/button.component";
+import { CheckboxComponent } from "../../checkbox/checkbox/checkbox.component";
+import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
+import { SubmitButtonComponent } from "../../shared-ui/submit-button/submit-button.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
 
 @Component({
     selector: "app-user-form",
-  host: { class: "block max-h-[85vh] overflow-y-auto" },
+    host: { class: "block max-h-[85vh] overflow-y-auto" },
     templateUrl: "./user-form.component.html",
     providers: [UserValidators],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, ButtonComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe]
 })
 export class UserFormComponent implements OnInit {
   @Input() public user?: User;

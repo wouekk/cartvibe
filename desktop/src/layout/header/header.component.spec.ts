@@ -8,7 +8,6 @@ import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
-import { DirectivesModule } from "../../directives/directives.module";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
 import { SetGroups, SetSelectedGroupId } from "../../store/group.state.actions";
@@ -39,12 +38,9 @@ describe("HeaderComponent", () => {
     localStorage.clear();
 
     await TestBed.configureTestingModule({
-    declarations: [HeaderComponent],
     imports: [TranslatePipe, ApiModule,
-        DirectivesModule,
         OverlayModule,
-        StoreModule,
-    ],
+        StoreModule, HeaderComponent,],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();

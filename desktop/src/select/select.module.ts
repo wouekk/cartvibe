@@ -10,17 +10,15 @@ import { ReadonlyValuePipe } from "./pipes/readonly-value.pipe";
 import { SelectComponent } from "./select/select.component";
 
 @NgModule({
-  declarations: [SelectComponent, OptionDisplayPipe, ReadonlyValuePipe],
-  imports: [TranslatePipe, PluralPipe, 
-    CommonModule,
-    ReactiveFormsModule,
-    ...HlmInputImports,
-    ...HlmSelectImports,
-    // Imported directly rather than through SharedUiModule: that module imports
-    // SelectModule, so going the other way round would be a circular import.
-    BadgeComponent,
-  ],
-  exports: [SelectComponent],
-  providers: [OptionDisplayPipe]
+    imports: [TranslatePipe, PluralPipe,
+        CommonModule,
+        ReactiveFormsModule,
+        ...HlmInputImports,
+        ...HlmSelectImports,
+        // Imported directly rather than through SharedUiModule: that module imports
+        // SelectModule, so going the other way round would be a circular import.
+        BadgeComponent, SelectComponent, OptionDisplayPipe, ReadonlyValuePipe,],
+    exports: [SelectComponent],
+    providers: [OptionDisplayPipe]
 })
 export class SelectModule {}

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"strings"
 	"time"
 
 	"cartvibe/api/internal/models"
@@ -11,7 +10,7 @@ import (
 	"testing"
 )
 
-// Helpers shared by the receipt ordering tests (the first-comment sort).
+// Helpers shared by the receipt ordering and search tests.
 
 func createSortableReceipt(name string) models.Receipt {
 	receipt := models.Receipt{
@@ -39,10 +38,4 @@ func assertOrder(t *testing.T, got []string, want []string) {
 			return
 		}
 	}
-}
-
-// normalizeSQL strips the identifier quoting each engine applies, so an assertion
-// can name a column the way the code does rather than the way SQLite renders it.
-func normalizeSQL(sql string) string {
-	return strings.NewReplacer("`", "", `"`, "", "[", "", "]", "").Replace(sql)
 }

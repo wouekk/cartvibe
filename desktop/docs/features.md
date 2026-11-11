@@ -505,10 +505,15 @@ The long form of points the guide states briefly.
   keep the previous value while they reload (and use `null` for "failed"), so they stay on `toSignal`. `@defer` was
   measured and left out: the Dashboard panels sit in a DOM-measured drag grid, the shopping panel and the report
   preview are a few kB inside lazy modules, and `@zxing` and `chart.js` are already dynamic imports.
-- **Modules:** 34 feature/shared NgModules remain (plus 12 routing modules); about 164 of 193 components are still
-  `standalone: false` and declared in them (`SharedUiModule`, `ReceiptsModule`, …). New leaf components may be
-  standalone; a non-standalone one must be declared, and exported if another module uses it. Components the Angular 22
-  migration touched are pinned to `ChangeDetectionStrategy.Eager` (22's default is OnPush); either is fine for new code.
+- **Modules:** every component, directive and pipe is standalone since 2026-11-11 (Angular's standalone migration,
+  then repairs by hand). 28 feature and shared NgModules remain (plus 12 routing modules) as bundles of imports and
+  exports and as the targets of the lazy routes; `PipesModule`, `DirectivesModule`, `FormModule` and
+  `BaseInputModule` are gone. The migration got three things wrong, which is what to look for if it is ever run
+  again: it deleted the whole `importProvidersFrom(...)` block of `app.config.ts` (one deleted module was named in
+  it), it gave the select and the autocomplete each other's `optionDisplay` pipe, and it did not carry module
+  providers over (`OptionDisplayPipe` is `providedIn: "root"` now, `CurrencyPipe` is provided in `app.config.ts`).
+  Components the Angular 22 migration touched are pinned to `ChangeDetectionStrategy.Eager` (22's default is OnPush);
+  either is fine for new code.
 - **Toasts:** `SnackbarService` (over `ToastService`): `success`, `info`, `hint`, `error`. **Menus:** spartan dropdown
 - **Required fields shake:** `shakeInvalid()` / `shakeElement()` (`src/utils/shake.ts`) is the one way to say an empty
   required box was the problem.

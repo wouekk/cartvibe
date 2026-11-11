@@ -159,6 +159,7 @@
             "setupFiles": [
               "setup-vitest.ts"
             ],
+            "providersFile": "src/testing/test-providers.ts",
             "include": [
               "src/**/*.spec.ts"
             ],

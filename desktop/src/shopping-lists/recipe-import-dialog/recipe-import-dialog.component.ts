@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { FormControl, FormGroup } from "@angular/forms";
+import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { Store } from "@ngxs/store";
 import { take } from "rxjs";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
@@ -22,6 +22,20 @@ import {
   scaleQuantity,
   servingsMultiplier,
 } from "./recipe-scaling";
+import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
+import { SettingsTabsComponent } from "../../shared-ui/settings/settings-tabs.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { InputComponent } from "../../input/input/input.component";
+import { TextareaComponent } from "../../textarea/textarea/textarea.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
+import { BrnButton } from "@spartan-ng/brain/button";
+import { HlmButton } from "../../ui/button/lib/hlm-button";
+import { BrnFieldControlDescribedBy } from "@spartan-ng/brain/field";
+import { HlmCheckbox } from "../../ui/checkbox/lib/hlm-checkbox";
+import { BadgeComponent } from "../../shared-ui/badge/badge.component";
+import { HlmSpinner } from "../../ui/spinner/lib/hlm-spinner";
+import { TranslatePipe, PluralPipe } from "../../i18n/translate.pipe";
 
 /** What the page hands the dialog. */
 export interface RecipeImportDialogData {
@@ -70,10 +84,27 @@ const ADD_ITEMS = marker("Add {count} items");
 const GENERIC_FAILURE_HINT = marker("The recipe could not be read. Copy the ingredients from the page and paste them here.");
 
 @Component({
-  selector: "app-recipe-import-dialog",
-  templateUrl: "./recipe-import-dialog.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false,
+    selector: "app-recipe-import-dialog",
+    templateUrl: "./recipe-import-dialog.component.html",
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [
+        DialogComponent,
+        ReactiveFormsModule,
+        SettingsTabsComponent,
+        AppIconComponent,
+        InputComponent,
+        TextareaComponent,
+        SelectComponent,
+        DialogFooterComponent,
+        BrnButton,
+        HlmButton,
+        BrnFieldControlDescribedBy,
+        HlmCheckbox,
+        BadgeComponent,
+        HlmSpinner,
+        TranslatePipe,
+        PluralPipe,
+    ],
 })
 export class RecipeImportDialogComponent {
   private readonly dialogRef = inject<AppDialogRef<RecipeImportDialogComponent, ShoppingList>>(AppDialogRef);

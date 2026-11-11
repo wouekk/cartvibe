@@ -1,11 +1,13 @@
 import { Component, input, ChangeDetectionStrategy } from "@angular/core";
+import { NgClass } from "@angular/common";
+import { PrettyJsonPipe } from "../task-table/pretty-json.pipe";
 
 @Component({
     selector: "app-pretty-json",
     templateUrl: "./pretty-json.component.html",
     styleUrl: "./pretty-json.component.scss",
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, PrettyJsonPipe]
 })
 export class PrettyJsonComponent {
   public readonly json = input<string | undefined>("");

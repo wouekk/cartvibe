@@ -1,12 +1,14 @@
-import { Location } from "@angular/common";
+import { Location, NgIf, NgTemplateOutlet } from "@angular/common";
 import { Component, Input, TemplateRef, input, ChangeDetectionStrategy } from "@angular/core";
+import { AppIconComponent } from "../icon/icon.component";
+import { TranslatePipe, TranslateDataPipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-form-header",
     templateUrl: "./form-header.component.html",
     styleUrls: ["./form-header.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [AppIconComponent, NgIf, NgTemplateOutlet, TranslatePipe, TranslateDataPipe]
 })
 export class FormHeaderComponent {
   public readonly headerText = input<string>("");

@@ -1,5 +1,5 @@
 import { AuthState } from "../../store";
-import { RowAction } from "../../shared-ui/row-actions/row-actions.component";
+import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -17,13 +17,19 @@ import { SetOrderBy, SetPage, SetPageSize, SetSortDirection } from "../../store/
 import { TagFormComponent } from "../tag-form/tag-form.component";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
+import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
+import { ManagementTabsComponent } from "../../shared-ui/management-tabs/management-tabs.component";
+import { HasAppPermissionDirective } from "../../directives/has-app-permission.directive";
+import { AddButtonComponent } from "../../shared-ui/add-button/add-button.component";
+import { SettingsEntityListComponent } from "../../shared-ui/settings/settings-entity-list.component";
+import { TranslatePipe } from "../../i18n/translate.pipe";
 
 @Component({
     selector: "app-tags-list",
     templateUrl: "./tag-table.component.html",
     styleUrls: ["./tag-table.component.scss"],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
   private readonly translation = inject(TranslationService);

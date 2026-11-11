@@ -8,10 +8,10 @@ import {
   DeleteAccountDialogData,
 } from "./delete-account-dialog.component";
 import { ButtonModule } from "src/button";
-import { PipesModule } from "src/pipes/pipes.module";
 import { CancelButtonComponent } from "src/shared-ui/cancel-button/cancel-button.component";
 
 import type { Mocked } from "vitest";
+import { StoreModule } from "../../store/store.module";
 describe("DeleteAccountDialogComponent", () => {
   let component: DeleteAccountDialogComponent;
   let fixture: ComponentFixture<DeleteAccountDialogComponent>;
@@ -34,11 +34,10 @@ describe("DeleteAccountDialogComponent", () => {
     }
 
     await TestBed.configureTestingModule({
-      declarations: [CancelButtonComponent, DeleteAccountDialogComponent],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      imports: [ButtonModule, ReactiveFormsModule, PipesModule],
-      providers,
-    }).compileComponents();
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    imports: [StoreModule, ButtonModule, ReactiveFormsModule, CancelButtonComponent, DeleteAccountDialogComponent],
+    providers,
+}).compileComponents();
 
     fixture = TestBed.createComponent(DeleteAccountDialogComponent);
     component = fixture.componentInstance;

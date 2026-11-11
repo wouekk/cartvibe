@@ -1,4 +1,5 @@
 import { ApplicationConfig, isDevMode, provideAppInitializer, provideZonelessChangeDetection, inject } from "@angular/core";
+import { CurrencyPipe } from "@angular/common";
 import { provideServiceWorker } from "@angular/service-worker";
 import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
@@ -14,11 +15,9 @@ import { httpInterceptor } from "../interceptors/http-interceptor";
 import { rateLimitRetryInterceptor } from "../interceptors/rate-limit-retry.interceptor";
 import { serviceWorkerBypassInterceptor } from "../interceptors/service-worker-bypass.interceptor";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
-import { NgxMaskDirective, NgxMaskPipe } from "ngx-mask";
 import { AppRoutingModule } from "./app-routing.module";
 import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
-import { PipesModule } from "../pipes";
 import { ngxsStates, ngxsStorageKeys } from "../store/ngxs-states";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
@@ -31,6 +30,9 @@ export const appConfig: ApplicationConfig = {
     // The retry sits inside httpInterceptor, so a toast is shown only for a request that was still refused after it.
     provideHttpClient(withXhr(), withInterceptors([serviceWorkerBypassInterceptor, httpInterceptor, rateLimitRetryInterceptor, ...demoInterceptors])),
     provideNgxMask(),
+    // The money pipe (customCurrency) is built on Angular's CurrencyPipe and asks the injector for it. The shared
+    // module used to provide it to every page; components are standalone now, so it is provided here once.
+    CurrencyPipe,
     // App shell only (ngsw-config.json): API, SSE and OAuth calls always go to the network. Off in development.
     provideServiceWorker("ngsw-worker.js", {
       enabled: !isDevMode() && !DEMO_MODE,
@@ -65,14 +67,13 @@ export const appConfig: ApplicationConfig = {
       withNgxsStoragePlugin({ keys: ngxsStorageKeys }),
       withNgxsReduxDevtoolsPlugin({ disabled: environment.isProd }),
     ),
+    // The router and the API client come from their modules. Nothing reports their absence at build time: without
+    // this block the app starts and shows an empty page (the demo's Playwright suite is what notices).
     importProvidersFrom(
       ApiModule.forRoot(() => new Configuration({ basePath: undefined })),
       AppRoutingModule,
       LayoutModule,
       ...HlmTooltipImports,
-      NgxMaskDirective,
-      NgxMaskPipe,
-      PipesModule,
     ),
     // Empty in the real app. The `demo` build swaps in an in-memory backend (src/demo, desktop/docs/demo.md).
     ...demoProviders,

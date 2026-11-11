@@ -9,15 +9,14 @@ describe("DeleteButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DeleteButtonComponent],
-      imports: [ButtonModule],
-      providers: [
+    imports: [ButtonModule, DeleteButtonComponent],
+    providers: [
         {
-          provide: ActivatedRoute,
-          useValue: {},
+            provide: ActivatedRoute,
+            useValue: {},
         },
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(DeleteButtonComponent);
     component = fixture.componentInstance;

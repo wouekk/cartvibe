@@ -38,16 +38,15 @@ describe("ColumnConfigurationDialogComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [ColumnConfigurationDialogComponent],
-      imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([ReceiptTableState])],
-      providers: [
+    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([ReceiptTableState]), ColumnConfigurationDialogComponent],
+    providers: [
         { provide: AppDialogRef, useValue: mockDialogRef },
         { provide: APP_DIALOG_DATA, useValue: mockDialogData },
         // The shared dialog shell pulls in router-aware buttons, so rendering the
         // template (rather than only exercising the class) needs a router.
         provideRouter([])
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(ColumnConfigurationDialogComponent);
     component = fixture.componentInstance;

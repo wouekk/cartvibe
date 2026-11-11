@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, DestroyRef, Component, ElementRef, EmbeddedViewRef, HostListener, inject, Injector, OnInit, Signal, TemplateRef, computed, runInInjectionContext, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ToastRef } from "../../toast/toast.service";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -46,18 +46,44 @@ import { UploadImageComponent } from "../upload-image/upload-image.component";
 import { marker } from "../../i18n/marker";
 import { RenameReceiptDialogComponent } from "../rename-receipt-dialog/rename-receipt-dialog.component";
 import { TranslationService } from "../../i18n/translation.service";
+import { FormHeaderComponent } from "../../shared-ui/form-header/form-header.component";
+import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
+import { NgIf } from "@angular/common";
+import { AuditDetailSectionComponent } from "../../shared-ui/audit-detail-section/audit-detail-section.component";
+import { InputComponent } from "../../input/input/input.component";
+import { ReceiptCurrencyNoteComponent } from "../receipt-currency-note/receipt-currency-note.component";
+import { DatepickerComponent } from "../../datepicker/datepicker/datepicker.component";
+import { ReceiptWarrantyComponent } from "../receipt-warranty/receipt-warranty.component";
+import { GroupAutocompleteComponent } from "../../shared-ui/group-autocomplete/group-autocomplete.component";
+import { SelectComponent } from "../../select/select/select.component";
+import { TextareaComponent } from "../../textarea/textarea/textarea.component";
+import { AppIconComponent } from "../../shared-ui/icon/icon.component";
+import { HlmSpinner } from "../../ui/spinner/lib/hlm-spinner";
+import { ButtonComponent } from "../../button/button/button.component";
+import { CdkMenuTrigger, CdkMenu, CdkMenuItem } from "@angular/cdk/menu";
+import { HlmDropdownMenuTrigger } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-trigger";
+import { ReceiptProductsComponent } from "../receipt-products/receipt-products.component";
+import { UploadProgressComponent } from "../../shared-ui/upload-progress/upload-progress.component";
+import { FormButtonBarComponent } from "../../shared-ui/form-button-bar/form-button-bar.component";
+import { CancelButtonComponent } from "../../shared-ui/cancel-button/cancel-button.component";
+import { SubmitButtonComponent } from "../../shared-ui/submit-button/submit-button.component";
+import { HlmDropdownMenu } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu";
+import { HlmDropdownMenuFocusOnHover } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-focus-on-hover";
+import { HlmDropdownMenuItem } from "../../ui/dropdown-menu/lib/hlm-dropdown-menu-item";
+import { TranslatePipe } from "../../i18n/translate.pipe";
+import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 
 /** How long a date typed on the view page waits before it is saved. */
 export const DATE_IN_PLACE_DEBOUNCE_MS = 800;
 
 @Component({
-  selector: "app-receipt-form",
-  templateUrl: "./receipt-form.component.html",
-  styleUrls: ["./receipt-form.component.scss"],
-
-  host: DEFAULT_HOST_CLASS,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  standalone: false
+    selector: "app-receipt-form",
+    templateUrl: "./receipt-form.component.html",
+    styleUrls: ["./receipt-form.component.scss"],
+    host: DEFAULT_HOST_CLASS,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReactiveFormsModule, FormHeaderComponent, FormSectionComponent, NgIf, AuditDetailSectionComponent, InputComponent, ReceiptCurrencyNoteComponent, DatepickerComponent, ReceiptWarrantyComponent, GroupAutocompleteComponent, UserAutocompleteComponent, SelectComponent, TextareaComponent, UploadImageComponent, AppIconComponent, HlmSpinner, CarouselComponent, ButtonComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, ReceiptProductsComponent, UploadProgressComponent, FormButtonBarComponent, CancelButtonComponent, SubmitButtonComponent, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class ReceiptFormComponent implements OnInit {
   private readonly translation = inject(TranslationService);

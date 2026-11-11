@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StatusChipComponent } from './status-chip.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { PipesModule } from 'src/pipes/pipes.module';
 import { ReceiptStatus } from 'src/open-api';
 
 describe('StatusChipComponent', () => {
@@ -16,10 +15,9 @@ describe('StatusChipComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ StatusChipComponent ],
-      imports: [PipesModule],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    imports: [StatusChipComponent],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(StatusChipComponent);

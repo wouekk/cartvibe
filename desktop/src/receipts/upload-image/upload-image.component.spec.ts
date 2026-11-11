@@ -12,9 +12,8 @@ describe("UploadImageComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UploadImageComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ApiModule],
+    imports: [ApiModule, UploadImageComponent],
     providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { data: {} } } },
         provideHttpClient(withInterceptorsFromDi()),
