@@ -42,9 +42,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     `data/<groupId>/<fileId>`, with the one-way migration `id-file-paths-v1`; a real upgrade was run on the PC
     with the two binaries; and `feature/money-minor-units` (`740af539`, green CI): the four amounts are whole
     hundredths in `*_minor` columns beside the old ones (the owner's choice), filled once by
-    `money-minor-units-v1`; a real upgrade on the PC gave every amount back as the same text. **Next, in this
-    order:** a generated contract; aisle order per shop; signal stores. None is started. The working worktree
-    is `.claude/worktrees/dependency-updates`.
+    `money-minor-units-v1`; a real upgrade on the PC gave every amount back as the same text; and
+    `feature/contract-check` (`0959f4cc`, green CI): a test compares `swagger.yml` with the Go types field by
+    field (the owner chose a check over a generator; three small inaccuracies of the contract are recorded in
+    the audit report, not corrected). **Next, in this order:** aisle order per shop; signal stores. Neither
+    is started. The working worktree is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
   - Since cgo and nginx went, the PC can run the real server in production mode with the built app
