@@ -41,8 +41,7 @@ type UserPrefernces struct {
 	WarrantyPeriodYears *int `json:"warrantyPeriodYears"`
 	// WarrantyReminderLeadDays is how many days before a warranty ends the reminder comes; 0 is on the
 	// day. Nil (an account from before the setting, or a client that does not send it) is 30.
-	WarrantyReminderLeadDays *int           `json:"warrantyReminderLeadDays"`
-	UserShortcuts            []UserShortcut `json:"userShortcuts"`
+	WarrantyReminderLeadDays *int `json:"warrantyReminderLeadDays"`
 }
 
 func (userPreferences *UserPrefernces) LoadDataFromRequest(w http.ResponseWriter, r *http.Request) error {

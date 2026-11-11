@@ -760,7 +760,7 @@ func (service ReceiptProductExtractionService) applyReadResult(
 		}
 	}
 
-	if receipt.Status != models.OPEN && receipt.Status != models.NEEDS_ATTENTION && receipt.Status != models.DRAFT {
+	if receipt.Status != models.OPEN {
 		return nil
 	}
 	if receipt.Status != statusBefore || receipt.Amount.IsZero() {

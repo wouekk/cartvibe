@@ -160,7 +160,8 @@ func Parse(archive *Archive) (*Household, error) {
 			receipt := models.Receipt{BaseModel: c.base(), GroupId: c.id("group_id"), Name: c.text("name"), ShopName: c.text("shop_name"),
 				Date: c.day("date"), Amount: c.decimal("amount"), OriginalAmount: c.decimalPtr("original_amount"),
 				OriginalCurrency: c.text("original_currency"), ExchangeRate: c.decimalPtr("exchange_rate"),
-				WarrantyUntil: c.dayTextPtr("warranty_until"), Status: models.ReceiptStatus(c.text("status")),
+				// A file from before the two statuses may name a removed one.
+				WarrantyUntil: c.dayTextPtr("warranty_until"), Status: models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("status"))),
 				ResolvedDate: c.instantPtr("resolved_date"), PaidByUserID: c.id("paid_by_user_id")}
 			if receipt.Status == "" {
 				receipt.Status = models.OPEN
@@ -224,7 +225,7 @@ func Parse(archive *Archive) (*Household, error) {
 		{"user_preferences", func(c cells) {
 			household.Preferences = append(household.Preferences, models.UserPrefernces{UserId: c.id("user_id"),
 				QuickScanDefaultGroupId: c.idPtr("quick_scan_default_group_id"), QuickScanDefaultPaidById: c.idPtr("quick_scan_default_paid_by_id"),
-				QuickScanDefaultStatus: models.ReceiptStatus(c.text("quick_scan_default_status")),
+				QuickScanDefaultStatus: models.NormalizeReceiptStatus(models.ReceiptStatus(c.text("quick_scan_default_status"))),
 				CloseChipSelectOnSelect: c.boolean("close_chip_select_on_select"), MonthlySpendingGoal: c.decimalPtr("monthly_spending_goal"),
 				Language: c.text("language"), AiLanguage: c.text("ai_language"), Region: c.text("region"), OnboardingPending: c.boolean("onboarding_pending"),
 				WarrantyPeriodYears: c.intPtr("warranty_period_years"), WarrantyReminderLeadDays: c.intPtr("warranty_reminder_lead_days")})

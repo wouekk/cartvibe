@@ -576,8 +576,8 @@ func foldGroupOverview(
 		if daily {
 			dayTotals[day] = dayTotals[day].Add(receipt.Amount)
 		}
-		// Everything a family reads as "To check" (Phase 3 C6).
-		if receipt.Status == models.OPEN || receipt.Status == models.NEEDS_ATTENTION || receipt.Status == models.DRAFT {
+		// What a family reads as "To check".
+		if receipt.Status == models.OPEN {
 			overview.OpenReceiptCount++
 		}
 

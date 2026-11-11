@@ -310,7 +310,7 @@ func TestShouldUpdateReceipt(t *testing.T) {
 		Amount:       decimal.NewFromFloat(150.25),
 		Date:         time.Now(),
 		PaidByUserID: 2,
-		Status:       models.NEEDS_ATTENTION,
+		Status:       models.RESOLVED,
 		GroupId:      1,
 		Categories: []commands.UpsertCategoryCommand{
 			{
@@ -346,8 +346,8 @@ func TestShouldUpdateReceipt(t *testing.T) {
 		utils.PrintTestError(t, updatedReceipt.PaidByUserID, 2)
 	}
 
-	if updatedReceipt.Status != models.NEEDS_ATTENTION {
-		utils.PrintTestError(t, updatedReceipt.Status, models.NEEDS_ATTENTION)
+	if updatedReceipt.Status != models.RESOLVED {
+		utils.PrintTestError(t, updatedReceipt.Status, models.RESOLVED)
 	}
 
 	if len(updatedReceipt.Categories) != 2 {

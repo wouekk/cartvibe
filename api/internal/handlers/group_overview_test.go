@@ -127,7 +127,7 @@ func TestGroupOverviewFoldsTheMonthAndItsTrend(t *testing.T) {
 	repositories.GetDB().Create(&dining)
 
 	first := seedOverviewReceipt(t, "2026-10-01", "84.20", models.OPEN, groceries)
-	seedOverviewReceipt(t, "2026-10-31", "62.50", models.NEEDS_ATTENTION, dining)
+	seedOverviewReceipt(t, "2026-10-31", "62.50", models.OPEN, dining)
 	seedFoodGroupProduct(t, first.ID, "dairy", "50.00")
 	seedFoodGroupProduct(t, first.ID, "sweets & snacks", "30.00")
 	third := seedOverviewReceipt(t, "2026-10-15", "10.00", models.RESOLVED, groceries, dining)

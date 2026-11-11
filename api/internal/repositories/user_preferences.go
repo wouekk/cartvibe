@@ -79,32 +79,14 @@ func (repository UserPreferncesRepository) UpdateUserPreferences(userId uint, us
 	userPreferencesToUpdate.Language = normalizeLanguage(userPreferences.Language)
 	userPreferencesToUpdate.AiLanguage = normalizeLanguage(userPreferences.AiLanguage)
 	userPreferencesToUpdate.OnboardingPending = userPreferences.OnboardingPending
-	userPreferencesToUpdate.UserShortcuts = userPreferences.UserShortcuts
 	userPreferencesToUpdate.Region = normalizeRegion(userPreferences.Region)
 	userPreferencesToUpdate.WarrantyPeriodYears = normalizeWarrantyPeriodYears(userPreferences.WarrantyPeriodYears)
 	userPreferencesToUpdate.WarrantyReminderLeadDays = normalizeLeadDays(userPreferences.WarrantyReminderLeadDays)
 
-	// Both writes go through tx: a write on another connection would wait for this transaction's lock.
-	err = db.Transaction(func(tx *gorm.DB) error {
-		err := tx.
-			Model(&userPreferencesToUpdate).
-			Select("*").
-			Updates(&userPreferencesToUpdate).Error
-		if err != nil {
-			return err
-		}
-
-		err = tx.
-			Model(&userPreferencesToUpdate).
-			Association("UserShortcuts").
-			Replace(&userPreferencesToUpdate.UserShortcuts)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
+	err = db.
+		Model(&userPreferencesToUpdate).
+		Select("*").
+		Updates(&userPreferencesToUpdate).Error
 	if err != nil {
 		return models.UserPrefernces{}, err
 	}
@@ -127,14 +109,6 @@ func (repository UserPreferncesRepository) DeleteUserPreferences(userId uint) er
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		txErr := tx.
-			Model(models.UserShortcut{}).
-			Where("user_prefernces_id = ?", userPreferences.ID).
-			Delete(&models.UserShortcut{}).Error
-		if txErr != nil {
-			return txErr
-		}
-
-		txErr = tx.
 			Model(models.UserPrefernces{}).
 			Where("user_id = ?", userId).
 			Delete(&userPreferences).Error

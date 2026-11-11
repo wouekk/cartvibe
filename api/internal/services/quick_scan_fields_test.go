@@ -89,7 +89,7 @@ func TestResolveQuickScanFields_UploaderDefault(t *testing.T) {
 		QuickScanDefaultPaidByType: models.QUICK_SCAN_PAID_BY_UPLOADER,
 		QuickScanStatusEnabled:     true,
 		QuickScanStatusRequired:    false,
-		QuickScanDefaultStatus:     models.NEEDS_ATTENTION,
+		QuickScanDefaultStatus:     models.RESOLVED,
 	})
 
 	command := singleFileCommand(0, "", []uint{}, []uint{}, "")
@@ -103,8 +103,8 @@ func TestResolveQuickScanFields_UploaderDefault(t *testing.T) {
 	if resolved[0].PaidByUserId != 42 {
 		utils.PrintTestError(t, resolved[0].PaidByUserId, 42)
 	}
-	if resolved[0].Status != models.NEEDS_ATTENTION {
-		utils.PrintTestError(t, resolved[0].Status, models.NEEDS_ATTENTION)
+	if resolved[0].Status != models.RESOLVED {
+		utils.PrintTestError(t, resolved[0].Status, models.RESOLVED)
 	}
 }
 

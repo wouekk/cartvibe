@@ -167,7 +167,6 @@ func DeleteUser(userId string) error {
 			&models.Category{},
 			&models.Comment{},
 			&models.Notification{},
-			&models.UserShortcut{},
 			&models.UserPrefernces{},
 			&models.SystemSettings{},
 			&models.SystemTask{},

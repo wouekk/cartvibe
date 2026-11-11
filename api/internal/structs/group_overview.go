@@ -19,7 +19,7 @@ type GroupOverview struct {
 	ReceiptCount  int64           `json:"receiptCount"`
 	// PreviousReceiptCount is ReceiptCount for the previous period.
 	PreviousReceiptCount int64 `json:"previousReceiptCount"`
-	// OpenReceiptCount counts the period's receipts still to check (OPEN, NEEDS_ATTENTION or DRAFT).
+	// OpenReceiptCount counts the period's receipts still to check (OPEN).
 	OpenReceiptCount int64 `json:"openReceiptCount"`
 	// WarrantyCount counts the receipts the caller can see whose warranty ends today or later, whatever the period
 	// (the Warranties tile).

@@ -12,17 +12,18 @@ import (
 func TestAReadKeepsAStatusAPersonChangedWhileTheAiWasReading(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, false)
-	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).Update("status", models.NEEDS_ATTENTION)
-	receipt.Status = models.NEEDS_ATTENTION
+	if receipt.Status != models.OPEN {
+		t.Fatalf("the seeded receipt should be to check, got %s", receipt.Status)
+	}
 
-	// The read started while the receipt was OPEN.
-	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, models.OPEN, "Auchan", currencyContext{}, "", nil); err != nil {
+	// The read started while the receipt was settled; a person put it back to check meanwhile.
+	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, models.RESOLVED, "Auchan", currencyContext{}, "", nil); err != nil {
 		t.Fatal(err)
 	}
 
 	var stored models.Receipt
 	repositories.GetDB().First(&stored, receipt.ID)
-	if stored.Status != models.NEEDS_ATTENTION {
+	if stored.Status != models.OPEN {
 		t.Errorf("a status set during the read should be kept, got %s", stored.Status)
 	}
 }
@@ -53,9 +54,9 @@ func TestApplyProductsDecidesFromTheReceiptAsItIsNow(t *testing.T) {
 		t.Fatalf("queue: %v", err)
 	}
 
-	// While the AI reads: a person names the receipt and declines it.
+	// While the AI reads: a person names the receipt and settles it.
 	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", before.ID).
-		Updates(map[string]any{"name": "Birthday party", "status": models.DECLINED})
+		Updates(map[string]any{"name": "Birthday party", "status": models.RESOLVED})
 
 	resolver, err := newFoodGroupResolver(nil)
 	if err != nil {
@@ -69,7 +70,7 @@ func TestApplyProductsDecidesFromTheReceiptAsItIsNow(t *testing.T) {
 
 	var stored models.Receipt
 	repositories.GetDB().First(&stored, before.ID)
-	if stored.Name != "Birthday party" || stored.Status != models.DECLINED {
+	if stored.Name != "Birthday party" || stored.Status != models.RESOLVED {
 		t.Errorf("the person's edits should survive the read, got %q %s", stored.Name, stored.Status)
 	}
 	if stored.ShopName != "Auchan" {
@@ -139,9 +140,9 @@ func TestAReadNeverOverwritesAPersonsShopOrReopensADoneReceipt(t *testing.T) {
 	defer repositories.TruncateTestDb()
 	receipt := seedExtractionReceipt(t, false)
 	repositories.GetDB().Model(&models.Receipt{}).Where("id = ?", receipt.ID).
-		Updates(map[string]any{"shop_name": "Rewe", "status": models.DECLINED})
+		Updates(map[string]any{"shop_name": "Rewe", "status": models.RESOLVED})
 	receipt.ShopName = "Rewe"
-	receipt.Status = models.DECLINED
+	receipt.Status = models.RESOLVED
 
 	if err := NewReceiptProductExtractionService(nil).applyReadResult(receipt, receipt.Status, "Auchan", currencyContext{}, "", nil); err != nil {
 		t.Fatal(err)
@@ -149,8 +150,8 @@ func TestAReadNeverOverwritesAPersonsShopOrReopensADoneReceipt(t *testing.T) {
 
 	var stored models.Receipt
 	repositories.GetDB().First(&stored, receipt.ID)
-	if stored.ShopName != "Rewe" || stored.Status != models.DECLINED {
-		t.Errorf("a typed shop and a declined receipt should be left alone, got %q %s", stored.ShopName, stored.Status)
+	if stored.ShopName != "Rewe" || stored.Status != models.RESOLVED {
+		t.Errorf("a typed shop and a settled receipt should be left alone, got %q %s", stored.ShopName, stored.Status)
 	}
 }
 

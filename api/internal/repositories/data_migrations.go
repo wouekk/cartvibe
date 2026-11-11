@@ -25,6 +25,8 @@ var dataMigrations = []dataMigration{
 	{name: markHouseholdGroupMigration, run: runMarkHouseholdGroupMigration},
 	{name: sessionLifetimeMigration, run: runSessionLifetimeMigration},
 	{name: fixedRolesMigration, run: runFixedRolesMigration},
+	{name: removeUserShortcutsMigration, run: runRemoveUserShortcutsMigration},
+	{name: twoReceiptStatusesMigration, run: runTwoReceiptStatusesMigration},
 }
 
 // RunDataMigrations applies any registered one-time data migrations that have

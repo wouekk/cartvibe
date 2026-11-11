@@ -220,7 +220,6 @@ func migrateSchema(target *gorm.DB) error {
 		&models.GroupMember{},
 		&models.Comment{},
 		&models.Notification{},
-		&models.UserShortcut{},
 		&models.UserPrefernces{},
 		&models.DashboardLayout{},
 		&models.SystemSettings{},

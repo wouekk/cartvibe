@@ -237,8 +237,8 @@ func (repository ReceiptRepository) UpdateReceipt(id string, command commands.Up
 	return fullyLoadedReceipt, nil
 }
 
-// AfterReceiptUpdated keeps resolved_date in step with the status: RESOLVED stamps it, any other status clears it.
-// DECLINED is deliberately not a resolution, and reports expose that column.
+// AfterReceiptUpdated keeps resolved_date in step with the status: RESOLVED stamps it, OPEN clears it. Reports
+// expose that column.
 func (repository ReceiptRepository) AfterReceiptUpdated(updatedReceipt *models.Receipt) error {
 	db := repository.GetDB()
 

@@ -172,7 +172,7 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 	created, user, _, err := runQuickScan(
 		t,
 		func(u models.User) uint { return u.ID }, // handler-resolved default paid-by
-		models.NEEDS_ATTENTION,
+		models.RESOLVED,
 		nil,
 		nil,
 		func(u models.User, g models.Group) string {
@@ -192,8 +192,8 @@ func TestQuickScan_BackfillsPaidByAndStatusWhenAiOmitsThem(t *testing.T) {
 	if receipt.PaidByUserID != user.ID {
 		utils.PrintTestError(t, receipt.PaidByUserID, user.ID)
 	}
-	if receipt.Status != models.NEEDS_ATTENTION {
-		utils.PrintTestError(t, receipt.Status, models.NEEDS_ATTENTION)
+	if receipt.Status != models.RESOLVED {
+		utils.PrintTestError(t, receipt.Status, models.RESOLVED)
 	}
 }
 
