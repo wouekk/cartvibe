@@ -5,7 +5,6 @@ import {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { NgxsModule, Store } from '@ngxs/store';
 import { firstValueFrom, of } from 'rxjs';
 import { ApiModule } from '../../open-api';
 import { FeatureConfigStore } from "../../store/feature-config.store";
@@ -34,8 +33,7 @@ describe('AuthForm', () => {
         AppIconComponent,
         CartVibeLogoComponent,
         InputModule,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         ApiModule,
         RouterTestingModule, AuthForm, FeatureDirective],
     providers: [

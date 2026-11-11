@@ -3,12 +3,10 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, UserService } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { UserStore } from "../../store";
-import { StoreModule } from "../../store/store.module";
 import { DummyUserConversionDialogComponent } from "./dummy-user-conversion-dialog.component";
 
 describe("DummyUserConversionDialogComponent", () => {
@@ -20,8 +18,7 @@ describe("DummyUserConversionDialogComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [
         ApiModule,
-        StoreModule,
-        DummyUserConversionDialogComponent,
+                DummyUserConversionDialogComponent,
     ],
     providers: [
         SnackbarService,

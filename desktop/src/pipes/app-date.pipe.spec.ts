@@ -1,6 +1,5 @@
 import { Component, provideZonelessChangeDetection, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { SystemSettingsStore } from "../store/system-settings.store";
 import { AppDatePipe, formatAppDate } from "./app-date.pipe";
 
@@ -61,7 +60,7 @@ describe("AppDatePipe", () => {
   describe("in a template", () => {
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [HostComponent, NgxsModule.forRoot([])],
+        imports: [HostComponent],
         providers: [provideZonelessChangeDetection()],
       }).compileComponents();
     });

@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { config, of, Subject, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { AutocompleteModule } from "../../autocomplete/autocomplete.module";
@@ -24,7 +23,6 @@ import { onTestFinished, type MockInstance } from "vitest";
 describe("SystemSettingsFormComponent", () => {
   let component: SystemSettingsFormComponent;
   let fixture: ComponentFixture<SystemSettingsFormComponent>;
-  let store: Store;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -32,8 +30,7 @@ describe("SystemSettingsFormComponent", () => {
     imports: [AutocompleteModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SharedUiModule, SystemSettingsFormComponent, CustomCurrencyPipe],
     providers: [
         provideZonelessChangeDetection(),
@@ -57,7 +54,6 @@ describe("SystemSettingsFormComponent", () => {
 })
       .compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SystemSettingsFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

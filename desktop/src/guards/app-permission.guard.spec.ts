@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { AuthStore } from "../store/auth.store";
 import { GroupStore } from "../store/group.store";
 import { appPermissionGuard } from "./app-permission.guard";
@@ -10,16 +9,13 @@ import type { MockInstance } from "vitest";
 describe("appPermissionGuard", () => {
   const executeGuard: CanActivateFn = (...params) =>
     TestBed.runInInjectionContext(() => appPermissionGuard(...params));
-  let store: Store;
   let navigateSpy: MockInstance;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection()],
     });
 
-    store = TestBed.inject(Store);
     navigateSpy = vi
       .spyOn(TestBed.inject(Router), "navigate")
       .mockResolvedValue(true);

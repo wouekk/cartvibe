@@ -1,5 +1,4 @@
 import { Component, computed, inject, input, output, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { TranslationService } from "../../i18n/translation.service";
 import { ShoppingListItem } from "../../open-api";
 import { isLocalItem } from "../shopping-list-pending";

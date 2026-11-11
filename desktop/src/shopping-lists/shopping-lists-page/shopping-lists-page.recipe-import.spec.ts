@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router, convertToParamMap } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -42,7 +41,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
     service = { getShoppingListsForGroup: vi.fn().mockReturnValue(of(options.lists ?? lists())) };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), ShoppingListsPageComponent],
+    imports: [ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -64,8 +63,7 @@ describe("ShoppingListsPageComponent recipe import", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    const store = TestBed.inject(Store);
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, groupPermissions: { 1: options.permissions ?? EDITOR } });
+    seedStore(TestBed.inject(AuthStore), { groupPermissions: { 1: options.permissions ?? EDITOR } });
     TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListsPageComponent);

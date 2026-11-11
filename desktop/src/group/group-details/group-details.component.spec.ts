@@ -5,7 +5,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 
 import { GroupDetailsComponent } from "./group-details.component";
 import { renderShallow } from "../../testing/render-shallow";
@@ -19,7 +18,7 @@ describe("GroupDetailsComponent", () => {
     renderShallow(GroupDetailsComponent);
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [ReactiveFormsModule, CommonModule, NgxsModule.forRoot([]), GroupDetailsComponent],
+    imports: [ReactiveFormsModule, CommonModule,GroupDetailsComponent],
     providers: [
         {
             provide: ActivatedRoute,

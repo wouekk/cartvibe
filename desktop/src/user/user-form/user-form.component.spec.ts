@@ -3,7 +3,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, Validators } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Observable, of, throwError } from "rxjs";
 import {
   ApiModule,
@@ -47,15 +46,13 @@ describe("UserFormComponent", () => {
 
   let component: UserFormComponent;
   let fixture: ComponentFixture<UserFormComponent>;
-  let store: Store;
   let getRolesMock: Mock;
 
   beforeEach(async () => {
     getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+    imports: [        ReactiveFormsModule,
         ApiModule, UserFormComponent],
     providers: [
         provideZonelessChangeDetection(),
@@ -72,7 +69,6 @@ describe("UserFormComponent", () => {
     ]
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();

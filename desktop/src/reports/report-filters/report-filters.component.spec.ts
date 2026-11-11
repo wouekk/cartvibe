@@ -1,7 +1,6 @@
 import { DestroyRef, NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder, FormGroup } from "@angular/forms";
-import { Store } from "@ngxs/store";
 import { FilterOperation, User } from "../../open-api";
 import { UserStore } from "../../store";
 import { buildReceiptFilterForm } from "../../utils/receipt-filter";
@@ -15,19 +14,12 @@ describe("ReportFiltersComponent", () => {
   let destroyRef: DestroyRef;
 
   beforeEach(async () => {
-    // The paid-by picker reads the people from their store; every NGXS selector stays empty as before.
-    const store = {
-      selectSignal: () => signal([]),
-      selectSnapshot: () => [],
-    };
-
     await TestBed.configureTestingModule({
     imports: [ReportFiltersComponent],
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
-        { provide: Store, useValue: store },
-    ],
+            ],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 

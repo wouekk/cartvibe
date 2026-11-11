@@ -5,7 +5,6 @@ import { DestroyRef, NO_ERRORS_SCHEMA, provideZonelessChangeDetection } from "@a
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormControl } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { SnackbarService } from "../../services";
 import {
@@ -41,7 +40,6 @@ describe("ReportBuilderComponent", () => {
     updateTemplate: Mock;
   };
   let snackbar: { success: Mock };
-  let store: Store;
   // Mutable route stub: the builder reads snapshot.data.template in its field
   // initializer, so a test sets this before creating its own component instance.
   const activatedRoute = { snapshot: { data: {} as Record<string, unknown> } };
@@ -61,7 +59,7 @@ describe("ReportBuilderComponent", () => {
     await TestBed.configureTestingModule({
     // AuthState feeds the Save/Generate permission gates (saveTemplateAllowed /
     // generateAllowed), which resolve through the hasAnyAppPermission selector.
-    imports: [TranslatePipe, NgxsModule.forRoot([]), ReportBuilderComponent],
+    imports: [TranslatePipe,ReportBuilderComponent],
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
@@ -72,7 +70,6 @@ describe("ReportBuilderComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
 
     fixture = TestBed.createComponent(ReportBuilderComponent);
     component = fixture.componentInstance;

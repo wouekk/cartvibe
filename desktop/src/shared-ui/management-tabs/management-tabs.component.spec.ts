@@ -1,6 +1,5 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter, Router } from "@angular/router";
-import { provideStore, Store } from "@ngxs/store";
 import { AuthStore } from "../../store";
 import { SharedUiModule } from "../shared-ui.module";
 import {
@@ -16,8 +15,7 @@ describe("ManagementTabsComponent", () => {
     TestBed.configureTestingModule({
       imports: [SharedUiModule],
       providers: [
-        provideStore([]),
-        provideRouter([
+                provideRouter([
           { path: "categories", children: [] },
           { path: "tags", children: [] },
           { path: "users", children: [] },

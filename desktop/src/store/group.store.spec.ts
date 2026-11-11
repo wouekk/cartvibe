@@ -1,5 +1,4 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { FilterOperation, Group } from "../open-api";
 import { GroupStore } from "./group.store";
@@ -7,7 +6,6 @@ import { seedStore } from "../testing/seed-store";
 import { defaultReceiptFilter, ReceiptTableStore } from "./receipt-table.store";
 
 describe("GroupStore receipt-filter reset on group change", () => {
-  let store: Store;
 
   const groups = [
     { id: 1, name: "Group One" },
@@ -18,14 +16,6 @@ describe("GroupStore receipt-filter reset on group change", () => {
     ...defaultReceiptFilter,
     name: { operation: FilterOperation.Contains, value: "coffee" },
   } as any;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
-    }).compileComponents();
-
-    store = TestBed.inject(Store);
-  });
 
   function seed(selectedGroupId: string): void {
     seedStore(TestBed.inject(GroupStore), {
@@ -121,15 +111,6 @@ describe("GroupStore receipt-filter reset on group change", () => {
 });
 
 describe("GroupStore.soleGroupId", () => {
-  let store: Store;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
-    }).compileComponents();
-
-    store = TestBed.inject(Store);
-  });
 
   function seedGroups(groups: Partial<Group>[]): void {
     seedStore(TestBed.inject(GroupStore), {
@@ -178,15 +159,6 @@ describe("GroupStore.soleGroupId", () => {
 });
 
 describe("GroupState.addTargetGroupId", () => {
-  let store: Store;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
-    }).compileComponents();
-
-    store = TestBed.inject(Store);
-  });
 
   const allGroup = { id: 1, name: "All Groups", isAllGroup: true };
 

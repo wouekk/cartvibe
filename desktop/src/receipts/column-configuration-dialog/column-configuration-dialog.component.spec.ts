@@ -3,7 +3,6 @@ import { CdkDragDrop } from "@angular/cdk/drag-drop";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS, ReceiptTableColumnConfig } from "../../interfaces";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { RECEIPT_COLUMN_DISPLAY_NAMES } from "../../utils";
@@ -37,7 +36,7 @@ describe("ColumnConfigurationDialogComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([]), ColumnConfigurationDialogComponent],
+    imports: [TranslatePipe, SharedUiModule,ColumnConfigurationDialogComponent],
     providers: [
         { provide: AppDialogRef, useValue: mockDialogRef },
         { provide: APP_DIALOG_DATA, useValue: mockDialogData },

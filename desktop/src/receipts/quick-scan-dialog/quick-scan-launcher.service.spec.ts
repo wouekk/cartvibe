@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -17,7 +16,6 @@ import type { Mock } from "vitest";
 describe("QuickScanLauncher", () => {
   let open: Mock;
   let hint: Mock;
-  let store: Store;
   let confirm: { headerText: string; dialogContent: string; confirmText: string };
 
   const launcher = () => TestBed.inject(QuickScanLauncher);
@@ -27,7 +25,6 @@ describe("QuickScanLauncher", () => {
     open = vi.fn();
     hint = vi.fn();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -35,7 +32,6 @@ describe("QuickScanLauncher", () => {
         { provide: SnackbarService, useValue: { hint } },
       ],
     });
-    store = TestBed.inject(Store);
   });
 
   it("opens the scan dialog when the AI is set up, and hands back its afterClosed", () => {

@@ -1,7 +1,7 @@
 /**
  * The demo shares its origin (`cartvibe.app`) with the project site, so it keeps its own namespace: every
  * `localStorage` and `sessionStorage` key the app reads or writes carries this prefix. The patch is
- * installed before the app starts, which also covers the NGXS storage plugin and the theme and language caches.
+ * installed before the app starts, which also covers the stores' kept slices (`StateStorage`) and the theme and language caches.
  * (`key()` and `length` are left alone: the app does not enumerate storage.)
  */
 export const DEMO_STORAGE_PREFIX = "cartvibe-demo:";

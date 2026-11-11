@@ -1,6 +1,5 @@
 import { CurrencyPipe } from "@angular/common";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { CurrencySeparator, CurrencySymbolPosition } from "../open-api/index";
 import { CustomCurrencyPipe } from "./custom-currency.pipe";
 import { seedStore } from "../testing/seed-store";
@@ -8,13 +7,12 @@ import { SystemSettingsStore } from "../store/system-settings.store";
 
 describe("CustomCurrencyPipe", () => {
   let pipe: CustomCurrencyPipe;
-  let store: Store;
   let currencyPipe: CurrencyPipe;
 
   beforeEach(() => {
 
     TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), CustomCurrencyPipe],
+    imports: [CustomCurrencyPipe],
     providers: [
         CurrencyPipe,
         CustomCurrencyPipe
@@ -22,7 +20,6 @@ describe("CustomCurrencyPipe", () => {
 });
 
     pipe = TestBed.inject(CustomCurrencyPipe);
-    store = TestBed.inject(Store);
     currencyPipe = TestBed.inject(CurrencyPipe);
   });
 

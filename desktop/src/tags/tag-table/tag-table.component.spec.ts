@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -16,7 +15,6 @@ import type { Mocked } from "vitest";
 describe("TagsListComponent", () => {
   let component: TagTableComponent;
   let fixture: ComponentFixture<TagTableComponent>;
-  let store: Store;
   let tagService: Mocked<TagService>;
 
   beforeEach(() => {
@@ -32,7 +30,7 @@ describe("TagsListComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([]), TagTableComponent],
+TagTableComponent],
     providers: [
         { provide: TagService, useValue: tagServiceSpy },
         provideHttpClient(withInterceptorsFromDi()),
@@ -40,7 +38,6 @@ describe("TagsListComponent", () => {
     ]
 });
     fixture = TestBed.createComponent(TagTableComponent);
-    store = TestBed.inject(Store);
     tagService = TestBed.inject(TagService) as Mocked<TagService>;
     component = fixture.componentInstance;
   });

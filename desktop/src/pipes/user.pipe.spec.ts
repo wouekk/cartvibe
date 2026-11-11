@@ -1,22 +1,19 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { UserPipe } from "./user.pipe";
 import { seedStore } from "../testing/seed-store";
 import { UserStore } from "../store/user.store";
 
 describe("UserPipe", () => {
   let pipe: UserPipe;
-  let store: Store;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), UserPipe],
+    imports: [UserPipe],
     providers: [UserPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     pipe = TestBed.inject(UserPipe);
 
     seedStore(TestBed.inject(UserStore), {

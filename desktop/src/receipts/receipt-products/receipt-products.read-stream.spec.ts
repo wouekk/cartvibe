@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject } from "rxjs";
 import type { Mock } from "vitest";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
@@ -37,7 +36,7 @@ describe("ReceiptProductsComponent while the AI reads the receipt", () => {
     getReceiptProducts = vi.fn().mockReturnValue(of(view("PENDING")));
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([])],
+      imports: [ReceiptProductsComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProductService, useValue: { getReceiptProducts } },

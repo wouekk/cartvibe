@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AiType } from "../../constants/ai-type";
 import { ReceiptProcessingSettingsService, SystemSettingsService, SystemTaskStatus } from "../../open-api";
@@ -34,7 +33,7 @@ describe("AiFallbackCardComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [AiFallbackCardComponent, NgxsModule.forRoot([])],
+      imports: [AiFallbackCardComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProcessingSettingsService, useValue: processingService },

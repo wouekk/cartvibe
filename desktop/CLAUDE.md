@@ -41,10 +41,13 @@ feature.
     every spec passes and the page is empty: only `npm run e2e:demo` notices, so run it after touching that file.
   - Two pipes are named `optionDisplay` (the select's and the autocomplete's, with different arguments); a
     component imports exactly one.
-- **State:** NGXS in `src/store/`; read with `store.selectSignal(...)` or `selectSnapshot`, never `@Select` / `| async`.
-  The states and the persisted slices (`ngxsStorageKeys`) are listed once, in `src/store/ngxs-states.ts`, for the app
-  and for the specs' `StoreModule`; the shopping lists keep their own copy in
-  IndexedDB instead (`src/offline/`).
+- **State:** signal stores in `src/store/` (`*.store.ts`), one root service per slice on `StateStore`: readers are
+  signals (`authStore.userId`, read `()` for the value now), writers are methods (`groupStore.setGroups(...)`), and
+  nothing outside a store writes its slice. There is no NGXS, no action class and no `dispatch`. A reader that takes
+  an argument is a method that reads the signal (`authStore.hasAppPermission(p)`): wrap it in `computed` where the
+  template must follow it. A store with a storage key keeps its slice in `localStorage` (`StateStorage`, the keys
+  NGXS used); the shopping lists keep their own copy in IndexedDB instead (`src/offline/`). A new slice is a new
+  store; `AppDataService` fills the stores from what the server sends at sign-in and at every start.
 - **Zoneless traps.** Only signal writes, template/host events, `markForCheck()` and `setInput()` repaint. A plain
   field written in `subscribe`, `setTimeout`, a promise or **`finalize()`** never repaints (the login spinner once stuck
   forever on the failure path). Keep template state in signals and test the error branch. Arrays and Sets in signals
@@ -83,12 +86,15 @@ feature.
   Globals are `describe`, `it`, `expect` and `vi`; mock types come from `vitest`. Prefer `setInput` +
   `await fixture.whenStable()`; after mutating a plain field call `fixture.changeDetectorRef.markForCheck()` before
   `detectChanges()`. Select by `data-testid`, ARIA state or text, never styling classes. Translated text is English in
-  specs (`src/i18n/i18n-test-utils.ts`). A spec with a real `AutocompleteComponent` needs `AuthState`.
+  specs (`src/i18n/i18n-test-utils.ts`).
   Every spec gets what the app provides at its root (`src/testing/test-providers.ts`, the target's
-  `providersFile`: the input mask's configuration, the router, `CurrencyPipe`); a spec's own `Router` or
-  `ActivatedRoute` still wins. A component under test renders its real children, so give the spec the store they
-  read (`StoreModule`, the app's own). A spec that mocks the store or the router instead leaves the children out
-  with `renderShallow(Component, [its pipes])` (`src/testing/render-shallow.ts`), and a test host imports what it
+  `providersFile`: the input mask's configuration, the router, `CurrencyPipe`, and `NoStateStorage` so no store
+  keeps anything between tests); a spec's own `Router` or `ActivatedRoute` still wins. A component under test
+  renders its real children, and they read the real stores, which need no import: put a store in the state a test
+  starts from with its own methods, or with `seedStore(TestBed.inject(XStore), { ... })`
+  (`src/testing/seed-store.ts`) for a state they do not build. Assert on what a store holds, or spy on its method;
+  there is no dispatch to watch. A spec that mocks the router instead leaves the children out with
+  `renderShallow(Component, [its pipes])` (`src/testing/render-shallow.ts`), and a test host imports what it
   hosts.
 - **Spec traps (Vitest):** spec type errors fail the run. The TestBed throws on unknown elements and properties: import
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
@@ -105,7 +111,7 @@ feature.
 - **`FormMode`:** in edit mode `app-submit-button` is dimmed while the form is pristine; add forms never are. State that
   is not a control (Magic Fill) marks the form dirty. Settings forms are always editable.
 - **Dialog forms** submit through `(ngSubmit)` only. `disableWhenProgressBarIsShown` protects nothing unless something
-  dispatches `ShowProgressBar` (only Magic Fill does).
+  calls `LayoutStore.showProgress()` (only Magic Fill does).
 - **Validation messages** (`validation-messages.ts`) cover `required`, `email`, `min`, `max`, `minlength`,
   `maxlength`, `pattern`, `duplicate`. Any other key renders an empty message: return a string or `{ message, ...params }`
   from the validator, or pass `additionalErrorMessages`. `app-select` has no `hint` input.
@@ -115,7 +121,7 @@ feature.
 - **Confirmations:** `ConfirmationDialogComponent` (inputs set on `componentInstance`, not dialog data); act on a truthy
   `afterClosed()`. Every write the user cannot trivially undo goes through it, Duplicate included. A delete passes
   `confirmText = marker("Delete")`, a removal `marker("Remove")` (`DESTRUCTIVE_CONFIRM_TEXTS`, red button).
-- **Lists:** `app-table` with `BaseTableComponent` + a table service + an NGXS table state for server paging; row
+- **Lists:** `app-table` with `BaseTableComponent` + a table service + a `PagedTableStore` for server paging; row
   mutations refetch with `getTableData()`. Pass `emptyText` only once loaded. List pages use `app-table-header` and
   `app-add-button`; settings pages `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
 - **Small pieces:** `app-badge`, `app-filter-bar`, `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button`
@@ -139,9 +145,9 @@ feature.
 
 ## Cross-cutting invariants
 
-- **Permission gating** mirrors the server (which re-checks, so a stale button at worst 403s). `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService`. The matcher
-  `src/utils/permission.utils.ts` ports the Go matcher. Use `AuthState.hasAppPermission` / `hasGroupPermission`, the
+- **Permission gating** mirrors the server (which re-checks, so a stale button at worst 403s). `setPermissions` is
+  called only from `AppDataService` (`src/services/app-data.service.ts`), never from `TokenRefreshService`. The matcher
+  `src/utils/permission.utils.ts` ports the Go matcher. Use `AuthStore.hasAppPermission` / `hasGroupPermission`, the
   `*hasAppPermission` / `*hasGroupPermission` directives and `appPermissionGuard` / `groupPermissionGuard`.
 - **Gate on the item's own group,** never the page's: the "All" group never appears in `groupPermissions`.
 - **Permission strings stay `string[]`** on the wire, not the `Permission` enum (wildcards; closed enums broke older
@@ -157,8 +163,8 @@ feature.
   after `TokenRefreshService.ensureFreshToken()`, with `QUIET_ERRORS` on the request (the interceptor stays silent;
   the service reports a refusal itself). Queue a write only when the API makes it safe to send twice, and treat only
   no connection, 5xx, 429 and 408 as "try again" (`isWorthRetrying`): any other answer is the server's and is final.
-- **Never read the clock in an NGXS `@Selector`:** its answer is remembered until the slice changes. Time-dependent
-  checks are plain functions over a selector's value (`AuthState.isAccessTokenExpired(store)`).
+- **Never read the clock in a store's `computed`:** its answer is remembered until the slice changes. A
+  time-dependent check is a method that reads the clock on each call (`authStore.isAccessTokenExpired()`).
 - **A 429 without an `errorMsg` is the server's request limit** (`api/internal/edge`), which refused the request
   before any handler saw it:
   `rateLimitRetryInterceptor` sends it again after 1 s and 2 s (a write too, it never arrived), and only then does
@@ -166,19 +172,19 @@ feature.
   skipped (they have their own retry).
 - **One toast per error, and the server's `errorMsg` wins.** The generic `HttpErrorResponse.message` is a fallback
   only for a 5xx with no `errorMsg`. A form with two writes toasts success only after both land.
-- **App time zone** (`SystemSettingsState.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the
+- **App time zone** (`SystemSettingsStore.timeZone`, helpers in `src/utils/app-time-zone.ts`): display with the
   `appDate` pipe (never a bare `| date`; it also applies the household date format, `utils/app-date-format.ts`;
   `:'calendar'` for calendar days), `formatAppDate` outside templates,
   `todayInZone(zone)` for today. Receipt dates go out as `toMidnightUtc` and load with `calendarDayToLocalDate`.
 - **Wire dates are `yyyy-MM-dd`,** converted by `toDateWireFilter` at the request, never in the store (the persisted
   value goes back to the datepicker, which would read a bare day as UTC midnight).
 - **Persisted filter state:** one slice per table; defaults from factories (`buildDefaultReceiptFilter()`), never a
-  shared constant. **NGXS `@State` defaults never run for a hydrated slice,** so a key added later needs its fallback
-  in the selector (and handlers). Every active filter condition gets a chip (`isFilterEntryActive`).
+  shared constant. **What the browser kept is laid over a store's defaults,** so a key added later starts at its default; a value
+  nested inside a kept key (a filter's new field) still needs its fallback where it is read. Every active filter condition gets a chip (`isFilterEntryActive`).
 - **Submit `getRawValue()`, not `value`,** wherever controls can be disabled (a disabled control is omitted and the API
   then wipes the stored setting).
 - **A blank select/autocomplete sentinel is `""`, never `0`** (`Validators.required` treats `0` as present). Seed the
-  target group with `GroupState.soleGroupId` / `addTargetGroupId`, never the "All" group.
+  target group with `GroupStore.soleGroupId` / `addTargetGroupId`, never the "All" group.
 - **Receipt create is one call:** `ReceiptService.createReceiptWithFiles(form.value, files)`.
 - **Durations are hours on the wire** (`src/utils/duration.utils.ts`). Convert a floor with `minForUnit`, never
   `maxForUnit`; seed retention as `splitHours(value || 720)`.
@@ -196,8 +202,7 @@ feature.
   cut its multipart body short). The worker has no `dataGroups`; a bad worker means a stuck app, so check
   `dist/cartvibe/browser/ngsw.json` after a build. The Content-Security-Policy allows `index.html`'s inline script by a
   hash the server computes from the page it serves (`api/internal/edge`), so changing that script needs no other
-  change. `app.config.ts` sets NGXS
-  `strictContentSecurityPolicy` (no `new Function`): never add `'unsafe-eval'` to the policy.
+  change. Nothing in the app needs `new Function`: never add `'unsafe-eval'` to the policy.
 - **Photo inputs** are native `<label>`s around hidden file inputs, never a button calling `input.click()` (mobile
   browsers ignore a click made after an `await`).
 - **Receipt filter:** the dialog authors its own row labels, so a rename touches both `RECEIPT_FILTER_FIELDS` and

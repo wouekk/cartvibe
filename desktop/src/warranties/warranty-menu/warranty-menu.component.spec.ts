@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ReceiptService } from "../../open-api";
@@ -27,7 +26,7 @@ describe("WarrantyMenuComponent", () => {
     }));
 
     await TestBed.configureTestingModule({
-      imports: [WarrantyMenuComponent, NgxsModule.forRoot([])],
+      imports: [WarrantyMenuComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptService, useValue: { setReceiptWarranty } },

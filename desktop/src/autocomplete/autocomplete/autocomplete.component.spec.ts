@@ -1,7 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, } from "@angular/forms";
-import { NgxsModule, Store } from "@ngxs/store";
 import { BaseInputComponent } from "../../base-input";
 import { AutocompleteSelection, AutocompleteComponent } from "./autocomplete.component";
 import { OptionDisplayPipe } from "./option-display.pipe";
@@ -19,8 +18,7 @@ describe("AutocompleteComponent", () => {
     await TestBed.configureTestingModule({
     imports: [
         TranslatePipe,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         AutocompleteComponent, BaseInputComponent, OptionDisplayPipe,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -326,9 +324,7 @@ describe("AutocompleteComponent", () => {
     });
 
     it("should close the panel and blur the field when the preference is on", () => {
-      const store = TestBed.inject(Store);
       seedStore(TestBed.inject(AuthStore), {
-        ...store.snapshot().auth,
         userPreferences: { closeChipSelectOnSelect: true },
       });
 

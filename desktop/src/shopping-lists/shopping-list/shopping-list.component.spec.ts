@@ -4,7 +4,6 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angul
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -31,7 +30,6 @@ const supermarket: ShoppingList = { id: 1, groupId: 1, name: "Supermarket", item
 describe("ShoppingListComponent", () => {
   let fixture: ComponentFixture<ShoppingListComponent>;
   let component: ShoppingListComponent;
-  let store: Store;
   let shoppingListService: Record<"getShoppingListsForGroup" | "setShoppingListItemChecked" | "addShoppingListItem" | "setShoppingListItemClassification" | "clearCheckedShoppingListItems", Mock>;
   let snackbarService: { error: Mock };
   let drained: Mock;
@@ -51,8 +49,7 @@ describe("ShoppingListComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         ShoppingListComponent,
     ],
     providers: [
@@ -68,7 +65,6 @@ describe("ShoppingListComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     TestBed.inject(ShoppingListStore).load(1);
 
     fixture = TestBed.createComponent(ShoppingListComponent);
@@ -188,7 +184,7 @@ describe("ShoppingListComponent", () => {
 
     it("clears at once when nothing of this device's is waiting", async () => {
       await setCanUpdate(true);
-      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, lists: [{ ...supermarket, items: [{ ...milk, isChecked: true }] }] });
+      seedStore(TestBed.inject(ShoppingListStore), { lists: [{ ...supermarket, items: [{ ...milk, isChecked: true }] }] });
 
       confirmClear();
 
@@ -366,7 +362,7 @@ describe("ShoppingListComponent", () => {
     };
 
     const show = async (lists: ShoppingList[], shopMode: boolean) => {
-      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, groupId: 1, selectedListId: 1, lists });
+      seedStore(TestBed.inject(ShoppingListStore), { groupId: 1, selectedListId: 1, lists });
       fixture.componentRef.setInput("list", lists.find((list) => list.id === 1));
       fixture.componentRef.setInput("large", shopMode);
       await fixture.whenStable();
@@ -404,7 +400,7 @@ describe("ShoppingListComponent", () => {
         ...today,
         items: today.items.map((item) => (item.name === "Bread" || item.name === "Milk" ? { ...item, isChecked: true, checkedAt: now } : item)),
       };
-      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, lists: [during, lastTrip] });
+      seedStore(TestBed.inject(ShoppingListStore), { lists: [during, lastTrip] });
       await fixture.whenStable();
 
       expect(shown()).toEqual(["Apples", "Candles"]);

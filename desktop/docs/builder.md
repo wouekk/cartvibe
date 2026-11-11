@@ -17,7 +17,7 @@ contract are in `../../api/CLAUDE.md` → "8. Reporting" and `api/internal/repor
 
 ## Builder state
 
-- One reactive form (`models/report-form.factory.ts`) plus signals; no NGXS (the list's `ReportTemplateTableState` is
+- One reactive form (`models/report-form.factory.ts`) plus signals; no store of its own (the list's `ReportTemplateTableStore` is
   the module's only slice). Generate and preview are one-shot calls through `ReportRunnerService` (generate → `Blob` →
   `downloadFile`, like `ReceiptExportService`).
 - Field options come from `models/report-catalog.constants.ts` (`REPORT_BUILTIN_DIMENSIONS` / `_MEASURES`,
@@ -94,7 +94,7 @@ generates the report" (`REPORT_GENERATOR_PAID_BY_ID = -1`); the control stores p
   `app.reports.create`, "Save Template"); on edit it updates in place (`PUT /report/template/{id}`, gated on
   `app.reports.update`, "Update Template"). The template name is the report name. Copying is the list's Duplicate.
 - The list (`report-template-list/`) is a server-paged `app-table` (`BaseTableComponent` + `ReportTemplateTableService`
-  + `ReportTemplateTableState`); only `name` and `updated_at` sort. Display strings come from the pure
+  + `ReportTemplateTableStore`); only `name` and `updated_at` sort. Display strings come from the pure
   `report-template-summary.ts`, which takes its lookups as arguments. Row actions carry
   `data-testid="report-template-<action>"`; delete goes through `ConfirmationDialogComponent`. The empty state has its
   own add button (`report-template-add-empty`).

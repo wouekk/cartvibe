@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { User, UserService } from "../../open-api";
@@ -13,7 +12,6 @@ import { seedStore } from "../../testing/seed-store";
 
 describe("AvatarPhotoComponent", () => {
   let fixture: ComponentFixture<AvatarPhotoComponent>;
-  let store: Store;
   let uploadAvatar: ReturnType<typeof vi.fn>;
   let deleteAvatar: ReturnType<typeof vi.fn>;
   let error: ReturnType<typeof vi.fn>;
@@ -26,7 +24,7 @@ describe("AvatarPhotoComponent", () => {
     confirmation = {};
 
     await TestBed.configureTestingModule({
-      imports: [AvatarPhotoComponent, NgxsModule.forRoot([])],
+      imports: [AvatarPhotoComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -39,8 +37,7 @@ describe("AvatarPhotoComponent", () => {
       ],
     }).compileComponents();
 
-    store = TestBed.inject(Store);
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userId: "7", displayname: "Sam" });
+    seedStore(TestBed.inject(AuthStore), { userId: "7", displayname: "Sam" });
     TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Sam", username: "sam" } as User]);
     TestBed.inject(AuthStore).setPermissions(["app.account.update"], {});
     fixture = TestBed.createComponent(AvatarPhotoComponent);

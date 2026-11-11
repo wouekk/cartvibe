@@ -4,12 +4,10 @@ import { CUSTOM_ELEMENTS_SCHEMA, DestroyRef } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { SYSTEM_RAN_BY_OPTION_ID } from "src/constants";
 import { buildDefaultSystemTaskFilter, SystemTaskTableStore } from "src/store/system-task-table.store";
 import { InputModule } from "../../input";
 import { FilterOperation } from "../../open-api";
-import { StoreModule } from "../../store/store.module";
 import { applyFormCommand } from "../../utils/index";
 import { buildSystemTaskFilterForm } from "../../utils/system-task-filter";
 import { SystemTaskFilterComponent } from "./system-task-filter.component";
@@ -18,7 +16,6 @@ import { SystemTaskFilterComponent } from "./system-task-filter.component";
 describe("SystemTaskFilterComponent", () => {
   let component: SystemTaskFilterComponent;
   let fixture: ComponentFixture<SystemTaskFilterComponent>;
-  let store: Store;
   let destroyRef: DestroyRef;
 
   const filledFilter = {
@@ -46,8 +43,7 @@ describe("SystemTaskFilterComponent", () => {
     imports: [
         InputModule,
         ReactiveFormsModule,
-        StoreModule,
-        SystemTaskFilterComponent,
+                SystemTaskFilterComponent,
     ],
     providers: [
         { provide: AppDialogRef, useValue: { close: () => { } } },
@@ -56,7 +52,6 @@ describe("SystemTaskFilterComponent", () => {
     ],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     destroyRef = TestBed.inject(DestroyRef);
 
     fixture = TestBed.createComponent(SystemTaskFilterComponent);

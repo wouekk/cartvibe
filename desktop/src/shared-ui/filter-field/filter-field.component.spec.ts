@@ -1,7 +1,6 @@
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { NgxsModule, Store } from "@ngxs/store";
 import { SystemSettingsStore } from "src/store/system-settings.store";
 import { FilterOperation } from "../../open-api";
 import { OperationsPipe } from "../receipt-filter/operations.pipe";
@@ -43,7 +42,7 @@ describe("FilterFieldComponent", () => {
     // The children are left out: this spec mocks what they would read.
     renderShallow(FilterFieldComponent, [NgIf, TranslatePipe, FormGetPipe, OperationsPipe]);
     await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([]), FilterFieldComponent, OperationsPipe],
+    imports: [ReactiveFormsModule,FilterFieldComponent, OperationsPipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
   });

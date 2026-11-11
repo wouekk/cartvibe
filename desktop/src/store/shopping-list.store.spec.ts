@@ -1,7 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Group, Permission, ShoppingList, ShoppingListItem } from "../open-api";
 import { AuthStore } from "./auth.store";
 import { GroupStore } from "./group.store";
@@ -29,16 +28,13 @@ const list =(id: number, name: string, items: ShoppingListItem[] = []): Shopping
 const group = (id: number, isAllGroup = false): Group => ({ id, name: `group-${id}`, isAllGroup }) as Group;
 
 describe("ShoppingListStore", () => {
-  let store: Store;
   let listStore: ShoppingListStore;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
-    store = TestBed.inject(Store);
     listStore = TestBed.inject(ShoppingListStore);
     httpMock = TestBed.inject(HttpTestingController);
   });

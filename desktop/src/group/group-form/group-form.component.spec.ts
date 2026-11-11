@@ -4,7 +4,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router, provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { FormMode } from "src/enums/form-mode.enum";
 import { SelectModule } from "src/select/select.module";
@@ -30,8 +29,7 @@ describe("GroupFormComponent", () => {
     imports: [ApiModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SelectModule,
         SharedUiModule,
         TableModule,
@@ -178,7 +176,6 @@ describe("GroupFormComponent", () => {
 
   it("should create group", () => {
     const createSpy = vi.spyOn(TestBed.inject(GroupsService), "createGroup");
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
     const routerSpy = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
     vi.spyOn(TestBed.inject(AppInitService), "getAppData").mockReturnValue(of({} as any));
 

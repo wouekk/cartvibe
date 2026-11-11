@@ -2,7 +2,6 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
 import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { AuthStore } from "../../store/auth.store";
@@ -12,11 +11,10 @@ import { SystemSettingsComponent } from "./system-settings.component";
 describe("SystemSettingsComponent", () => {
   let component: SystemSettingsComponent;
   let fixture: ComponentFixture<SystemSettingsComponent>;
-  let store: Store;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([]), SystemSettingsComponent],
+    imports: [TranslatePipe, SharedUiModule,SystemSettingsComponent],
     providers: [
         provideZonelessChangeDetection(),
         {
@@ -34,7 +32,6 @@ describe("SystemSettingsComponent", () => {
 })
       .compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SystemSettingsComponent);
     component = fixture.componentInstance;
   });

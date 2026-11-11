@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../dialog/app-dialog";
 import { GroupOverviewProduct, OverviewService } from "../../open-api";
@@ -27,7 +26,7 @@ describe("OverviewDetailDialogComponent", () => {
 
   const create = async (data: Partial<OverviewDetailDialogData>): Promise<OverviewDetailDialogComponent> => {
     await TestBed.configureTestingModule({
-      imports: [OverviewDetailDialogComponent, NgxsModule.forRoot([])],
+      imports: [OverviewDetailDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

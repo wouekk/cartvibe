@@ -44,8 +44,8 @@ export interface QuickScanAppData {
 
 /**
  * Intercepts `GET /api/user/appData` to flip the AI flag on and inject the given
- * receipt settings and user preferences. The dialog reads them from the NGXS
- * store, so the injected values drive its behavior without touching server
+ * receipt settings and user preferences. The dialog reads them from the app's
+ * stores, so the injected values drive its behavior without touching server
  * state. Also stubs the pre-auth `/api/featureConfig`.
  */
 export async function injectQuickScanAppData(

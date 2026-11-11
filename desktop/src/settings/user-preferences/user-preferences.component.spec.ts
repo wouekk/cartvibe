@@ -4,13 +4,11 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { InputReadonlyPipe } from "src/pipes/input-readonly.pipe";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { Permission, UserPreferences, UserPreferencesService } from "../../open-api";
 import { AuthStore } from "../../store/auth.store";
-import { StoreModule } from "../../store/store.module";
 
 import { UserPreferencesComponent } from "./user-preferences.component";
 import { seedStore } from "../../testing/seed-store";
@@ -24,8 +22,7 @@ describe("UserPreferencesComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [
         ReactiveFormsModule,
-        StoreModule,
-        SharedUiModule,
+                SharedUiModule,
         UserPreferencesComponent, InputReadonlyPipe
     ],
     providers: [
@@ -52,7 +49,6 @@ describe("UserPreferencesComponent", () => {
   });
 
   it("gates the edit button on app.user-preferences.update", () => {
-    const store = TestBed.inject(Store);
 
     TestBed.inject(AuthStore).setPermissions([], {});
     expect((component as any).canEdit()).toEqual(false);
@@ -77,9 +73,7 @@ describe("UserPreferencesComponent", () => {
   });
 
   it("should init form with user preference data", () => {
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(AuthStore), {
-      ...store.snapshot().auth,
       userPreferences: {
         quickScanDefaultPaidById: "1",
         quickScanDefaultGroupId: "2",
@@ -111,21 +105,19 @@ describe("UserPreferencesComponent", () => {
       TestBed.inject(UserPreferencesService),
       "updateUserPreferences"
     ).mockReturnValue(of(userPreference) as any);
-    const storeSpy = vi.spyOn(TestBed.inject(Store), "dispatch");
 
     component.ngOnInit();
     component.form.patchValue(userPreference);
     component.submit();
 
     expect(serviceSpy).toHaveBeenCalledWith(component.form.value);
-    // TODO: Get this call covered expect(storeSpy).toHaveBeenCalled();
+    // The session keeps what the server answered, so the rest of the app follows without a reload.
+    expect(TestBed.inject(AuthStore).userPreferences()).toEqual(userPreference);
   });
 
   it("should attempt to call update endpoint with nulls", () => {
     // Reset store state to ensure clean test
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(AuthStore), {
-      ...store.snapshot().auth,
       userPreferences: undefined,
     });
 
@@ -153,8 +145,7 @@ describe("UserPreferencesComponent", () => {
 
   describe("the warranty settings", () => {
     it("shows what Automatic resolves to for the region and saves numbers", () => {
-      const store = TestBed.inject(Store);
-      seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } });
+      seedStore(TestBed.inject(AuthStore), { userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } });
       const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of(undefined as any));
@@ -173,8 +164,7 @@ describe("UserPreferencesComponent", () => {
 
   describe("the Dashboard currency", () => {
     it("is no longer a preference: no field, and saving clears one an older version stored", () => {
-      const store = TestBed.inject(Store);
-      seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } });
+      seedStore(TestBed.inject(AuthStore), { userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } });
       const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of({} as any));
@@ -188,9 +178,7 @@ describe("UserPreferencesComponent", () => {
   });
 
   it("has no shortcut list: a stored one from an older version is neither shown nor sent back", () => {
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(AuthStore), {
-      ...store.snapshot().auth,
       userPreferences: { userShortcuts: [{ id: 1, name: "Test", url: "test", icon: "icon" }] },
     });
     const serviceSpy = vi

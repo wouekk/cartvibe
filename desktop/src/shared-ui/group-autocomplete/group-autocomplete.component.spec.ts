@@ -6,7 +6,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { GroupAutocompleteComponent } from './group-autocomplete.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { NgxsModule } from '@ngxs/store';
 
 describe('GroupAutocompleteComponent', () => {
   let component: GroupAutocompleteComponent;
@@ -14,7 +13,7 @@ describe('GroupAutocompleteComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [TranslatePipe, NgxsModule.forRoot([]), GroupAutocompleteComponent],
+    imports: [TranslatePipe,GroupAutocompleteComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),

@@ -5,7 +5,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { FilterOperation } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { buildDefaultSystemTaskFilter, SystemTaskTableStore } from "../../store/system-task-table.store";
@@ -23,8 +22,7 @@ describe("SystemTaskTableComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, SharedUiModule,
         AppIconComponent,
-        NgxsModule.forRoot([]),
-        TableModule, SystemTaskTableComponent],
+                TableModule, SystemTaskTableComponent],
     providers: [{
             provide: ActivatedRoute,
             useValue: {

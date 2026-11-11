@@ -1,6 +1,5 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { ApiModule, FilterOperation, ReceiptService } from "../open-api";
 import { buildDefaultReceiptFilter } from "../store/receipt-table.store";
 import { ReceiptTableStore } from "../store/receipt-table.store";
@@ -9,16 +8,14 @@ import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http"
 
 describe("ReceiptFilterService", () => {
   let service: ReceiptFilterService;
-  let store: Store;
   let receiptService: ReceiptService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ApiModule, NgxsModule.forRoot([])],
+    imports: [ApiModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     service = TestBed.inject(ReceiptFilterService);
-    store = TestBed.inject(Store);
     receiptService = TestBed.inject(ReceiptService);
   });
 

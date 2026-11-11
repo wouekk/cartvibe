@@ -3,7 +3,6 @@ import { HttpTestingController, provideHttpClientTesting } from "@angular/common
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { httpInterceptor, QUIET_ERRORS } from "../interceptors/http-interceptor";
 import { ApiModule, AuthService, Claims } from "../open-api";
@@ -22,16 +21,14 @@ const claims = (secondsFromNow: number): Claims => ({
 
 describe("the session behind background work", () => {
   let service: TokenRefreshService;
-  let store: Store;
   let authService: AuthService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ApiModule, NgxsModule.forRoot([]), RouterTestingModule],
+      imports: [ApiModule,RouterTestingModule],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     service = TestBed.inject(TokenRefreshService);
-    store = TestBed.inject(Store);
     authService = TestBed.inject(AuthService);
     vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
   });
@@ -113,8 +110,7 @@ describe("httpInterceptor with QUIET_ERRORS", () => {
       providers: [
         provideHttpClient(withInterceptors([httpInterceptor])),
         provideHttpClientTesting(),
-        { provide: Store, useValue: { selectSnapshot: () => true } },
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
+                { provide: ActivatedRoute, useValue: { snapshot: { queryParams: {} } } },
       ],
     });
     http = TestBed.inject(HttpClient);

@@ -6,7 +6,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { firstValueFrom, of, throwError } from "rxjs";
 import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
@@ -35,8 +34,7 @@ describe("UserProfileComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         ColorSwatchesComponent,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule, UserProfileComponent],
+                ReactiveFormsModule, UserProfileComponent],
     providers: [
         {
             provide: ActivatedRoute,
@@ -56,7 +54,6 @@ describe("UserProfileComponent", () => {
   });
 
   it("hides the delete-account danger zone without app.account.delete", async () => {
-    const store = TestBed.inject(Store);
     TestBed.inject(AuthStore).setPermissions([], {});
 
     fixture.detectChanges();
@@ -66,7 +63,6 @@ describe("UserProfileComponent", () => {
   });
 
   it("shows the delete-account danger zone with app.account.delete", async () => {
-    const store = TestBed.inject(Store);
     TestBed.inject(AuthStore).setPermissions([Permission.AppAccountDelete], {});
 
     fixture.detectChanges();
@@ -77,7 +73,6 @@ describe("UserProfileComponent", () => {
   });
 
   it("gates the edit button on app.account.update", () => {
-    const store = TestBed.inject(Store);
 
     TestBed.inject(AuthStore).setPermissions([], {});
     expect((component as any).canEdit()).toEqual(false);
@@ -87,7 +82,6 @@ describe("UserProfileComponent", () => {
   });
 
   it("should init form correctly", () => {
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(AuthStore), {
       username: "cheetos",
       displayname: "burger",
@@ -104,7 +98,6 @@ describe("UserProfileComponent", () => {
   });
 
   it("should submit form and update state correctly", () => {
-    const store = TestBed.inject(Store);
     const serviceSpy = vi.spyOn(TestBed.inject(UserService), "updateUserProfile");
     const authSpy = vi.spyOn(TestBed.inject(TokenRefreshService), "refreshToken");
 
@@ -200,7 +193,6 @@ describe("UserProfileComponent", () => {
 
   it("should delete account, dispatch logout, and navigate on confirmation", () => {
     const dialog = TestBed.inject(AppDialog);
-    const store = TestBed.inject(Store);
     const router = TestBed.inject(Router);
     const userService = TestBed.inject(UserService);
 
@@ -279,7 +271,6 @@ describe("UserProfileComponent", () => {
 
   it("should re-open dialog when deleteAccount returns 401", () => {
     const dialog = TestBed.inject(AppDialog);
-    const store = TestBed.inject(Store);
     const userService = TestBed.inject(UserService);
 
     const passwordDialogRef = {
@@ -309,7 +300,6 @@ describe("UserProfileComponent", () => {
   it("keeps the password dialog for an account whose connections were linked, not provisioned", () => {
     const dialog = TestBed.inject(AppDialog);
     const userService = TestBed.inject(UserService);
-    const store = TestBed.inject(Store);
     component.connections.set([connection({ provisionedUser: false })]);
 
     const dialogSpy = vi.spyOn(dialog, "open").mockReturnValue({
@@ -387,7 +377,6 @@ describe("UserProfileComponent", () => {
     }
 
     it("strips the code, spends it, signs out and leaves the page", () => {
-      const store = TestBed.inject(Store);
       const router = TestBed.inject(Router);
       const route = TestBed.inject(ActivatedRoute);
       const deleteAccountSpy = vi
@@ -413,7 +402,6 @@ describe("UserProfileComponent", () => {
     });
 
     it("stays signed in when the code is refused", () => {
-      const store = TestBed.inject(Store);
       const router = TestBed.inject(Router);
       vi
         .spyOn(TestBed.inject(UserService), "deleteAccount")
@@ -462,7 +450,6 @@ describe("UserProfileComponent", () => {
     const section = () => fixture.nativeElement.querySelector("[data-testid=sign-in-methods]") as HTMLElement | null;
 
     async function open(connections: OidcConnectionView[], providerNames: string[], permissions = [Permission.AppAccountUpdate]) {
-      const store = TestBed.inject(Store);
       TestBed.inject(AuthStore).setPermissions(permissions, {});
       TestBed.inject(FeatureConfigStore).setFeatureConfig({
             enableLocalSignUp: false,

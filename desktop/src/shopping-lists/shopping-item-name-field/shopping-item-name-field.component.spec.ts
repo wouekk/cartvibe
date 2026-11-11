@@ -1,7 +1,6 @@
 import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { NgxsModule } from "@ngxs/store";
 import { ShoppingItemNameFieldComponent } from "./shopping-item-name-field.component";
 
 describe("ShoppingItemNameFieldComponent", () => {
@@ -11,7 +10,7 @@ describe("ShoppingItemNameFieldComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ShoppingItemNameFieldComponent, NgxsModule.forRoot([])],
+      imports: [ShoppingItemNameFieldComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
@@ -118,7 +117,7 @@ describe("ShoppingItemNameFieldComponent inside the add form", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NameFieldInFormHostComponent, NgxsModule.forRoot([])],
+      imports: [NameFieldInFormHostComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 

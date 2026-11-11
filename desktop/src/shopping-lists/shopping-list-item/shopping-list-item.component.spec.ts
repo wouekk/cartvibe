@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { ShoppingListItem, User } from "../../open-api";
 import { UserStore } from "../../store/user.store";
 import { ShoppingListsModule } from "../shopping-lists.module";
@@ -40,7 +39,7 @@ describe("ShoppingListItemComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([])],
+      imports: [ShoppingListsModule],
       providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
     fixture = TestBed.createComponent(ShoppingListItemComponent);
@@ -183,7 +182,7 @@ describe("ShoppingListItemComponent: who crossed it off", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([])],
+      imports: [ShoppingListsModule],
       providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
     TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Ola", username: "ola" } as User]);

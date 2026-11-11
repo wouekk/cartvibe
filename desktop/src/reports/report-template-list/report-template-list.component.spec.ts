@@ -4,7 +4,6 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSigna
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import {
   Permission,
@@ -78,12 +77,6 @@ describe("ReportTemplateListComponent", () => {
     router = { navigate: vi.fn() };
     snackbar = { success: vi.fn(), error: vi.fn() };
 
-    const store = {
-      selectSignal: vi.fn(() => signal(undefined)),
-      selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
-      select: vi.fn(() => of(1)),
-      dispatch: vi.fn(),
-    };
     const dialog = {
       open: vi.fn(() => ({
         componentInstance: dialogInstance,
@@ -98,8 +91,7 @@ describe("ReportTemplateListComponent", () => {
     providers: [
         provideZonelessChangeDetection(),
         { provide: ReportRunnerService, useValue: runner },
-        { provide: Store, useValue: store },
-        { provide: Router, useValue: router },
+                { provide: Router, useValue: router },
         { provide: SnackbarService, useValue: snackbar },
         { provide: AppDialog, useValue: dialog },
     ],

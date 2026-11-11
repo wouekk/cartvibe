@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { Group, Permission } from "../../open-api";
 import { AuthStore } from "../../store/auth.store";
 import { GroupStore } from "../../store/group.store";
@@ -14,7 +13,6 @@ const group = (id: number, isAllGroup = false): Group => ({ id, name: `group-${i
 describe("shoppingListGroupGuard", () => {
   const executeGuard: CanActivateFn = (...params) =>
     TestBed.runInInjectionContext(() => shoppingListGroupGuard(...params));
-  let store: Store;
   let router: Router;
 
   const routeFor = (groupId?: string, queryParams: Record<string, string> = {}) =>
@@ -24,11 +22,9 @@ describe("shoppingListGroupGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
 
-    store = TestBed.inject(Store);
     router = TestBed.inject(Router);
     TestBed.inject(GroupStore).setGroups([group(10, true), group(1), group(2)]);
     TestBed.inject(GroupStore).setSelectedGroupId("1");

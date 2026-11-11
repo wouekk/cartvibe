@@ -1,5 +1,4 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { GroupMemberUserService } from "./group-member-user.service";
 import { seedStore } from "../testing/seed-store";
 import { UserStore } from "../store/user.store";
@@ -9,10 +8,7 @@ describe("GroupMemberUserService", () => {
   let service: GroupMemberUserService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
-    });
-    service = TestBed.inject(GroupMemberUserService);
+        service = TestBed.inject(GroupMemberUserService);
   });
 
   it("should be created", () => {
@@ -20,7 +16,6 @@ describe("GroupMemberUserService", () => {
   });
 
   it("should get correct users in group", () => {
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(GroupStore), {
       groups: [
         {
@@ -72,7 +67,6 @@ describe("GroupMemberUserService", () => {
   });
 
   it("should return empty array if the group is invalid", () => {
-    const store = TestBed.inject(Store);
     seedStore(TestBed.inject(GroupStore), {
       groups: [],
     });

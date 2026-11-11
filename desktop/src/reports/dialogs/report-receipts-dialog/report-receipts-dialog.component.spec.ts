@@ -2,7 +2,6 @@ import { CurrencyPipe } from "@angular/common";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { Observable, of, throwError } from "rxjs";
 import {
   PagedData,
@@ -59,14 +58,7 @@ function configure(
         { provide: AppDialogRef, useValue: { close: vi.fn() } },
         // What is left on NGXS reads this stand-in; nothing here asserts on it. The app time zone, the one
         // value the subtitle reads, is set on its own store below.
-        {
-            provide: Store,
-            useValue: {
-                selectSnapshot: vi.fn(() => ({})),
-                selectSignal: vi.fn(() => signal({})),
-            },
-        },
-        CurrencyPipe,
+                CurrencyPipe,
         {
             provide: APP_DIALOG_DATA,
             useValue: { command, period: MAY_2026, receiptCount: 5, ...data } as ReportReceiptsDialogData,

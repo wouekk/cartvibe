@@ -302,6 +302,22 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     contract change, and it works with no signal. What it does not do: tell shops apart, or remember a trip
     whose list was deleted or cleared of its crossed-off items. A server-side memory would fix the second; it
     is not built. Seen working in the built demo (phone and desktop, day and night).
+  - C12, signal stores (`feature/signal-stores`, cut from `preview`, 2026-11-12): NGXS is gone from the web app.
+    Each of the sixteen states is a root service that holds its slice in a signal (`src/store/*.store.ts` on
+    `StateStore`): readers are signals, writers are methods, and there is no action class, no dispatch and no
+    selector. Three packages left `package.json` (`@ngxs/store`, `@ngxs/storage-plugin`,
+    `@ngxs/devtools-plugin`), and with them the CSP workaround and the "defaults never run for a hydrated slice"
+    trap: what the browser kept is laid over a store's defaults.
+    - What a browser kept under NGXS is read as it was: same `localStorage` keys, same JSON. Proved in the real
+      app on the PC (the API serving the production build): slices written in the old shape were honoured, a
+      reload stayed signed in, signing out cleared the account and kept the look. Never seen on the NAS.
+    - Done in six steps, each with the whole suite green: the eight list states, the five small ones, the
+      shopping lists, the households, the session, then the removal.
+    - Found on the way and fixed: the server's Web Push key never reached the app, so a warranty reminder was
+      never offered as a notification on the device (NOTE-02). Still never run on a real device.
+    - Gone with it: `selectedDashboardId` (D13), the households list's listener for a filter nothing set, and
+      `setAppData` (now `AppDataService`).
+    - Not done: the 230 `subscribe` calls the audit counted stay; they are HTTP and dialog calls, not state.
 
 ---
 

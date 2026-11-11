@@ -2,7 +2,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -46,7 +45,7 @@ describe("OverviewShoppingPanelComponent", () => {
     snackbar = { error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [OverviewShoppingPanelComponent, NgxsModule.forRoot([])],
+      imports: [OverviewShoppingPanelComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

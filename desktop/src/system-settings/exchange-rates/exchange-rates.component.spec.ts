@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -35,7 +34,7 @@ describe("ExchangeRatesComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([]), ExchangeRatesComponent],
+      imports: [ExchangeRatesComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ExchangeRateService, useValue: service },

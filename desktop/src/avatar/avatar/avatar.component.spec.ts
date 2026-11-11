@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { User } from "../../open-api";
 import { UserStore } from "../../store/user.store";
@@ -13,7 +12,7 @@ describe("AvatarComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [...HlmTooltipImports, AppIconComponent, NgxsModule.forRoot([]), AvatarComponent],
+    imports: [...HlmTooltipImports, AppIconComponent,AvatarComponent],
     providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 

@@ -1,6 +1,5 @@
 import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { AuthStore } from "../store/auth.store";
 import { HasAppPermissionDirective } from "./has-app-permission.directive";
 
@@ -11,17 +10,15 @@ class HostComponent {
 
 describe("HasAppPermissionDirective", () => {
   let fixture: ComponentFixture<HostComponent>;
-  let store: Store;
 
   const gated = () => fixture.nativeElement.querySelector("[data-testid='gated']");
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), HostComponent, HasAppPermissionDirective],
+    imports: [HostComponent, HasAppPermissionDirective],
     providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(HostComponent);
   });
 

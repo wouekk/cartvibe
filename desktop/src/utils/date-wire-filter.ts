@@ -13,7 +13,7 @@ import { calendarDayToLocalDate, toCalendarDay } from "./app-time-zone";
  * `date`). The client never needs to know which.
  *
  * Call this where the request is assembled, **never** where the filter is
- * stored, and that placement is load-bearing: NGXS persists the filter and feeds
+ * stored, and that placement is load-bearing: the receipts list's store keeps the filter and feeds
  * it back into the datepicker when a dialog reopens, and Material's
  * `NativeDateAdapter.deserialize` matches a bare `yyyy-MM-dd` against its
  * ISO-8601 regex and parses it with `new Date()` — i.e. as UTC midnight, which

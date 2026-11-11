@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Permission, ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
@@ -44,7 +43,6 @@ const setChecked = (listId: number, command: { isChecked: boolean; itemIds?: num
 describe("ShoppingListsPageComponent", () => {
   let fixture: ComponentFixture<ShoppingListsPageComponent>;
   let component: ShoppingListsPageComponent;
-  let store: Store;
   let shoppingListService: { [method: string]: Mock };
   let snackbarService: { [method: string]: Mock };
   let confirmed: boolean | undefined;
@@ -72,7 +70,7 @@ describe("ShoppingListsPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), ShoppingListsPageComponent],
+    imports: [ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -92,9 +90,7 @@ describe("ShoppingListsPageComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     seedStore(TestBed.inject(AuthStore), {
-      ...store.snapshot().auth,
       groupPermissions: {
         1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
       },
@@ -181,7 +177,7 @@ describe("ShoppingListsPageComponent", () => {
     expect(testId("shopping-list-delete")).toBeNull();
     expect(component.canDelete()).toBe(true);
 
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, groupPermissions: { 1: [] } });
+    seedStore(TestBed.inject(AuthStore), { groupPermissions: { 1: [] } });
     await fixture.whenStable();
 
     expect(component.canDelete()).toBe(false);

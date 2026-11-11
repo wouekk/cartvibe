@@ -4,20 +4,17 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { Store } from "@ngxs/store";
 import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
 import { AuthStore } from "../../store/auth.store";
 import { GroupStore } from "../../store/group.store";
-import { StoreModule } from "../../store/store.module";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
 
 describe("HeaderComponent", () => {
   let component: HeaderComponent;
   let fixture: ComponentFixture<HeaderComponent>;
-  let store: Store;
   let notificationsService: NotificationsService;
   const isHandset = signal(false);
 
@@ -38,12 +35,11 @@ describe("HeaderComponent", () => {
     await TestBed.configureTestingModule({
     imports: [TranslatePipe, ApiModule,
         OverlayModule,
-        StoreModule, HeaderComponent,],
+HeaderComponent,],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting(), { provide: ViewportService, useValue: { isHandset } }],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     notificationsService = TestBed.inject(NotificationsService);
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;

@@ -2,7 +2,6 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormBuilder, FormGroup } from "@angular/forms";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { ShoppingListItem } from "../../open-api";
 import { buildShoppingListItemForm } from "../shopping-list-item-form";
 import { ShoppingListsModule } from "../shopping-lists.module";
@@ -25,7 +24,7 @@ describe("ShoppingListAmountFieldsComponent", () => {
 
   const setUp = async (item?: ShoppingListItem) => {
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([])],
+      imports: [ShoppingListsModule],
       providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
     form = buildShoppingListItemForm(TestBed.inject(FormBuilder), item);

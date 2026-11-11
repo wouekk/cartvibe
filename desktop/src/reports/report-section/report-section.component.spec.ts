@@ -1,7 +1,6 @@
 import { ApplicationRef, ComponentRef, EnvironmentInjector, createComponent, provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { ReportsModule } from "../reports.module";
 import { ReportSectionComponent } from "./report-section.component";
 
@@ -24,7 +23,7 @@ describe("ReportSectionComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReportsModule, NgxsModule.forRoot([])],
+      imports: [ReportsModule],
       providers: [provideZonelessChangeDetection(), provideRouter([])],
     }).compileComponents();
 

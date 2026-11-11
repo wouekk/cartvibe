@@ -7,7 +7,6 @@ import { ComponentFixture, TestBed, } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
@@ -24,7 +23,6 @@ import { AuthStore } from "../../store/auth.store";
 describe("QuickScanDialogComponent", () => {
   let component: QuickScanDialogComponent;
   let fixture: ComponentFixture<QuickScanDialogComponent>;
-  let store: Store;
   const originalCreateObjectURL = URL.createObjectURL;
 
   beforeEach(() => {
@@ -32,8 +30,7 @@ describe("QuickScanDialogComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SharedUiModule, QuickScanDialogComponent],
     providers: [
         {
@@ -55,7 +52,6 @@ describe("QuickScanDialogComponent", () => {
     ]
 });
     fixture = TestBed.createComponent(QuickScanDialogComponent);
-    store = TestBed.inject(Store);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

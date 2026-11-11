@@ -4,7 +4,6 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmCheckbox } from "@spartan-ng/helm/checkbox";
 import { HlmSpinner } from "@spartan-ng/helm/spinner";
@@ -61,7 +60,6 @@ describe("RecipeImportDialogComponent", () => {
   let service: { previewShoppingListRecipe: Mock; importShoppingListRecipe: Mock };
   let dialogRef: { close: Mock };
   let snackbar: { success: Mock };
-  let store: Store;
 
   let dialogData: RecipeImportDialogData;
 
@@ -118,8 +116,7 @@ describe("RecipeImportDialogComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([]),
-        HlmButton,
+                HlmButton,
         HlmCheckbox,
         HlmSpinner,
         AppIconComponent,
@@ -142,7 +139,6 @@ describe("RecipeImportDialogComponent", () => {
     ],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
   });
 
   afterEach(() => TestBed.resetTestingModule());

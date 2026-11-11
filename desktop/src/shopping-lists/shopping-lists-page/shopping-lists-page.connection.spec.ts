@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal, WritableSignal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ActivatedRoute, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -23,7 +22,6 @@ const lists = (): ShoppingList[] => [{ id: 1, groupId: 1, name: "Lidl", createdA
 
 describe("ShoppingListsPageComponent: what it says about the connection", () => {
   let fixture: ComponentFixture<ShoppingListsPageComponent>;
-  let store: Store;
   let getShoppingListsForGroup: Mock;
   let status: WritableSignal<ShoppingListStreamStatus>;
   let online: WritableSignal<boolean>;
@@ -36,7 +34,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
   const text = (id: string): string => (testId(id)?.textContent ?? "").replace(/\s+/g, " ").trim();
 
   const create = async () => {
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, groupPermissions: { 1: [Permission.GroupShoppingListsUpdate] } });
+    seedStore(TestBed.inject(AuthStore), { groupPermissions: { 1: [Permission.GroupShoppingListsUpdate] } });
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     await fixture.whenStable();
   };
@@ -56,7 +54,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     snackbarError = vi.fn();
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([]), ShoppingListsPageComponent],
+    imports: [ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -75,7 +73,6 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     ],
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
-    store = TestBed.inject(Store);
   });
 
   it("says nothing while the first connection is being made", async () => {
@@ -158,7 +155,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
       expect(fixture.componentInstance.completing()).toBe(true);
 
       // The queue goes out (the sync service's job): nothing waits any more.
-      seedStore(TestBed.inject(ShoppingListStore), { ...store.snapshot().shoppingLists, pending: [] });
+      seedStore(TestBed.inject(ShoppingListStore), { pending: [] });
       await settled();
 
       expect(drained).toHaveBeenCalledTimes(1);

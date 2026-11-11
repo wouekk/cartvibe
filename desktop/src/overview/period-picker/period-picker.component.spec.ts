@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { todayInZone } from "../../utils/app-time-zone";
 import { toDayKey } from "../overview-period";
 import { PeriodPickerComponent } from "./period-picker.component";
@@ -13,7 +12,7 @@ describe("PeriodPickerComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PeriodPickerComponent, NgxsModule.forRoot([])],
+      imports: [PeriodPickerComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
 
@@ -98,7 +97,7 @@ describe("PeriodPickerComponent", () => {
 describe("PeriodPickerComponent with a starting range", () => {
   it("opens on that range as a custom one and emits it, never this month first", async () => {
     await TestBed.configureTestingModule({
-      imports: [PeriodPickerComponent, NgxsModule.forRoot([])],
+      imports: [PeriodPickerComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
     const fixture = TestBed.createComponent(PeriodPickerComponent);

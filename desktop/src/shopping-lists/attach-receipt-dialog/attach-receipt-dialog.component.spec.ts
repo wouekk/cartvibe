@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { Observable, Subject, of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { AppDialogRef } from "../../dialog/app-dialog";
@@ -31,7 +30,7 @@ describe("AttachReceiptDialogComponent", () => {
     service = { getReceiptsForGroup: vi.fn() };
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ShoppingListsModule, NgxsModule.forRoot([])],
+      imports: [ShoppingListsModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

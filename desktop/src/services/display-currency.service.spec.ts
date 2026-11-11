@@ -1,19 +1,16 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { DisplayCurrencyService } from "./display-currency.service";
 import { seedStore } from "../testing/seed-store";
 import { AuthStore } from "../store/auth.store";
 
 describe("DisplayCurrencyService", () => {
   let service: DisplayCurrencyService;
-  let store: Store;
 
   const setPreferences = (userPreferences: unknown) =>
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences });
+    seedStore(TestBed.inject(AuthStore), { userPreferences });
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [NgxsModule.forRoot([])] });
-    store = TestBed.inject(Store);
+    TestBed.configureTestingModule({ imports: [] });
     service = TestBed.inject(DisplayCurrencyService);
   });
 

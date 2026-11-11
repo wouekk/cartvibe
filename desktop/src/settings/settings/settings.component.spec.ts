@@ -6,7 +6,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { NgxsModule, Store } from '@ngxs/store';
 import { Permission } from '../../open-api';
 import { AuthStore } from "../../store";
 import { renderShallow } from "../../testing/render-shallow";
@@ -14,7 +13,6 @@ import { renderShallow } from "../../testing/render-shallow";
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
-  let store: Store;
 
   const tabNames = () => component.tabs().map((t) => t.name);
 
@@ -24,8 +22,7 @@ describe('SettingsComponent', () => {
     await TestBed.configureTestingModule({
     imports: [TranslatePipe,
         ...HlmTooltipImports,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         RouterModule, SettingsComponent,],
     providers: [
         {
@@ -36,7 +33,6 @@ describe('SettingsComponent', () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
   });

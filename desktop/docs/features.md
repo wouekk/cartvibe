@@ -6,7 +6,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 
 ## Dashboard (`src/overview/`)
 
-- `/overview/group/:groupId` is the landing page (`GroupState.overviewLink`); `overviewReadGuard`
+- `/overview/group/:groupId` is the landing page (`GroupStore.overviewLink`); `overviewReadGuard`
   (`group.receipts.read`) falls back to the receipts list. Each card loads on its own, so a failure blanks one card.
 - **Panels as components.** A panel is a `section[app-overview-…-panel]` the page places in its grid, with the
   `cv-panel` class and its `aria-labelledby` on the host. The page loads the period once and hands each panel
@@ -125,7 +125,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   household's *Hide the note* takes the field off the form and the column off the list; the stored note is kept and
   sent back unchanged.
 - **Filtering:** the period picker writes the Receipt Date filter (not counted in the Filter badge); the dialog
-  (`app-receipt-filter`) and chips share `ReceiptTableState.filter`. Field keys/labels are in
+  (`app-receipt-filter`) and chips share `ReceiptTableStore.filter`. Field keys/labels are in
   `RECEIPT_FILTER_FIELDS`, but the dialog authors its own row labels, so a rename touches both the constant and
   `receipt-filter.component.html`. A field's label matches its column ("Receipt Date", not "Date").
   `WITHIN_CURRENT_MONTH` carries no value and is a server no-op on `date` today.
@@ -135,7 +135,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Form:** Paid by is the current user (hidden); no bill splitting, no receipt-level categories or tags (old values
   stay in the form so saving never drops them). A new receipt is named "Receipt {date}" until the AI reads the shop.
 - **Products** (`app-receipt-products`): lines edit in place (comma prices accepted); category picker and tags menu per
-  line from `AuthState.groupCatalog`, saved in order through `setReceiptProductLabels` (a `concatMap` queue; the
+  line from `AuthStore.groupCatalog`, saved in order through `setReceiptProductLabels` (a `concatMap` queue; the
   server's answer replaces the line only when no later pick is pending; handlers re-find the line by id). "Read again"
   replaces the whole set. Health and seasonality chips (`app-food-tags`) are display-only. Lines are edited on the
   view page too, settled or not (settling is a status, not a lock), so a hand-entered receipt is split there without
@@ -198,16 +198,16 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   refetches on reconnect, when the tab becomes visible and when the browser reports a connection. `targetGroupId` is
   never the "All" group.
 - **Without a connection** (the server wins on conflict; the rules are at the top of `shopping-list-pending.ts`):
-  - *The device's copy.* `LoadShoppingLists` shows the copy of the group kept in `OfflineStorageService` (IndexedDB,
+  - *The device's copy.* `ShoppingListStore.load()` shows the copy of the group kept in `OfflineStorageService` (IndexedDB,
     memory where the browser has none) at once, then the server's answer replaces it; a failed read leaves the copy,
-    and only a group with neither says so (`loadFailedGroupId`, `shopping-list-unavailable`). The slice is not in
-    `ngxsStorageKeys`: `ShoppingListSyncService` writes the copy (debounced) and the queue.
-  - *The queue.* Adding an item and crossing one off never call the API from the component: they dispatch
-    `QueueShoppingListChange`, which shows the change and appends it to `ShoppingListState.pending`. A new row has a
+    and only a group with neither says so (`loadFailedGroupId`, `shopping-list-unavailable`). The store has no
+    storage key: `ShoppingListSyncService` follows its `changes` and writes the copy (debounced) and the queue.
+  - *The queue.* Adding an item and crossing one off never call the API from the component: they call
+    `queueChange()`, which shows the change and appends it to `ShoppingListStore.pending`. A new row has a
     negative id (`isLocalItem`) and a `clientId`; `overlayPending` lays the queue over every server answer and live
     event, so a refetch never hides what is still to be sent. `ShoppingListSyncService` (created at app start) sends
     the head of the queue, one change at a time, after `TokenRefreshService.ensureFreshToken()`: saved means
-    `SettleShoppingListChange` (the server's item replaces the row; cross-offs waiting for it get its id), no
+    `settleChange()` (the server's item replaces the row; cross-offs waiting for it get its id), no
     connection / 5xx / 429 means wait (`RetryWhenReachable`: on `online`, on a visible tab, when the stream goes
     live, else 2 to 30 s), any other answer drops the change and rereads the lists (an add says which item). Requests
     carry `QUIET_ERRORS` so the interceptor does not toast each retry.
@@ -228,7 +228,7 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - Trips (`app-shopping-trips`): receipts attached to a list and their unplanned products, refetched on
   `TRIPS_CHANGED`; gated on `group.shopping-lists.read` + `group.receipts.read`. The hidden photo input sits inside the
   same `@if` as the "Add receipt" menu so the menu can reach its template reference.
-- **Page layout:** the switcher, then the open list, then the finished lists. `ShoppingListState` sorts lists newest
+- **Page layout:** the switcher, then the open list, then the finished lists. `ShoppingListStore` sorts lists newest
   first (`createdAt`, then id) and falls back to the newest list still being shopped. Lists being shopped are chips
   above the open list (`shopping-list-cards`, `shopping-list-card-<id>`, name and what is left to buy;
   `activeCards`, `showActiveCards`: left out when the only one is the open list), a strip that scrolls sideways on
@@ -368,9 +368,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   receipt** (`/overview?scan=1`): `overviewLandingGuard` sends `/overview` to the person's Dashboard keeping the
   query, and the Dashboard opens Quick Scan once for `scan=1` and removes it from the address
   (`openScanFromShortcut`). Shortcut names are not translated: the manifest is one static file.
-- **The session outlives a lost connection.** `AuthState.isLoggedIn` means "a session exists" (an expiry time is
-  stored); `AuthState.isAccessTokenExpired(store)` says whether the 20-minute token ran out (a plain function: a
-  selector that reads the clock is remembered until the auth state changes and never notices). Background work calls
+- **The session outlives a lost connection.** `AuthStore.isLoggedIn` means "a session exists" (an expiry time is
+  stored); `AuthStore.isAccessTokenExpired()` says whether the 20-minute token ran out (a method that reads the clock on
+  each call: a `computed` is remembered until the session changes and never notices). Background work calls
   `TokenRefreshService.ensureFreshToken()` before it sends. `TokenRefreshService` signs out (and clears
   storage with `clearSessionStorage()`, which keeps theme, palette and language) only when the refresh call answers
   401 or 403 (`isSessionRefused`). No connection, a restarting server, a 429 or a 5xx leave the person signed in:
@@ -397,7 +397,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   `tw-animate-css` classes; `@angular/animations` is not a dependency, so a spec needs no animations provider.
 - **Signing in:** `SignInTransitionService` drives one splash in `AppComponent` (`sign-in-transition`, `z-[1100]`, over
   the header) from the Login press until `router.navigate` to the first page resolves, then fades it out (300 ms). The
-  sidebar and header appear as soon as `setAppData` stores the session, so a splash inside the login page sat in the
+  sidebar and header appear as soon as `AppDataService` stores the session, so a splash inside the login page sat in the
   middle of a half-drawn app. A failed login fades back to the form; `submit()` ignores presses while it is up.
 
 ## Navigation and settings screens
@@ -436,9 +436,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **User Settings** (`/settings`): User Profile and User Preferences, each gated on its read permission. User Profile
   starts with `app-avatar-photo` (`src/settings/avatar-photo/`): two native `<label>` file inputs (camera with
   `capture="user"`, and a file), `downscaleImageForUpload(file, { maxSide: 512, minBytes: 0 })`, an 8 MB check, then
-  `PUT /user/avatar`; Remove photo confirms with `marker("Remove")`. Either result dispatches `UpdateUser` with the new
+  `PUT /user/avatar`; Remove photo confirms with `marker("Remove")`. Either result calls `UserStore.updateUser` with the new
   `avatarUpdatedAt`. `app-avatar` draws `/api/user/{id}/avatar?v=<avatarUpdatedAt>` when the user (or, for the
-  signed-in user from the token, `UserState`) has one, and the initial otherwise or when the image fails.
+  signed-in user from the token, `UserStore`) has one, and the initial otherwise or when the image fails.
 - **Households** (`/groups`): the name cell shows `app-avatar size="sm" [group]` (icon on its colour). The edit form holds
   `icon` / `color` controls driven by `app-group-look-picker` (`src/group/group-look-picker/`, lists in
   `constants/group-look.ts`). Each row ends in `app-row-actions` (Edit → the household's edit page, Delete; inline icons, or the
@@ -464,7 +464,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
   - Date format (`system-settings-date-format`, first on General, then the time zone, then the currency card): one of
     `APP_DATE_FORMATS` (`src/utils/app-date-format.ts`, kept in step with the API's `models.DateFormats`), each option
-    showing today's date. `SystemSettingsState.dateFormat` (resolved, so a slice persisted before the key existed reads
+    showing today's date. `SystemSettingsStore.dateFormat` (resolved, so a slice persisted before the key existed reads
     the default) is read by the `appDate` pipe, which rewrites whole dates (`mediumDate`, `MMM d, y`, …), `MMM d` and
     the `short` / `medium` date-times through `appDatePattern`; month names and day numbers on their own (chart axes,
     date blocks) pass through. Filter chips use the same pattern. The native `<input type="date">` cannot be
@@ -489,7 +489,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 - **Signing in with an identity provider (OIDC).** The server runs the whole exchange (`../../api/docs/oidc.md`);
   the web app only opens three server addresses **as pages** (`window.location`, never `HttpClient`: the browser
   must follow the redirects to the provider) and reads what comes back in the address.
-  - The providers an admin switched on are `FeatureConfigState.oidcProviders` (name and display name only). The
+  - The providers an admin switched on are `FeatureConfigStore.oidcProviders` (name and display name only). The
     login page draws one *Sign in with …* button each (`buildOidcLoginUrl`); nothing is drawn without a provider,
     or on the sign-up page.
   - A sign-in that worked lands on `/auth/callback` (`OidcCallbackComponent`): the cookies are set, but a browser
@@ -533,7 +533,7 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
 
 The long form of points the guide states briefly.
 
-- **Angular 22**, TypeScript 6, NGXS 22, zoneless (`provideZonelessChangeDetection()`), Tailwind 4 + spartan/ui helm
+- **Angular 22**, TypeScript 6, signal stores (`src/store/`, no state library), zoneless (`provideZonelessChangeDetection()`), Tailwind 4 + spartan/ui helm
   components in `src/ui` (alias `@spartan-ng/helm/*`, brain from `@spartan-ng/brain`), Lucide icons, Chart.js.
   No Angular Material, no Bootstrap: comments and specs that still mention `mat-*`, `MatDialog` or Bootstrap classes
   describe the past.
@@ -568,7 +568,7 @@ The long form of points the guide states briefly.
 - **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`
   has no `push()` and the picker silently does nothing); clear with `FormArray.clear()`. A single-select goes
   `readonly` once filled; clearing is its X (`autocomplete-clear`). It needs a `displayWith` when options are plain
-  strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthState`,
+  strings and the default would blank the field. `closeChipSelectOnSelect` (a user preference read from `AuthStore`,
   default off) closes the panel after a pick by also blurring the input; removing a chip deliberately ignores it.
 - `@playwright/test` is pinned exactly; bump it deliberately together with the browser build. `@zxing/browser` 0.2.1 /
   `@zxing/library` 0.23.0 are pinned exactly and move together (browser 0.2.x peers `library ^0.23.0`). The library is
@@ -576,19 +576,19 @@ The long form of points the guide states briefly.
 - Stay on Angular's 22.x patch line; 23 is its own upgrade. `tsconfig.json` has no `baseUrl` (bare `src/...` imports
   resolve through the `src/*` path) and `skipLibCheck` is on.
 - **Permission gating** mirrors the server; the server re-checks every request, so a stale button at worst 403s.
-  AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `SetPermissions` is
-  dispatched only from `setAppData` (`src/utils/app-data.util.ts`), never from `TokenRefreshService` (its claims-only
+  AppData carries `appPermissions: string[]` and `groupPermissions: { [groupId]: string[] }`; `setPermissions` is
+  called only from `AppDataService` (`src/services/app-data.service.ts`), never from `TokenRefreshService` (its claims-only
   update must not wipe permissions). The matcher `src/utils/permission.utils.ts` is a port of the Go matcher, wildcards
-  included. Selectors: `AuthState.hasAppPermission`, `hasAnyAppPermission`, `hasGroupPermission(groupId, perm, orApp)`
+  included. Readers: `AuthStore.hasAppPermission`, `hasAnyAppPermission`, `hasGroupPermission(groupId, perm, orApp)`
   (applies the app-scoped override first). Directives `*hasAppPermission` / `*hasGroupPermission` are effect-driven, so
   they re-render when AppData lands. Guards: `appPermissionGuard` (`data.appPermissions`, any-of),
   `groupPermissionGuard` (`groupPermission`, `orAppPermissions`, `useRouteGroupId` or `useAddTargetGroupId`); the
   `/settings` and `/system-settings` landing guards redirect to the first tab the user can read.
-- **Persisted filter state:** one slice per table (`ReceiptTableState.filter`, `SystemTaskTableState.filter`) that the
+- **Persisted filter state:** one slice per table (`ReceiptTableStore.filter`, `SystemTaskTableStore.filter`) that the
   dialog, the chips and the quick controls all read and write. Defaults come from factories
-  (`buildDefaultReceiptFilter()`, `buildDefaultSystemTaskFilter()`), never a shared constant written into state. NGXS
-  `@State` defaults never run for a hydrated slice, so a key added later needs its fallback **in the selector** (and in
-  handlers). A filter write dispatches, then `SetPage(1)`, then refetches; refreshes go through one `switchMap` with
+  (`buildDefaultReceiptFilter()`, `buildDefaultSystemTaskFilter()`), never a shared constant written into state. What the
+  browser kept is laid over a store's defaults, so a new top-level key starts at its default; a field added inside a
+  kept filter still needs its fallback **where it is read**. A filter write calls the store, then `setPage(1)`, then refetches; refreshes go through one `switchMap` with
   `catchError(() => EMPTY)` on the inner observable.
 - **Receipt create is one call:** `ReceiptService.createReceiptWithFiles(form.value, files)` (`POST /receipt/withFiles`,
   multipart, the note in the receipt's own JSON).

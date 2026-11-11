@@ -5,7 +5,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { ActivatedRoute, provideRouter, Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { DEFAULT_RECEIPT_TABLE_COLUMNS } from "src/interfaces";
 import { ReceiptTableStore } from "src/store/receipt-table.store";
@@ -21,14 +20,12 @@ import type { MockInstance } from "vitest";
 describe("ReceiptsTableComponent", () => {
   let component: ReceiptsTableComponent;
   let fixture: ComponentFixture<ReceiptsTableComponent>;
-  let store: Store;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         ...HlmTooltipImports,
         ReceiptsTableComponent],
     providers: [
@@ -50,7 +47,6 @@ describe("ReceiptsTableComponent", () => {
     ]
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(ReceiptsTableComponent);
     component = fixture.componentInstance;
     Object.defineProperty(component, 'table', {

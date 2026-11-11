@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule } from "@ngxs/store";
 import { SharedUiModule } from "../shared-ui.module";
 
 import { AuditDetailSectionComponent } from "./audit-detail-section.component";
@@ -10,7 +9,7 @@ describe("AuditDetailSectionComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [SharedUiModule, NgxsModule.forRoot([]), AuditDetailSectionComponent]
+    imports: [SharedUiModule,AuditDetailSectionComponent]
 })
       .compileComponents();
 

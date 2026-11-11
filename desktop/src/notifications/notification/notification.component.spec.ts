@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { CUSTOM_ELEMENTS_SCHEMA } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, NotificationsService } from "../../open-api";
 import { AuthStore } from "../../store/auth.store";
@@ -17,7 +16,6 @@ describe("NotificationComponent", () => {
   let component: NotificationComponent;
   let fixture: ComponentFixture<NotificationComponent>;
   let service: NotificationsService;
-  let store: Store;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -25,12 +23,10 @@ describe("NotificationComponent", () => {
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
-        NgxsModule.forRoot([]),
-        RouterTestingModule, NotificationComponent],
+                RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
 
-    store = TestBed.inject(Store);
     service = TestBed.inject(NotificationsService);
     fixture = TestBed.createComponent(NotificationComponent);
     component = fixture.componentInstance;

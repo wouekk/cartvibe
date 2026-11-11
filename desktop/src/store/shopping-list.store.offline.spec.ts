@@ -1,7 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { OfflineStorageService } from "../offline/offline-storage.service";
 import { ShoppingList, ShoppingListItem } from "../open-api";
 import { PendingAdd, PendingToggle } from "../shopping-lists/shopping-list-pending";
@@ -52,17 +51,14 @@ const crossOff = (opId: string, itemId: number, overrides: Partial<PendingToggle
 const settled = () => new Promise<void>((resolve) => setTimeout(resolve));
 
 describe("ShoppingListStore without a connection", () => {
-  let store: Store;
   let listStore: ShoppingListStore;
   let httpMock: HttpTestingController;
   let storage: OfflineStorageService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
-    store = TestBed.inject(Store);
     listStore = TestBed.inject(ShoppingListStore);
     httpMock = TestBed.inject(HttpTestingController);
     storage = TestBed.inject(OfflineStorageService);

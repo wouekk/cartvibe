@@ -1,5 +1,4 @@
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { ParameterizedDataParser } from "./paramterterized-data-parser";
 import { seedStore } from "../testing/seed-store";
 import { UserStore } from "../store/user.store";
@@ -7,17 +6,13 @@ import { GroupStore } from "../store/group.store";
 
 describe("ParameterizedDataParser", () => {
   let parameterizedDataParser: ParameterizedDataParser;
-  let store: Store;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [],
-      imports: [NgxsModule.forRoot([])],
-      providers: [],
     }).compileComponents();
 
     parameterizedDataParser = TestBed.inject(ParameterizedDataParser);
-    store = TestBed.inject(Store);
   });
 
   it("create an instance", () => {

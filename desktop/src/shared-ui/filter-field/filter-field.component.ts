@@ -2,7 +2,6 @@ import { Component, OnInit, inject, input, ChangeDetectionStrategy } from "@angu
 import { FormControl, FormGroup } from "@angular/forms";
 import { endOfDay, startOfMonth } from "date-fns";
 import { FilterFieldType } from "src/constants";
-import { Store } from "@ngxs/store";
 import { FilterOperation } from "../../open-api";
 import { todayInZone } from "../../utils/app-time-zone";
 import { NgIf } from "@angular/common";

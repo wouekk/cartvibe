@@ -2,7 +2,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { ApiModule, AuthService, Claims } from "../open-api";
 import { AuthStore } from "../store";
@@ -11,7 +10,6 @@ import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from "@a
 
 describe("TokenRefreshService", () => {
   let service: TokenRefreshService;
-  let store: Store;
   let authService: AuthService;
   let router: Router;
 
@@ -28,8 +26,7 @@ describe("TokenRefreshService", () => {
     TestBed.configureTestingModule({
       imports: [
         ApiModule,
-        NgxsModule.forRoot([]),
-        RouterTestingModule,
+                RouterTestingModule,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
@@ -38,7 +35,6 @@ describe("TokenRefreshService", () => {
     });
 
     service = TestBed.inject(TokenRefreshService);
-    store = TestBed.inject(Store);
     authService = TestBed.inject(AuthService);
     router = TestBed.inject(Router);
   });

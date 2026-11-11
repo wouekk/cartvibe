@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import {
@@ -74,7 +73,7 @@ describe("OidcProviderListComponent", () => {
     dialog = { open: vi.fn(() => ({ afterClosed: () => of(closeWith), componentInstance: {} })) };
 
     await TestBed.configureTestingModule({
-      imports: [OidcProviderListComponent, NgxsModule.forRoot([])],
+      imports: [OidcProviderListComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),

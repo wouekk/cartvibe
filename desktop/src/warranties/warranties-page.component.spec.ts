@@ -2,11 +2,9 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { RouterTestingHarness } from "@angular/router/testing";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { Observable, of, Subject, throwError } from "rxjs";
 import { ReceiptService, SortDirection } from "../open-api";
 import { AuthStore } from "../store";
-import { Store } from "@ngxs/store";
 import { WarrantiesPageComponent } from "./warranties-page.component";
 
 import type { Mock } from "vitest";
@@ -30,7 +28,6 @@ describe("WarrantiesPageComponent", () => {
   const open = async (response: () => Observable<unknown>, { settle = true } = {}) => {
     getReceiptsForGroup = vi.fn(response);
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([{ path: "warranties/group/:groupId", component: WarrantiesPageComponent }]),

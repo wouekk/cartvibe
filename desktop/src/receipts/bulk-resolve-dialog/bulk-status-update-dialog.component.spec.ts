@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
 import { ReceiptStatus } from "../../open-api";
 import { BulkStatusUpdateComponent } from "./bulk-status-update-dialog.component";
-import { StoreModule } from "../../store/store.module";
 
 describe("BulkStatusUpdateComponent", () => {
   let component: BulkStatusUpdateComponent;
@@ -12,7 +11,7 @@ describe("BulkStatusUpdateComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [StoreModule, ReactiveFormsModule, BulkStatusUpdateComponent],
+    imports: [ReactiveFormsModule, BulkStatusUpdateComponent],
     providers: [
         {
             provide: AppDialogRef,

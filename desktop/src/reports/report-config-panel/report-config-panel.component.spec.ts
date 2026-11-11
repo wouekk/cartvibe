@@ -2,7 +2,6 @@ import { NO_ERRORS_SCHEMA, provideZonelessChangeDetection, signal } from "@angul
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { RECEIPT_DATE_FILTER_FIELDS } from "src/constants";
 import {
@@ -57,13 +56,7 @@ describe("ReportConfigPanelComponent", () => {
     providers: [
         provideZonelessChangeDetection(),
         FormBuilder,
-        {
-            provide: Store,
-            useValue: {
-                selectSignal: () => signal(GROUPS),
-            },
-        },
-        { provide: AppDialog, useValue: dialog },
+                { provide: AppDialog, useValue: dialog },
     ],
     schemas: [NO_ERRORS_SCHEMA],
 })

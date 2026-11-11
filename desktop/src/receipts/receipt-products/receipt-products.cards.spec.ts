@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
@@ -47,7 +46,7 @@ describe("ReceiptProductsComponent on a phone", () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([])],
+      imports: [ReceiptProductsComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: ReceiptProductService, useValue: service },

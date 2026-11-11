@@ -1,6 +1,5 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { provideStore, Store } from "@ngxs/store";
 
 
 import { AboutComponent } from "./about.component";
@@ -19,8 +18,7 @@ describe("AboutComponent", () => {
       imports: [AboutComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting(),
-        provideStore([])
+        provideHttpClientTesting()
       ]
     })
       .compileComponents();
@@ -62,7 +60,6 @@ describe("AboutComponent", () => {
   describe("a server that runs as root", () => {
     const warning = (): HTMLElement | null => fixture.nativeElement.querySelector('[data-testid="about-runs-as-root"]');
     const set = async (runsAsRoot: boolean, appPermissions: string[]): Promise<void> => {
-      const store = TestBed.inject(Store);
       TestBed.inject(AboutStore).setAbout({ version: "v0.19.0", buildDate: "unknown", runsAsRoot });
       TestBed.inject(AuthStore).setPermissions(appPermissions, {});
       await fixture.whenStable();

@@ -13,7 +13,6 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { ViewportService } from "../../services/viewport.service";
 import { AvatarModule } from "../../avatar";
 import { RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
@@ -26,7 +25,6 @@ import { GroupTableComponent } from "./group-table.component";
 describe("GroupTableComponent", () => {
   let component: GroupTableComponent;
   let fixture: ComponentFixture<GroupTableComponent>;
-  let store: Store;
 
   const queryTestId = (id: string) =>
     fixture.debugElement.query(By.css(`[data-testid="${id}"]`));
@@ -37,8 +35,7 @@ describe("GroupTableComponent", () => {
         RouterLink,
         ApiModule,
         AppDatePipe,
-        NgxsModule.forRoot([]),
-        SharedUiModule,
+                SharedUiModule,
         TableModule,
         HlmButton,
         ...HlmDropdownMenuImports,
@@ -53,7 +50,6 @@ describe("GroupTableComponent", () => {
     ],
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     fixture = TestBed.createComponent(GroupTableComponent);
     component = fixture.componentInstance;
   });

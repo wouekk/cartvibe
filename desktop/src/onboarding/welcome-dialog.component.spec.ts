@@ -2,7 +2,6 @@ import { provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { AppDialog, AppDialogRef } from "../dialog/app-dialog";
 import { registerRealLanguages } from "../i18n/i18n-test-utils";
@@ -16,7 +15,6 @@ import { WelcomeDialogComponent } from "./welcome-dialog.component";
 
 describe("WelcomeDialogComponent", () => {
   let fixture: ComponentFixture<WelcomeDialogComponent>;
-  let store: Store;
   const close = vi.fn();
   const updateUserPreferences = vi.fn();
   const getSystemSettings = vi.fn();
@@ -38,7 +36,7 @@ describe("WelcomeDialogComponent", () => {
     updateSystemSettings.mockReset().mockImplementation((body) => of(body));
 
     await TestBed.configureTestingModule({
-      imports: [WelcomeDialogComponent, NgxsModule.forRoot([])],
+      imports: [WelcomeDialogComponent],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -50,7 +48,6 @@ describe("WelcomeDialogComponent", () => {
     }).compileComponents();
 
     registerRealLanguages(TestBed.inject(TranslationService));
-    store = TestBed.inject(Store);
     TestBed.inject(AuthStore).setUserPreferences({ id: 1, userId: 7, language: "en", onboardingPending: true } as never);
   });
 
@@ -133,13 +130,11 @@ describe("OnboardingService", () => {
   beforeEach(() => {
     open.mockReset();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), { provide: AppDialog, useValue: { open } }],
     });
   });
 
   it("opens the welcome once for an account that has it pending, and not for others", () => {
-    const store = TestBed.inject(Store);
     TestBed.inject(OnboardingService);
 
     TestBed.inject(AuthStore).setUserPreferences({ id: 1, userId: 3, onboardingPending: false } as never);

@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, take } from "rxjs";
 import { Permission, ReceiptProductService, ReceiptProductsView } from "../../open-api";
 import { AuthStore } from "../../store/auth.store";
@@ -44,7 +43,7 @@ describe("ReceiptProductsComponent", () => {
       setReceiptProductLabels: vi.fn(),
     };
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductsComponent, NgxsModule.forRoot([])],
+      imports: [ReceiptProductsComponent],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
     }).compileComponents();
   });

@@ -5,7 +5,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { NgxsModule, Store } from "@ngxs/store";
 import { AuthStore } from "../../store/auth.store";
 import { config, of, throwError } from "rxjs";
 import { TableModule } from "src/table/table.module";
@@ -21,8 +20,7 @@ describe("UserListComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [TranslatePipe, ApiModule,
-        NgxsModule.forRoot([]),
-        TableModule, UserListComponent],
+                TableModule, UserListComponent],
     providers: [provideZonelessChangeDetection(), provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 }).compileComponents();
 
@@ -135,8 +133,7 @@ describe("UserListComponent", () => {
     }
   });
   it("offers each row only the actions the person may take: no delete on their own row, convert only for a name-only user", () => {
-    const store = TestBed.inject(Store);
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userId: "1" });
+    seedStore(TestBed.inject(AuthStore), { userId: "1" });
     TestBed.inject(AuthStore).setPermissions(["app.users.update", "app.users.delete"], {});
     const visible = (user: User) => component.rowActions.filter((action) => !action.visible || action.visible(user)).map((action) => action.key);
 

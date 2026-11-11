@@ -1,7 +1,6 @@
 import { Component, provideZonelessChangeDetection, signal } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
-import { NgxsModule } from "@ngxs/store";
 import { WarrantyRow } from "../../utils/warranty-period";
 import { WarrantyMenuComponent } from "../../warranties/warranty-menu/warranty-menu.component";
 import { OverviewWarrantiesPanelComponent } from "./overview-warranties-panel.component";
@@ -40,7 +39,7 @@ describe("OverviewWarrantiesPanelComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HostComponent, NgxsModule.forRoot([])],
+      imports: [HostComponent],
       providers: [provideZonelessChangeDetection()],
     }).compileComponents();
     fixture = TestBed.createComponent(HostComponent);

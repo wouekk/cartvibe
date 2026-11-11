@@ -16,7 +16,6 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, convertToParamMap, provideRouter, Router } from "@angular/router";
 import { parseLayout } from "../dashboard-layout/dashboard-layout";
 import { DashboardLayoutStore } from "../dashboard-layout/dashboard-layout.store";
-import { NgxsModule, Store } from "@ngxs/store";
 import { BehaviorSubject, of, Subject } from "rxjs";
 import {
   DashboardLayoutService,
@@ -119,7 +118,7 @@ describe("OverviewPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
+    imports: [ChartComponent, TranslatePipe,SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

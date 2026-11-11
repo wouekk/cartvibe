@@ -1,20 +1,17 @@
 import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { provideStore, Store } from "@ngxs/store";
 import { AuthStore } from "../../store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
 import { ShopLogoCatalog } from "./shop-logo-catalog.service";
 
 describe("ShopLogoCatalog", () => {
-  let store: Store;
   let http: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideStore([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
   });
 

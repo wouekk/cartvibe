@@ -1,7 +1,6 @@
 import { formatDate } from "@angular/common";
 import { inject, Pipe, PipeTransform } from "@angular/core";
 import { TranslationService } from "../i18n/translation.service";
-import { Store } from "@ngxs/store";
 import { calendarDayToLocalDate, offsetAt } from "../utils/app-time-zone";
 import { AppDateFormat, appDatePattern } from "../utils/app-date-format";
 import { SystemSettingsStore } from "../store/system-settings.store";

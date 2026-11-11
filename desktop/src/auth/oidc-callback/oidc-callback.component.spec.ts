@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { AppData, UserService } from "../../open-api";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
@@ -19,7 +18,7 @@ describe("OidcCallbackComponent", () => {
     router = { navigate: vi.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
-      imports: [OidcCallbackComponent, NgxsModule.forRoot([])],
+      imports: [OidcCallbackComponent],
       providers: [
         provideZonelessChangeDetection(),
         { provide: UserService, useValue: userService },
@@ -53,7 +52,6 @@ describe("OidcCallbackComponent", () => {
     answer.complete();
     await fixture.whenStable();
 
-    const store = TestBed.inject(Store);
     expect(TestBed.inject(AuthStore).isLoggedIn()).toBe(true);
     expect(router.navigate).toHaveBeenCalledWith([TestBed.inject(GroupStore).overviewLink()]);
     expect(transition.active()).toBe(false);

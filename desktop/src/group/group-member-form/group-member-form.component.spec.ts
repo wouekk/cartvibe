@@ -4,7 +4,6 @@ import { CUSTOM_ELEMENTS_SCHEMA, provideZonelessChangeDetection } from "@angular
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { NgxsModule, Store } from "@ngxs/store";
 import { NEVER, of, throwError } from "rxjs";
 import {
   Category,
@@ -95,8 +94,7 @@ describe("GroupMemberFormComponent", () => {
     renderShallow(GroupMemberFormComponent, [ReactiveFormsModule, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]);
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([]),
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         GroupMemberFormComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],

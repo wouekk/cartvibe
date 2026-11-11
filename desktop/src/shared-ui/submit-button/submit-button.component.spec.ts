@@ -2,7 +2,6 @@ import { Component, provideZonelessChangeDetection, signal } from "@angular/core
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { FormMode } from "src/enums/form-mode.enum";
 import { SubmitButtonComponent } from "./submit-button.component";
 
@@ -27,7 +26,7 @@ describe("SubmitButtonComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([]), SubmitButtonComponent, HostComponent],
+    imports: [ReactiveFormsModule,SubmitButtonComponent, HostComponent],
     providers: [
         provideZonelessChangeDetection(),
         {

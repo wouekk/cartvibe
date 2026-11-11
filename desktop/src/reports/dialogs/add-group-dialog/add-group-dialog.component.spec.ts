@@ -1,7 +1,6 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import type { Mock } from "vitest";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Group, Permission } from "../../../open-api";
@@ -27,7 +26,7 @@ describe("AddGroupDialogComponent", () => {
   const open = async (data: AddGroupDialogData, reportGroups: number[] = [1, 2, 99]) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ReportsModule, NgxsModule.forRoot([])],
+      imports: [ReportsModule],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -35,7 +34,6 @@ describe("AddGroupDialogComponent", () => {
         { provide: APP_DIALOG_DATA, useValue: data },
       ],
     }).compileComponents();
-    const store = TestBed.inject(Store);
     TestBed.inject(GroupStore).setGroups(groups);
     const groupPermissions: { [groupId: number]: string[] } = {};
     for (const id of reportGroups) {

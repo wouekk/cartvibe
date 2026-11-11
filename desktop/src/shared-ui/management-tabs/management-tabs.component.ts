@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { filter, map } from "rxjs";
 import { marker } from "../../i18n/marker";
 import { Permission } from "../../open-api";

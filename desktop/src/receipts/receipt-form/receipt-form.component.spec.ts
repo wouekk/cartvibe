@@ -6,7 +6,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule, Validators } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { BehaviorSubject, of } from "rxjs";
 import { RECEIPT_NOTE_MAX_LENGTH } from "src/constants/receipt-note.constant";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -19,7 +18,6 @@ import { QueueMode } from "../../services/receipt-queue.service";
 import { AuthStore } from "../../store/auth.store";
 import { UserAutocompleteModule } from "../../user-autocomplete/user-autocomplete.module";
 import { GroupStore } from "../../store/group.store";
-import { StoreModule } from "../../store/store.module";
 import { ReceiptFormComponent } from "./receipt-form.component";
 import { seedStore } from "../../testing/seed-store";
 
@@ -34,8 +32,7 @@ describe("ReceiptFormComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        StoreModule,
-        ReactiveFormsModule,
+                ReactiveFormsModule,
         SharedUiModule,
         UserAutocompleteModule, ReceiptFormComponent,],
     providers: [
@@ -93,8 +90,7 @@ describe("ReceiptFormComponent", () => {
 
   describe("a new receipt (Phase 3 C1/C2)", () => {
     beforeEach(() => {
-      const store = TestBed.inject(Store);
-      seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userId: "5" });
+      seedStore(TestBed.inject(AuthStore), { userId: "5" });
     });
 
     it("is named after today and paid by the user adding it, without asking", () => {
@@ -693,7 +689,6 @@ describe("ReceiptFormComponent", () => {
   // The group's configured default custom fields, applied to the receipt form as
   // a "smart swap" when the group is chosen or changed.
   describe("group seeding on the add form", () => {
-    let store: Store;
 
     const group = (id: number, isAllGroup = false): any => ({
       id,
@@ -706,10 +701,6 @@ describe("ReceiptFormComponent", () => {
       TestBed.inject(GroupStore).setSelectedGroupId(selectedGroupId);
       routeDataSubject.next({ mode: FormMode.add });
     };
-
-    beforeEach(() => {
-      store = TestBed.inject(Store);
-    });
 
     it("seeds the user's only group when the All group is the active one", () => {
       // The All group sorts first server-side, so it is what a fresh
@@ -1005,7 +996,6 @@ describe("ReceiptFormComponent", () => {
   });
 
   describe("creating with files and a note", () => {
-    let store: Store;
     let receiptService: ReceiptService;
     let receiptImageService: ReceiptImageService;
     let snackbarError: MockInstance;
@@ -1030,7 +1020,6 @@ describe("ReceiptFormComponent", () => {
     };
 
     beforeEach(() => {
-      store = TestBed.inject(Store);
       receiptService = TestBed.inject(ReceiptService);
       receiptImageService = TestBed.inject(ReceiptImageService);
       snackbarError = vi.spyOn(TestBed.inject(SnackbarService), "error");

@@ -8,7 +8,6 @@ import { HlmDropdownMenuImports } from "@spartan-ng/helm/dropdown-menu";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { provideRouter, RouterLink } from "@angular/router";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -57,8 +56,7 @@ describe("ShoppingTripsComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([]),
-        HlmButton,
+                HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,
         MoneyComponent,
@@ -120,7 +118,6 @@ describe("ShoppingTripsComponent", () => {
 
   it("refetches when the stream says this list's trips changed, and only then", async () => {
     await render([...LIST_PERMISSIONS, Permission.GroupReceiptsRead]);
-    const store = TestBed.inject(Store);
 
     TestBed.inject(ShoppingListStore).applyEvent({ type: ShoppingListEventType.TripsChanged, groupId: 1, shoppingListId: 2 });
     expect(shoppingListService.getShoppingTrips).toHaveBeenCalledTimes(1);

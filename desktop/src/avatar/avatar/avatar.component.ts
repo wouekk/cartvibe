@@ -1,5 +1,4 @@
 import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { Group, User } from "../../open-api";
 import { UserStore } from "../../store/user.store";
 import { groupColorStyle, isGroupIcon } from "../../constants/group-look";
@@ -46,9 +45,7 @@ export class AvatarComponent {
   /** The household icon follows the circle: a little larger than its letter. */
   public readonly iconClass = computed(() => (this.size() === "md" ? "text-2xl" : this.size() === "sm" ? "text-base" : "text-sm"));
 
-  private readonly store = inject(Store, { optional: true });
-
-  private readonly users = this.userStore.users ?? signal<User[]>([]);
+  private readonly users = this.userStore.users;
 
   public readonly photoUrl = computed(() => {
     const user = this.user();

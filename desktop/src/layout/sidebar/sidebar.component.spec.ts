@@ -11,7 +11,6 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
@@ -21,7 +20,6 @@ import { SidebarComponent } from "./sidebar.component";
 describe("SidebarComponent", () => {
   let component: SidebarComponent;
   let fixture: ComponentFixture<SidebarComponent>;
-  let store: Store;
   let overlayContainer: OverlayContainer;
   const isHandset = signal(false);
 
@@ -52,8 +50,7 @@ describe("SidebarComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, NgxsModule.forRoot([]),
-        NgIcon,
+    imports: [TranslatePipe,         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
         ...HlmTooltipImports,
@@ -68,7 +65,6 @@ describe("SidebarComponent", () => {
     ]
 }).compileComponents();
 
-    store = TestBed.inject(Store);
     overlayContainer = TestBed.inject(OverlayContainer);
     fixture = TestBed.createComponent(SidebarComponent);
     component = fixture.componentInstance;

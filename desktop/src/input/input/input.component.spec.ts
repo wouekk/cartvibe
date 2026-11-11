@@ -7,7 +7,6 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { By } from "@angular/platform-browser";
-import { NgxsModule } from "@ngxs/store";
 import { NgxMaskDirective, provideNgxMask } from "ngx-mask";
 import { PasswordGeneratorService } from "../../services/password-generator.service";
 import { InputComponent } from "./input.component";
@@ -33,7 +32,7 @@ describe("InputComponent", () => {
         ...HlmTooltipImports,
         ReactiveFormsModule,
         NgxMaskDirective,
-        NgxsModule.forRoot([]), InputComponent,],
+InputComponent,],
     providers: [
         provideNgxMask(),
         provideZonelessChangeDetection(),

@@ -2,7 +2,6 @@ import { HttpErrorResponse, provideHttpClient } from "@angular/common/http";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { QUIET_ERRORS } from "../interceptors/http-interceptor";
@@ -52,7 +51,6 @@ const settled = async () => {
 };
 
 describe("ShoppingListSyncService", () => {
-  let store: Store;
   let storage: OfflineStorageService;
   let api: Record<"getShoppingListsForGroup" | "addShoppingListItem" | "setShoppingListItemChecked", Mock>;
   let snackbar: { error: Mock };
@@ -70,7 +68,6 @@ describe("ShoppingListSyncService", () => {
     streamStatus = signal<ShoppingListStreamStatus>("idle");
 
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -82,7 +79,6 @@ describe("ShoppingListSyncService", () => {
       ],
     });
 
-    store = TestBed.inject(Store);
     storage = TestBed.inject(OfflineStorageService);
     // A session: nothing is sent, or put back, for a signed-out browser.
     TestBed.inject(AuthStore).setAuthState({ userId: 7, exp: Math.floor(Date.now() / 1000) + 600 } as never);

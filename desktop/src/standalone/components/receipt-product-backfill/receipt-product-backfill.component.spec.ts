@@ -1,6 +1,5 @@
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ReceiptProductService } from "../../../open-api";
 import { AuthStore } from "../../../store/auth.store";
@@ -24,7 +23,7 @@ describe("ReceiptProductBackfillComponent", () => {
   beforeEach(async () => {
     service = { queueGroupReceiptProducts: vi.fn(() => of({ queued: 4 })) };
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductBackfillComponent, NgxsModule.forRoot([])],
+      imports: [ReceiptProductBackfillComponent],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
     }).compileComponents();
   });

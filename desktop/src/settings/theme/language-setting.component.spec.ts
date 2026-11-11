@@ -2,7 +2,6 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { registerRealLanguages } from "../../i18n/i18n-test-utils";
 import { TranslationService } from "../../i18n/translation.service";
 import { AuthStore } from "../../store/auth.store";
@@ -23,7 +22,7 @@ describe("LanguageSettingComponent", () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [LanguageSettingComponent, NgxsModule.forRoot([])],
+      imports: [LanguageSettingComponent],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
     translation = TestBed.inject(TranslationService);

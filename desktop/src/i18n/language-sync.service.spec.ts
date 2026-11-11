@@ -2,7 +2,6 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgxsModule, Store } from "@ngxs/store";
 import { AuthStore } from "../store/auth.store";
 import { LanguageSyncService } from "./language-sync.service";
 import { TranslationService } from "./translation.service";
@@ -11,7 +10,6 @@ import { seedStore } from "../testing/seed-store";
 describe("LanguageSyncService", () => {
   let service: LanguageSyncService;
   let translation: TranslationService;
-  let store: Store;
   let http: HttpTestingController;
 
   const settle = async () => {
@@ -22,12 +20,10 @@ describe("LanguageSyncService", () => {
   beforeEach(() => {
     localStorage.clear();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
     translation = TestBed.inject(TranslationService);
     translation.setLanguages([...translation.languages(), { code: "pl", label: "Polski", locale: "pl" }]);
-    store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
     service = TestBed.inject(LanguageSyncService);
@@ -37,7 +33,6 @@ describe("LanguageSyncService", () => {
     localStorage.setItem("cartvibe.language", "pl");
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     });
     const fresh = TestBed.inject(TranslationService);
@@ -75,7 +70,7 @@ describe("LanguageSyncService", () => {
     await settle();
     expect(translation.language()).toBe("pl");
 
-    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: undefined });
+    seedStore(TestBed.inject(AuthStore), { userPreferences: undefined });
     await settle();
 
     expect(translation.language()).toBe("en");

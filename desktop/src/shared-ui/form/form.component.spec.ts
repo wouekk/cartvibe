@@ -5,7 +5,6 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
 import { FormMode } from "src/enums/form-mode.enum";
-import { StoreModule } from "../../store/store.module";
 import { SharedUiModule } from "../shared-ui.module";
 import { FormComponent } from "./form.component";
 
@@ -18,8 +17,7 @@ describe("FormComponent", () => {
     imports: [
         ReactiveFormsModule,
         SharedUiModule,
-        StoreModule,
-        FormComponent,
+                FormComponent,
     ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [

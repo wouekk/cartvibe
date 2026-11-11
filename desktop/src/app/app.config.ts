@@ -4,9 +4,6 @@ import { provideServiceWorker } from "@angular/service-worker";
 import { provideHttpClient, withInterceptors, withXhr } from "@angular/common/http";
 import { importProvidersFrom } from "@angular/core";
 import { provideNgxMask } from "ngx-mask";
-import { withNgxsReduxDevtoolsPlugin } from "@ngxs/devtools-plugin";
-import { withNgxsStoragePlugin } from "@ngxs/storage-plugin";
-import { provideStore } from "@ngxs/store";
 import { AppInitService, initAppData } from "src/services";
 import { AppUpdateService } from "../services/app-update.service";
 import { QueuedScanService } from "../services/queued-scan.service";
@@ -18,11 +15,9 @@ import { HlmTooltipImports } from "@spartan-ng/helm/tooltip";
 import { AppRoutingModule } from "./app-routing.module";
 import { LayoutModule } from "../layout/layout.module";
 import { ApiModule, Configuration } from "../open-api";
-import { ngxsStates, ngxsStorageKeys } from "../store/ngxs-states";
 import { LanguageSyncService, TranslationLoader } from "../i18n";
 import { OnboardingService } from "../onboarding/onboarding.service";
 import { DEMO_MODE, demoInterceptors, demoProviders } from "../demo/demo-runtime";
-import { environment } from "src/environments/environment";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -57,16 +52,6 @@ export const appConfig: ApplicationConfig = {
       inject(OnboardingService);
       await inject(TranslationLoader).initialize();
     }),
-    provideStore(
-      ngxsStates,
-      {
-        developmentMode: !environment.isProd,
-        // Selectors are built without `new Function`, which the CSP (no 'unsafe-eval') would block.
-        compatibility: { strictContentSecurityPolicy: true },
-      },
-      withNgxsStoragePlugin({ keys: ngxsStorageKeys }),
-      withNgxsReduxDevtoolsPlugin({ disabled: environment.isProd }),
-    ),
     // The router and the API client come from their modules. Nothing reports their absence at build time: without
     // this block the app starts and shows an empty page (the demo's Playwright suite is what notices).
     importProvidersFrom(
