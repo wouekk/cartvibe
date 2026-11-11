@@ -1,9 +1,8 @@
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy, computed } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { Store } from "@ngxs/store";
 import { of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -31,6 +30,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class TagTableComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly tagTableStore = inject(TagTableStore);
 
   private readonly translation = inject(TranslationService);
@@ -51,9 +52,9 @@ export class TagTableComponent implements OnInit, AfterViewInit {
 
   protected readonly Permission = Permission;
 
-  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppTagsUpdate));
+  private readonly canUpdate = computed(() => this.authStore.hasAppPermission(Permission.AppTagsUpdate));
 
-  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppTagsDelete));
+  private readonly canDelete = computed(() => this.authStore.hasAppPermission(Permission.AppTagsDelete));
 
   /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
   public readonly rowActions: readonly RowAction<PagedDataDataInner>[] = [
@@ -79,7 +80,6 @@ export class TagTableComponent implements OnInit, AfterViewInit {
   constructor(
     private dialog: AppDialog,
     private snackbarService: SnackbarService,
-    private store: Store,
     private tagService: TagService
   ) {}
 

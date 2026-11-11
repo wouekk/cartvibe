@@ -5,8 +5,7 @@ import { provideRouter } from "@angular/router";
 import { NgxsModule } from "@ngxs/store";
 import { Observable, of, Subject, throwError } from "rxjs";
 import { ReceiptService, SortDirection } from "../open-api";
-import { AuthState } from "../store";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store";
 import { Store } from "@ngxs/store";
 import { WarrantiesPageComponent } from "./warranties-page.component";
 
@@ -31,7 +30,7 @@ describe("WarrantiesPageComponent", () => {
   const open = async (response: () => Observable<unknown>, { settle = true } = {}) => {
     getReceiptsForGroup = vi.fn(response);
     await TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([{ path: "warranties/group/:groupId", component: WarrantiesPageComponent }]),
@@ -100,7 +99,7 @@ describe("WarrantiesPageComponent", () => {
     await open(() => of({ data: [receipt(1, "MediaMarkt", ["Headphones", "Cable"])] }));
     expect(byTestId("warranty-menu")).toHaveLength(0);
 
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 1: ["group.receipts.update"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.receipts.update"] });
     await harness.fixture.whenStable();
 
     expect(byTestId("warranty-menu")).toHaveLength(1);

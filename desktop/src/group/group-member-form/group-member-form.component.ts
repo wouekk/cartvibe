@@ -2,7 +2,6 @@ import { Component, DestroyRef, OnInit, computed, effect, inject, signal, Change
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { catchError, of, startWith } from "rxjs";
 import {
   GroupMember,
@@ -11,7 +10,7 @@ import {
   RoleService,
 } from "../../open-api";
 import { openRolePreviewDialog } from "../../roles/role-preview/role-preview-dialog.component";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { buildGroupMemberForm } from "../utils/group-member.utils";
 import { familyRoleOptions, familyUserRole } from "../../utils/family-roles";
 import { DialogComponent } from "../../shared-ui/dialog/dialog.component";
@@ -32,7 +31,9 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
     imports: [DialogComponent, ReactiveFormsModule, UserAutocompleteComponent, SelectComponent, DialogFooterComponent, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class GroupMemberFormComponent implements OnInit {
-  public userId = this.store.selectSignal(AuthState.userId);
+  private readonly authStore = inject(AuthStore);
+
+  public userId = this.authStore.userId;
 
   public headerText: string = "";
 
@@ -70,7 +71,6 @@ export class GroupMemberFormComponent implements OnInit {
 
   constructor(
     private dialogRef: AppDialogRef<GroupMemberFormComponent>,
-    private store: Store,
     private dialog: AppDialog,
     private destroyRef: DestroyRef
   ) {
@@ -108,7 +108,7 @@ export class GroupMemberFormComponent implements OnInit {
   }
 
   private setUsersToOmit(): void {
-    const userId = this.store.selectSnapshot(AuthState.userId);
+    const userId = this.authStore.userId();
     this.usersToOmit = [
       userId.toString(),
       ...this.currentGroupMembers.map((c) => c.userId.toString()),

@@ -6,14 +6,13 @@ import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { catchError, concatMap, EMPTY, filter, Subject, Subscription, switchMap, take, timer } from "rxjs";
 import { Category, Permission, ReceiptProduct, ReceiptProductService, ReceiptProductsView, Tag, UpsertReceiptProductCommand } from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 
 import { FoodTagsComponent } from "../../standalone/components/food-tags/food-tags.component";
 import { HEALTH_CHOICES } from "../../standalone/components/food-tags/food-tags";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { ReceiptReadStreamService } from "../../services/receipt-read-stream.service";
 import { ViewportService } from "../../services/viewport.service";
 import { hasAll } from "../../utils/permission.utils";
@@ -63,6 +62,8 @@ const STATUS_TEXT: { [status: string]: string } = {
   providers: [CurrencyPipe],
 })
 export class ReceiptProductsComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly translation = inject(TranslationService);
 
   public readonly receiptId = input.required<number>();
@@ -151,7 +152,7 @@ export class ReceiptProductsComponent {
   /** How many lines have no amount: what the review asks about before "Looks right". */
   public readonly linesWithoutAmount = computed(() => (this.view()?.products ?? []).filter((product) => !product.amount).length);
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   /** Reading again and correcting tags both need update: they change the group's data. */
   public readonly canUpdate = computed(() =>
@@ -202,7 +203,7 @@ export class ReceiptProductsComponent {
    * What the pickers offer: the group's categories and tags (the ones the caller may use), by name. They
    * follow the store, so one added under Manage shows up without reloading.
    */
-  private readonly catalog = this.store.selectSignal(AuthState.groupCatalog);
+  private readonly catalog = this.authStore.groupCatalog;
 
   public readonly categoryChoices = computed<Category[]>(() => byName(this.catalog().categories[this.groupId()] ?? []));
 
@@ -422,8 +423,7 @@ export class ReceiptProductsComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private receiptProductService: ReceiptProductService,
-    private store: Store
+    private receiptProductService: ReceiptProductService
   ) {
     this.watchLabelSaves();
     effect(() => {

@@ -1,8 +1,7 @@
 import { Component, provideZonelessChangeDetection } from "@angular/core";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { HasAppPermissionDirective } from "./has-app-permission.directive";
 
 @Component({ template: `<span *hasAppPermission="permission" data-testid="gated">gated</span>`, imports: [HasAppPermissionDirective] })
@@ -18,7 +17,7 @@ describe("HasAppPermissionDirective", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([AuthState]), HostComponent, HasAppPermissionDirective],
+    imports: [NgxsModule.forRoot([]), HostComponent, HasAppPermissionDirective],
     providers: [provideZonelessChangeDetection()],
 }).compileComponents();
 
@@ -27,14 +26,14 @@ describe("HasAppPermissionDirective", () => {
   });
 
   it("renders the template when the permission is granted", async () => {
-    store.dispatch(new SetPermissions(["app.users.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.users.read"], {});
     await fixture.whenStable();
 
     expect(gated()).toBeTruthy();
   });
 
   it("does not render when the permission is not granted", async () => {
-    store.dispatch(new SetPermissions(["app.roles.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.roles.read"], {});
     await fixture.whenStable();
 
     expect(gated()).toBeFalsy();
@@ -46,7 +45,7 @@ describe("HasAppPermissionDirective", () => {
     expect(gated()).toBeFalsy();
 
     // Permissions arrive late (e.g. AppData lands post-login).
-    store.dispatch(new SetPermissions(["app.users.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.users.read"], {});
     TestBed.flushEffects();
     await fixture.whenStable();
 
@@ -54,7 +53,7 @@ describe("HasAppPermissionDirective", () => {
   });
 
   it("honors wildcard grants", async () => {
-    store.dispatch(new SetPermissions(["*"], {}));
+    TestBed.inject(AuthStore).setPermissions(["*"], {});
     await fixture.whenStable();
 
     expect(gated()).toBeTruthy();

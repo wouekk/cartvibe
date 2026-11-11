@@ -9,8 +9,7 @@ import { QUIET_ERRORS } from "../interceptors/http-interceptor";
 import { OfflineStorageService } from "../offline/offline-storage.service";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../open-api";
 import { PendingAdd, PendingChange, PendingToggle } from "../shopping-lists/shopping-list-pending";
-import { AuthState } from "../store/auth.state";
-import { Logout, SetAuthState } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { CachedShoppingLists, shoppingListsCacheKey } from "../store/shopping-list.store";
 import { ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "./shopping-list-stream.service";
@@ -71,7 +70,7 @@ describe("ShoppingListSyncService", () => {
     streamStatus = signal<ShoppingListStreamStatus>("idle");
 
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -86,7 +85,7 @@ describe("ShoppingListSyncService", () => {
     store = TestBed.inject(Store);
     storage = TestBed.inject(OfflineStorageService);
     // A session: nothing is sent, or put back, for a signed-out browser.
-    store.dispatch(new SetAuthState({ userId: 7, exp: Math.floor(Date.now() / 1000) + 600 } as never));
+    TestBed.inject(AuthStore).setAuthState({ userId: 7, exp: Math.floor(Date.now() / 1000) + 600 } as never);
   });
 
   afterEach(() => {
@@ -301,7 +300,7 @@ describe("ShoppingListSyncService", () => {
   });
 
   it("leaves an earlier visit's queue alone when nobody is signed in", async () => {
-    store.dispatch(new Logout());
+    TestBed.inject(AuthStore).logout();
     await storage.set(SHOPPING_LIST_OUTBOX_KEY, [crossOff("kept", 2)]);
 
     const service = TestBed.inject(ShoppingListSyncService);
@@ -319,7 +318,7 @@ describe("ShoppingListSyncService", () => {
     await settled();
     await storage.set("quick-scan:1", { files: [] });
 
-    store.dispatch(new Logout());
+    TestBed.inject(AuthStore).logout();
     await settled();
     await new Promise((resolve) => setTimeout(resolve, 300));
 

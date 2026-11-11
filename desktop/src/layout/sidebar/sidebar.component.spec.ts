@@ -15,8 +15,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { ApiModule, FeatureConfig, Group, Permission } from "../../open-api";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, FeatureConfigStore, GroupStore } from "../../store";
-import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
+import { FeatureConfigStore, GroupStore, AuthStore } from "../../store";
 import { SidebarComponent } from "./sidebar.component";
 
 describe("SidebarComponent", () => {
@@ -27,9 +26,7 @@ describe("SidebarComponent", () => {
   const isHandset = signal(false);
 
   const login = () =>
-    store.dispatch(
-      new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any)
-    );
+    TestBed.inject(AuthStore).setAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any);
 
   const queryTestId = (id: string) =>
     fixture.debugElement.query(By.css(`[data-testid="${id}"]`));
@@ -47,7 +44,7 @@ describe("SidebarComponent", () => {
 
   const selectGroupFive = (permissions: string[]) => {
     TestBed.inject(GroupStore).setSelectedGroupId("5");
-    store.dispatch(new SetPermissions([], { 5: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 5: permissions });
   };
 
   beforeEach(async () => {
@@ -55,7 +52,7 @@ describe("SidebarComponent", () => {
 
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [TranslatePipe, NgxsModule.forRoot([AuthState]),
+    imports: [TranslatePipe, NgxsModule.forRoot([]),
         NgIcon,
         ...HlmCollapsibleImports,
         ...HlmDropdownMenuImports,
@@ -125,11 +122,11 @@ describe("SidebarComponent", () => {
 
     it("offers Shopping Lists for a readable real group even while the All group is selected", async () => {
       TestBed.inject(GroupStore).setSelectedGroupId("10");
-      store.dispatch(new SetPermissions([], { 10: [Permission.GroupShoppingListsRead] }));
+      TestBed.inject(AuthStore).setPermissions([], { 10: [Permission.GroupShoppingListsRead] });
       await fixture.whenStable();
       expect(queryTestId("nav-shopping-lists")).toBeFalsy();
 
-      store.dispatch(new SetPermissions([], { 5: [Permission.GroupShoppingListsRead] }));
+      TestBed.inject(AuthStore).setPermissions([], { 5: [Permission.GroupShoppingListsRead] });
       await fixture.whenStable();
       expect(queryTestId("nav-shopping-lists").nativeElement.getAttribute("href")).toBe("/shopping-lists/group/5");
     });
@@ -158,7 +155,7 @@ describe("SidebarComponent", () => {
       await fixture.whenStable();
       expect(queryTestId("nav-reports")).toBeFalsy();
 
-      store.dispatch(new SetPermissions([Permission.AppReportsReadAll], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReportsReadAll], {});
       await fixture.whenStable();
       expect(queryTestId("nav-reports")).toBeTruthy();
     });
@@ -181,18 +178,14 @@ describe("SidebarComponent", () => {
 
     it("gives a family User their catalogues, User Settings, the AI, Theme and Language, in that order", async () => {
       login();
-      store.dispatch(
-        new SetPermissions(
-          [
+      TestBed.inject(AuthStore).setPermissions([
             "app.account.read",
             "app.user-preferences.read",
             "app.categories.read",
             "app.tags.read",
             "app.receipt-processing-settings.update",
           ],
-          {}
-        )
-      );
+          {});
       await fixture.whenStable();
 
       expect(itemIds()).toEqual(["nav-management", "nav-user-settings", "nav-ai", "nav-theme", "nav-language"]);
@@ -200,9 +193,7 @@ describe("SidebarComponent", () => {
 
     it("puts System Settings first, then Management, User Settings, AI, Theme and Language", async () => {
       login();
-      store.dispatch(
-        new SetPermissions(
-          [
+      TestBed.inject(AuthStore).setPermissions([
             "app.account.read",
             "app.categories.read",
             "app.tags.read",
@@ -211,9 +202,7 @@ describe("SidebarComponent", () => {
             "app.users.read",
             "app.system-settings.read",
           ],
-          {}
-        )
-      );
+          {});
       await fixture.whenStable();
 
       expect(itemIds()).toEqual([
@@ -233,12 +222,8 @@ describe("SidebarComponent", () => {
           { id: 5, name: "Home", isAllGroup: false } as Group,
           { id: 6, name: "Cabin", isAllGroup: false } as Group,
         ]);
-      store.dispatch(
-        new SetPermissions(
-          ["app.categories.read", "app.tags.read", "app.groups.read"],
-          {}
-        )
-      );
+      TestBed.inject(AuthStore).setPermissions(["app.categories.read", "app.tags.read", "app.groups.read"],
+          {});
       await fixture.whenStable();
       const items = () => queryTestId("sidebar-manage-items").nativeElement.closest("[data-slot=collapsible-content]");
       expect(items().getAttribute("data-state")).toBe("closed");
@@ -254,7 +239,7 @@ describe("SidebarComponent", () => {
 
     it("points Management at the first tab the user may read", async () => {
       login();
-      store.dispatch(new SetPermissions(["app.users.read", "app.groups.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.users.read", "app.groups.read"], {});
       await fixture.whenStable();
 
       expect(queryTestId("nav-management").nativeElement.getAttribute("href")).toBe("/users");
@@ -264,16 +249,12 @@ describe("SidebarComponent", () => {
 
     it("shows the AI page but not System Settings to a member holding the receipt-processing permissions", async () => {
       login();
-      store.dispatch(
-        new SetPermissions(
-          [
+      TestBed.inject(AuthStore).setPermissions([
             "app.categories.read",
             "app.receipt-processing-settings.read",
             "app.receipt-processing-settings.update",
           ],
-          {}
-        )
-      );
+          {});
       await fixture.whenStable();
       queryTestId("sidebar-manage-toggle").nativeElement.click();
       await fixture.whenStable();
@@ -289,7 +270,7 @@ describe("SidebarComponent", () => {
           { id: 10, name: "All", isAllGroup: true } as Group,
           { id: 5, name: "Household", isAllGroup: false } as Group,
         ]);
-      store.dispatch(new SetPermissions(["app.categories.read", "app.groups.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.categories.read", "app.groups.read"], {});
       await fixture.whenStable();
 
       queryTestId("sidebar-manage-toggle").nativeElement.click();
@@ -304,7 +285,7 @@ describe("SidebarComponent", () => {
       const router = TestBed.inject(Router);
       router.resetConfig([{ path: "categories", children: [] }]);
       login();
-      store.dispatch(new SetPermissions(["app.categories.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.categories.read"], {});
 
       await router.navigateByUrl("/categories");
       await fixture.whenStable();
@@ -316,7 +297,7 @@ describe("SidebarComponent", () => {
   describe("account menu", () => {
     it("holds only About and Logout: settings and language moved under Settings", async () => {
       login();
-      store.dispatch(new SetPermissions(["app.account.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.account.read"], {});
       const menu = await openMenu("sidebar-avatar-menu");
 
       expect(menu.textContent).toContain("About");

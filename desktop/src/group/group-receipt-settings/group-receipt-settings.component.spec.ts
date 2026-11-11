@@ -10,7 +10,7 @@ import { FormMode } from "../../enums/form-mode.enum";
 import { GroupsService, Permission, QuickScanDefaultPaidByType, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { StoreModule } from "../../store/store.module";
 import { GroupReceiptSettingsComponent } from "./group-receipt-settings.component";
 
@@ -68,7 +68,7 @@ describe("GroupReceiptSettingsComponent", () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     // Permissions must land before the first change-detection pass: ngOnInit reads them once.
-    TestBed.inject(Store).dispatch(new SetPermissions(options.appPermissions ?? [], {}));
+    TestBed.inject(AuthStore).setPermissions(options.appPermissions ?? [], {});
     fixture = TestBed.createComponent(GroupReceiptSettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

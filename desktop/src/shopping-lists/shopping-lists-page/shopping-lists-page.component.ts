@@ -14,7 +14,6 @@ import {
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { concatMap, filter, from, map, switchMap, take, tap, toArray } from "rxjs";
 import { Permission, ShoppingList, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -25,7 +24,7 @@ import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState, GroupStore } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { nameForToday } from "../../utils/app-time-zone";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { ShoppingListEventType } from "../../store/shopping-list.store";
@@ -84,6 +83,8 @@ const WAITING_TO_BE_SENT = marker("Waiting to be sent: {count}");
     ],
 })
 export class ShoppingListsPageComponent implements OnInit, OnDestroy {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly shoppingListStore = inject(ShoppingListStore);
@@ -112,7 +113,7 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
     () => this.groups().find((group) => group.id === this.groupId())?.name ?? ""
   );
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   private readonly permissions = computed(() => this.groupPermissions()[this.groupId()] ?? []);
 
@@ -265,7 +266,6 @@ export class ShoppingListsPageComponent implements OnInit, OnDestroy {
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private store: Store,
     private dialog: AppDialog,
     private shoppingListService: ShoppingListService,
     private shoppingListStreamService: ShoppingListStreamService,

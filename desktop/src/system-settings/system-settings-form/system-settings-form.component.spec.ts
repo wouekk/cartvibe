@@ -14,7 +14,6 @@ import { CurrencySeparator, CurrencySymbolPosition, FeatureConfigService, ShopLo
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import { SnackbarService } from "../../services";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState } from "../../store/auth.state";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 
 import { SystemSettingsFormComponent } from "./system-settings-form.component";
@@ -33,7 +32,7 @@ describe("SystemSettingsFormComponent", () => {
     imports: [AutocompleteModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule,
         SharedUiModule, SystemSettingsFormComponent, CustomCurrencyPipe],
     providers: [

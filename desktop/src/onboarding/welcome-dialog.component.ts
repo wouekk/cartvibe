@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { firstValueFrom, map, Observable, of, switchMap, tap } from "rxjs";
 import { AppDialogRef } from "../dialog/app-dialog";
@@ -11,8 +10,7 @@ import { CartVibeIconComponent } from "../shared-ui/cartvibe-icon/cartvibe-icon.
 import { FilterTab } from "../shared-ui/filter-bar/filter-tab.interface";
 import { SharedUiModule } from "../shared-ui/shared-ui.module";
 import { CURRENCY_PRESETS, CurrencyPreset, matchCurrencyPreset } from "../system-settings/system-settings-form/currency-presets";
-import { AuthState } from "../store/auth.state";
-import { SetUserPreferences } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { SystemSettingsStore } from "../store/system-settings.store";
 import { ThemeService } from "../theme/theme.service";
 import { MODE_OPTIONS, PALETTES, ThemeMode } from "../theme/themes";
@@ -65,17 +63,18 @@ const CURRENCY_SHORT: Record<string, string> = { EUR: "EUR €", PLN: "PLN zł",
   `,
 })
 export class WelcomeDialogComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly dialogRef = inject(AppDialogRef);
-  private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
   private readonly loader = inject(TranslationLoader);
   private readonly userPreferencesService = inject(UserPreferencesService);
   private readonly systemSettingsService = inject(SystemSettingsService);
   protected readonly theme = inject(ThemeService);
 
-  protected readonly canSetCurrency = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
+  protected readonly canSetCurrency = computed(() => this.authStore.hasAppPermission(Permission.AppSystemSettingsUpdate));
 
   protected readonly language = signal<string>(this.translation.language());
 
@@ -134,7 +133,7 @@ export class WelcomeDialogComponent {
     this.saving.set(true);
     try {
       await firstValueFrom(this.saveCurrency());
-      const preferences = this.store.selectSnapshot(AuthState.userPreferences);
+      const preferences = this.authStore.userPreferences();
       const saved = await firstValueFrom(
         this.userPreferencesService.updateUserPreferences({
           ...(preferences ?? {}),
@@ -142,7 +141,7 @@ export class WelcomeDialogComponent {
           onboardingPending: false,
         } as UserPreferences)
       );
-      this.store.dispatch(new SetUserPreferences(saved));
+      this.authStore.setUserPreferences(saved);
       this.dialogRef.close(true);
     } catch {
       // The interceptor has said what went wrong; the welcome stays open to try again.

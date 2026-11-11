@@ -2,7 +2,6 @@ import { Component, DestroyRef, OnInit, inject, ChangeDetectionStrategy } from "
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder } from "@angular/forms";
 import { ActivatedRoute } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { switchMap, take, tap } from "rxjs";
 import { FormMode } from "../../enums/form-mode.enum";
 import { BaseFormComponent, setRequired } from "../../form/index";
@@ -14,7 +13,7 @@ import {
   UpdateGroupReceiptSettingsCommand,
 } from "../../open-api/index";
 import { SnackbarService } from "../../services/index";
-import { AuthState, GroupStore } from "../../store/index";
+import { GroupStore, AuthStore } from "../../store/index";
 import { marker } from "../../i18n/marker";
 import { FormComponent } from "../../shared-ui/form/form.component";
 import { AuditDetailSectionComponent } from "../../shared-ui/audit-detail-section/audit-detail-section.component";
@@ -39,6 +38,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [FormComponent, AuditDetailSectionComponent, FormSectionComponent, CheckboxComponent, SelectComponent, UserAutocompleteComponent, StatusSelectComponent, TranslatePipe, FormGetPipe]
 })
 export class GroupReceiptSettingsComponent extends BaseFormComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   public originalGroup!: Group;
@@ -59,8 +60,7 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
     private activatedRoute: ActivatedRoute,
     private formBuilder: FormBuilder,
     private groupsService: GroupsService,
-    private snackbarService: SnackbarService,
-    private store: Store,
+    private snackbarService: SnackbarService
   ) {
     super();
   }
@@ -78,9 +78,7 @@ export class GroupReceiptSettingsComponent extends BaseFormComponent implements 
   public ngOnInit(): void {
     this.setFormConfigFromRoute(this.activatedRoute);
     this.setOriginalGroup();
-    this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate])
-    );
+    this.canEdit = this.authStore.hasGroupPermission(this.originalGroup.id, Permission.GroupUpdate, [Permission.AppGroupsUpdate]);
     // Always editable for anyone who may update (Save in the card footer), like the other settings pages.
     if (this.formConfig.mode === FormMode.view && this.canEdit) {
       this.formConfig = { ...this.formConfig, mode: FormMode.edit };

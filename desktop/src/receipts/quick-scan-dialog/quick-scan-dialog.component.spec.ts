@@ -15,11 +15,11 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScanService } from "../../services/queued-scan.service";
-import { AuthState } from "../../store";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { seedStore } from "../../testing/seed-store";
 import { GroupStore } from "../../store/group.store";
+import { AuthStore } from "../../store/auth.store";
 
 describe("QuickScanDialogComponent", () => {
   let component: QuickScanDialogComponent;
@@ -32,7 +32,7 @@ describe("QuickScanDialogComponent", () => {
     TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule,
         SharedUiModule, QuickScanDialogComponent],
     providers: [
@@ -66,10 +66,7 @@ describe("QuickScanDialogComponent", () => {
 
   /** One household, id 2, with the given receipt settings; `auth` is the signed-in person's slice. */
   const seedHousehold = (settings: Record<string, unknown> = {}, auth: Record<string, unknown> = {}) => {
-    store.reset({
-      ...store.snapshot(),
-      auth,
-    });
+    seedStore(TestBed.inject(AuthStore), auth);
     seedStore(TestBed.inject(GroupStore), {
       groups: [{ id: 2, name: "Home", isAllGroup: false, groupReceiptSettings: settings }],
       selectedGroupId: "",
@@ -77,10 +74,7 @@ describe("QuickScanDialogComponent", () => {
   };
 
   const twoHouseholds = (auth: Record<string, unknown> = {}, secondSettings: Record<string, unknown> = {}) => {
-    store.reset({
-      ...store.snapshot(),
-      auth,
-    });
+    seedStore(TestBed.inject(AuthStore), auth);
     seedStore(TestBed.inject(GroupStore), {
       groups: [
         { id: 7, name: "My Receipts", isAllGroup: false, groupReceiptSettings: { quickScanNoteEnabled: true } },
@@ -144,9 +138,7 @@ describe("QuickScanDialogComponent", () => {
     });
 
     it("is the person's only household, without the All group counting as a second", () => {
-      store.reset({
-        auth: {},
-      });
+      seedStore(TestBed.inject(AuthStore), {});
       seedStore(TestBed.inject(GroupStore), {
         groups: [
           { id: 1, name: "All Groups", isAllGroup: true },

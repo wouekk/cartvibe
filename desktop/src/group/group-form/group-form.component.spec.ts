@@ -14,8 +14,7 @@ import { UserAutocompleteModule } from "src/user-autocomplete/user-autocomplete.
 import { CheckboxModule } from "../../checkbox/checkbox.module";
 import { InputModule } from "../../input";
 import { ApiModule, Group, GroupsService, GroupStatus, Permission } from "../../open-api";
-import { AuthState, GroupStore } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { GroupStore, AuthStore } from "../../store";
 import { AppInitService } from "../../services";
 import { GroupMemberFormComponent } from "../group-member-form/group-member-form.component";
 import { buildGroupMemberForm } from "../utils/group-member.utils";
@@ -31,7 +30,7 @@ describe("GroupFormComponent", () => {
     imports: [ApiModule,
         CheckboxModule,
         InputModule,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule,
         SelectModule,
         SharedUiModule,
@@ -393,7 +392,7 @@ describe("GroupFormComponent", () => {
   });
 
   it("hides member controls in edit mode without group.members.* permissions", () => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, groupMembers: [] },
@@ -408,15 +407,13 @@ describe("GroupFormComponent", () => {
   });
 
   it("shows member controls in edit mode for holders of group.members.*", () => {
-    TestBed.inject(Store).dispatch(
-      new SetPermissions([], {
+    TestBed.inject(AuthStore).setPermissions([], {
         1: [
           Permission.GroupMembersCreate,
           Permission.GroupMembersUpdate,
           Permission.GroupMembersDelete,
         ],
-      })
-    );
+      });
     const route = TestBed.inject(ActivatedRoute);
     route.snapshot.data = {
       group: { id: 1, name: "test", status: GroupStatus.Active, groupMembers: [] },

@@ -5,7 +5,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { ApiModule, AuthService, Claims } from "../open-api";
-import { AuthState, Logout, SetAuthState } from "../store";
+import { AuthStore } from "../store";
 import { TokenRefreshService } from "./token-refresh.service";
 import { HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -28,7 +28,7 @@ describe("TokenRefreshService", () => {
     TestBed.configureTestingModule({
       imports: [
         ApiModule,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         RouterTestingModule,
       ],
       providers: [
@@ -64,12 +64,11 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         of(mockClaims as any)
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
 
       service.refreshToken().subscribe(() => {
-        expect(dispatchSpy).toHaveBeenCalledWith(
-          new SetAuthState(mockClaims)
-        );
+        expect(setAuthState).toHaveBeenCalledWith(mockClaims);
         done();
       });
     }));
@@ -79,13 +78,14 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => error)
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
       const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
       service.refreshToken().subscribe({
         error: (err) => {
-          expect(dispatchSpy).toHaveBeenCalledWith(new Logout());
+          expect(logout).toHaveBeenCalled();
           expect(clearSpy).toHaveBeenCalled();
           expect(navigateSpy).toHaveBeenCalledWith(["/auth/login"]);
           expect(err).toBe(error);
@@ -103,7 +103,6 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => new HttpErrorResponse({ status: 401 }))
       );
-      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
       vi.spyOn(router, "navigate").mockResolvedValue(true);
 
       service.refreshToken().subscribe({ error: () => {} });
@@ -123,7 +122,8 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => error)
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
       const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
@@ -131,7 +131,7 @@ describe("TokenRefreshService", () => {
       service.refreshToken().subscribe({ error: (err) => errors.push(err) });
 
       expect(errors).toEqual([error]);
-      expect(dispatchSpy.mock.calls.some(([action]) => action instanceof Logout)).toBe(false);
+      expect(logout.mock.calls.length > 0).toBe(false);
       expect(clearSpy).not.toHaveBeenCalled();
       expect(navigateSpy).not.toHaveBeenCalled();
       expect(localStorage.getItem("cartvibe.themeMode")).toBe("dark");
@@ -168,7 +168,8 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
 
       service.refreshToken().subscribe();
       service.refreshToken().subscribe();
@@ -176,9 +177,7 @@ describe("TokenRefreshService", () => {
       subject.next(mockClaims);
       subject.complete();
 
-      const setAuthCalls = dispatchSpy.mock.calls.filter(
-        ([action]) => action instanceof SetAuthState
-      );
+      const setAuthCalls = setAuthState.mock.calls;
       expect(setAuthCalls.length).toBe(1);
     });
 
@@ -198,7 +197,6 @@ describe("TokenRefreshService", () => {
 
     it("should reset in-flight state after error allowing new requests", () => {
       const spy = vi.spyOn(authService, "getNewRefreshToken");
-      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
       vi.spyOn(router, "navigate").mockResolvedValue(true);
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
@@ -220,7 +218,6 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
       vi.spyOn(router, "navigate").mockResolvedValue(true);
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
@@ -243,7 +240,8 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         subject.asObservable()
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       vi.spyOn(router, "navigate").mockResolvedValue(true);
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
@@ -252,9 +250,7 @@ describe("TokenRefreshService", () => {
 
       subject.error(new HttpErrorResponse({ status: 401 }));
 
-      const logoutCalls = dispatchSpy.mock.calls.filter(
-        ([action]) => action instanceof Logout
-      );
+      const logoutCalls = logout.mock.calls;
       expect(logoutCalls.length).toBe(1);
 
       clearSpy.mockRestore();
@@ -264,15 +260,14 @@ describe("TokenRefreshService", () => {
       vi.spyOn(authService, "getNewRefreshToken").mockReturnValue(
         throwError(() => new Error("fail"))
       );
-      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       vi.spyOn(router, "navigate").mockResolvedValue(true);
       const clearSpy = vi.spyOn(Storage.prototype, "clear");
 
       service.refreshToken().subscribe({ error: () => {} });
 
-      const setAuthCalls = dispatchSpy.mock.calls.filter(
-        ([action]) => action instanceof SetAuthState
-      );
+      const setAuthCalls = setAuthState.mock.calls;
       expect(setAuthCalls.length).toBe(0);
 
       clearSpy.mockRestore();
@@ -287,10 +282,7 @@ describe("TokenRefreshService", () => {
       );
 
       service.refreshToken().subscribe(() => {
-        const expirationDate = store.selectSnapshot(
-          (state) => state.auth.expirationDate
-        );
-        expect(expirationDate).toBe(futureExp.toString());
+        expect(TestBed.inject(AuthStore).state().expirationDate).toBe(futureExp.toString());
         done();
       });
     }));

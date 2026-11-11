@@ -12,8 +12,7 @@ import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 
@@ -28,7 +27,7 @@ describe("ReceiptsTableComponent", () => {
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule,
         ...HlmTooltipImports,
         ReceiptsTableComponent],
@@ -67,14 +66,12 @@ describe("ReceiptsTableComponent", () => {
   });
 
   it("gates each header action on its own group permission", () => {
-    store.dispatch(
-      new SetPermissions([], {
+    TestBed.inject(AuthStore).setPermissions([], {
         5: [
           Permission.GroupReceiptsCreate,
           Permission.GroupReceiptsQuickScan,
         ],
-      })
-    );
+      });
     component.groupId = "5";
 
     (component as any).setCanEdit();
@@ -86,9 +83,7 @@ describe("ReceiptsTableComponent", () => {
   });
 
   it("keeps canEdit tied to group.receipts.update only", () => {
-    store.dispatch(
-      new SetPermissions([], { 5: [Permission.GroupReceiptsUpdate] })
-    );
+    TestBed.inject(AuthStore).setPermissions([], { 5: [Permission.GroupReceiptsUpdate] });
     component.groupId = "5";
 
     (component as any).setCanEdit();
@@ -103,12 +98,10 @@ describe("ReceiptsTableComponent", () => {
       component.rowActions.filter((action) => !action.visible || action.visible(row as Receipt)).map((action) => action.key);
 
     it("lists the same actions as the row's buttons, each behind the receipt's own household's permission", () => {
-      store.dispatch(
-        new SetPermissions([], {
+      TestBed.inject(AuthStore).setPermissions([], {
           5: [Permission.GroupReceiptsUpdate, Permission.GroupReceiptsDuplicate, Permission.GroupReceiptsDelete],
           6: [Permission.GroupReceiptsDuplicate],
-        })
-      );
+        });
 
       expect(shown({ id: 1, groupId: 5, status: ReceiptStatus.Open })).toEqual(["edit", "done", "read", "duplicate", "delete"]);
       // A settled receipt needs no check mark.

@@ -3,7 +3,6 @@ import {Component, computed, inject, OnInit, signal, ChangeDetectionStrategy} fr
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import { AppDialog, AppDialogConfig } from "../../dialog/app-dialog";
 import {ActivatedRoute, Router} from "@angular/router";
-import {Store} from "@ngxs/store";
 import {catchError, filter, Observable, of, switchMap, take, tap} from "rxjs";
 import {DEFAULT_DIALOG_CONFIG} from "src/constants/dialog.constant";
 import {FormMode} from "src/enums/form-mode.enum";
@@ -20,7 +19,7 @@ import {
 } from "../../open-api";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import {ClaimsService, SnackbarService, TokenRefreshService} from "../../services";
-import { AuthState, Logout, FeatureConfigStore, UserStore } from "../../store";
+import { AuthStore, FeatureConfigStore, UserStore } from "../../store";
 import { TranslationService } from "../../i18n/translation.service";
 import { buildOidcLinkUrl, oidcErrorMessage } from "../../utils/oidc";
 import {
@@ -62,6 +61,8 @@ const AVATAR_SWATCHES: readonly ColorSwatch[] = GROUP_COLORS.map((color) => ({
     imports: [AvatarPhotoComponent, FormComponent, FormSectionComponent, InputComponent, BrnTooltip, HlmTooltip, ColorSwatchesComponent, SettingsSectionComponent, BrnButton, HlmButton, AppIconComponent, HasAppPermissionDirective, TranslatePipe, FormGetPipe, InputReadonlyPipe]
 })
 export class UserProfileComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly userStore = inject(UserStore);
 
   private readonly featureConfigStore = inject(FeatureConfigStore);
@@ -80,9 +81,7 @@ export class UserProfileComponent implements OnInit {
 
   protected readonly Permission = Permission;
 
-  protected readonly canEdit = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppAccountUpdate)
-  );
+  protected readonly canEdit = computed(() => this.authStore.hasAppPermission(Permission.AppAccountUpdate));
 
   /**
    * The identity providers connected to this account, loaded on init: the Sign-in methods card lists them, and they
@@ -118,15 +117,14 @@ export class UserProfileComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
     private oidcService: OidcService,
     private tokenRefreshService: TokenRefreshService,
-    private userService: UserService,
+    private userService: UserService
   ) {
   }
 
   public ngOnInit(): void {
-    this.user = this.store.selectSnapshot(AuthState.loggedInUser);
+    this.user = this.authStore.loggedInUser();
     this.formConfig = this.editableConfig(this.route?.snapshot?.data?.["formConfig"], this.canEdit());
     this.initForm();
     this.loadConnections();
@@ -330,9 +328,7 @@ export class UserProfileComponent implements OnInit {
           switchMap(() => this.tokenRefreshService.refreshToken()),
           switchMap(() => this.claimsService.getAndSetClaimsForLoggedInUser()),
           tap(() => {
-            const loggedInUser = this.store.selectSnapshot(
-              AuthState.loggedInUser
-            );
+            const loggedInUser = this.authStore.loggedInUser();
             this.userStore.updateUser(loggedInUser.id.toString(), loggedInUser);
           }),
           tap(() => {
@@ -408,7 +404,7 @@ export class UserProfileComponent implements OnInit {
 
   /**
    * Ends every session of this account (each browser, each connected assistant) after a confirmation, then signs
-   * this browser out like Logout does. The server cannot be skipped here: without its answer the other devices
+   * this browser out like signing out does. The server cannot be skipped here: without its answer the other devices
    * would stay signed in, so a failure leaves this browser signed in too (the interceptor says what went wrong).
    */
   public signOutEverywhere(): void {
@@ -426,7 +422,7 @@ export class UserProfileComponent implements OnInit {
         filter((confirmed) => !!confirmed),
         tap(() => this.signingOutEverywhere.set(true)),
         switchMap(() => this.authService.signOutEverywhere()),
-        switchMap(() => this.store.dispatch(new Logout())),
+        tap(() => this.authStore.logout()),
       )
       .subscribe({
         next: () => {
@@ -439,7 +435,7 @@ export class UserProfileComponent implements OnInit {
 
   private deleteAccountAndSignOut(command: DeleteAccountCommand): Observable<void> {
     return this.userService.deleteAccount(command).pipe(
-      switchMap(() => this.store.dispatch(new Logout())),
+      tap(() => this.authStore.logout()),
       tap(() => {
         this.snackbarService.success(
           "Your account has been successfully deleted"

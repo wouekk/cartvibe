@@ -2,7 +2,6 @@ import { Component, DestroyRef, Input, OnInit, computed, effect, inject, signal,
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog, AppDialogRef } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { catchError, defer, iif, of, startWith, switchMap, take, tap, } from "rxjs";
 import { UserValidators } from "src/validators/user-validators";
 import { FormMode } from "src/enums/form-mode.enum";
@@ -19,7 +18,7 @@ import { SnackbarService, TokenRefreshService } from "../../services";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { AuthState, UserStore } from "../../store";
+import { UserStore, AuthStore } from "../../store";
 import { FormSectionComponent } from "../../shared-ui/form-section/form-section.component";
 import { InputComponent } from "../../input/input/input.component";
 import { NgIf } from "@angular/common";
@@ -39,6 +38,8 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     imports: [ReactiveFormsModule, FormSectionComponent, InputComponent, NgIf, SelectComponent, CheckboxComponent, CancelButtonComponent, SubmitButtonComponent, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]
 })
 export class UserFormComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly userStore = inject(UserStore);
 
   @Input() public user?: User;
@@ -54,7 +55,6 @@ export class UserFormComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private snackbarService: SnackbarService,
-    private store: Store,
     private tokenRefreshService: TokenRefreshService,
     private userService: UserService,
     private userValidators: UserValidators,
@@ -191,7 +191,7 @@ export class UserFormComponent implements OnInit {
           switchMap(() =>
             iif(
               () =>
-                this.store.selectSnapshot(AuthState.loggedInUser).id ===
+                this.authStore.loggedInUser().id ===
                 this.user?.id,
               defer(() => this.tokenRefreshService.refreshToken()),
               of(undefined)

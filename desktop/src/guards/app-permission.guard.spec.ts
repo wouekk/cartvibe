@@ -2,8 +2,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { GroupStore } from "../store/group.store";
 import { appPermissionGuard } from "./app-permission.guard";
 
@@ -16,7 +15,7 @@ describe("appPermissionGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection()],
     });
 
@@ -30,7 +29,7 @@ describe("appPermissionGuard", () => {
     ({ data: { appPermissions } }) as unknown as ActivatedRouteSnapshot;
 
   it("allows when the user holds any required app permission", () => {
-    store.dispatch(new SetPermissions(["app.users.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.users.read"], {});
 
     const result = executeGuard(route(["app.users.read"]), {} as any);
 
@@ -39,7 +38,7 @@ describe("appPermissionGuard", () => {
   });
 
   it("denies and redirects to the dashboard when the user lacks the permission", () => {
-    store.dispatch(new SetPermissions(["app.roles.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.roles.read"], {});
 
     const result = executeGuard(route(["app.users.read"]), {} as any);
 
@@ -50,7 +49,7 @@ describe("appPermissionGuard", () => {
   });
 
   it("denies when no permissions are required (deny by default)", () => {
-    store.dispatch(new SetPermissions(["app.users.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.users.read"], {});
 
     const result = executeGuard(route([]), {} as any);
 

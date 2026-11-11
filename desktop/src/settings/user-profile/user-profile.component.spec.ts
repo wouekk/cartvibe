@@ -10,8 +10,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { firstValueFrom, of, throwError } from "rxjs";
 import { ApiModule, AuthService, OidcConnectionView, OidcService, Permission, UserService } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
-import { AuthState, Logout, FeatureConfigStore, UserStore } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore, FeatureConfigStore, UserStore } from "../../store";
 import { buildOidcDeleteConfirmationUrl, UserProfileComponent } from "./user-profile.component";
 import { DeleteAccountDialogComponent } from "../delete-account-dialog/delete-account-dialog.component";
 import { seedStore } from "../../testing/seed-store";
@@ -36,7 +35,7 @@ describe("UserProfileComponent", () => {
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [ApiModule,
         ColorSwatchesComponent,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule, UserProfileComponent],
     providers: [
         {
@@ -58,7 +57,7 @@ describe("UserProfileComponent", () => {
 
   it("hides the delete-account danger zone without app.account.delete", async () => {
     const store = TestBed.inject(Store);
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -68,7 +67,7 @@ describe("UserProfileComponent", () => {
 
   it("shows the delete-account danger zone with app.account.delete", async () => {
     const store = TestBed.inject(Store);
-    store.dispatch(new SetPermissions([Permission.AppAccountDelete], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppAccountDelete], {});
 
     fixture.detectChanges();
     await fixture.whenStable();
@@ -80,21 +79,19 @@ describe("UserProfileComponent", () => {
   it("gates the edit button on app.account.update", () => {
     const store = TestBed.inject(Store);
 
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     expect((component as any).canEdit()).toEqual(false);
 
-    store.dispatch(new SetPermissions([Permission.AppAccountUpdate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppAccountUpdate], {});
     expect((component as any).canEdit()).toEqual(true);
   });
 
   it("should init form correctly", () => {
     const store = TestBed.inject(Store);
-    store.reset({
-      auth: {
-        username: "cheetos",
-        displayname: "burger",
-        defaultAvatarColor: "#CD5C5C",
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      username: "cheetos",
+      displayname: "burger",
+      defaultAvatarColor: "#CD5C5C",
     });
 
     component.ngOnInit();
@@ -122,13 +119,11 @@ describe("UserProfileComponent", () => {
     serviceSpy.mockReturnValue(of(undefined) as any);
     authSpy.mockReturnValue(of(undefined as any));
 
-    store.reset({
-      auth: {
-        userId: "1",
-        username: "cheetos",
-        displayname: "burger",
-        defaultAvatarColor: "#CD5C5C",
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      userId: "1",
+      username: "cheetos",
+      displayname: "burger",
+      defaultAvatarColor: "#CD5C5C",
     });
     seedStore(TestBed.inject(UserStore), { users: [{ id: 1, displayName: "cheetos", username: "burger" }] });
 
@@ -140,7 +135,7 @@ describe("UserProfileComponent", () => {
 
     component.submit();
 
-    const updatedUser = store.selectSnapshot(AuthState.loggedInUser);
+    const updatedUser = TestBed.inject(AuthStore).loggedInUser();
     const updatedUsers = TestBed.inject(UserStore).users();
 
     expect(serviceSpy).toHaveBeenCalledWith({
@@ -153,7 +148,7 @@ describe("UserProfileComponent", () => {
 
   describe("avatar colour", () => {
     const signInWithColour = (defaultAvatarColor: string) => {
-      TestBed.inject(Store).reset({ auth: { username: "alex", displayname: "Alex", defaultAvatarColor } });
+      seedStore(TestBed.inject(AuthStore), { username: "alex", displayname: "Alex", defaultAvatarColor });
       component.ngOnInit();
     };
 
@@ -216,13 +211,14 @@ describe("UserProfileComponent", () => {
 
     vi.spyOn(dialog, "open").mockReturnValue(dialogRefMock);
     const deleteAccountSpy = vi.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
-    const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+    const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+    const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
     const navigateSpy = vi.spyOn(router, "navigate").mockResolvedValue(true);
 
     component.deleteAccount();
 
     expect(deleteAccountSpy).toHaveBeenCalledWith({ password: "userpassword" });
-    expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Logout));
+    expect(logout).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(["/"]);
   });
 
@@ -243,7 +239,8 @@ describe("UserProfileComponent", () => {
     it("asks first, then ends every session on the server and signs this browser out", () => {
       const dialog = confirmWith(true);
       const signOut = vi.spyOn(TestBed.inject(AuthService), "signOutEverywhere").mockReturnValue(of(undefined) as any);
-      const dispatch = vi.spyOn(TestBed.inject(Store), "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
       component.signOutEverywhere();
@@ -251,7 +248,7 @@ describe("UserProfileComponent", () => {
       expect(dialog["headerText"]).toBe("Sign out everywhere");
       expect(dialog["confirmText"]).toBe("Sign out");
       expect(signOut).toHaveBeenCalledTimes(1);
-      expect(dispatch).toHaveBeenCalledWith(expect.any(Logout));
+      expect(logout).toHaveBeenCalled();
       expect(navigate).toHaveBeenCalledWith(["/"]);
       expect(component.signingOutEverywhere()).toBe(false);
     });
@@ -268,12 +265,13 @@ describe("UserProfileComponent", () => {
     it("stays signed in here when the server could not be told", () => {
       confirmWith(true);
       vi.spyOn(TestBed.inject(AuthService), "signOutEverywhere").mockReturnValue(throwError(() => ({ status: 0 })) as any);
-      const dispatch = vi.spyOn(TestBed.inject(Store), "dispatch");
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       const navigate = vi.spyOn(TestBed.inject(Router), "navigate");
 
       component.signOutEverywhere();
 
-      expect(dispatch).not.toHaveBeenCalledWith(expect.any(Logout));
+      expect(logout).not.toHaveBeenCalled();
       expect(navigate).not.toHaveBeenCalled();
       expect(component.signingOutEverywhere()).toBe(false);
     });
@@ -299,12 +297,13 @@ describe("UserProfileComponent", () => {
     vi.spyOn(userService, "deleteAccount").mockReturnValue(
       throwError(() => ({ status: 401, error: { errorMsg: "Error deleting account." } }))
     );
-    const dispatchSpy = vi.spyOn(store, "dispatch");
+    const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+    const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
 
     component.deleteAccount();
 
     expect(dialogSpy).toHaveBeenCalledTimes(2);
-    expect(dispatchSpy).not.toHaveBeenCalledWith(expect.any(Logout));
+    expect(logout).not.toHaveBeenCalled();
   });
 
   it("keeps the password dialog for an account whose connections were linked, not provisioned", () => {
@@ -318,7 +317,6 @@ describe("UserProfileComponent", () => {
       componentInstance: {},
     } as any);
     const deleteAccountSpy = vi.spyOn(userService, "deleteAccount").mockReturnValue(of(undefined) as any);
-    vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
 
     component.deleteAccount();
 
@@ -395,7 +393,8 @@ describe("UserProfileComponent", () => {
       const deleteAccountSpy = vi
         .spyOn(TestBed.inject(UserService), "deleteAccount")
         .mockReturnValue(of(undefined) as any);
-      const dispatchSpy = vi.spyOn(store, "dispatch").mockReturnValue(of(undefined));
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
       const successSpy = vi
         .spyOn(TestBed.inject(SnackbarService), "success")
         .mockImplementation(() => undefined as any);
@@ -408,7 +407,7 @@ describe("UserProfileComponent", () => {
       expect((router.navigate as Mock).mock.invocationCallOrder[0]).toBeLessThan(
         deleteAccountSpy.mock.invocationCallOrder[0]
       );
-      expect(dispatchSpy).toHaveBeenCalledWith(expect.any(Logout));
+      expect(logout).toHaveBeenCalled();
       expect(successSpy).toHaveBeenCalledWith("Your account has been successfully deleted");
       expect(router.navigate).toHaveBeenLastCalledWith(["/"]);
     });
@@ -419,11 +418,12 @@ describe("UserProfileComponent", () => {
       vi
         .spyOn(TestBed.inject(UserService), "deleteAccount")
         .mockReturnValue(throwError(() => ({ status: 400 })));
-      const dispatchSpy = vi.spyOn(store, "dispatch");
+      const logout = vi.spyOn(TestBed.inject(AuthStore), "logout");
+      const setAuthState = vi.spyOn(TestBed.inject(AuthStore), "setAuthState");
 
       initWithQueryParams({ deleteConfirmation: "spent-code" });
 
-      expect(dispatchSpy).not.toHaveBeenCalledWith(expect.any(Logout));
+      expect(logout).not.toHaveBeenCalled();
       expect(router.navigate).not.toHaveBeenCalledWith(["/"]);
     });
 
@@ -463,7 +463,7 @@ describe("UserProfileComponent", () => {
 
     async function open(connections: OidcConnectionView[], providerNames: string[], permissions = [Permission.AppAccountUpdate]) {
       const store = TestBed.inject(Store);
-      store.dispatch(new SetPermissions(permissions, {}));
+      TestBed.inject(AuthStore).setPermissions(permissions, {});
       TestBed.inject(FeatureConfigStore).setFeatureConfig({
             enableLocalSignUp: false,
             aiPoweredReceipts: false,

@@ -3,8 +3,7 @@ import { TestBed } from "@angular/core/testing";
 import { CanActivateFn, Router, UrlTree } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../open-api";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { GroupStore } from "../store/group.store";
 import { systemSettingsLandingGuard } from "./system-settings-landing.guard";
 
@@ -16,7 +15,7 @@ describe("systemSettingsLandingGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection()],
     });
 
@@ -28,18 +27,14 @@ describe("systemSettingsLandingGuard", () => {
     executeGuard({} as any, {} as any) as UrlTree;
 
   it("lands on General & Currency for a user who can read the settings", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsRead], {});
 
     expect(run().toString()).toBe("/system-settings/general");
   });
 
   it("redirects to the dashboard when the settings are not readable, whatever else is", () => {
-    store.dispatch(
-      new SetPermissions(
-        [Permission.AppSystemTasksRead, Permission.AppReceiptProcessingSettingsRead],
-        {}
-      )
-    );
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemTasksRead, Permission.AppReceiptProcessingSettingsRead],
+        {});
 
     const dashboard = TestBed.inject(GroupStore).dashboardLink();
     expect(run().toString()).toBe(router.parseUrl(dashboard).toString());

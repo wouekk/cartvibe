@@ -5,7 +5,6 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { isSettled } from "../../utils/receipt-status";
 import { appDatePattern } from "../../utils/app-date-format";
 import { SystemSettingsStore } from "../../store/system-settings.store";
@@ -38,7 +37,7 @@ import { ReceiptExportService } from "../../services/receipt-export.service";
 import { ReceiptFilterComponent } from "../../shared-ui/receipt-filter/receipt-filter.component";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, UserStore, GroupStore } from "../../store";
+import { UserStore, GroupStore, AuthStore } from "../../store";
 import { CustomCurrencyPipe } from "../../pipes/custom-currency.pipe";
 import {
   applyFormCommand,
@@ -98,6 +97,8 @@ import { UserPipe } from "../../pipes/user.pipe";
     imports: [TableHeaderComponent, HlmInputGroup, HlmInputGroupAddon, AppIconComponent, BrnFieldControl, BrnInput, BrnFieldControlDescribedBy, HlmInput, HlmInputGroupInput, BrnButton, HlmButton, HlmInputGroupButton, NgTemplateOutlet, NgIf, AddButtonComponent, QueueStartMenuComponent, CdkMenuTrigger, HlmDropdownMenuTrigger, CdkMenu, HlmDropdownMenu, CdkMenuItem, HlmDropdownMenuFocusOnHover, HlmDropdownMenuItem, PeriodPickerComponent, HlmBadge, TableComponent, RouterLink, ShopMonogramComponent, BrnTooltip, HlmTooltip, MoneyComponent, ReceiptCurrencyNoteComponent, StatusChipComponent, RowActionsComponent, EditButtonComponent, HasGroupPermissionDirective, TranslatePipe, AppDatePipe, NamePipe, UserPipe]
 })
 export class ReceiptsTableComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly userStore = inject(UserStore);
@@ -115,10 +116,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     private receiptService: ReceiptService,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
     private customCurrencyPipe: CustomCurrencyPipe,
     private datePipe: DatePipe,
-    private translation: TranslationService,
+    private translation: TranslationService
   ) {
     this.listenForRefreshRequests();
     this.listenForSearchInput();
@@ -289,12 +289,12 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.categories.set(
       Number.isNaN(numericGroupId)
         ? []
-        : this.store.selectSnapshot(AuthState.groupCategories(numericGroupId))
+        : this.authStore.groupCategories(numericGroupId)
     );
     this.tags.set(
       Number.isNaN(numericGroupId)
         ? []
-        : this.store.selectSnapshot(AuthState.groupTags(numericGroupId))
+        : this.authStore.groupTags(numericGroupId)
     );
 
     this.reconcileColumnConfig();
@@ -354,15 +354,9 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   private setCanEdit(): void {
     const groupId = Number.parseInt(this.groupId);
-    this.canEdit = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsUpdate)
-    );
-    this.canCreate = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsCreate)
-    );
-    this.canQuickScan = this.store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, Permission.GroupReceiptsQuickScan)
-    );
+    this.canEdit = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsUpdate);
+    this.canCreate = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsCreate);
+    this.canQuickScan = this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsQuickScan);
   }
 
   private setHeaderText(): void {
@@ -795,7 +789,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
 
   /** Gated on the receipt's own household, never the page's (the "All" view lists several). */
   private mayOnRow(row: Receipt, permission: Permission): boolean {
-    return this.store.selectSnapshot(AuthState.hasGroupPermission(row.groupId, permission));
+    return this.authStore.hasGroupPermission(row.groupId, permission);
   }
 
   public runRowAction(key: string, row: Receipt): void {

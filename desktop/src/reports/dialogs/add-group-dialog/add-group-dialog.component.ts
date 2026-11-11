@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, Inject, computed, inject, signal } from "@angular/core";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
-import { AuthState, GroupStore } from "src/store";
+import { GroupStore, AuthStore } from "src/store";
 import { Permission } from "../../../open-api";
 import { CHIP_COLORS, groupInitials } from "../../models/report-chip.util";
 import { DialogComponent } from "../../../shared-ui/dialog/dialog.component";
@@ -42,9 +41,10 @@ interface GroupChoice {
     ],
 })
 export class AddGroupDialogComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
-  private readonly store = inject(Store);
   private readonly dialogRef = inject<AppDialogRef<AddGroupDialogComponent, string[]>>(AppDialogRef);
   private readonly selectedIds = signal<Set<string>>(new Set());
 
@@ -54,9 +54,7 @@ export class AddGroupDialogComponent {
       .filter(
         (group) =>
           group.id != null &&
-          this.store.selectSnapshot(
-            AuthState.hasGroupPermission(group.id, Permission.GroupReportsRead)
-          )
+          this.authStore.hasGroupPermission(group.id, Permission.GroupReportsRead)
       )
       .map((group, index) => {
         const id = group.id!.toString();

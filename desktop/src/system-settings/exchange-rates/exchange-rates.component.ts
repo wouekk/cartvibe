@@ -3,11 +3,10 @@ import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
-import { Store } from "@ngxs/store";
 import { take } from "rxjs";
 import { CurrencyRate, CurrencyRateTable, ExchangeRateService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { formatRate, parseCurrencyCode, parseRateInput, sanitizeRateInput, settleRateInput } from "./exchange-rate-input";
 import { TranslationService } from "../../i18n/translation.service";
 
@@ -31,12 +30,12 @@ interface RateRow {
   imports: [TranslatePipe, CommonModule, HlmButton, AppIconComponent],
 })
 export class ExchangeRatesComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly translation = inject(TranslationService);
 
   private readonly exchangeRateService = inject(ExchangeRateService);
   private readonly snackbarService = inject(SnackbarService);
-  private readonly store = inject(Store);
-
   public readonly mainCurrency = signal("");
 
   public readonly rows = signal<RateRow[]>([]);
@@ -52,7 +51,7 @@ export class ExchangeRatesComponent implements OnInit {
   /** Rates were typed, added or removed since they were last loaded or saved. */
   public readonly dirty = signal(false);
 
-  public readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemSettingsUpdate));
+  public readonly canUpdate = computed(() => this.authStore.hasAppPermission(Permission.AppSystemSettingsUpdate));
 
   /** Without a named main currency (a custom symbol) there is nothing to convert into. */
   public readonly enabled = computed(() => this.mainCurrency() !== "");

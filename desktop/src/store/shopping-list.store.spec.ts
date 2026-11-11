@@ -3,8 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from "@angular/common
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Group, Permission, ShoppingList, ShoppingListItem } from "../open-api";
-import { AuthState } from "./auth.state";
-import { SetPermissions } from "./auth.state.actions";
+import { AuthStore } from "./auth.store";
 import { GroupStore } from "./group.store";
 import { applyEvent, ShoppingListEventType, ShoppingListStore } from "./shopping-list.store";
 
@@ -36,7 +35,7 @@ describe("ShoppingListStore", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);
@@ -178,12 +177,10 @@ describe("ShoppingListStore", () => {
   describe("targetGroupId", () => {
     beforeEach(() => {
       TestBed.inject(GroupStore).setGroups([group(10, true), group(1), group(2)]);
-      store.dispatch(
-        new SetPermissions([], {
+      TestBed.inject(AuthStore).setPermissions([], {
           10: [Permission.GroupShoppingListsRead],
           2: [Permission.GroupShoppingListsRead],
-        })
-      );
+        });
     });
 
     it("never offers the All group, even when its permissions include read", () => {
@@ -204,7 +201,7 @@ describe("ShoppingListStore", () => {
     });
 
     it("is undefined when no group's lists are readable", () => {
-      store.dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead] });
       expect(listStore.targetGroupId()).toBeUndefined();
     });
   });

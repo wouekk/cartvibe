@@ -6,10 +6,10 @@ import { of, throwError } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { User, UserService } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store";
 import { UserStore } from "../../store/user.store";
 import { AvatarPhotoComponent } from "./avatar-photo.component";
+import { seedStore } from "../../testing/seed-store";
 
 describe("AvatarPhotoComponent", () => {
   let fixture: ComponentFixture<AvatarPhotoComponent>;
@@ -26,7 +26,7 @@ describe("AvatarPhotoComponent", () => {
     confirmation = {};
 
     await TestBed.configureTestingModule({
-      imports: [AvatarPhotoComponent, NgxsModule.forRoot([AuthState])],
+      imports: [AvatarPhotoComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -40,9 +40,9 @@ describe("AvatarPhotoComponent", () => {
     }).compileComponents();
 
     store = TestBed.inject(Store);
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userId: "7", displayname: "Sam" } });
+    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userId: "7", displayname: "Sam" });
     TestBed.inject(UserStore).setUsers([{ id: 7, displayName: "Sam", username: "sam" } as User]);
-    store.dispatch(new SetPermissions(["app.account.update"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.account.update"], {});
     fixture = TestBed.createComponent(AvatarPhotoComponent);
     await fixture.whenStable();
   });
@@ -106,7 +106,7 @@ describe("AvatarPhotoComponent", () => {
   });
 
   it("hides the photo buttons without app.account.update", async () => {
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     await fixture.whenStable();
 
     expect(byTestId("avatar-take-photo")).toBeNull();

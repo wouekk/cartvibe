@@ -1,6 +1,5 @@
 import { AfterViewInit, Component, computed, OnInit, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { TableComponent } from "src/table/table/table.component";
@@ -9,7 +8,7 @@ import { Group, GroupsService, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { BaseTableService } from "../../services/base-table.service";
 import { BaseTableComponent } from "../../shared-ui/base-table/base-table.component";
-import { AuthState, GroupStore } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { GroupTableService } from "./group-table.service";
 import { marker } from "../../i18n/marker";
 import { TranslationService } from "../../i18n/translation.service";
@@ -41,6 +40,8 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, AvatarComponent, RouterLink, RowActionsComponent, TranslatePipe, AppDatePipe]
 })
 export class GroupTableComponent extends BaseTableComponent<Group> implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly translation = inject(TranslationService);
@@ -70,13 +71,11 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
 
   protected readonly Permission = Permission;
 
-  public readonly appPermissions = this.store.selectSignal(AuthState.appPermissions);
+  public readonly appPermissions = this.authStore.appPermissions;
 
-  public readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  public readonly groupPermissions = this.authStore.groupPermissions;
 
-  public readonly canDeleteAnyGroup = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppGroupsDelete)
-  );
+  public readonly canDeleteAnyGroup = computed(() => this.authStore.hasAppPermission(Permission.AppGroupsDelete));
 
   /**
    * Mirrors the backend's CanDeleteGroup rule: an ordinary user must stay in at
@@ -90,7 +89,6 @@ export class GroupTableComponent extends BaseTableComponent<Group> implements On
   constructor(
     public override baseTableService: BaseTableService,
     private groupsService: GroupsService,
-    private store: Store,
     private snackbarService: SnackbarService,
     private dialog: AppDialog
   ) {

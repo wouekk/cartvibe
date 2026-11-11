@@ -7,8 +7,9 @@ import { of } from "rxjs";
 import { formatDateInput } from "../../datepicker/date-input.directive";
 import { Receipt, ReceiptService } from "../../open-api";
 import { WebPushService } from "../../services/web-push.service";
-import { AuthState } from "../../store";
 import { ReceiptWarrantyComponent } from "./receipt-warranty.component";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 describe("ReceiptWarrantyComponent", () => {
@@ -22,7 +23,7 @@ describe("ReceiptWarrantyComponent", () => {
 
   const setPreferences = (preferences: Record<string, unknown>) => {
     const store = TestBed.inject(Store);
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, userPreferences: preferences } });
+    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: preferences });
   };
 
   beforeEach(async () => {
@@ -30,7 +31,7 @@ describe("ReceiptWarrantyComponent", () => {
     webPush = { enableForWarranties: vi.fn(() => Promise.resolve()) };
 
     await TestBed.configureTestingModule({
-      imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([AuthState])],
+      imports: [ReceiptWarrantyComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

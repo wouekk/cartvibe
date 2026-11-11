@@ -27,9 +27,8 @@ import {
   ShoppingListService,
   UserPreferences,
 } from "../../open-api";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store/auth.store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
-import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { todayInZone } from "../../utils/app-time-zone";
@@ -120,7 +119,7 @@ describe("OverviewPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([AuthState]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
+    imports: [ChartComponent, TranslatePipe, NgxsModule.forRoot([]), SharedUiModule, MoneyComponent, ShopMonogramComponent, WarrantyMenuComponent, DisplayCurrencyPipe, ...HlmCheckboxImports, OverviewPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -136,7 +135,7 @@ describe("OverviewPageComponent", () => {
 }).compileComponents();
 
     query.next(convertToParamMap({}));
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead] });
     fixture = TestBed.createComponent(OverviewPageComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
@@ -336,14 +335,12 @@ describe("OverviewPageComponent", () => {
 
   describe("monthly spending goal", () => {
     const setGoal = async (goal: string | undefined) => {
-      TestBed.inject(Store).dispatch(new SetUserPreferences({ monthlySpendingGoal: goal } as UserPreferences));
+      TestBed.inject(AuthStore).setUserPreferences({ monthlySpendingGoal: goal } as UserPreferences);
       await fixture.whenStable();
     };
 
     const allowEditing = async () => {
-      TestBed.inject(Store).dispatch(
-        new SetPermissions([Permission.AppUserPreferencesUpdate], { 1: [Permission.GroupReceiptsRead] })
-      );
+      TestBed.inject(AuthStore).setPermissions([Permission.AppUserPreferencesUpdate], { 1: [Permission.GroupReceiptsRead] });
       await fixture.whenStable();
     };
 
@@ -517,7 +514,7 @@ describe("OverviewPageComponent", () => {
 
       it("offers + Set goal when there is none, and saves on Enter without losing other preferences", async () => {
         await allowEditing();
-        TestBed.inject(Store).dispatch(new SetUserPreferences({ closeChipSelectOnSelect: true } as UserPreferences));
+        TestBed.inject(AuthStore).setUserPreferences({ closeChipSelectOnSelect: true } as UserPreferences);
         await fixture.whenStable();
         await click("overview-set-goal");
 
@@ -640,9 +637,7 @@ describe("OverviewPageComponent", () => {
     });
 
     it("offers Add receipt here, and not in the top action bar, to someone who can add one", async () => {
-      TestBed.inject(Store).dispatch(
-        new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsCreate] })
-      );
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsCreate] });
       await fixture.whenStable();
 
       expect(fixture.nativeElement.querySelector("[data-testid=overview-add-receipt]")).toBeNull();
@@ -656,9 +651,7 @@ describe("OverviewPageComponent", () => {
     const quickScanButton = () => fixture.nativeElement.querySelector("[data-testid=overview-quick-scan]");
 
     it("shows the button to a member who may scan and, with no AI set up, asks whoever may configure it to add a key", async () => {
-      TestBed.inject(Store).dispatch(
-        new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] })
-      );
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReceiptProcessingSettingsUpdate], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] });
       await fixture.whenStable();
       const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       const confirm = { headerText: "", dialogContent: "", confirmText: "" };
@@ -675,7 +668,7 @@ describe("OverviewPageComponent", () => {
     });
 
     it("tells a member who cannot configure the AI to ask an admin, and goes nowhere", async () => {
-      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] });
       await fixture.whenStable();
       const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
       const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
@@ -688,7 +681,7 @@ describe("OverviewPageComponent", () => {
 
     it("opens the scan dialog once the AI is set up", async () => {
       TestBed.inject(FeatureConfigStore).setFeatureConfig({ aiPoweredReceipts: true } as never);
-      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] });
       await fixture.whenStable();
       const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
       const open = vi.spyOn(TestBed.inject(AppDialog), "open").mockReturnValue({ afterClosed: () => new Subject() } as never);
@@ -716,7 +709,7 @@ describe("OverviewPageComponent", () => {
     };
 
     it("takes scan=1 out of the address, then opens Quick Scan, also when the Dashboard is already open", async () => {
-      TestBed.inject(Store).dispatch(new SetPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] });
       await fixture.whenStable();
 
       const { navigate, open } = await arrive();

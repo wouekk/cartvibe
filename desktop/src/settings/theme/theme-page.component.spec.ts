@@ -3,7 +3,6 @@ import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { NgxsModule } from "@ngxs/store";
-import { AuthState } from "../../store/auth.state";
 import { LanguagePageComponent } from "./language-page.component";
 import { ThemePageComponent } from "./theme-page.component";
 
@@ -11,7 +10,7 @@ describe("Theme and Language pages", () => {
   beforeEach(async () => {
     window.localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [ThemePageComponent, LanguagePageComponent, NgxsModule.forRoot([AuthState])],
+      imports: [ThemePageComponent, LanguagePageComponent, NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });

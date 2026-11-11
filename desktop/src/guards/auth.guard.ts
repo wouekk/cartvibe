@@ -1,19 +1,19 @@
 import { Injectable, inject } from "@angular/core";
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, map, Observable, of } from "rxjs";
 import { TokenRefreshService } from "../services";
-import { AuthState, GroupStore } from "../store";
+import { AuthStore, GroupStore } from "../store";
 
 @Injectable({
   providedIn: "root",
 })
 export class AuthGuard {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   constructor(
     private router: Router,
-    private store: Store,
     private tokenRefreshService: TokenRefreshService,
   ) {}
 
@@ -25,7 +25,7 @@ export class AuthGuard {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    const isLoggedIn = this.store.selectSnapshot(AuthState.isLoggedIn);
+    const isLoggedIn = this.authStore.isLoggedIn();
     const navigatingToAuth = route.url.toString().includes("auth");
 
     // if user tries to go to login screens while already logged in
@@ -42,7 +42,7 @@ export class AuthGuard {
       return this.router.createUrlTree(["/auth/login"]);
     }
 
-    if (!AuthState.isAccessTokenExpired(this.store)) {
+    if (!this.authStore.isAccessTokenExpired()) {
       return true;
     }
 
@@ -52,7 +52,7 @@ export class AuthGuard {
     return this.tokenRefreshService.refreshToken().pipe(
       map(() => true),
       catchError(() =>
-        of(this.store.selectSnapshot(AuthState.isLoggedIn) ? true : this.router.createUrlTree(["/auth/login"]))
+        of(this.authStore.isLoggedIn() ? true : this.router.createUrlTree(["/auth/login"]))
       ),
     );
   }

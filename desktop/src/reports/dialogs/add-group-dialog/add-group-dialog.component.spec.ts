@@ -5,8 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import type { Mock } from "vitest";
 import { APP_DIALOG_DATA, AppDialogRef } from "../../../dialog/app-dialog";
 import { Group, Permission } from "../../../open-api";
-import { AuthState } from "../../../store/auth.state";
-import { SetPermissions } from "../../../store/auth.state.actions";
+import { AuthStore } from "../../../store/auth.store";
 import { GroupStore } from "../../../store/group.store";
 import { ReportsModule } from "../../reports.module";
 import { AddGroupDialogComponent, AddGroupDialogData } from "./add-group-dialog.component";
@@ -28,7 +27,7 @@ describe("AddGroupDialogComponent", () => {
   const open = async (data: AddGroupDialogData, reportGroups: number[] = [1, 2, 99]) => {
     dialogRef = { close: vi.fn() };
     await TestBed.configureTestingModule({
-      imports: [ReportsModule, NgxsModule.forRoot([AuthState])],
+      imports: [ReportsModule, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -43,7 +42,7 @@ describe("AddGroupDialogComponent", () => {
       groupPermissions[id] = [Permission.GroupReportsRead];
     }
     groupPermissions[3] ??= ["group.receipts.read"];
-    store.dispatch(new SetPermissions([], groupPermissions));
+    TestBed.inject(AuthStore).setPermissions([], groupPermissions);
     fixture = TestBed.createComponent(AddGroupDialogComponent);
     await fixture.whenStable();
   };

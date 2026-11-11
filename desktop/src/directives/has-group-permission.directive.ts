@@ -1,7 +1,6 @@
 import { computed, Directive, effect, inject, input, TemplateRef, ViewContainerRef } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { hasAll, hasAny } from "../utils/permission.utils";
-import { AuthState } from "../store/auth.state";
+import { AuthStore } from "../store/auth.store";
 
 export interface HasGroupPermissionInput {
   groupId: number;
@@ -23,12 +22,12 @@ export interface HasGroupPermissionInput {
  */
 @Directive({ selector: "[hasGroupPermission]", })
 export class HasGroupPermissionDirective {
+  private readonly authStore = inject(AuthStore);
+
   private readonly templateRef = inject(TemplateRef<unknown>);
   private readonly viewContainer = inject(ViewContainerRef);
-  private readonly store = inject(Store);
-
-  private readonly appPermissions = this.store.selectSignal(AuthState.appPermissions);
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly appPermissions = this.authStore.appPermissions;
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   public readonly config = input.required<HasGroupPermissionInput>({
     alias: "hasGroupPermission",

@@ -2,8 +2,7 @@ import { Component, computed, effect, ElementRef, inject, Injector, linkedSignal
 import { toSignal } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { Data, NavigationEnd, Router, RouterLinkActive, RouterLink, RouterOutlet } from "@angular/router";
-import { Store } from "@ngxs/store";
-import { catchError, filter, map, of, startWith, switchMap, take } from "rxjs";
+import { catchError, filter, map, of, startWith, switchMap, take, tap } from "rxjs";
 import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ShoppingListStore } from "src/store/shopping-list.store";
 import { AboutComponent } from "../../about/about/about.component";
@@ -11,7 +10,7 @@ import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ViewportService } from "../../services/viewport.service";
-import { AuthState, Logout, GroupStore } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { shownHousehold } from "../../utils/shown-household";
 import { TabBarItem, TabBarComponent } from "../tab-bar/tab-bar.component";
@@ -189,6 +188,8 @@ interface ManageNavItem {
     ],
 })
 export class SidebarComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly shoppingListStore = inject(ShoppingListStore);
@@ -205,8 +206,7 @@ export class SidebarComponent {
     private dialog: AppDialog,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
-    private viewportService: ViewportService,
+    private viewportService: ViewportService
   ) {
     afterNextRender(() => this.publishTopBarHeight());
     // A phone's sidebar is a sheet over the page, so it must not stay open behind the page it opened.
@@ -224,9 +224,9 @@ export class SidebarComponent {
 
   private readonly destroyRef = inject(DestroyRef);
 
-  public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
+  public loggedInUser = this.authStore.loggedInUser;
 
-  public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
+  public isLoggedIn = this.authStore.isLoggedIn;
 
   public readonly isHandset = this.viewportService.isHandset;
 
@@ -293,13 +293,9 @@ export class SidebarComponent {
 
   protected readonly Permission = Permission;
 
-  private readonly appPermissions = this.store.selectSignal(
-    AuthState.appPermissions
-  );
+  private readonly appPermissions = this.authStore.appPermissions;
 
-  private readonly groupPermissions = this.store.selectSignal(
-    AuthState.groupPermissions
-  );
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   private readonly selectedGroupPermissions = computed(
     () => this.groupPermissions()?.[this.selectedGroupIdNumber()] ?? []
@@ -315,12 +311,10 @@ export class SidebarComponent {
 
   // Reports are reachable with read OR the readAll bypass (the *hasAppPermission
   // directive is single-key AND-only, so the OR is resolved through the selector).
-  protected readonly canViewReports = this.store.selectSignal(
-    AuthState.hasAnyAppPermission([
+  protected readonly canViewReports = computed(() => this.authStore.hasAnyAppPermission([
       Permission.AppReportsRead,
       Permission.AppReportsReadAll,
-    ])
-  );
+    ]));
 
   /** The everyday pages, in the order they are used. */
   public readonly mainNavItems = computed(() => {
@@ -375,20 +369,16 @@ export class SidebarComponent {
     return groupId !== undefined && hasAll(this.groupPermissions()?.[groupId] ?? [], Permission.GroupReceiptsQuickScan);
   });
 
-  protected readonly isAdmin = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUsersRead));
+  protected readonly isAdmin = computed(() => this.authStore.hasAppPermission(Permission.AppUsersRead));
 
   // Admin only: a member who can use the AI page also holds the receipt-processing permissions, which
   // must not open System Settings.
-  protected readonly canViewSystemSettings = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppSystemSettingsRead)
-  );
+  protected readonly canViewSystemSettings = computed(() => this.authStore.hasAppPermission(Permission.AppSystemSettingsRead));
 
-  protected readonly canViewUserSettings = this.store.selectSignal(
-    AuthState.hasAnyAppPermission([
+  protected readonly canViewUserSettings = computed(() => this.authStore.hasAnyAppPermission([
       Permission.AppAccountRead,
       Permission.AppUserPreferencesRead,
-    ])
-  );
+    ]));
 
   /**
    * Everything under "Settings": System Settings, Management, User Settings, AI, Theme, then Language last. Each entry
@@ -486,7 +476,7 @@ export class SidebarComponent {
         // Signing out always ends the session in this browser, even when the server could not be told (no
         // connection, or a refresh token it had already retired); the token then just runs out there.
         catchError(() => of(undefined)),
-        switchMap(() => this.store.dispatch(new Logout())),
+        tap(() => this.authStore.logout()),
         switchMap(() => this.router.navigate(["/"])),
       )
       .subscribe();

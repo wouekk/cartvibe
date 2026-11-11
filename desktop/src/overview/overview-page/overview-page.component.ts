@@ -3,7 +3,6 @@ import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, filter, map, of, switchMap, take } from "rxjs";
 import {
   FilterOperation,
@@ -16,7 +15,7 @@ import {
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
-import { AuthState, FeatureConfigStore, GroupStore } from "../../store";
+import { FeatureConfigStore, GroupStore, AuthStore } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
@@ -187,6 +186,8 @@ const UNCATEGORIZED = marker("Uncategorized");
         PluralPipe, HlmTooltip],
 })
 export class OverviewPageComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly shoppingListStore = inject(ShoppingListStore);
@@ -218,7 +219,7 @@ export class OverviewPageComponent {
 
   public readonly periodLabel = computed(() => this.translation.months(this.period()?.label ?? ""));
 
-  private readonly userPreferences = this.store.selectSignal(AuthState.userPreferences);
+  private readonly userPreferences = this.authStore.userPreferences;
 
   /** The monthly spending goal from the user's settings; 0 when none is set. */
   public readonly goal = computed(() => {
@@ -451,7 +452,7 @@ export class OverviewPageComponent {
     });
   });
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   public readonly canAddReceipt = computed(() =>
     hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsCreate)
@@ -1019,7 +1020,6 @@ export class OverviewPageComponent {
     private activatedRoute: ActivatedRoute,
     private overviewService: OverviewService,
     private receiptService: ReceiptService,
-    private store: Store,
     private dialog: AppDialog,
     private snackbarService: SnackbarService,
     private productCheck: ProductCheckLauncher,

@@ -1,5 +1,4 @@
 import { computed, inject, Injectable } from "@angular/core";
-import { Actions, ofActionDispatched, Store } from "@ngxs/store";
 import { Observable, ReplaySubject, Subject, take } from "rxjs";
 import {
   Group,
@@ -19,8 +18,7 @@ import {
   settle,
 } from "../shopping-lists/shopping-list-pending";
 import { hasAll } from "../utils/permission.utils";
-import { AuthState } from "./auth.state";
-import { Logout } from "./auth.state.actions";
+import { AuthStore } from "./auth.store";
 import { GroupStore } from "./group.store";
 import { StateStore } from "./state-store";
 
@@ -76,10 +74,7 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
 
   private readonly groupStore = inject(GroupStore);
 
-  // The session is still an NGXS state; it moves in the next step.
-  private readonly ngxs = inject(Store);
-
-  private readonly groupPermissions = this.ngxs.selectSignal(AuthState.groupPermissions);
+  private readonly authStore = inject(AuthStore);
 
   /** The group asked for last, so a device copy that arrives late for an earlier group is not shown. */
   private requestedGroupId?: number;
@@ -98,7 +93,7 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
    * the API rejects it as a shopping list group.
    */
   public readonly readableGroups = computed((): Group[] => {
-    const groupPermissions = this.groupPermissions();
+    const groupPermissions = this.authStore.groupPermissions();
     return this.groupStore.groupsWithoutAll().filter((group) => hasAll(groupPermissions[group.id] ?? [], Permission.GroupShoppingListsRead));
   });
 
@@ -160,9 +155,7 @@ export class ShoppingListStore extends StateStore<ShoppingListStateInterface> {
     super(() => ({ lists: [], pending: [] }));
 
     // The account that signs out takes its lists and its waiting changes with it.
-    inject(Actions)
-      .pipe(ofActionDispatched(Logout))
-      .subscribe(() => this.clear());
+    this.authStore.signedOut.subscribe(() => this.clear());
   }
 
   /**

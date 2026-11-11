@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from "@angular/core";
 import { FormControl } from "@angular/forms";
-import { Store } from "@ngxs/store";
 import { HlmButton } from "@spartan-ng/helm/button";
 import { take } from "rxjs";
 import { DatepickerModule } from "../../datepicker/datepicker.module";
@@ -10,7 +9,7 @@ import { Receipt, ReceiptService } from "../../open-api";
 
 import { SnackbarService } from "../../services/snackbar.service";
 import { WebPushService } from "../../services/web-push.service";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { calendarDayToLocalDate, todayInZone } from "../../utils/app-time-zone";
 import { addWarrantyYears, daysBetween, effectiveRegion, warrantyYears } from "../../utils/warranty-period";
@@ -29,13 +28,13 @@ import { AppDatePipe } from "../../pipes/app-date.pipe";
   imports: [DatepickerModule, HlmButton, AppDatePipe, TranslatePipe, PluralPipe],
 })
 export class ReceiptWarrantyComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly receiptService = inject(ReceiptService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly webPush = inject(WebPushService);
-  private readonly store = inject(Store);
-
   public readonly receipt = input.required<Receipt>();
 
   public readonly canEdit = input(false);
@@ -56,7 +55,7 @@ export class ReceiptWarrantyComponent {
 
   /** Where the picker starts for a new date: the receipt day plus the chosen period, or Automatic by region. */
   public startDate(): Date {
-    const preferences = this.store.selectSnapshot(AuthState.userPreferences);
+    const preferences = this.authStore.userPreferences();
     const years = warrantyYears(preferences?.warrantyPeriodYears, effectiveRegion(preferences?.region));
     const purchased = calendarDayToLocalDate(this.receipt().date) ?? new Date();
     return addWarrantyYears(purchased, years);

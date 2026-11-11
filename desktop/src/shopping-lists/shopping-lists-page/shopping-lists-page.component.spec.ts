@@ -11,9 +11,10 @@ import { SnackbarService } from "../../services";
 import { ScreenWakeLockService } from "../../services/screen-wake-lock.service";
 import { ShoppingListStreamService } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
-import { AuthState } from "../../store/auth.state";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 const item = (id: number, listId: number, isChecked = false): ShoppingListItem =>
@@ -71,7 +72,7 @@ describe("ShoppingListsPageComponent", () => {
     };
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([AuthState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),
@@ -92,13 +93,10 @@ describe("ShoppingListsPageComponent", () => {
 }).compileComponents();
 
     store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        ...store.snapshot().auth,
-        groupPermissions: {
-          1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
-        },
+    seedStore(TestBed.inject(AuthStore), {
+      ...store.snapshot().auth,
+      groupPermissions: {
+        1: [Permission.GroupShoppingListsCreate, Permission.GroupShoppingListsUpdate, Permission.GroupShoppingListsDelete],
       },
     });
     TestBed.inject(ShoppingListStore).load(1);
@@ -183,7 +181,7 @@ describe("ShoppingListsPageComponent", () => {
     expect(testId("shopping-list-delete")).toBeNull();
     expect(component.canDelete()).toBe(true);
 
-    store.reset({ ...store.snapshot(), auth: { ...store.snapshot().auth, groupPermissions: { 1: [] } } });
+    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, groupPermissions: { 1: [] } });
     await fixture.whenStable();
 
     expect(component.canDelete()).toBe(false);

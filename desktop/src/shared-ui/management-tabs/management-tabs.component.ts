@@ -5,7 +5,7 @@ import { Store } from "@ngxs/store";
 import { filter, map } from "rxjs";
 import { marker } from "../../i18n/marker";
 import { Permission } from "../../open-api";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
 import { FilterTab } from "../filter-bar/filter-tab.interface";
 import { SettingsTabsComponent } from "../settings/settings-tabs.component";
@@ -58,7 +58,7 @@ export function managementTabForUrl(url: string): ManagementTab | undefined {
 export class ManagementTabsComponent {
   private readonly router = inject(Router);
 
-  private readonly appPermissions = inject(Store).selectSignal(AuthState.appPermissions);
+  private readonly appPermissions = inject(AuthStore).appPermissions;
 
   private readonly url = toSignal(
     this.router.events.pipe(

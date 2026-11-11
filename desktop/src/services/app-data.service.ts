@@ -1,15 +1,10 @@
 import { inject, Injectable } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { AppData, CurrencySeparator, CurrencySymbolPosition } from "../open-api";
 import {
   FeatureConfigStore,
-  SetAuthState,
-  SetGroupCatalog,
-  SetIcons,
-  SetPermissions,
-  SetUserPreferences,
   UserStore,
   GroupStore,
+  AuthStore,
 } from "../store";
 import { AboutStore } from "../store/about.store";
 import { SystemSettingsStore } from "../store/system-settings.store";
@@ -21,9 +16,9 @@ import { DEFAULT_APP_TIME_ZONE } from "../utils/app-time-zone";
  */
 @Injectable({ providedIn: "root" })
 export class AppDataService {
-  private readonly groupStore = inject(GroupStore);
+  private readonly authStore = inject(AuthStore);
 
-  private readonly store = inject(Store);
+  private readonly groupStore = inject(GroupStore);
 
   private readonly aboutStore = inject(AboutStore);
 
@@ -38,12 +33,12 @@ export class AppDataService {
       this.groupStore.setSelectedGroupId(appData.groups[0].id.toString());
     }
 
-    this.store.dispatch(new SetAuthState(appData.claims));
-    this.store.dispatch(new SetPermissions(appData.appPermissions ?? [], appData.groupPermissions ?? {}));
-    this.store.dispatch(new SetGroupCatalog(appData.groupCategories ?? {}, appData.groupTags ?? {}));
+    this.authStore.setAuthState(appData.claims);
+    this.authStore.setPermissions(appData.appPermissions ?? [], appData.groupPermissions ?? {});
+    this.authStore.setGroupCatalog(appData.groupCategories ?? {}, appData.groupTags ?? {});
     this.featureConfigStore.setFeatureConfig(appData.featureConfig);
     this.groupStore.setGroups(appData.groups);
-    this.store.dispatch(new SetUserPreferences(appData.userPreferences));
+    this.authStore.setUserPreferences(appData.userPreferences);
     this.userStore.setUsers(appData.users);
     this.systemSettingsStore.setCurrencyDisplay(appData.currencyDisplay);
     this.systemSettingsStore.setCurrencyData(
@@ -54,7 +49,7 @@ export class AppDataService {
     );
     this.systemSettingsStore.setTimeZone(appData.timeZone || DEFAULT_APP_TIME_ZONE);
     this.systemSettingsStore.setDateFormat(appData.dateFormat ?? "");
-    this.store.dispatch(new SetIcons(appData.icons));
+    this.authStore.setIcons(appData.icons);
     this.aboutStore.setAbout(appData.about);
   }
 }

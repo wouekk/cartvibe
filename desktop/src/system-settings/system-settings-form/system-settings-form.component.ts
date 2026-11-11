@@ -1,9 +1,8 @@
-import { Component, DestroyRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, DestroyRef, inject, OnInit, signal, viewChild, ChangeDetectionStrategy, computed } from "@angular/core";
 import { formatDate, NgTemplateOutlet } from "@angular/common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormBuilder, FormGroup, ValidatorFn, Validators, ReactiveFormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { filter, startWith, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AppDialog } from "../../dialog/app-dialog";
@@ -25,7 +24,7 @@ import {
 import { SAVED_KEY_PLACEHOLDER } from "../../ai-settings/ai-settings-shared";
 import { InputReadonlyPipe } from "../../pipes/input-readonly.pipe";
 import { SnackbarService } from "../../services";
-import { AuthState, FeatureConfigStore } from "../../store";
+import { FeatureConfigStore, AuthStore } from "../../store";
 import { SystemSettingsStore } from "../../store/system-settings.store";
 import { APP_DATE_FORMATS, appDatePattern, resolveAppDateFormat } from "../../utils/app-date-format";
 import { DurationUnit, maxForUnit, minForUnit, splitHours, toHours } from "../../utils";
@@ -76,6 +75,8 @@ export function shopLogoKeyValidator(): ValidatorFn {
     imports: [SystemTaskTableComponent, ReactiveFormsModule, SettingsSectionComponent, SelectComponent, AutocompleteComponent, NgTemplateOutlet, InputComponent, CheckboxComponent, ExchangeRatesComponent, BrnButton, HlmButton, TranslatePipe, AppDatePipe, CustomCurrencyPipe, FormGetPipe, InputReadonlyPipe]
 })
 export class SystemSettingsFormComponent extends BaseFormComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly featureConfigStore = inject(FeatureConfigStore);
 
   private readonly systemSettingsStore = inject(SystemSettingsStore);
@@ -100,7 +101,7 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
   /** Which tab's cards this form shows (route data); undefined shows every card. */
   public section?: SystemSettingsSection;
 
-  public readonly canReadSystemTasks = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppSystemTasksRead));
+  public readonly canReadSystemTasks = computed(() => this.authStore.hasAppPermission(Permission.AppSystemTasksRead));
 
   /** Whether the cards of a tab are shown: all of them when the form is not placed on a tab. */
   public shows(section: SystemSettingsSection): boolean {
@@ -190,9 +191,8 @@ export class SystemSettingsFormComponent extends BaseFormComponent implements On
     private formBuilder: FormBuilder,
     private router: Router,
     private snackbarService: SnackbarService,
-    private store: Store,
     private systemSettingsService: SystemSettingsService,
-    private inputReadonlyPipe: InputReadonlyPipe,
+    private inputReadonlyPipe: InputReadonlyPipe
   ) {
     super();
   }

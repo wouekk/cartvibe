@@ -1,7 +1,6 @@
 import { HttpContext } from "@angular/common/http";
 import { DOCUMENT } from "@angular/common";
 import { effect, inject, Injectable, OnDestroy, signal, untracked } from "@angular/core";
-import { Actions, ofActionSuccessful, Store } from "@ngxs/store";
 import { debounceTime, distinctUntilChanged, firstValueFrom, map, startWith, Subscription } from "rxjs";
 import { TranslationService } from "../i18n/translation.service";
 import { QUIET_ERRORS } from "../interceptors/http-interceptor";
@@ -9,12 +8,8 @@ import { OfflineStorageService } from "../offline/offline-storage.service";
 import { isWorthRetrying, RetryWhenReachable } from "../offline/retry-when-reachable";
 import { ShoppingListService } from "../open-api";
 import { PendingChange } from "../shopping-lists/shopping-list-pending";
-import { AuthState } from "../store/auth.state";
-import { Logout } from "../store/auth.state.actions";
-import { CachedShoppingLists, shoppingListsCacheKey } from "../store/shopping-list.store";
-import {
-  ShoppingListStore,
-} from "../store/shopping-list.store";
+import { AuthStore } from "../store/auth.store";
+import { CachedShoppingLists, shoppingListsCacheKey, ShoppingListStore } from "../store/shopping-list.store";
 import { ShoppingListStreamService } from "./shopping-list-stream.service";
 import { SnackbarService } from "./snackbar.service";
 import { TokenRefreshService } from "./token-refresh.service";
@@ -34,10 +29,10 @@ const CACHE_WRITE_DELAY_MS = 250;
  */
 @Injectable({ providedIn: "root" })
 export class ShoppingListSyncService implements OnDestroy {
+  private readonly authStore = inject(AuthStore);
+
   private readonly shoppingListStore = inject(ShoppingListStore);
 
-  private readonly store = inject(Store);
-  private readonly actions = inject(Actions);
   private readonly storage = inject(OfflineStorageService);
   private readonly shoppingListService = inject(ShoppingListService);
   private readonly tokenRefreshService = inject(TokenRefreshService);
@@ -69,7 +64,7 @@ export class ShoppingListSyncService implements OnDestroy {
     });
 
     this.subscriptions.add(
-      this.actions.pipe(ofActionSuccessful(Logout)).subscribe(() => {
+      this.authStore.signedOut.subscribe(() => {
         this.retry.cancel();
         this.stalled.set(false);
         void this.storage.clear();
@@ -100,7 +95,7 @@ export class ShoppingListSyncService implements OnDestroy {
 
   private async restore(): Promise<void> {
     const kept = await this.storage.get<PendingChange[]>(SHOPPING_LIST_OUTBOX_KEY);
-    if (Array.isArray(kept) && kept.length > 0 && this.store.selectSnapshot(AuthState.isLoggedIn)) {
+    if (Array.isArray(kept) && kept.length > 0 && this.authStore.isLoggedIn()) {
       this.shoppingListStore.restorePending(kept);
     }
 
@@ -149,7 +144,7 @@ export class ShoppingListSyncService implements OnDestroy {
 
       if (!(await this.tokenRefreshService.ensureFreshToken()) || !(await this.send(change))) {
         // Signed out meanwhile: the queue went with the session and there is nothing to wait for.
-        const signedOut = !this.store.selectSnapshot(AuthState.isLoggedIn);
+        const signedOut = !this.authStore.isLoggedIn();
         this.stalled.set(!signedOut);
         return signedOut;
       }

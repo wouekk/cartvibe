@@ -1,12 +1,11 @@
 import { ConnectedPosition, CdkOverlayOrigin, CdkConnectedOverlay } from "@angular/cdk/overlay";
 import { Component, computed, effect, signal, untracked, ChangeDetectionStrategy, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { take, tap } from "rxjs";
 import { LayoutStore } from "src/store/layout.store";
 import { ViewportService } from "../../services/viewport.service";
 import { AuthService, NotificationsService, Permission } from "../../open-api";
-import { AuthState, GroupStore } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 import { HlmBadge } from "@spartan-ng/helm/badge";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
@@ -31,15 +30,17 @@ export const HANDSET_LOGO_SCALE = 0.3;
     imports: [AvatarComponent, BrnButton, HlmButton, HlmSidebarTrigger, HasAppPermissionDirective, CdkOverlayOrigin, CdkConnectedOverlay, NgTemplateOutlet, CartVibeLogoComponent, NotificationsListComponent, TranslatePipe, HlmTooltip, HlmBadge, AppIconComponent]
 })
 export class HeaderComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly layoutStore = inject(LayoutStore);
 
-  public isLoggedIn = this.store.selectSignal(AuthState.isLoggedIn);
+  public isLoggedIn = this.authStore.isLoggedIn;
 
   public selectedGroupId = this.groupStore.selectedGroupId;
 
-  public loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
+  public loggedInUser = this.authStore.loggedInUser;
 
   public showProgressBar = this.layoutStore.showProgressBar;
 
@@ -73,15 +74,12 @@ export class HeaderComponent {
 
   public readonly household = computed(() => shownHousehold(this.groups(), Number.parseInt(this.selectedGroupId() ?? "") || 0));
 
-  private readonly canReadNotifications = this.store.selectSignal(
-    AuthState.hasAppPermission(Permission.AppNotificationsRead)
-  );
+  private readonly canReadNotifications = computed(() => this.authStore.hasAppPermission(Permission.AppNotificationsRead));
 
   constructor(
     private authService: AuthService,
     private notificationsService: NotificationsService,
     private router: Router,
-    private store: Store,
     private viewportService: ViewportService
   ) {
     this.listenForLoggedInUser();

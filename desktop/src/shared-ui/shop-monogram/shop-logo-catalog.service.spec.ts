@@ -2,8 +2,7 @@ import { provideHttpClient } from "@angular/common/http";
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { provideStore, Store } from "@ngxs/store";
-import { SetAuthState } from "../../store";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
 import { ShopLogoCatalog } from "./shop-logo-catalog.service";
 
@@ -13,13 +12,13 @@ describe("ShopLogoCatalog", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideStore([AuthState]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideStore([]), provideHttpClient(), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);
     http = TestBed.inject(HttpTestingController);
   });
 
-  const signIn = () => store.dispatch(new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any));
+  const signIn = () => TestBed.inject(AuthStore).setAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any);
   const logosOn = (on: boolean) =>
     TestBed.inject(FeatureConfigStore).setFeatureConfig({ enableLocalSignUp: false, aiPoweredReceipts: false, shopLogosEnabled: on });
 

@@ -13,8 +13,7 @@ import {
 } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store";
 import { OidcProviderFormComponent } from "./oidc-provider-form.component";
 import { OidcProviderListComponent } from "./oidc-provider-list.component";
 import { FeatureConfigStore } from "../../store/feature-config.store";
@@ -75,7 +74,7 @@ describe("OidcProviderListComponent", () => {
     dialog = { open: vi.fn(() => ({ afterClosed: () => of(closeWith), componentInstance: {} })) };
 
     await TestBed.configureTestingModule({
-      imports: [OidcProviderListComponent, NgxsModule.forRoot([AuthState])],
+      imports: [OidcProviderListComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -87,7 +86,7 @@ describe("OidcProviderListComponent", () => {
       ],
     }).compileComponents();
 
-    TestBed.inject(Store).dispatch(new SetPermissions(permissions, {}));
+    TestBed.inject(AuthStore).setPermissions(permissions, {});
     fixture = TestBed.createComponent(OidcProviderListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

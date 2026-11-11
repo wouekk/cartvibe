@@ -9,10 +9,11 @@ import { of } from "rxjs";
 import { InputReadonlyPipe } from "src/pipes/input-readonly.pipe";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { Permission, UserPreferences, UserPreferencesService } from "../../open-api";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { StoreModule } from "../../store/store.module";
 
 import { UserPreferencesComponent } from "./user-preferences.component";
+import { seedStore } from "../../testing/seed-store";
 
 describe("UserPreferencesComponent", () => {
   let component: UserPreferencesComponent;
@@ -53,12 +54,10 @@ describe("UserPreferencesComponent", () => {
   it("gates the edit button on app.user-preferences.update", () => {
     const store = TestBed.inject(Store);
 
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     expect((component as any).canEdit()).toEqual(false);
 
-    store.dispatch(
-      new SetPermissions([Permission.AppUserPreferencesUpdate], {})
-    );
+    TestBed.inject(AuthStore).setPermissions([Permission.AppUserPreferencesUpdate], {});
     expect((component as any).canEdit()).toEqual(true);
   });
 
@@ -79,16 +78,13 @@ describe("UserPreferencesComponent", () => {
 
   it("should init form with user preference data", () => {
     const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        ...store.snapshot().auth,
-        userPreferences: {
-          quickScanDefaultPaidById: "1",
-          quickScanDefaultGroupId: "2",
-          quickScanDefaultStatus: "OPEN",
-          closeChipSelectOnSelect: true,
-        },
+    seedStore(TestBed.inject(AuthStore), {
+      ...store.snapshot().auth,
+      userPreferences: {
+        quickScanDefaultPaidById: "1",
+        quickScanDefaultGroupId: "2",
+        quickScanDefaultStatus: "OPEN",
+        closeChipSelectOnSelect: true,
       },
     });
     component.ngOnInit();
@@ -128,12 +124,9 @@ describe("UserPreferencesComponent", () => {
   it("should attempt to call update endpoint with nulls", () => {
     // Reset store state to ensure clean test
     const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        ...store.snapshot().auth,
-        userPreferences: undefined,
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      ...store.snapshot().auth,
+      userPreferences: undefined,
     });
 
     const serviceSpy = vi.spyOn(
@@ -161,10 +154,7 @@ describe("UserPreferencesComponent", () => {
   describe("the warranty settings", () => {
     it("shows what Automatic resolves to for the region and saves numbers", () => {
       const store = TestBed.inject(Store);
-      store.reset({
-        ...store.snapshot(),
-        auth: { ...store.snapshot().auth, userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } },
-      });
+      seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: { region: "PL", warrantyPeriodYears: 3, warrantyReminderLeadDays: 7 } });
       const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of(undefined as any));
@@ -184,10 +174,7 @@ describe("UserPreferencesComponent", () => {
   describe("the Dashboard currency", () => {
     it("is no longer a preference: no field, and saving clears one an older version stored", () => {
       const store = TestBed.inject(Store);
-      store.reset({
-        ...store.snapshot(),
-        auth: { ...store.snapshot().auth, userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } },
-      });
+      seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, userPreferences: { displayCurrency: "PLN", displayCurrencyRate: "4.25" } });
       const serviceSpy = vi
         .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")
         .mockReturnValue(of({} as any));
@@ -202,12 +189,9 @@ describe("UserPreferencesComponent", () => {
 
   it("has no shortcut list: a stored one from an older version is neither shown nor sent back", () => {
     const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        ...store.snapshot().auth,
-        userPreferences: { userShortcuts: [{ id: 1, name: "Test", url: "test", icon: "icon" }] },
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      ...store.snapshot().auth,
+      userPreferences: { userShortcuts: [{ id: 1, name: "Test", url: "test", icon: "icon" }] },
     });
     const serviceSpy = vi
       .spyOn(TestBed.inject(UserPreferencesService), "updateUserPreferences")

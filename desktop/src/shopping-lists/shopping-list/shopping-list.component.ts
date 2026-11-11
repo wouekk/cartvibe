@@ -2,7 +2,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, ElementRef, inject, input, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { EMPTY, filter, from, map, of, switchMap, take } from "rxjs";
 import { ShoppingList, ShoppingListItem, ShoppingListService } from "../../open-api";
 import { SnackbarService } from "../../services";
@@ -10,7 +9,7 @@ import { ViewportService } from "../../services/viewport.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
 import { shakeInvalid } from "../../utils/shake";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store/auth.store";
 import { ShoppingListEventType } from "../../store/shopping-list.store";
 import { isLocalItem, newClientId, nextLocalItemId } from "../shopping-list-pending";
 import { ShoppingListItemFormDialogComponent } from "../shopping-list-item-form-dialog/shopping-list-item-form-dialog.component";
@@ -52,6 +51,8 @@ const OFFLINE_MESSAGE = "Couldn't reach the server. Check your connection and tr
     ],
 })
 export class ShoppingListComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly shoppingListStore = inject(ShoppingListStore);
 
   private readonly translation = inject(TranslationService);
@@ -127,7 +128,6 @@ export class ShoppingListComponent {
   private readonly sync = inject(ShoppingListSyncService);
 
   constructor(
-    private store: Store,
     private formBuilder: FormBuilder,
     private shoppingListService: ShoppingListService,
     private dialog: AppDialog,
@@ -226,7 +226,7 @@ export class ShoppingListComponent {
         clientId: isLocalItem(item) ? item.clientId : undefined,
         isChecked,
         checkedAt: isChecked ? new Date().toISOString() : undefined,
-        checkedByUserId: isChecked ? Number(this.store.selectSnapshot(AuthState.userId)) || undefined : undefined,
+        checkedByUserId: isChecked ? Number(this.authStore.userId()) || undefined : undefined,
       });
   }
 

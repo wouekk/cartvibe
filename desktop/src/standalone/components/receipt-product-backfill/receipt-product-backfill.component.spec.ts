@@ -3,8 +3,7 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ReceiptProductService } from "../../../open-api";
-import { AuthState } from "../../../store/auth.state";
-import { SetPermissions } from "../../../store/auth.state.actions";
+import { AuthStore } from "../../../store/auth.store";
 import { ReceiptProductBackfillComponent } from "./receipt-product-backfill.component";
 
 import type { Mock } from "vitest";
@@ -16,7 +15,7 @@ describe("ReceiptProductBackfillComponent", () => {
     fixture.nativeElement.querySelector('[data-testid="receipt-product-backfill"]');
 
   const render = async (permissions: string[]) => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 3: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 3: permissions });
     fixture = TestBed.createComponent(ReceiptProductBackfillComponent);
     fixture.componentRef.setInput("groupId", 3);
     await fixture.whenStable();
@@ -25,7 +24,7 @@ describe("ReceiptProductBackfillComponent", () => {
   beforeEach(async () => {
     service = { queueGroupReceiptProducts: vi.fn(() => of({ queued: 4 })) };
     await TestBed.configureTestingModule({
-      imports: [ReceiptProductBackfillComponent, NgxsModule.forRoot([AuthState])],
+      imports: [ReceiptProductBackfillComponent, NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection(), { provide: ReceiptProductService, useValue: service }],
     }).compileComponents();
   });

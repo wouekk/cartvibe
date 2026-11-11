@@ -5,7 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of, Subject, throwError } from "rxjs";
 import { AppData, UserService } from "../../open-api";
 import { SignInTransitionService } from "../../services/sign-in-transition.service";
-import { AuthState, GroupStore } from "../../store";
+import { GroupStore, AuthStore } from "../../store";
 import { OidcCallbackComponent } from "./oidc-callback.component";
 
 import type { Mock } from "vitest";
@@ -19,7 +19,7 @@ describe("OidcCallbackComponent", () => {
     router = { navigate: vi.fn().mockResolvedValue(true) };
 
     TestBed.configureTestingModule({
-      imports: [OidcCallbackComponent, NgxsModule.forRoot([AuthState])],
+      imports: [OidcCallbackComponent, NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         { provide: UserService, useValue: userService },
@@ -54,7 +54,7 @@ describe("OidcCallbackComponent", () => {
     await fixture.whenStable();
 
     const store = TestBed.inject(Store);
-    expect(store.selectSnapshot(AuthState.isLoggedIn)).toBe(true);
+    expect(TestBed.inject(AuthStore).isLoggedIn()).toBe(true);
     expect(router.navigate).toHaveBeenCalledWith([TestBed.inject(GroupStore).overviewLink()]);
     expect(transition.active()).toBe(false);
   });
@@ -64,7 +64,7 @@ describe("OidcCallbackComponent", () => {
     await fixture.whenStable();
 
     expect(router.navigate).toHaveBeenCalledWith(["/auth/login"], { queryParams: { oidcError: "invalid_state" } });
-    expect(TestBed.inject(Store).selectSnapshot(AuthState.isLoggedIn)).toBe(false);
+    expect(TestBed.inject(AuthStore).isLoggedIn()).toBe(false);
     expect(TestBed.inject(SignInTransitionService).active()).toBe(false);
   });
 

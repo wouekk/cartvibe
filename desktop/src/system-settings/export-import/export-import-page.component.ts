@@ -11,7 +11,7 @@ import { BackupService, BackupSummary, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { downloadUrl, formatByteSize } from "../../utils/file";
 import { BackupImportCardComponent } from "./backup-import-card.component";
 
@@ -49,7 +49,7 @@ export class ExportImportPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   /** The Import card is for who may import (an admin); the server checks again. */
-  public readonly canImport = inject(Store).selectSnapshot(AuthState.hasAppPermission(Permission.AppBackupImport));
+  public readonly canImport = inject(AuthStore).hasAppPermission(Permission.AppBackupImport);
 
   public readonly summary = signal<BackupSummary | null>(null);
   public readonly loading = signal(true);

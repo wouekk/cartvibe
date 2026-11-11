@@ -1,16 +1,15 @@
 import { Component, DestroyRef, OnInit, ChangeDetectionStrategy, inject } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterOutlet } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { interval, take, tap } from "rxjs";
 import { LayoutStore } from "src/store/layout.store";
 import { TokenRefreshService } from "../services";
 import { PullToRefreshService } from "../services/pull-to-refresh.service";
 import { SignInTransitionService } from "../services/sign-in-transition.service";
 import { CartVibeSplashComponent } from "../shared-ui/cartvibe-splash/cartvibe-splash.component";
-import { AuthState } from "../store";
 import { ThemeService } from "../theme/theme.service";
 import { ToastHostComponent } from "../toast/toast-host.component";
+import { AuthStore } from "../store/auth.store";
 
 @Component({
     selector: "app-root", host: { class: "block size-full" },
@@ -19,6 +18,8 @@ import { ToastHostComponent } from "../toast/toast-host.component";
     imports: [CartVibeSplashComponent, RouterOutlet, ToastHostComponent],
 })
 export class AppComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly layoutStore = inject(LayoutStore);
 
   protected readonly signInTransition = inject(SignInTransitionService);
@@ -26,7 +27,6 @@ export class AppComponent implements OnInit {
 
   constructor(
     private tokenRefreshService: TokenRefreshService,
-    private store: Store,
     // Created here so the stored theme is applied, and follows the system, from the first screen on.
     private themeService: ThemeService,
     // Created here so the installed app can be pulled down to refresh from any page.
@@ -49,7 +49,7 @@ export class AppComponent implements OnInit {
     // A phone that was asleep or without signal skipped its renewals: catch up when the connection or the app
     // comes back, instead of waiting for the next quarter of an hour.
     const catchUp = () => {
-      if (document.visibilityState === "visible" && AuthState.isAccessTokenExpired(this.store)) {
+      if (document.visibilityState === "visible" && this.authStore.isAccessTokenExpired()) {
         this.refreshSession();
       }
     };
@@ -62,7 +62,7 @@ export class AppComponent implements OnInit {
   }
 
   private refreshSession(): void {
-    if (!this.store.selectSnapshot(AuthState.isLoggedIn)) {
+    if (!this.authStore.isLoggedIn()) {
       return;
     }
     // A failure is the refresh service's to judge: it signs out when the server refuses and otherwise leaves the

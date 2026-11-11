@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from "@angular/core";
-import { Store } from "@ngxs/store";
 import { buttonVariants, HlmButton } from "@spartan-ng/helm/button";
 import { filter, Observable, take } from "rxjs";
 import { AvatarModule } from "../../avatar/avatar.module";
@@ -12,7 +11,7 @@ import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState, UserStore } from "../../store";
+import { UserStore, AuthStore } from "../../store";
 import { downscaleImageForUpload } from "../../utils/downscale-image";
 
 /** An avatar is drawn at most a few rem wide: 512px stays sharp on a 3x screen and goes up in tens of kilobytes. */
@@ -33,17 +32,18 @@ export const AVATAR_MAX_BYTES = 8 * 1024 * 1024;
   templateUrl: "./avatar-photo.component.html",
 })
 export class AvatarPhotoComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly userStore = inject(UserStore);
 
-  private readonly store = inject(Store);
   private readonly userService = inject(UserService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly dialog = inject(AppDialog);
 
-  private readonly loggedInUser = this.store.selectSignal(AuthState.loggedInUser);
+  private readonly loggedInUser = this.authStore.loggedInUser;
   private readonly users = this.userStore.users;
 
-  public readonly canEdit = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppAccountUpdate));
+  public readonly canEdit = computed(() => this.authStore.hasAppPermission(Permission.AppAccountUpdate));
 
   /** The signed-in person as the household's user list has them (it carries avatarUpdatedAt). */
   public readonly me = computed<User>(() => {

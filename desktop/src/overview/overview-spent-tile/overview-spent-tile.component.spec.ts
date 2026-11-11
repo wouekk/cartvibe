@@ -6,8 +6,7 @@ import { of, throwError } from "rxjs";
 import type { Mock } from "vitest";
 import { GroupOverview, Permission, UserPreferences, UserPreferencesService } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions, SetUserPreferences } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { StoreModule } from "../../store/store.module";
 import { ResolvedPeriod } from "../overview-period";
 import { OverviewSpentTileComponent } from "./overview-spent-tile.component";
@@ -49,7 +48,7 @@ describe("OverviewSpentTileComponent", () => {
   const tileText = (): string => byId("overview-tile-spent")?.textContent?.replace(/\s+/g, " ").trim() ?? "";
 
   const allowEditing = async () => {
-    store.dispatch(new SetPermissions([Permission.AppUserPreferencesUpdate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppUserPreferencesUpdate], {});
     await fixture.whenStable();
   };
 
@@ -80,7 +79,7 @@ describe("OverviewSpentTileComponent", () => {
     }).compileComponents();
 
     store = TestBed.inject(Store);
-    store.dispatch(new SetUserPreferences({ userId: 1, quickScanDefaultGroupId: 4 } as UserPreferences));
+    TestBed.inject(AuthStore).setUserPreferences({ userId: 1, quickScanDefaultGroupId: 4 } as UserPreferences);
     fixture = TestBed.createComponent(HostComponent);
     host = fixture.componentInstance;
     await fixture.whenStable();
@@ -164,13 +163,13 @@ describe("OverviewSpentTileComponent", () => {
       await fixture.whenStable();
 
       expect(userPreferencesService.updateUserPreferences).toHaveBeenCalledWith({ userId: 1, quickScanDefaultGroupId: 4, monthlySpendingGoal: "1500.50" });
-      expect(store.selectSnapshot(AuthState.userPreferences)?.monthlySpendingGoal).toBe("1500.50");
+      expect(TestBed.inject(AuthStore).userPreferences()?.monthlySpendingGoal).toBe("1500.50");
       expect(snackbar.success).toHaveBeenCalledWith("Monthly goal saved");
       expect(tile.editingGoal()).toBe(false);
     });
 
     it("starts from the goal there is, and removes it when the field is emptied", async () => {
-      store.dispatch(new SetUserPreferences({ userId: 1, monthlySpendingGoal: "1500.5" } as UserPreferences));
+      TestBed.inject(AuthStore).setUserPreferences({ userId: 1, monthlySpendingGoal: "1500.5" } as UserPreferences);
       host.overview.set(spent("92"));
       host.goal.set(1500.5);
       await allowEditing();
@@ -200,7 +199,7 @@ describe("OverviewSpentTileComponent", () => {
     });
 
     it("saves nothing on Escape, nor when the goal was left as it was", async () => {
-      store.dispatch(new SetUserPreferences({ userId: 1, monthlySpendingGoal: "100" } as UserPreferences));
+      TestBed.inject(AuthStore).setUserPreferences({ userId: 1, monthlySpendingGoal: "100" } as UserPreferences);
       host.overview.set(spent("92"));
       host.goal.set(100);
       await allowEditing();

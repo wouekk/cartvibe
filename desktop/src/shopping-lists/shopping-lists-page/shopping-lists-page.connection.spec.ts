@@ -12,10 +12,10 @@ import { SnackbarService } from "../../services";
 import { OnlineStatusService } from "../../services/online-status.service";
 import { ShoppingListStreamService, ShoppingListStreamStatus } from "../../services/shopping-list-stream.service";
 import { ShoppingListSyncService } from "../../services/shopping-list-sync.service";
-import { AuthState } from "../../store/auth.state";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingListsPageComponent } from "./shopping-lists-page.component";
 import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 const milk = { id: 10, shoppingListId: 1, name: "Milk", unit: "", quantity: "", note: "", isChecked: false } as ShoppingListItem;
 
@@ -36,10 +36,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
   const text = (id: string): string => (testId(id)?.textContent ?? "").replace(/\s+/g, " ").trim();
 
   const create = async () => {
-    store.reset({
-      ...store.snapshot(),
-      auth: { ...store.snapshot().auth, groupPermissions: { 1: [Permission.GroupShoppingListsUpdate] } },
-    });
+    seedStore(TestBed.inject(AuthStore), { ...store.snapshot().auth, groupPermissions: { 1: [Permission.GroupShoppingListsUpdate] } });
     fixture = TestBed.createComponent(ShoppingListsPageComponent);
     await fixture.whenStable();
   };
@@ -59,7 +56,7 @@ describe("ShoppingListsPageComponent: what it says about the connection", () => 
     snackbarError = vi.fn();
 
     await TestBed.configureTestingModule({
-    imports: [NgxsModule.forRoot([AuthState]), ShoppingListsPageComponent],
+    imports: [NgxsModule.forRoot([]), ShoppingListsPageComponent],
     providers: [
         provideZonelessChangeDetection(),
         provideHttpClient(),

@@ -5,8 +5,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 
 import { SystemSettingsComponent } from "./system-settings.component";
 
@@ -17,7 +16,7 @@ describe("SystemSettingsComponent", () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([AuthState]), SystemSettingsComponent],
+    imports: [TranslatePipe, SharedUiModule, NgxsModule.forRoot([]), SystemSettingsComponent],
     providers: [
         provideZonelessChangeDetection(),
         {
@@ -41,20 +40,14 @@ describe("SystemSettingsComponent", () => {
   });
 
   it("should create", () => {
-    store.dispatch(
-      new SetPermissions([Permission.AppSystemTasksRead], {})
-    );
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemTasksRead], {});
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it("shows no tab to a user who cannot read the settings, and never the AI page (Phase 3 M1)", () => {
-    store.dispatch(
-      new SetPermissions(
-        [Permission.AppReceiptProcessingSettingsRead, Permission.AppSystemTasksRead],
-        {}
-      )
-    );
+    TestBed.inject(AuthStore).setPermissions([Permission.AppReceiptProcessingSettingsRead, Permission.AppSystemTasksRead],
+        {});
 
     fixture.detectChanges();
 
@@ -62,7 +55,7 @@ describe("SystemSettingsComponent", () => {
   });
 
   it("shows the five tabs, in order, when the user can read the settings", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsRead], {});
 
     fixture.detectChanges();
 
@@ -77,7 +70,7 @@ describe("SystemSettingsComponent", () => {
   });
 
   it("adds Export & import before Logs only for who may export the household", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead, Permission.AppBackupExport], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsRead, Permission.AppBackupExport], {});
 
     fixture.detectChanges();
 
@@ -86,7 +79,7 @@ describe("SystemSettingsComponent", () => {
   });
 
   it("adds Sign-in providers after Auth & Security only for who may read the providers", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead, Permission.AppOidcProvidersRead], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsRead, Permission.AppOidcProvidersRead], {});
 
     fixture.detectChanges();
 
@@ -95,7 +88,7 @@ describe("SystemSettingsComponent", () => {
   });
 
   it("opens a tab's route when it is picked", () => {
-    store.dispatch(new SetPermissions([Permission.AppSystemSettingsRead], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppSystemSettingsRead], {});
     fixture.detectChanges();
     const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 

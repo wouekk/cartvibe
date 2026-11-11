@@ -1,6 +1,5 @@
 import { inject, Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { EMPTY, Observable, take } from "rxjs";
 import { AppDialog } from "../../dialog/app-dialog";
 import { marker } from "../../i18n/marker";
@@ -8,7 +7,7 @@ import { TranslationService } from "../../i18n/translation.service";
 import { Permission } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store/auth.store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
 import { openQuickScanDialog } from "./open-quick-scan-dialog";
 
@@ -21,12 +20,13 @@ import { openQuickScanDialog } from "./open-quick-scan-dialog";
  */
 @Injectable({ providedIn: "root" })
 export class QuickScanLauncher {
+  private readonly authStore = inject(AuthStore);
+
   private readonly featureConfigStore = inject(FeatureConfigStore);
 
   private readonly dialog = inject(AppDialog);
   private readonly router = inject(Router);
   private readonly snackbarService = inject(SnackbarService);
-  private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
 
   public open(): Observable<unknown> {
@@ -34,7 +34,7 @@ export class QuickScanLauncher {
       return openQuickScanDialog(this.dialog);
     }
 
-    if (this.store.selectSnapshot(AuthState.hasAppPermission(Permission.AppReceiptProcessingSettingsUpdate))) {
+    if (this.authStore.hasAppPermission(Permission.AppReceiptProcessingSettingsUpdate)) {
       this.askToAddAiKey();
     } else {
       this.snackbarService.hint(this.translation.t(marker("Scanning needs an AI API key. Ask an admin to add one.")));

@@ -7,8 +7,7 @@ import { AboutComponent } from "./about.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { Permission } from "../../open-api";
 import { AboutStore } from "../../store/about.store";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 
 describe("AboutComponent", () => {
   let component: AboutComponent;
@@ -21,7 +20,7 @@ describe("AboutComponent", () => {
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-        provideStore([AuthState])
+        provideStore([])
       ]
     })
       .compileComponents();
@@ -65,7 +64,7 @@ describe("AboutComponent", () => {
     const set = async (runsAsRoot: boolean, appPermissions: string[]): Promise<void> => {
       const store = TestBed.inject(Store);
       TestBed.inject(AboutStore).setAbout({ version: "v0.19.0", buildDate: "unknown", runsAsRoot });
-      store.dispatch(new SetPermissions(appPermissions, {}));
+      TestBed.inject(AuthStore).setPermissions(appPermissions, {});
       await fixture.whenStable();
     };
 

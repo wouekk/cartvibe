@@ -12,8 +12,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { ShoppingListEventType } from "../../store/shopping-list.store";
 import { ShoppingListStore } from "../../store/shopping-list.store";
 import { ShoppingTripsComponent } from "./shopping-trips.component";
@@ -43,7 +42,7 @@ describe("ShoppingTripsComponent", () => {
     fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
 
   const render = async (permissions: string[]) => {
-    TestBed.inject(Store).dispatch(new SetPermissions([], { 1: permissions }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: permissions });
     fixture = TestBed.createComponent(ShoppingTripsComponent);
     fixture.componentRef.setInput("listId", 1);
     fixture.componentRef.setInput("groupId", 1);
@@ -58,7 +57,7 @@ describe("ShoppingTripsComponent", () => {
 
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         HlmButton,
         ...HlmDropdownMenuImports,
         AppIconComponent,

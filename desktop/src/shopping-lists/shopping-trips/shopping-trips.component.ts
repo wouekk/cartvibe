@@ -3,12 +3,11 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { Component, computed, effect, input, signal, untracked, inject, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
-import { Store } from "@ngxs/store";
 import { catchError, EMPTY, filter, from, merge, Observable, switchMap, take } from "rxjs";
 import { Permission, ShoppingListService, ShoppingTripView } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { ShoppingListEventType, ShoppingListStore } from "../../store/shopping-list.store";
 import { downscaleImageForUpload } from "../../utils/downscale-image";
 import { hasAll } from "../../utils/permission.utils";
@@ -67,13 +66,15 @@ interface ShoppingTripRow {
     ],
 })
 export class ShoppingTripsComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly translation = inject(TranslationService);
 
   public readonly listId = input.required<number>();
 
   public readonly groupId = input.required<number>();
 
-  private readonly groupPermissions = this.store.selectSignal(AuthState.groupPermissions);
+  private readonly groupPermissions = this.authStore.groupPermissions;
 
   private readonly permissions = computed(() => this.groupPermissions()[this.groupId()] ?? []);
 
@@ -100,7 +101,6 @@ export class ShoppingTripsComponent {
   public readonly uploading = signal(false);
 
   constructor(
-    private store: Store,
     private shoppingListService: ShoppingListService,
     private dialog: AppDialog,
     private snackbarService: SnackbarService

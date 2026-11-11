@@ -1,12 +1,11 @@
 import { Component, DestroyRef, inject, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { NavigationEnd, Router, RouterOutlet } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { filter } from "rxjs";
 import { Permission } from "../../open-api";
 import { FilterTab } from "../../shared-ui/filter-bar/filter-tab.interface";
 import { TabConfig } from "../../shared-ui/tabs/tab-config.interface";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { marker } from "../../i18n/marker";
 import { SettingsPageComponent } from "../../shared-ui/settings/settings-page.component";
 import { FilterBarComponent } from "../../shared-ui/filter-bar/filter-bar.component";
@@ -27,6 +26,8 @@ interface SystemSettingsTab extends TabConfig {
     imports: [SettingsPageComponent, FilterBarComponent, RouterOutlet]
 })
 export class SystemSettingsComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   public tabs: TabConfig[] = [];
 
   public filterTabs: FilterTab[] = [];
@@ -35,7 +36,7 @@ export class SystemSettingsComponent implements OnInit {
 
   private readonly router = inject(Router);
 
-  constructor(private store: Store) {
+  constructor() {
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -113,7 +114,7 @@ export class SystemSettingsComponent implements OnInit {
 
     this.tabs = allTabs
       .filter((tab) =>
-        this.store.selectSnapshot(AuthState.hasAppPermission(tab.readPermission))
+        this.authStore.hasAppPermission(tab.readPermission)
       )
       .map(({ readPermission, ...tab }) => tab);
     this.filterTabs = this.tabs.map((tab) => ({ value: tab.name, label: tab.label }));

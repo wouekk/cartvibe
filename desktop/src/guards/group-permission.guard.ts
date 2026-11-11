@@ -1,7 +1,6 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
-import { AuthState } from "../store";
+import { AuthStore } from "../store";
 import { redirectToLanding } from "./landing-redirect";
 import { GroupStore } from "../store/group.store";
 
@@ -18,7 +17,7 @@ import { GroupStore } from "../store/group.store";
  * selector); otherwise from the currently selected group in `GroupStore`.
  */
 export const groupPermissionGuard: CanActivateFn = (route, state) => {
-  const store: Store = inject(Store);
+  const authStore = inject(AuthStore);
   const groupStore = inject(GroupStore);
   const router: Router = inject(Router);
 
@@ -45,9 +44,7 @@ export const groupPermissionGuard: CanActivateFn = (route, state) => {
   }
 
   if (
-    store.selectSnapshot(
-      AuthState.hasGroupPermission(groupId, permission, orApp)
-    )
+    authStore.hasGroupPermission(groupId, permission, orApp)
   ) {
     return true;
   }

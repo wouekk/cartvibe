@@ -1,8 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter, Router } from "@angular/router";
 import { provideStore, Store } from "@ngxs/store";
-import { SetPermissions } from "../../store";
-import { AuthState } from "../../store/auth.state";
+import { AuthStore } from "../../store";
 import { SharedUiModule } from "../shared-ui.module";
 import {
   allowedManagementTabs,
@@ -17,7 +16,7 @@ describe("ManagementTabsComponent", () => {
     TestBed.configureTestingModule({
       imports: [SharedUiModule],
       providers: [
-        provideStore([AuthState]),
+        provideStore([]),
         provideRouter([
           { path: "categories", children: [] },
           { path: "tags", children: [] },
@@ -29,7 +28,7 @@ describe("ManagementTabsComponent", () => {
   });
 
   const create = async (permissions: string[], url: string) => {
-    TestBed.inject(Store).dispatch(new SetPermissions(permissions, {}));
+    TestBed.inject(AuthStore).setPermissions(permissions, {});
     await TestBed.inject(Router).navigateByUrl(url);
     const fixture = TestBed.createComponent(ManagementTabsComponent);
     await fixture.whenStable();

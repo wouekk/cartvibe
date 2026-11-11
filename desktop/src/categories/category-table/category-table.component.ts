@@ -1,9 +1,8 @@
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { RowAction, RowActionsComponent } from "../../shared-ui/row-actions/row-actions.component";
-import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy } from "@angular/core";
+import { AfterViewInit, Component, OnInit, signal, TemplateRef, viewChild, inject, ChangeDetectionStrategy, computed } from "@angular/core";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
-import { Store } from "@ngxs/store";
 import { of, switchMap, take, tap } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "src/constants";
 import { ConfirmationDialogComponent } from "src/shared-ui/confirmation-dialog/confirmation-dialog.component";
@@ -31,6 +30,8 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
     imports: [SettingsPageComponent, ManagementTabsComponent, HasAppPermissionDirective, AddButtonComponent, SettingsEntityListComponent, TableComponent, RowActionsComponent, TranslatePipe]
 })
 export class CategoryTableComponent implements OnInit, AfterViewInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly categoryTableStore = inject(CategoryTableStore);
 
   private readonly translation = inject(TranslationService);
@@ -51,9 +52,9 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
 
   protected readonly Permission = Permission;
 
-  private readonly canUpdate = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesUpdate));
+  private readonly canUpdate = computed(() => this.authStore.hasAppPermission(Permission.AppCategoriesUpdate));
 
-  private readonly canDelete = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppCategoriesDelete));
+  private readonly canDelete = computed(() => this.authStore.hasAppPermission(Permission.AppCategoriesDelete));
 
   /** The row's actions (app-row-actions): inline icons on a wider screen, a menu on a phone. */
   public readonly rowActions: readonly RowAction<CategoryView>[] = [
@@ -79,8 +80,7 @@ export class CategoryTableComponent implements OnInit, AfterViewInit {
   constructor(
     private categoryService: CategoryService,
     private dialog: AppDialog,
-    private snackbarService: SnackbarService,
-    private store: Store,
+    private snackbarService: SnackbarService
   ) {}
 
   public dataSource = signal(new TableDataSource<PagedDataDataInner>([]));

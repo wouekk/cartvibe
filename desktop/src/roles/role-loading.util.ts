@@ -1,7 +1,6 @@
-import { Store } from "@ngxs/store";
 import { catchError, Observable, of } from "rxjs";
 import { Permission, Role, RoleService } from "../open-api";
-import { AuthState } from "../store";
+import { AuthStore } from "../store";
 
 /**
  * Loads the roles a UI needs to resolve role ids to display names — but only
@@ -12,10 +11,10 @@ import { AuthState } from "../store";
  * members who are not admins. Request errors still degrade to an empty list.
  */
 export function loadAssignableRoles(
-  store: Store,
+  authStore: AuthStore,
   roleService: RoleService
 ): Observable<Role[]> {
-  if (!store.selectSnapshot(AuthState.hasAppPermission(Permission.AppRolesRead))) {
+  if (!authStore.hasAppPermission(Permission.AppRolesRead)) {
     return of([]);
   }
   return roleService.getRoles().pipe(catchError(() => of([])));

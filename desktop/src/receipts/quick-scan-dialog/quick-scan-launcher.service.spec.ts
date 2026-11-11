@@ -8,8 +8,7 @@ import { AppDialog } from "../../dialog/app-dialog";
 import { Permission } from "../../open-api";
 import { SnackbarService } from "../../services/snackbar.service";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { QuickScanLauncher } from "./quick-scan-launcher.service";
@@ -28,7 +27,7 @@ describe("QuickScanLauncher", () => {
     open = vi.fn();
     hint = vi.fn();
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [
         provideZonelessChangeDetection(),
         provideRouter([]),
@@ -51,7 +50,7 @@ describe("QuickScanLauncher", () => {
   });
 
   it("asks a member who may set the AI up to add a key, and goes to the AI page on yes", () => {
-    store.dispatch(new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppReceiptProcessingSettingsUpdate], {});
     open.mockReturnValue({ componentInstance: confirm, afterClosed: () => of(true) });
     const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
     let emitted = false;
@@ -67,7 +66,7 @@ describe("QuickScanLauncher", () => {
   });
 
   it("stays put when the question is cancelled", () => {
-    store.dispatch(new SetPermissions([Permission.AppReceiptProcessingSettingsUpdate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppReceiptProcessingSettingsUpdate], {});
     open.mockReturnValue({ componentInstance: confirm, afterClosed: () => of(false) });
     const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
 
@@ -77,7 +76,7 @@ describe("QuickScanLauncher", () => {
   });
 
   it("tells a member who cannot set the AI up to ask an admin, with no dialog", () => {
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
 
     launcher().open().subscribe();
 

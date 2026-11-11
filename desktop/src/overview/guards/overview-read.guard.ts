@@ -1,19 +1,18 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 
 /**
  * Allows the overview only with group.receipts.read in the route's group — the permission its data
  * needs. On deny it falls back to the group's receipts list instead of letting the page load into a 403.
  */
 export const overviewReadGuard: CanActivateFn = (route) => {
-  const store = inject(Store);
+  const authStore = inject(AuthStore);
   const router = inject(Router);
   const groupId = route.params["groupId"];
 
-  if (store.selectSnapshot(AuthState.hasGroupPermission(+groupId, Permission.GroupReceiptsRead))) {
+  if (authStore.hasGroupPermission(+groupId, Permission.GroupReceiptsRead)) {
     return true;
   }
 

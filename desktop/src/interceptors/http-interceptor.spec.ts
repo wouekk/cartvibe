@@ -2,9 +2,10 @@ import { HttpClient, provideHttpClient, withInterceptors } from "@angular/common
 import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { ApiModule } from "../open-api";
 import { SnackbarService } from "../services";
+import { AuthStore } from "../store/auth.store";
+import { seedStore } from "../testing/seed-store";
 import { httpInterceptor } from "./http-interceptor";
 
 import type { MockInstance } from "vitest";
@@ -15,11 +16,9 @@ describe("httpInterceptor", () => {
   let httpClient: HttpClient;
   let snackbarService: SnackbarService;
   let errorSpy: MockInstance;
-  let isLoggedIn: boolean;
   let activatedRouteStub: { snapshot: { queryParams: Record<string, unknown> } };
 
   beforeEach(() => {
-    isLoggedIn = true;
     activatedRouteStub = { snapshot: { queryParams: {} } };
 
     TestBed.configureTestingModule({
@@ -27,11 +26,11 @@ describe("httpInterceptor", () => {
       providers: [
         provideHttpClient(withInterceptors([httpInterceptor])),
         provideHttpClientTesting(),
-        { provide: Store, useValue: { selectSnapshot: () => isLoggedIn } },
         { provide: ActivatedRoute, useValue: activatedRouteStub },
       ],
     });
 
+    seedStore(TestBed.inject(AuthStore), { expirationDate: "9999999999" });
     httpTestingController = TestBed.inject(HttpTestingController);
     httpClient = TestBed.inject(HttpClient);
     snackbarService = TestBed.inject(SnackbarService);
@@ -92,7 +91,7 @@ describe("httpInterceptor", () => {
   });
 
   it("does not toast a 403 when the token is no longer valid", () => {
-    isLoggedIn = false;
+    seedStore(TestBed.inject(AuthStore), { expirationDate: "" });
 
     httpClient.post("/test", {}).subscribe({ error: () => {} });
 

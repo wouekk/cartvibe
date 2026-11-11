@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, signal, viewChild } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { catchError, of, take, tap } from "rxjs";
 import { marker } from "../../i18n/marker";
 import { TranslatePipe } from "../../i18n/translate.pipe";
@@ -10,7 +9,7 @@ import { DisplayCurrencyPipe } from "../../pipes/display-currency.pipe";
 import { SnackbarService } from "../../services";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { MoneyComponent } from "../../shared-ui/money/money.component";
-import { AuthState, SetUserPreferences } from "../../store";
+import { AuthStore } from "../../store";
 import { parseInlineGoalInput } from "../overview-chart.utils";
 import { isWholeCalendarMonth, ResolvedPeriod } from "../overview-period";
 
@@ -33,7 +32,8 @@ import { isWholeCalendarMonth, ResolvedPeriod } from "../overview-period";
   host: { class: "cv-tile cv-tile-link relative", "data-testid": "overview-tile-spent" },
 })
 export class OverviewSpentTileComponent {
-  private readonly store = inject(Store);
+  private readonly authStore = inject(AuthStore);
+
   private readonly userPreferencesService = inject(UserPreferencesService);
   private readonly snackbarService = inject(SnackbarService);
   private readonly translation = inject(TranslationService);
@@ -87,10 +87,10 @@ export class OverviewSpentTileComponent {
   });
 
   // The goal can be set straight from the tile (no trip to User Settings).
-  public readonly canEditGoal = this.store.selectSignal(AuthState.hasAppPermission(Permission.AppUserPreferencesUpdate));
+  public readonly canEditGoal = computed(() => this.authStore.hasAppPermission(Permission.AppUserPreferencesUpdate));
   public readonly editingGoal = signal(false);
   public readonly goalDraft = signal("");
-  private readonly userPreferences = this.store.selectSignal(AuthState.userPreferences);
+  private readonly userPreferences = this.authStore.userPreferences;
   private readonly goalInput = viewChild<ElementRef<HTMLInputElement>>("goalInput");
   private savingGoal = false;
 
@@ -141,7 +141,7 @@ export class OverviewSpentTileComponent {
       .pipe(
         take(1),
         tap((saved) => {
-          this.store.dispatch(new SetUserPreferences(saved));
+          this.authStore.setUserPreferences(saved);
           this.snackbarService.success(parsed.value ? marker("Monthly goal saved") : marker("Monthly goal removed"));
         }),
         catchError(() => of(undefined))

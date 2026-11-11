@@ -15,7 +15,7 @@ import {
   ReportTemplate,
 } from "../../open-api";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store";
+import { AuthStore } from "../../store";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { ReportTemplateListComponent } from "./report-template-list.component";
 
@@ -58,16 +58,16 @@ describe("ReportTemplateListComponent", () => {
   let snackbar: { success: Mock; error: Mock };
   let dialogResult: boolean;
   let dialogInstance: { headerText: string; dialogContent: string };
-  // Drives the component's canEnterBuilder gate (the "New Report" button). The store mock
-  // routes the AuthState.hasAnyAppPermission selectSignal to this controllable signal.
-  let canEnterBuilder: WritableSignal<boolean>;
+  // Drives the component's canEnterBuilder gate (the "New Report" button) through the session's permissions.
+  const canEnterBuilder = {
+    set: (allowed: boolean) => TestBed.inject(AuthStore).setPermissions(allowed ? [Permission.AppReportsRead] : [], {}),
+  };
 
   const templates = [makeTemplate(1, "Alpha"), makeTemplate(2, "Beta")];
 
   beforeEach(async () => {
     dialogResult = true;
     dialogInstance = { headerText: "", dialogContent: "" };
-    canEnterBuilder = signal(true);
     runner = {
       listTemplates: vi.fn(() => of({ data: templates, totalCount: templates.length })),
       duplicateTemplate: vi.fn(() => of(makeTemplate(3, "Alpha duplicate"))),
@@ -79,9 +79,7 @@ describe("ReportTemplateListComponent", () => {
     snackbar = { success: vi.fn(), error: vi.fn() };
 
     const store = {
-      // The component's one NGXS read is AuthState.hasAnyAppPermission([...]) (the builder-entry gate);
-      // the households come from their own store, which starts empty.
-      selectSignal: vi.fn(() => canEnterBuilder),
+      selectSignal: vi.fn(() => signal(undefined)),
       selectSnapshot: vi.fn(() => ({ page: 1, pageSize: 50, orderBy: "updated_at", sortDirection: "desc" })),
       select: vi.fn(() => of(1)),
       dispatch: vi.fn(),
@@ -108,10 +106,7 @@ describe("ReportTemplateListComponent", () => {
     schemas: [NO_ERRORS_SCHEMA],
 }).compileComponents();
 
-    // Installed before createComponent because the builder-entry gate reads the selector
-    // at field init. Call through (default) so selectSignal still receives a real selector
-    // object, which the store mock maps to the controllable canEnterBuilder signal.
-    vi.spyOn(AuthState, "hasAnyAppPermission");
+    canEnterBuilder.set(true);
 
     fixture = TestBed.createComponent(ReportTemplateListComponent);
     component = fixture.componentInstance;
@@ -135,11 +130,18 @@ describe("ReportTemplateListComponent", () => {
     expect(router.navigate).toHaveBeenCalledWith(["/reports/new"]);
   });
 
-  it("gates the builder entry on report access (read/readAll)", () => {
-    expect(AuthState.hasAnyAppPermission).toHaveBeenCalledWith([
-      Permission.AppReportsRead,
-      Permission.AppReportsReadAll,
-    ]);
+  it("gates the builder entry on report access (read/readAll)", async () => {
+    const button = () => (fixture.nativeElement as HTMLElement).querySelector('[data-testid="report-template-add"]');
+
+    for (const permission of [Permission.AppReportsRead, Permission.AppReportsReadAll]) {
+      TestBed.inject(AuthStore).setPermissions([permission], {});
+      await fixture.whenStable();
+      expect(button()).not.toBeNull();
+    }
+
+    TestBed.inject(AuthStore).setPermissions([Permission.AppUsersRead], {});
+    await fixture.whenStable();
+    expect(button()).toBeNull();
   });
 
   it("shows the New Report button for a holder with report access (read/readAll)", async () => {

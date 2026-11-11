@@ -5,8 +5,7 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { NgxsModule, Store } from "@ngxs/store";
 import { of } from "rxjs";
 import { ApiModule, NotificationsService } from "../../open-api";
-import { AuthState } from "../../store/auth.state";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { NotificationComponent } from "./notification.component";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -26,7 +25,7 @@ describe("NotificationComponent", () => {
     imports: [ApiModule,
         TranslatePipe,
         AppDatePipe,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         RouterTestingModule, NotificationComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
@@ -99,14 +98,14 @@ describe("NotificationComponent", () => {
     };
 
     it("hides the delete button without app.notifications.delete", async () => {
-      store.dispatch(new SetPermissions(["app.notifications.read"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.notifications.read"], {});
       await render();
 
       expect(deleteButton()).toBeFalsy();
     });
 
     it("shows the delete button with app.notifications.delete", async () => {
-      store.dispatch(new SetPermissions(["app.notifications.delete"], {}));
+      TestBed.inject(AuthStore).setPermissions(["app.notifications.delete"], {});
       await render();
 
       expect(deleteButton()).toBeTruthy();

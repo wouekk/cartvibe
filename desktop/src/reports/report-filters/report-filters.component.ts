@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { FormArray, FormControl, FormGroup } from "@angular/forms";
-import { Store } from "@ngxs/store";
 import { RECEIPT_STATUS_OPTIONS } from "src/constants";
-import { AuthState, UserStore, GroupStore } from "src/store";
+import { UserStore, GroupStore, AuthStore } from "src/store";
 import { OperationsPipe } from "../../shared-ui/receipt-filter/operations.pipe";
 import { Category, FilterOperation, Tag } from "../../open-api";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -79,13 +78,14 @@ const FILTER_FIELDS: FilterFieldDef[] = [
         FormGetPipe, HlmButton, HlmTooltip, AppIconComponent],
 })
 export class ReportFiltersComponent implements OnInit {
+  private readonly authStore = inject(AuthStore);
+
   private readonly groupStore = inject(GroupStore);
 
   private readonly userStore = inject(UserStore);
 
   public readonly form = input.required<FormGroup>();
 
-  private readonly store = inject(Store);
   private readonly operationsPipe = new OperationsPipe();
   private readonly activeFieldKeys = signal<string[]>([]);
 
@@ -135,10 +135,10 @@ export class ReportFiltersComponent implements OnInit {
 
   private readonly groups = this.groupStore.groupsWithoutAll;
   public readonly categories = computed<Category[]>(() =>
-    unionCatalog(this.groups(), (id) => this.store.selectSnapshot(AuthState.groupCategories(id)))
+    unionCatalog(this.groups(), (id) => this.authStore.groupCategories(id))
   );
   public readonly tags = computed<Tag[]>(() =>
-    unionCatalog(this.groups(), (id) => this.store.selectSnapshot(AuthState.groupTags(id)))
+    unionCatalog(this.groups(), (id) => this.authStore.groupTags(id))
   );
 
   public readonly activeFields = computed<FilterFieldDef[]>(() => {

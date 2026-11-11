@@ -2,8 +2,7 @@ import { provideZonelessChangeDetection } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
 import { NgxsModule, Store } from "@ngxs/store";
-import { AuthState } from "../store/auth.state";
-import { SetPermissions } from "../store/auth.state.actions";
+import { AuthStore } from "../store/auth.store";
 import { GroupStore } from "../store/group.store";
 import { groupPermissionGuard } from "./group-permission.guard";
 
@@ -16,7 +15,7 @@ describe("groupPermissionGuard", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [provideZonelessChangeDetection()],
     });
 
@@ -28,7 +27,7 @@ describe("groupPermissionGuard", () => {
 
   it("allows when the user holds the group permission for the selected group", () => {
     TestBed.inject(GroupStore).setSelectedGroupId("1");
-    store.dispatch(new SetPermissions([], { 1: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.view"] });
 
     const route = {
       data: { groupPermission: "group.view" },
@@ -40,7 +39,7 @@ describe("groupPermissionGuard", () => {
 
   it("denies and redirects when the user lacks the group permission", () => {
     TestBed.inject(GroupStore).setSelectedGroupId("1");
-    store.dispatch(new SetPermissions([], { 1: ["group.receipts.read"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 1: ["group.receipts.read"] });
 
     const route = {
       data: { groupPermission: "group.view" },
@@ -54,7 +53,7 @@ describe("groupPermissionGuard", () => {
 
   it("resolves the group id from the route param when useRouteGroupId is set", () => {
     TestBed.inject(GroupStore).setSelectedGroupId("99"); // selected group differs from route
-    store.dispatch(new SetPermissions([], { 5: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 5: ["group.view"] });
 
     const route = {
       data: { groupPermission: "group.view", useRouteGroupId: true },
@@ -66,7 +65,7 @@ describe("groupPermissionGuard", () => {
   });
 
   it("resolves the group id from the parent route param when not on the param itself", () => {
-    store.dispatch(new SetPermissions([], { 7: ["group.view"] }));
+    TestBed.inject(AuthStore).setPermissions([], { 7: ["group.view"] });
 
     const route = {
       data: { groupPermission: "group.view", useRouteGroupId: true },
@@ -102,7 +101,7 @@ describe("groupPermissionGuard", () => {
       // group would bounce them off /receipts/add entirely.
       TestBed.inject(GroupStore).setGroups(groups(7));
       TestBed.inject(GroupStore).setSelectedGroupId("1");
-      store.dispatch(new SetPermissions([], { 7: ["group.receipts.create"] }));
+      TestBed.inject(AuthStore).setPermissions([], { 7: ["group.receipts.create"] });
 
       expect(executeGuard(route, {} as any)).toBe(true);
       expect(navigateSpy).not.toHaveBeenCalled();
@@ -112,7 +111,7 @@ describe("groupPermissionGuard", () => {
       // Multi-group user on the All group: unchanged from the plain behaviour.
       TestBed.inject(GroupStore).setGroups(groups(7, 8));
       TestBed.inject(GroupStore).setSelectedGroupId("1");
-      store.dispatch(new SetPermissions([], { 1: ["group.receipts.create"] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: ["group.receipts.create"] });
 
       expect(executeGuard(route, {} as any)).toBe(true);
       expect(navigateSpy).not.toHaveBeenCalled();
@@ -121,7 +120,7 @@ describe("groupPermissionGuard", () => {
     it("still denies when the add target lacks the permission", () => {
       TestBed.inject(GroupStore).setGroups(groups(7));
       TestBed.inject(GroupStore).setSelectedGroupId("1");
-      store.dispatch(new SetPermissions([], { 1: ["group.receipts.create"] }));
+      TestBed.inject(AuthStore).setPermissions([], { 1: ["group.receipts.create"] });
 
       expect(executeGuard(route, {} as any)).toBe(false);
       expect(navigateSpy).toHaveBeenCalled();
@@ -131,7 +130,7 @@ describe("groupPermissionGuard", () => {
   it("allows a non-member who holds an orApp fallback permission", () => {
     TestBed.inject(GroupStore).setSelectedGroupId("3");
     // No group permissions for group 3, but the app fallback is held.
-    store.dispatch(new SetPermissions(["app.groups.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.groups.read"], {});
 
     const route = {
       data: {

@@ -9,7 +9,7 @@ import { OverlayModule } from "@angular/cdk/overlay";
 import { of } from "rxjs";
 import { ViewportService } from "../../services/viewport.service";
 import { ApiModule, Group, NotificationsService } from "../../open-api";
-import { SetAuthState, SetPermissions } from "../../store/auth.state.actions";
+import { AuthStore } from "../../store/auth.store";
 import { GroupStore } from "../../store/group.store";
 import { StoreModule } from "../../store/store.module";
 import { HANDSET_LOGO_SCALE, HeaderComponent } from "./header.component";
@@ -22,12 +22,10 @@ describe("HeaderComponent", () => {
   const isHandset = signal(false);
 
   const logIn = () =>
-    store.dispatch(
-      new SetAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any)
-    );
+    TestBed.inject(AuthStore).setAuthState({ exp: Math.floor(Date.now() / 1000) + 3600 } as any);
 
   const grantNotificationsRead = () =>
-    store.dispatch(new SetPermissions(["app.notifications.read"], {}));
+    TestBed.inject(AuthStore).setPermissions(["app.notifications.read"], {});
 
   const bellRendered = (): boolean =>
     !!fixture.nativeElement.querySelector('[data-testid="header-notifications"]');

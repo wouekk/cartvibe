@@ -3,10 +3,10 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { ReactiveFormsModule } from "@angular/forms";
 import { NgxsModule, Store } from "@ngxs/store";
 import { Permission } from "../../open-api";
-import { AuthState } from "../../store";
 import { GroupTabsComponent } from "./group-tabs.component";
 import { seedStore } from "../../testing/seed-store";
 import { FeatureConfigStore } from "../../store/feature-config.store";
+import { AuthStore } from "../../store/auth.store";
 
 describe("GroupTabsComponent", () => {
   let component: GroupTabsComponent;
@@ -14,7 +14,7 @@ describe("GroupTabsComponent", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule, NgxsModule.forRoot([AuthState]), GroupTabsComponent],
+    imports: [ReactiveFormsModule, NgxsModule.forRoot([]), GroupTabsComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });
     fixture = TestBed.createComponent(GroupTabsComponent);
@@ -45,11 +45,8 @@ describe("GroupTabsComponent", () => {
 
   it("offers no Group AI Settings tab, even with the AI feature and the permission (AI is household-wide)", () => {
     const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        appPermissions: [Permission.AppGroupsRead],
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      appPermissions: [Permission.AppGroupsRead],
     });
     seedStore(TestBed.inject(FeatureConfigStore), {
       aiPoweredReceipts: true,
@@ -72,11 +69,8 @@ describe("GroupTabsComponent", () => {
 
   it("does not init the group settings tab without the update-settings permission", () => {
     const store = TestBed.inject(Store);
-    store.reset({
-      ...store.snapshot(),
-      auth: {
-        appPermissions: [],
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      appPermissions: [],
     });
     seedStore(TestBed.inject(FeatureConfigStore), {
       aiPoweredReceipts: true,

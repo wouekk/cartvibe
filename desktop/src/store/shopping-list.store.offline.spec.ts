@@ -5,8 +5,7 @@ import { NgxsModule, Store } from "@ngxs/store";
 import { OfflineStorageService } from "../offline/offline-storage.service";
 import { ShoppingList, ShoppingListItem } from "../open-api";
 import { PendingAdd, PendingToggle } from "../shopping-lists/shopping-list-pending";
-import { AuthState } from "./auth.state";
-import { Logout } from "./auth.state.actions";
+import { AuthStore } from "./auth.store";
 import { CachedShoppingLists, ShoppingListEventType, shoppingListsCacheKey } from "./shopping-list.store";
 import {
   ShoppingListStore,
@@ -60,7 +59,7 @@ describe("ShoppingListStore without a connection", () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NgxsModule.forRoot([AuthState])],
+      imports: [NgxsModule.forRoot([])],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     });
     store = TestBed.inject(Store);
@@ -288,7 +287,7 @@ describe("ShoppingListStore without a connection", () => {
     it("leave with the account that signs out", () => {
       listStore.queueChange(breadAdd);
 
-      store.dispatch(new Logout());
+      TestBed.inject(AuthStore).logout();
 
       expect(listStore.pending()).toEqual([]);
       expect(listStore.lists()).toEqual([]);

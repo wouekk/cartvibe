@@ -18,7 +18,6 @@ import {
   Tag,
   TagService,
 } from "../../open-api";
-import { AuthState } from "../../store";
 import { GroupMemberFormComponent } from "./group-member-form.component";
 
 import type { Mock } from "vitest";
@@ -28,6 +27,8 @@ import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { renderShallow } from "../../testing/render-shallow";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 describe("GroupMemberFormComponent", () => {
   const defaultGroupRole: Role = {
     id: 10,
@@ -94,7 +95,7 @@ describe("GroupMemberFormComponent", () => {
     renderShallow(GroupMemberFormComponent, [ReactiveFormsModule, TranslatePipe, FormGetPipe, HlmButton, HlmTooltip, AppIconComponent]);
     await TestBed.configureTestingModule({
     imports: [
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         ReactiveFormsModule,
         GroupMemberFormComponent,
     ],
@@ -117,7 +118,7 @@ describe("GroupMemberFormComponent", () => {
     ],
 }).compileComponents();
 
-    TestBed.inject(Store).reset({ auth: { userId: "1" } });
+    seedStore(TestBed.inject(AuthStore), { userId: "1" });
   });
 
   // Creates and initialises a fresh component after the role mock is configured;

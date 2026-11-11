@@ -18,8 +18,7 @@ import { of } from "rxjs";
 import { SharedUiModule } from "src/shared-ui/shared-ui.module";
 import { TableModule } from "src/table/table.module";
 import { ApiModule, Group, GroupsService, Permission } from "../../open-api";
-import { AuthState, GroupStore } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { GroupStore, AuthStore } from "../../store";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 
 import { GroupTableComponent } from "./group-table.component";
@@ -38,7 +37,7 @@ describe("GroupTableComponent", () => {
         RouterLink,
         ApiModule,
         AppDatePipe,
-        NgxsModule.forRoot([AuthState]),
+        NgxsModule.forRoot([]),
         SharedUiModule,
         TableModule,
         HlmButton,
@@ -69,14 +68,14 @@ describe("GroupTableComponent", () => {
   // drive change detection with detectChanges(false) to skip the verification
   // pass rather than restructure the unrelated table column wiring.
   it("shows the Create Group FAB with the app group-create permission", () => {
-    store.dispatch(new SetPermissions([Permission.AppGroupsCreate], {}));
+    TestBed.inject(AuthStore).setPermissions([Permission.AppGroupsCreate], {});
     fixture.detectChanges(false);
 
     expect(queryTestId("group-create")).toBeTruthy();
   });
 
   it("hides the Create Group FAB without the app group-create permission", () => {
-    store.dispatch(new SetPermissions([], {}));
+    TestBed.inject(AuthStore).setPermissions([], {});
     fixture.detectChanges(false);
 
     expect(queryTestId("group-create")).toBeFalsy();
@@ -96,7 +95,7 @@ describe("GroupTableComponent", () => {
           { id: 5, name: "Abandoned Group", groupMembers: [] } as unknown as Group,
         ])
       );
-      store.dispatch(new SetPermissions(appPermissions, groupPermissions));
+      TestBed.inject(AuthStore).setPermissions(appPermissions, groupPermissions);
       fixture.detectChanges(false);
       TestBed.flushEffects();
       fixture.detectChanges(false);
@@ -131,7 +130,7 @@ describe("GroupTableComponent", () => {
     const group = { id: 5, name: "Home", groupMembers: [] } as unknown as Group;
 
     it("offers Edit to a member holding group.update and opens the household's edit page", () => {
-      store.dispatch(new SetPermissions([], { 5: [Permission.GroupUpdate] }));
+      TestBed.inject(AuthStore).setPermissions([], { 5: [Permission.GroupUpdate] });
       const navigate = vi.spyOn(TestBed.inject(Router), "navigateByUrl").mockResolvedValue(true);
 
       expect(component.canEdit(group)).toBe(true);
@@ -141,19 +140,19 @@ describe("GroupTableComponent", () => {
     });
 
     it("offers Edit to an app admin who only joined the household as a Member", () => {
-      store.dispatch(new SetPermissions([Permission.AppGroupsUpdate], { 5: [Permission.GroupView] }));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppGroupsUpdate], { 5: [Permission.GroupView] });
 
       expect(component.canEdit(group)).toBe(true);
     });
 
     it("offers no Edit to a Member without the app permission", () => {
-      store.dispatch(new SetPermissions([], { 5: [Permission.GroupView] }));
+      TestBed.inject(AuthStore).setPermissions([], { 5: [Permission.GroupView] });
 
       expect(component.canEdit(group)).toBe(false);
     });
 
     it("never offers Edit or Delete on the synthetic All group", () => {
-      store.dispatch(new SetPermissions([Permission.AppGroupsDelete], { 5: [Permission.GroupUpdate, Permission.GroupDelete] }));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppGroupsDelete], { 5: [Permission.GroupUpdate, Permission.GroupDelete] });
       const all = { ...group, isAllGroup: true } as Group;
 
       expect(component.canEdit(all)).toBe(false);
@@ -175,21 +174,21 @@ describe("GroupTableComponent", () => {
     // permission escape a one-group admin is blocked from deleting anything.
     it("disables delete for a caller with a single group and no app permission", () => {
       TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
-      store.dispatch(new SetPermissions([], {}));
+      TestBed.inject(AuthStore).setPermissions([], {});
 
       expect(component.deleteDisabled()).toBe(true);
     });
 
     it("does not disable delete for an app.groups.delete holder with a single group", () => {
       TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
-      store.dispatch(new SetPermissions([Permission.AppGroupsDelete], {}));
+      TestBed.inject(AuthStore).setPermissions([Permission.AppGroupsDelete], {});
 
       expect(component.deleteDisabled()).toBe(false);
     });
 
     it("does not disable delete for a caller with more than one group", () => {
       TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group, { id: 2 } as Group]);
-      store.dispatch(new SetPermissions([], {}));
+      TestBed.inject(AuthStore).setPermissions([], {});
 
       expect(component.deleteDisabled()).toBe(false);
     });
@@ -225,7 +224,7 @@ describe("GroupTableComponent", () => {
       const dialogSpy = vi.spyOn(TestBed.inject(AppDialog), "open");
 
       TestBed.inject(GroupStore).setGroups([{ id: 1 } as Group]);
-      store.dispatch(new SetPermissions([], {}));
+      TestBed.inject(AuthStore).setPermissions([], {});
       component.dataSource.set(
         new TableDataSource([{ id: 1, name: "Only Group" } as Group])
       );

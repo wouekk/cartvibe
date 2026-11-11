@@ -9,7 +9,6 @@ import {
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { FormArray, FormBuilder, FormGroup } from "@angular/forms";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { Store } from "@ngxs/store";
 import { EMPTY, catchError, debounceTime, finalize, startWith, switchMap, take, tap } from "rxjs";
 import { Permission, ReportPeriod, ReportRequestCommand, ReportTemplate } from "../../open-api";
 import {
@@ -19,7 +18,6 @@ import {
   toReportRequestCommandForSave,
 } from "../models/report-command.mapper";
 import { SnackbarService } from "../../services";
-import { AuthState } from "../../store";
 import { buildReportForm, buildReportFormFromCommand } from "../models/report-form.factory";
 import { ReportRunnerService } from "../services/report-runner.service";
 import { marker } from "../../i18n/marker";
@@ -32,6 +30,7 @@ import { ReportConfigPanelComponent } from "../report-config-panel/report-config
 import { ReportPreviewPanelComponent } from "../report-preview-panel/report-preview-panel.component";
 import { ReportGenerateBarComponent } from "../report-generate-bar/report-generate-bar.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { AuthStore } from "../../store/auth.store";
 
 /**
  * The Report Builder screen: owns the report form, drives the debounced live
@@ -52,12 +51,13 @@ import { TranslatePipe } from "../../i18n/translate.pipe";
         TranslatePipe, HlmButton, HlmTooltip],
 })
 export class ReportBuilderComponent {
+  private readonly authStore = inject(AuthStore);
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly runner = inject(ReportRunnerService);
   private readonly snackbar = inject(SnackbarService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly store = inject(Store);
   private readonly translation = inject(TranslationService);
   private readonly storedText = (text: string) => this.translation.data(text);
 
@@ -80,21 +80,17 @@ export class ReportBuilderComponent {
   // both the base and the "*All" variant — the permission matcher treats "…create" and
   // "…createAll" as unrelated keys, so gating on the base alone would hide Save from an
   // "*All"-only holder. Resolved through the AuthState selector, exactly like the sidebar.
-  public readonly saveTemplateAllowed = this.store.selectSignal(
-    AuthState.hasAnyAppPermission(
+  public readonly saveTemplateAllowed = computed(() => this.authStore.hasAnyAppPermission(
       this.isEditMode
         ? [Permission.AppReportsUpdate, Permission.AppReportsUpdateAll]
         : [Permission.AppReportsCreate, Permission.AppReportsCreateAll]
-    )
-  );
+    ));
 
   // Generate honors app.reports.generate and its "*All" variant for the same reason.
-  public readonly generateAllowed = this.store.selectSignal(
-    AuthState.hasAnyAppPermission([
+  public readonly generateAllowed = computed(() => this.authStore.hasAnyAppPermission([
       Permission.AppReportsGenerate,
       Permission.AppReportsGenerateAll,
-    ])
-  );
+    ]));
 
   public readonly form: FormGroup = this.loadedTemplate
     ? buildReportFormFromCommand(

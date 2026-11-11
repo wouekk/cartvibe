@@ -16,10 +16,11 @@ import {
   UserService,
 } from "../../open-api";
 import { SnackbarService, TokenRefreshService } from "../../services";
-import { AuthState, UserStore } from "../../store";
-import { SetPermissions } from "../../store/auth.state.actions";
+import { UserStore } from "../../store";
 import { UserFormComponent } from "./user-form.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { seedStore } from "../../testing/seed-store";
+import { AuthStore } from "../../store/auth.store";
 
 import type { Mock } from "vitest";
 describe("UserFormComponent", () => {
@@ -53,7 +54,7 @@ describe("UserFormComponent", () => {
     getRolesMock = vi.fn().mockReturnValue(of([] as Role[]));
     await TestBed.configureTestingModule({
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [NgxsModule.forRoot([AuthState]),
+    imports: [NgxsModule.forRoot([]),
         ReactiveFormsModule,
         ApiModule, UserFormComponent],
     providers: [
@@ -124,10 +125,8 @@ describe("UserFormComponent", () => {
   });
 
   it("should attempt to update user on submit and get refresh token if the user is updating his/her own record", () => {
-    store.reset({
-      auth: {
-        userId: "1",
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      userId: "1",
     });
 
     vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
@@ -182,10 +181,8 @@ describe("UserFormComponent", () => {
   });
 
   it("should attempt to update user on submit and not get refresh token if the user is not updating his/her own record", () => {
-    store.reset({
-      auth: {
-        userId: "2",
-      },
+    seedStore(TestBed.inject(AuthStore), {
+      userId: "2",
     });
 
     vi.spyOn(TestBed.inject(SnackbarService), "success").mockReturnValue();
