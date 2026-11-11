@@ -411,6 +411,36 @@ function item(
   };
 }
 
+/**
+ * Last week's trip, crossed off one item at a time on the way round the shop: fruit and vegetables at the door,
+ * bread, meat, the fridges, the dry shelves, cleaning things by the tills. It is what Shop mode learns the usual
+ * order from (`shopping-lists/usual-order.ts`), so this week's list sorts itself the same way.
+ */
+function lastWeeksShop(day: string): ShoppingList {
+  const walk: [string, string, string, Health, string][] = [
+    ["Apples", "1", "kg", "HEALTHY", "Fresh Produce"],
+    ["Cherry tomatoes", "250", "g", "HEALTHY", "Fresh Produce"],
+    ["Sourdough bread", "1", "pcs", "MEDIUM", "Bakery"],
+    ["Chicken breast", "500", "g", "MEDIUM", "Meat"],
+    ["Whole milk", "2", "l", "HEALTHY", "Dairy"],
+    ["Greek yoghurt", "2", "pcs", "HEALTHY", "Dairy"],
+    ["Spaghetti", "500", "g", "MEDIUM", "Pantry"],
+    ["Dish soap", "1", "pcs", "NOT_FOOD", "Household"],
+  ];
+  return {
+    id: 4,
+    groupId: DEMO_GROUP_ID,
+    name: "Last week's shop",
+    createdAt: instantOn(day, 9),
+    createdBy: 1,
+    items: walk.map(([name, amount, unit, health, categoryName], index) => ({
+      ...item(41 + index, 4, name, amount, unit, health, categoryName, true, day),
+      // Three minutes an aisle, from ten past ten.
+      checkedAt: `${day}T10:${String(10 + index * 3).padStart(2, "0")}:00Z`,
+    })),
+  };
+}
+
 export function buildLists(today: string): ShoppingList[] {
   const yesterday = addDays(today, -1);
   return [
@@ -445,6 +475,7 @@ export function buildLists(today: string): ShoppingList[] {
         item(15, 2, "Lemons", "4", "pcs", "HEALTHY", "Fresh Produce", false, today),
       ],
     },
+    lastWeeksShop(addDays(today, -7)),
     {
       id: 3,
       groupId: DEMO_GROUP_ID,

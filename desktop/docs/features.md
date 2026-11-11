@@ -253,6 +253,18 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   `app-shopping-list-item`) and `ScreenWakeLockService` holding the screen on where the browser has the API
   (re-acquired when the tab is visible again; a refusal is said once and the mode stays). It is per visit: off at
   first, gone when the page is left. It replaced the "Keep screen on" menu entry.
+- **The usual order** (`usual-order.ts`, pure; `ShoppingListComponent.shownItems`): in Shop mode what is left to
+  buy is sorted by where the household crossed each item off before, and `shopping-list-usual-order` says so when
+  at least one item is placed. Worked out on the device from the lists the store already holds (past lists
+  included), so there is no endpoint, no field on the contract and no connection needed. `learnUsualOrder`:
+  ticks less than three hours apart are one trip (a reused list holds several), ticks that share their moment
+  are left out ("Mark as complete"), a trip needs three items crossed off one by one, each item's place is its
+  index over the trip's length, averaged over its trips, keyed by the name lower-cased and trimmed. The open
+  list's ticks from three hours before Shop mode began are the trip under way and are left out, or every tick
+  would reshuffle the rest; that moment is read once in a `computed`, never in a selector. One order for the
+  household, not per shop (the owner's choice, 2026-11-11): a list does not know its shop while it is shopped
+  from. It forgets with the lists it learned from: clearing crossed-off items or deleting a past list removes
+  those lessons.
 - **In the shop:** `shoppingListToText` (`shopping-list-share.ts`) feeding `navigator.share` or
   the clipboard, `navigator.vibrate?.(10)` on crossing off, and the `shopping-list-offline` notice (shown while
   Offline, or Reconnecting with changes waiting). Menu entries are hidden where the browser lacks the API.

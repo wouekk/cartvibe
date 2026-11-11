@@ -27,6 +27,7 @@ import {
 } from "../shopping-list-item-form";
 
 import { buildItemSuggestions, ItemSuggestion } from "../shopping-item-suggestions";
+import { anyInUsualOrder, learnUsualOrder, sortByUsualOrder, TRIP_GAP_MS } from "../usual-order";
 import { TranslationService } from "../../i18n/translation.service";
 import { marker } from "../../i18n/marker";
 import { ShoppingItemNameFieldComponent } from "../shopping-item-name-field/shopping-item-name-field.component";
@@ -81,6 +82,33 @@ export class ShoppingListComponent {
 
   public readonly checkedItems = this.store.selectSignal(ShoppingListState.checkedItems);
 
+  private readonly allLists = this.store.selectSignal(ShoppingListState.lists);
+
+  /**
+   * In Shop mode, the moment from which this list's ticks are the trip under way: three hours before Shop mode
+   * began (what was crossed off on the way in counts as this trip too). Read once, when Shop mode starts.
+   */
+  private readonly tripSince = computed(() => (this.large() ? Date.now() - TRIP_GAP_MS : undefined));
+
+  /** Where the household usually crosses each item off (`usual-order.ts`). Only worked out in Shop mode. */
+  private readonly usualOrder = computed(() => {
+    const since = this.tripSince();
+    return since === undefined
+      ? new Map<string, number>()
+      : learnUsualOrder(this.allLists(), { listId: this.list().id, since });
+  });
+
+  /**
+   * What is left to buy, as it is shown: in the order it was added, or in Shop mode in the order the household
+   * usually walks the shop, so the next thing to pick up is near the top. Items never bought before come last.
+   */
+  public readonly shownItems = computed(() =>
+    this.large() ? sortByUsualOrder(this.activeItems(), this.usualOrder()) : this.activeItems()
+  );
+
+  /** True in Shop mode when at least one item is placed by the usual order: the list then says so. */
+  public readonly inUsualOrder = computed(() => this.large() && anyInUsualOrder(this.activeItems(), this.usualOrder()));
+
   public readonly showCrossedOff = signal(false);
 
   /** The rows with a change the server has not confirmed yet. */
@@ -88,7 +116,6 @@ export class ShoppingListComponent {
 
   public readonly addForm: FormGroup;
 
-  private readonly allLists = this.store.selectSignal(ShoppingListState.lists);
 
   /** Items the household added before (any list, open or crossed off), offered as the name is typed. */
   public readonly suggestions = computed(() => buildItemSuggestions(this.allLists(), this.list().id));

@@ -348,4 +348,83 @@ describe("ShoppingListComponent", () => {
       expect(component.suggestions().map((suggestion) => suggestion.name)).not.toContain("Milk");
     });
   });
+
+  describe("Shop mode: what is left to buy, in the order the household usually shops", () => {
+    const lastWeek = Date.parse("2026-11-04T10:00:00Z");
+    const crossedOff = (id: number, name: string, minute: number): ShoppingListItem =>
+      ({ ...milk, id, shoppingListId: 2, name, isChecked: true, checkedAt: new Date(lastWeek + minute * 60_000).toISOString() }) as ShoppingListItem;
+    const toBuy = (id: number, name: string, second: number): ShoppingListItem =>
+      ({ ...milk, id, name, createdAt: `2026-11-11T08:00:${String(second).padStart(2, "0")}Z` }) as ShoppingListItem;
+
+    // Last week's trip went apples, milk, bread. Today's list was typed in another order, with something new.
+    const lastTrip: ShoppingList = {
+      id: 2,
+      groupId: 1,
+      name: "Last week",
+      items: [crossedOff(21, "Bread", 30), crossedOff(22, "apples", 2), crossedOff(23, "Milk", 15)],
+    };
+    const today: ShoppingList = {
+      id: 1,
+      groupId: 1,
+      name: "Supermarket",
+      items: [toBuy(11, "Bread", 1), toBuy(12, "Candles", 2), toBuy(13, "Milk", 3), toBuy(14, "Apples", 4)],
+    };
+
+    const show = async (lists: ShoppingList[], shopMode: boolean) => {
+      store.reset({
+        ...store.snapshot(),
+        shoppingLists: { ...store.snapshot().shoppingLists, groupId: 1, selectedListId: 1, lists },
+      });
+      fixture.componentRef.setInput("list", lists.find((list) => list.id === 1));
+      fixture.componentRef.setInput("large", shopMode);
+      await fixture.whenStable();
+    };
+    const shown = () => component.shownItems().map((item) => item.name);
+    const caption = (): HTMLElement | null => fixture.nativeElement.querySelector('[data-testid="shopping-list-usual-order"]');
+
+    it("keeps the order things were added in outside Shop mode, and says nothing", async () => {
+      await show([today, lastTrip], false);
+
+      expect(shown()).toEqual(["Bread", "Candles", "Milk", "Apples"]);
+      expect(caption()).toBeNull();
+    });
+
+    it("sorts by where things were crossed off before, puts what is new last, and says so", async () => {
+      await show([today, lastTrip], true);
+
+      expect(shown()).toEqual(["Apples", "Milk", "Bread", "Candles"]);
+      expect(caption()?.textContent).toContain("In the order you usually pick things up.");
+    });
+
+    it("says nothing when there is no earlier trip to learn from", async () => {
+      await show([today], true);
+
+      expect(shown()).toEqual(["Bread", "Candles", "Milk", "Apples"]);
+      expect(caption()).toBeNull();
+    });
+
+    it("does not reshuffle what is left as things are crossed off on this trip", async () => {
+      await show([today, lastTrip], true);
+      const now = new Date().toISOString();
+
+      // Bread first, then milk: not the usual order, and it must not become it mid-trip.
+      const during: ShoppingList = {
+        ...today,
+        items: today.items.map((item) => (item.name === "Bread" || item.name === "Milk" ? { ...item, isChecked: true, checkedAt: now } : item)),
+      };
+      store.reset({ ...store.snapshot(), shoppingLists: { ...store.snapshot().shoppingLists, lists: [during, lastTrip] } });
+      await fixture.whenStable();
+
+      expect(shown()).toEqual(["Apples", "Candles"]);
+    });
+
+    it("goes back to the order things were added in when Shop mode is left", async () => {
+      await show([today, lastTrip], true);
+      fixture.componentRef.setInput("large", false);
+      await fixture.whenStable();
+
+      expect(shown()).toEqual(["Bread", "Candles", "Milk", "Apples"]);
+      expect(caption()).toBeNull();
+    });
+  });
 });

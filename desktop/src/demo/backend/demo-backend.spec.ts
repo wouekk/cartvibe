@@ -499,7 +499,7 @@ describe("DemoBackend", () => {
       backend.reset();
 
       expect(receiptsOf(backend).totalCount).toBe(14);
-      expect(json<unknown[]>(call(backend, "GET", "/shopping-list/group/1"))).toHaveLength(3);
+      expect(json<unknown[]>(call(backend, "GET", "/shopping-list/group/1"))).toHaveLength(4);
     });
   });
 

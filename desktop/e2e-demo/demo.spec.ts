@@ -109,6 +109,37 @@ test('an unhealthy tile opens the lines behind it', async ({ page }) => {
   await expect(page.getByTestId('overview-detail-products')).toContainText('Cola 2 l');
 });
 
+test('Shop mode puts what is left to buy in the order of an earlier trip round the shop', async ({ page }) => {
+  await openDemo(page);
+  await goTo(page, '/shopping-lists/group/1');
+  await page.getByTestId('shopping-list-card-1').click();
+  await expect(page.getByTestId('shopping-list-workspace').getByRole('heading', { name: 'Weekly shop' })).toBeVisible();
+
+  // Outside Shop mode the list is in the order it was written: chicken was added before the tomatoes.
+  const toBuy = page.getByTestId('shopping-list-active-items').locator('app-shopping-list-item');
+  await expect(toBuy.first()).toContainText('Apples');
+  await expect(toBuy.nth(1)).toContainText('Chicken breast');
+  await expect(page.getByTestId('shopping-list-usual-order')).toHaveCount(0);
+
+  // In Shop mode it is in the order last week's trip went round the shop, and says so.
+  await page.getByTestId('shopping-list-menu').click();
+  await page.getByTestId('shopping-list-shop-mode').click();
+  await expect(page.getByTestId('shopping-list-usual-order')).toBeVisible();
+  await expect(toBuy.first()).toContainText('Apples');
+  await expect(toBuy.nth(1)).toContainText('Cherry tomatoes');
+  await expect(toBuy.nth(2)).toContainText('Chicken breast');
+  await expect(toBuy.last()).toContainText('Dish soap');
+
+  // Crossing something off does not reshuffle the rest.
+  await toBuy.nth(1).getByTestId('shopping-list-item-toggle').click();
+  await expect(toBuy.nth(1)).toContainText('Chicken breast');
+  await expect(toBuy.last()).toContainText('Dish soap');
+
+  await page.getByTestId('shopping-list-shop-mode-leave').click();
+  await expect(toBuy.nth(1)).toContainText('Chicken breast');
+  await expect(page.getByTestId('shopping-list-usual-order')).toHaveCount(0);
+});
+
 test('shows a receipt with its product lines and a drawn picture', async ({ page }) => {
   await openDemo(page);
   await goTo(page, '/receipts/1/view');
