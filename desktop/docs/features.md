@@ -22,6 +22,10 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   beside the search (`filterButtons` template, drawn there or in the period row by `isHandset()`), and hides the
   subtitle. `skin.css` gives every `app-table-header h1` a full row on a phone; this page undoes that with
   `max-md:[&_h1]:flex-1`. In an arbitrary Tailwind variant `_` is a space, so `[&_.a__b]` never matches a BEM class.
+- **The summary sentence** (`overview-summary`, `monthSummary()` in `overview-summary.ts`): above the panels while
+  a goal is set and the period is the running calendar month (today in the app time zone inside it). Days left
+  count today; the daily amount is what is left of the goal over those days, rounded down to the cent, and money
+  is compared in cents. Three texts: under the goal, reached, over (no daily amount). Hidden while customising.
 - Tiles: Spent (change via `describeChangeAgainst`), Receipts (+ to check), Unhealthy, Not on the list, To buy,
   Warranties (`warrantyCount`, opens `/warranties/group/:groupId`), one per tag marked "Show on the Dashboard".
 - **Warranties ending soon** panel (`warrantiesEndingSoon`): the receipts whose warranty ends between today and two

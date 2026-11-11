@@ -369,6 +369,53 @@ describe("OverviewPageComponent", () => {
       expect(fill.style.width).toBe("100%");
     });
 
+    describe("the sentence above the panels", () => {
+      const sentence = () => fixture.nativeElement.querySelector("[data-testid=overview-summary]") as HTMLElement | null;
+
+      it("is not there without a goal", async () => {
+        await setGoal(undefined);
+
+        expect(sentence()).toBeNull();
+        expect(component.summarySentence()).toBe("");
+      });
+
+      it("says what was spent of the goal, the days left and what a day may cost", async () => {
+        await setGoal("100");
+
+        // The page opens on the running month; the figures are the mocked total (92) and the goal.
+        const words = sentence()?.textContent ?? "";
+        expect(words).toMatch(/92.*of.*100.*spent this month/);
+        expect(words).toMatch(/Left: \d+ days?, so .+ a day stays on goal\./);
+      });
+
+      it("says how far over the goal the month is, and no daily amount", async () => {
+        await setGoal("80");
+
+        const words = sentence()?.textContent ?? "";
+        expect(words).toMatch(/92.*spent this month: .*12.* over the goal of .*80/);
+        expect(words).toMatch(/Left: \d+ days?\.$/);
+        expect(words).not.toContain("a day");
+      });
+
+      it("says the goal is reached when the month is on it to the cent", async () => {
+        await setGoal("92");
+
+        expect(sentence()?.textContent ?? "").toMatch(/the goal of .*92.* is reached\. Left: \d+ days?\.$/);
+      });
+
+      it("is not there for a month that is over, or for a range that is not a month", async () => {
+        await setGoal("100");
+
+        component.period.set({ from: "2020-10-01", to: "2020-10-31", label: "October 2020" });
+        await fixture.whenStable();
+        expect(sentence()).toBeNull();
+
+        component.period.set({ from: "2026-10-12", to: "2026-10-18", label: "week" });
+        await fixture.whenStable();
+        expect(sentence()).toBeNull();
+      });
+    });
+
     it("leaves the Spent card alone outside a whole month", async () => {
       await setGoal("100");
       component.period.set({ from: "2026-10-12", to: "2026-10-18", label: "week" });

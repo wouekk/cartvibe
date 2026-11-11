@@ -39,6 +39,7 @@ Banned: Angular Material, Bootstrap classes (`d-flex`, `col-*`, `mb-3`), `mat-*`
 - Page title `h1` (settings: `text-2xl`); card title `.cv-card__title` 17px semibold; panel `h2` `text-base font-bold`; body `text-sm`; description 13px muted (`.cv-card__desc`).
 - Overline: `text-[11px] font-semibold uppercase tracking-wider text-muted-foreground` (or `.cv-section__title`). Table headers use the same.
 - KPI: label `text-xs font-medium text-muted-foreground`, value `text-3xl font-bold`, sub-line `text-[0.8125rem] font-medium`.
+- Lead sentence (the Dashboard's month summary, between the period row and the panels): one plain `<p>`, `text-base text-foreground`, no card, no icon, no bold; the figures carry it. A page has at most one.
 - Money: `<app-money [value]>` (whole part bold, symbol/decimals `opacity-60` of the same color); `[display]="true"` on the Dashboard only. Digits `tabular-nums` (automatic in tables, `.tile`, `app-money`, charts).
 - Inputs are 16px below 768px (no iOS zoom). Never translate data (money, dates, names); every UI string goes through `| t`.
 

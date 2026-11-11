@@ -119,6 +119,7 @@ in by hand and the AI is retried later.
 | DASH-09 | Customise the Dashboard | A Customise button opens edit mode: switch panels on and off, drag them to any column and row, resize within limits that keep charts whole, and preview phone, tablet and desktop widths before saving. The layout belongs to the account and follows it to every device. A phone keeps its own order, with the shopping list first until rearranged. | 0.5.0 | released |
 | DASH-10 | Panels that scroll | With a mouse the shopping list and receipts panels scroll inside themselves; on a phone they stay plain lists so a swipe scrolls the page. | 0.11.0 | released |
 | DASH-11 | Dashboard currency | The Dashboard shows the household currency an admin sets. | 0.13.0 | released |
+| DASH-12 | The month in one sentence | With a monthly goal set (DASH-04) and the running month shown, one sentence stands above the panels: what was spent of the goal, how many days of the month are left (today counts), and how much a day may cost to end the month on the goal. The daily amount is rounded down, so spending it every day never passes the goal. Once the goal is reached the sentence says so, and over the goal it says by how much, without a daily amount. There is no sentence without a goal, for a month that is over, or for a period that is not one whole month. | unreleased | unreleased |
 
 ## Reports (REP)
 

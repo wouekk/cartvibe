@@ -80,6 +80,11 @@
     <span class="ml-auto text-sm text-muted-foreground" data-testid="overview-period-label">{{ periodLabel() }}</span>
   </div>
 
+  <!-- The month in one sentence, before any panel: only for the running month with a goal set. -->
+  @if (!customising() && summarySentence(); as sentence) {
+    <p class="m-0 text-base text-foreground" data-testid="overview-summary">{{ sentence }}</p>
+  }
+
   @if (!period()) {
     <p class="m-0 py-6 text-center text-muted-foreground" data-testid="overview-pick-range">{{ 'Type a first and a last day for the custom range, like 01/10/2026.' | t }}</p>
   }

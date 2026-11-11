@@ -45,6 +45,9 @@ and you can add `stop_grace_period: 30s` to your stack as the README shows, so a
 it is doing.
 
 ### Added
+- **The month in one sentence on the Dashboard.** With a monthly goal set, the Dashboard opens with a line such as
+  "142,85 € of 650,00 € spent this month. Left: 20 days, so 25,35 € a day stays on goal." Over the goal it says by
+  how much instead *(DASH-12)*.
 - **Sign in with your own identity provider.** If you run Authentik, Authelia, Keycloak or another OpenID Connect
   provider, an admin can add it under *System Settings → Sign-in providers*, and the login page gets a *Sign in
   with …* button for it. People who already have an account connect the provider under *User Settings → Sign-in

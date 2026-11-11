@@ -106,6 +106,7 @@ import {
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
 import { barRange, isWholeCalendarMonth, previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
+import { monthSummary } from "../overview-summary";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
@@ -283,6 +284,40 @@ export class OverviewPageComponent {
 
     const spent = Number(overview.total);
     return { goal, over: Math.max(0, spent - goal), remaining: Math.max(0, goal - spent) };
+  });
+
+  /**
+   * The sentence above the panels, while the running month is shown and a goal is set: what was spent, the goal,
+   * the days left and what a day may cost to end the month on the goal. Empty otherwise (no goal, another range,
+   * a month that is over, or nothing loaded yet).
+   */
+  public readonly summarySentence = computed(() => {
+    const overview = this.overview();
+    const period = this.period();
+    if (!overview) {
+      return "";
+    }
+
+    const summary = monthSummary(Number(overview.total), this.goal(), period?.from, period?.to, this.appToday());
+    if (!summary) {
+      return "";
+    }
+
+    const money = (value: number) => this.displayCurrencyService.format(value);
+    const params = {
+      spent: money(summary.spent),
+      goal: money(summary.goal),
+      over: money(summary.over),
+      perDay: money(summary.perDay),
+      days: `${summary.daysLeft} ${this.translation.plural(summary.daysLeft, "day", "days")}`,
+    };
+    if (summary.over > 0) {
+      return this.translation.t(marker("{spent} spent this month: {over} over the goal of {goal}. Left: {days}."), params);
+    }
+    if (summary.remaining === 0) {
+      return this.translation.t(marker("{spent} spent this month: the goal of {goal} is reached. Left: {days}."), params);
+    }
+    return this.translation.t(marker("{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal."), params);
   });
 
   /** The month chart splits bars at the goal; it needs a goal and a month-by-month trend. */
