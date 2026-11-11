@@ -40,8 +40,11 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     arm64 (`:preview` carries both; the arm64 image passed its build checks and has never run anywhere).
     Also in `preview`: `feature/id-file-paths` (`24c3bb18`, green CI): a receipt file is
     `data/<groupId>/<fileId>`, with the one-way migration `id-file-paths-v1`; a real upgrade was run on the PC
-    with the two binaries. **Next, in this order:** money as integers; a generated contract; aisle order per
-    shop; signal stores. None is started. The working worktree is `.claude/worktrees/dependency-updates`.
+    with the two binaries; and `feature/money-minor-units` (`740af539`, green CI): the four amounts are whole
+    hundredths in `*_minor` columns beside the old ones (the owner's choice), filled once by
+    `money-minor-units-v1`; a real upgrade on the PC gave every amount back as the same text. **Next, in this
+    order:** a generated contract; aisle order per shop; signal stores. None is started. The working worktree
+    is `.claude/worktrees/dependency-updates`.
   - CI's smoke job failed twice on 2026-11-11 at *Install the browsers* because the runner could not resolve
     Ubuntu's package servers; a re-run passed. That fault is the runner's, not the change's.
   - Since cgo and nginx went, the PC can run the real server in production mode with the built app
@@ -124,6 +127,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   "receipt files are stored by id now" with a count that matches the receipts' photos and "0 not found on disk"
   (or a number that was already missing before). Old receipts still show and download their photos, a household
   rename is instant, and File Station shows `data/<number>/` folders in place of the named ones.
+- Sprint 11, amounts as whole cents (`:preview`): the log has "amounts are stored as whole hundredths now: N
+  converted, 0 of them had more than two decimals" (a number other than 0 there is worth telling the agent).
+  Every receipt, product line and the monthly goal read as before; the Dashboard's totals match what they were;
+  sorting the receipts by amount and filtering by an exact amount (12.10) find the right ones.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
