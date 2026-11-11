@@ -12,7 +12,7 @@ import { QuickScanDefaultPaidByType } from './quickScanDefaultPaidByType';
 
 
 /**
- * What a household set for its receipts. Quick Scan asks for nothing beside the photo unless a quickScan...Enabled switch adds a field to its dialog; no field is ever required, and what is not asked for gets a value by itself (see the two defaults).
+ * What a household set for its receipts. A Quick Scan is a photo and nothing else; the household can add a note field to it (never required), and can change the two defaults a scan falls back on.
  */
 export interface GroupReceiptSettings { 
     id: number;
@@ -44,31 +44,15 @@ export interface GroupReceiptSettings {
      */
     hideNote?: boolean;
     /**
-     * Quick Scan asks who paid
+     * Quick Scan asks for a note (not while hideNote is on)
      */
-    quickScanPaidByEnabled?: boolean;
+    quickScanNoteEnabled?: boolean;
     quickScanDefaultPaidByType?: QuickScanDefaultPaidByType;
     /**
      * Who paid when a scan does not say and the type is USER
      */
     quickScanDefaultPaidById?: number;
-    /**
-     * Quick Scan asks for the status
-     */
-    quickScanStatusEnabled?: boolean;
     quickScanDefaultStatus?: ReceiptStatus;
-    /**
-     * Quick Scan asks for categories
-     */
-    quickScanCategoriesEnabled?: boolean;
-    /**
-     * Quick Scan asks for tags
-     */
-    quickScanTagsEnabled?: boolean;
-    /**
-     * Quick Scan asks for a note (not while hideNote is on)
-     */
-    quickScanNoteEnabled?: boolean;
 }
 export namespace GroupReceiptSettings {
 }

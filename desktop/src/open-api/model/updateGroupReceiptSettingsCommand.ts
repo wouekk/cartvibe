@@ -29,31 +29,15 @@ export interface UpdateGroupReceiptSettingsCommand {
      */
     hideNote?: boolean;
     /**
-     * Quick Scan asks who paid
+     * Quick Scan asks for a note (not while hideNote is on)
      */
-    quickScanPaidByEnabled?: boolean;
+    quickScanNoteEnabled?: boolean;
     quickScanDefaultPaidByType?: QuickScanDefaultPaidByType;
     /**
      * Who paid when a scan does not say; required when the type is USER
      */
     quickScanDefaultPaidById?: number;
-    /**
-     * Quick Scan asks for the status
-     */
-    quickScanStatusEnabled?: boolean;
     quickScanDefaultStatus?: ReceiptStatus;
-    /**
-     * Quick Scan asks for categories
-     */
-    quickScanCategoriesEnabled?: boolean;
-    /**
-     * Quick Scan asks for tags
-     */
-    quickScanTagsEnabled?: boolean;
-    /**
-     * Quick Scan asks for a note (not while hideNote is on)
-     */
-    quickScanNoteEnabled?: boolean;
 }
 export namespace UpdateGroupReceiptSettingsCommand {
 }
