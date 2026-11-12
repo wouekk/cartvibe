@@ -129,7 +129,8 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   household takes its files along (`BeforeUpdateReceipt`); a household gets its folder with its first file.
 - **Every data path goes through `internal/utils/data_files.go`** (`GetDataDir`, `EnsureDataDirectory`,
   `MakeDataDirectory`, `WriteDataFile`, `ReadDataFile`, `RemoveDataPath`, `RemoveAllInDataDir`, `RenameDataPath`,
-  `DataFileSize`, `DataPathExists`, `BuildAvatarPathString`), each re-asserting containment. No ad-hoc
+  `DataFileSize`, `DataPathExists`, `BuildAvatarPathString`), each re-asserting containment. A folder that later
+  writes share is made with `EnsureDataDirectory`; `MakeDataDirectory` fails on one that exists. No ad-hoc
   sanitizing and no raw `os.*` on a data path. `UpsertGroupCommand.Validate` still rejects separators and
   `.`/`..` in a household's name: no path needs that any more, and an import or an export may still spell it.
 - Server-built paths (`temp/`, `logs/`, `sqlite/`, OCR and PDF scratch) may use the generic helpers. A `temp/` path read

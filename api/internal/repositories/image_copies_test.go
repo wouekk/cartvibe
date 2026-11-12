@@ -95,6 +95,43 @@ func TestImageCopyPathRefusesAnUnknownVariant(t *testing.T) {
 	}
 }
 
+// The folder of the copies is made with the first copy. Every later copy finds it there, and must not fail on it:
+// it once did, so only the first photo of an install ever got a copy. Needs no ImageMagick.
+func TestALaterCopyFindsTheFolderAlreadyThere(t *testing.T) {
+	cleanUpImageCopies(t)
+
+	paths := []string{}
+	for _, id := range []uint{1, 2} {
+		for _, variant := range []string{ImageCopyDisplay, ImageCopyThumb} {
+			path, err := utils.BuildImageCopyPathString(id, variant)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := storeImageCopy(path, []byte("copy of "+variant)); err != nil {
+				t.Fatalf("copy %s of image %d: %v", variant, id, err)
+			}
+			paths = append(paths, path)
+		}
+	}
+
+	for _, path := range paths {
+		if stored, err := os.ReadFile(path); err != nil || !bytes.HasPrefix(stored, []byte("copy of ")) {
+			t.Errorf("%s was not stored whole: %q, %v", filepath.Base(path), stored, err)
+		}
+	}
+	// Writing a copy that is already there replaces it and leaves no pending file behind.
+	if err := storeImageCopy(paths[0], []byte("copy of display, again")); err != nil {
+		t.Fatal(err)
+	}
+	entries, err := os.ReadDir(filepath.Dir(paths[0]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != len(paths) {
+		t.Errorf("four copies and nothing else, got %d files", len(entries))
+	}
+}
+
 // The sweep needs no ImageMagick: the copies are plain files named by the image's id.
 func TestSweepRemovesTheCopiesOfImagesThatAreGone(t *testing.T) {
 	cleanUpImageCopies(t)

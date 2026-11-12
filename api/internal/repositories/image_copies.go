@@ -69,25 +69,32 @@ func (repository FileRepository) ImageCopyPath(fileData models.FileData, variant
 		return "", err
 	}
 
-	dir, err := utils.BuildImageCopyDirString()
-	if err != nil {
-		return "", err
-	}
-	if err := utils.MakeDataDirectory(dir); err != nil {
-		return "", err
-	}
-	// Written beside its final name and renamed, so a request never reads half a file, and two requests that make
-	// the same copy at once both end with a whole one.
-	pending := fmt.Sprintf("%s.%d-%d.tmp", path, os.Getpid(), imageCopyWrites.Add(1))
-	if err := utils.WriteDataFile(pending, copyBytes); err != nil {
-		return "", err
-	}
-	if err := utils.RenameDataPath(pending, path); err != nil {
-		utils.RemoveDataPath(pending)
+	if err := storeImageCopy(path, copyBytes); err != nil {
 		return "", err
 	}
 
 	return path, nil
+}
+
+// storeImageCopy writes a finished copy under its name. The folder of the copies is made with the first copy and
+// is there for every later one, so it is ensured, never made: making it failed with "file exists" for every copy
+// after the first (2026-11-12). The copy is written beside its final name and renamed, so a request never reads
+// half a file, and two requests that make the same copy at once both end with a whole one.
+func storeImageCopy(path string, copyBytes []byte) error {
+	if err := utils.EnsureDataDirectory(filepath.Dir(path)); err != nil {
+		return err
+	}
+
+	pending := fmt.Sprintf("%s.%d-%d.tmp", path, os.Getpid(), imageCopyWrites.Add(1))
+	if err := utils.WriteDataFile(pending, copyBytes); err != nil {
+		return err
+	}
+	if err := utils.RenameDataPath(pending, path); err != nil {
+		utils.RemoveDataPath(pending)
+		return err
+	}
+
+	return nil
 }
 
 // MakeImageCopies makes the display copy of a new upload, so the first view does not wait for it (the thumbnail
