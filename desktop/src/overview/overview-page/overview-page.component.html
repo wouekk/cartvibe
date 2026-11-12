@@ -98,8 +98,10 @@
   </div>
 
   <!-- The month in one sentence, before any panel: only for the running month with a goal set. -->
-  @if (!customising() && summarySentence(); as sentence) {
-    <p class="m-0 text-base text-foreground" data-testid="overview-summary">{{ sentence }}</p>
+  @if (!customising() && summaryParts().length > 0) {
+    <!-- One line, so the spaces between the parts are the sentence's own: the lead bold, the verdict red over the
+         goal and green under it, the rest plain. -->
+    <p class="m-0 text-base text-foreground" data-testid="overview-summary" [attr.data-over-goal]="summaryOverGoal()">@for (part of summaryParts(); track $index) {<span [class.font-semibold]="part.style === 'lead'" [class.font-medium]="part.style === 'verdict'" [class.text-destructive]="part.style === 'verdict' && summaryOverGoal()" [class.text-success-text]="part.style === 'verdict' && !summaryOverGoal()" [attr.data-part]="part.style">{{ part.text }}</span>}</p>
   }
 
   @if (!period()) {
