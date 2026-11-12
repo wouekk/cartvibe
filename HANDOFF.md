@@ -158,6 +158,20 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   Worth a look on the NAS: that the Dashboard looks as it did before any change (the old layout converted),
   dragging by the grip on a touch screen, the tab not covering a title on the real panels, and a 4K screen
   (the rows scale with the interface size).
+- The NAS try's second round (`feature/nas-try-fixes`, `a11398c0`, green CI, in `:preview`, 2026-11-12):
+  - **Receipt photos:** only the first photo of an install ever got its display copy or thumbnail; every later
+    one answered 500 with "mkdir …/data/derived: file exists" in the log (since sprint 7). Fixed. Worth a look:
+    photos open on old and new receipts, and that line is gone from the log.
+  - **Logos:** the owner stays on Logo.dev and on downloaded logos (Brandfetch and a logo CDN were weighed and
+    turned down: its free logos must load from its CDN in every browser). The login page's credit line is gone
+    (Logo.dev asks it of commercial projects only; About and `NOTICE.md` keep the credit). Fressnapf, Maxi Zoo
+    and Apple were missing from `brands.json`, not short of credits: press *Download logos* after the update.
+  - **Proposed, waiting for the owner's word:** a *Scan queue* section on the AI page (photos waiting to be
+    read, being read, trying again or failed; and receipts saved without a read, with *Read again*), one line
+    on the Receipts page for everyone, and the count of photos still on the phone on the Quick Scan button.
+    Today a waiting scan shows nowhere, and `QueuedScanService.waiting` is drawn by no screen.
+    `docs/FEATURES.md` ADM-15 wrongly says a scan the AI could not be reached for is tried three more times
+    (it is saved as a receipt instead): correct it with that work.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
