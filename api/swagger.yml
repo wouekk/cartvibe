@@ -754,6 +754,28 @@ paths:
         204:
           description: The report was read (or ignored)
       security: []
+  /clientReport:
+    post:
+      tags:
+        - ClientReport
+      summary: Tell the server what went wrong in the browser
+      description:
+        The web app reports a failure the server could not have seen (a phone that closed the page while its camera
+        was open, a file the app left out of a Quick Scan), and the server writes one line to its log. Needs
+        sign-in and nothing else. Nothing is stored, the same report from one person is logged once in ten minutes,
+        and the answer is always 204, also for a report that was ignored.
+      operationId: sendClientReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientReportCommand"
+      responses:
+        204:
+          description: The report was read (or ignored)
+        403:
+          $ref: "#/components/responses/Forbidden"
   /featureConfig:
     get:
       tags:
@@ -7732,6 +7754,19 @@ components:
                 Whether the upload behind this task is still on disk AND the caller may reach it.
                 Resolved per caller, since this listing is app-scoped and spans groups the caller
                 may not belong to.
+    ClientReportCommand:
+      type: object
+      description: Something that went wrong in the browser, for the server's log.
+      required:
+        - kind
+        - detail
+      properties:
+        kind:
+          type: string
+          description: What happened, in lower-case words joined by hyphens, for example quick-scan-camera-closed (a plain string)
+        detail:
+          type: string
+          description: One line of what the app knew at that moment; may be empty, and is cut at 500 bytes
     ScanQueue:
       type: object
       description: What the AI has not read yet. Both lists are arrays, never null.

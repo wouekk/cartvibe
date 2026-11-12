@@ -429,6 +429,7 @@ func TestABodyLargerThanItsRouteAllowsIsRefused(t *testing.T) {
 		limit  int64
 	}{
 		{"/api/cspReport", 16 << 10},
+		{"/api/clientReport", 16 << 10},
 		{"/api/shopping-list/group/3/recipe/preview", 512 << 10},
 		{"/api/login", 1 << 20},
 		{"/api/signUp", 1 << 20},
@@ -450,6 +451,37 @@ func TestABodyLargerThanItsRouteAllowsIsRefused(t *testing.T) {
 	// The household import takes what the API's own cap takes.
 	if got := h.handler.zones.routeFor("/api/backup/import").maxBody; got < 4<<30+1<<20 {
 		t.Errorf("the import route takes %d bytes, less than the API's own cap", got)
+	}
+}
+
+// The API never sees a request refused for its size, so the refusal itself says so in the log: an upload that was
+// turned away must leave a line somewhere.
+func TestARequestRefusedForItsSizeIsSaidInTheLog(t *testing.T) {
+	h := newHarness(t, 1000)
+	logged := len(h.logs)
+	post := func(size int64) *httptest.ResponseRecorder {
+		return h.do(http.MethodPost, "/api/receipt/quickScan", func(r *http.Request) {
+			r.Body = io.NopCloser(io.LimitReader(zeroes{}, size))
+			r.ContentLength = size
+		})
+	}
+
+	if answer := post(50 << 20); answer.Code != http.StatusOK {
+		t.Fatalf("an upload of exactly the limit was refused with %d", answer.Code)
+	}
+	if len(h.logs) != logged {
+		t.Errorf("an upload that was taken says nothing: %v", h.logs[logged:])
+	}
+
+	if answer := post(63 << 20); answer.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("an upload over the limit got %d, want 413", answer.Code)
+	}
+	if len(h.logs) != logged+1 {
+		t.Fatalf("one line for the refusal, got %v", h.logs[logged:])
+	}
+	want := "refused a request larger than its route takes: POST /api/receipt/quickScan sent 63.0 MB, the limit is 50.0 MB"
+	if got := h.logs[logged]; got != want {
+		t.Errorf("the line: %q, want %q", got, want)
 	}
 }
 

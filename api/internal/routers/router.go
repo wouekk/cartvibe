@@ -73,6 +73,10 @@ func BuildRootRouter() *chi.Mux {
 	// Content-Security-Policy reports from the browser (no sign-in; the edge limits them: internal/edge/routes.go).
 	rootRouter.Post("/api/cspReport", handlers.CspReport)
 
+	// What the web app says went wrong in the browser, for the log (sign-in only)
+	clientReportRouter := BuildClientReportRouter()
+	rootRouter.Mount("/api/clientReport", clientReportRouter)
+
 	featureConfigRouter := BuildFeatureConfigRouter()
 	rootRouter.Mount("/api/featureConfig", featureConfigRouter)
 

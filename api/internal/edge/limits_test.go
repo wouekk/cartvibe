@@ -218,6 +218,7 @@ func TestEachPathCountsAgainstItsOwnLimit(t *testing.T) {
 		{"/oauth/token", 11},
 		{"/api/shopping-list/group/3/recipe/preview", 6},
 		{"/api/cspReport", 11},
+		{"/api/clientReport", 11},
 		{"/api/shopping-list/group/3/stream", 21},
 		{"/api/backup/export", 21},
 		{"/mcp", 21},

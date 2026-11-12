@@ -17,7 +17,7 @@ const (
 	apiBody = 50 * mebibyte
 	// A recipe link and nothing else.
 	recipeBody = 512 * kibibyte
-	// A browser's Content-Security-Policy report.
+	// A browser's Content-Security-Policy report, and the web app's own report of something that went wrong in it.
 	cspReportBody = 16 * kibibyte
 	// A household export with every photo; the API's own cap is 4 GiB and is what answers a larger one.
 	importBody = 4*gibibyte + 2*mebibyte
@@ -53,6 +53,9 @@ type zones struct {
 	recipe *zone
 	// Content-Security-Policy reports, which a browser sends on its own and the API only logs.
 	cspReport *zone
+	// The web app's reports of what went wrong in the browser (a scan that never became an upload), which the API
+	// only logs: 30 a minute with 10 more at once is far above what a household's phones send.
+	appReport *zone
 }
 
 func newZones(factor float64, log func(string)) zones {
@@ -64,6 +67,7 @@ func newZones(factor float64, log func(string)) zones {
 		oauth:     newZone("oauth", 30*perMinute, 10, factor, log),
 		recipe:    newZone("recipe", 10*perMinute, 5, factor, log),
 		cspReport: newZone("csp-report", 30*perMinute, 10, factor, log),
+		appReport: newZone("app-report", 30*perMinute, 10, factor, log),
 	}
 }
 
@@ -78,6 +82,8 @@ func (limits zones) routeFor(path string) route {
 	switch {
 	case path == "/api/cspReport":
 		return route{api: true, zone: limits.cspReport, maxBody: cspReportBody}
+	case path == "/api/clientReport":
+		return route{api: true, zone: limits.appReport, maxBody: cspReportBody}
 	case path == "/api/backup/import":
 		return route{api: true, zone: limits.api, maxBody: importBody}
 	case path == "/api/backup/export":

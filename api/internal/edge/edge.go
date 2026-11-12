@@ -18,6 +18,7 @@
 package edge
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -33,8 +34,8 @@ type Config struct {
 	// LimitFactor multiplies every request limit. 1, or anything below it, is the limits as written. It exists
 	// for test runs, where one address plays every visitor at once; a start with another value says so in the log.
 	LimitFactor float64
-	// Log receives a line when requests are refused for coming too often (at most one a minute per zone), and
-	// what the web app's folder turned out to hold. May be nil.
+	// Log receives a line when requests are refused for coming too often (at most one a minute per zone), when a
+	// request is refused for its size, and what the web app's folder turned out to hold. May be nil.
 	Log func(message string)
 
 	// now is the clock, for tests.
@@ -63,6 +64,7 @@ type Handler struct {
 	site          http.Handler
 	zones         zones
 	now           func() time.Time
+	log           func(message string)
 }
 
 // New builds the handler around the API's router.
@@ -96,6 +98,7 @@ func New(api http.Handler, config Config) *Handler {
 		site:          site,
 		zones:         newZones(factor, log),
 		now:           now,
+		log:           log,
 	}
 }
 
@@ -123,6 +126,10 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if route.maxBody > 0 {
 		if r.ContentLength > route.maxBody {
+			// Said in the log: the API never sees this request, so nothing else would record that an upload
+			// (a Quick Scan of several large photos, say) was turned away.
+			handler.log(fmt.Sprintf("refused a request larger than its route takes: %s %s sent %s, the limit is %s",
+				r.Method, path, megabytes(r.ContentLength), megabytes(route.maxBody)))
 			http.Error(w, "Request body too large", http.StatusRequestEntityTooLarge)
 			return
 		}
@@ -141,6 +148,11 @@ func (handler *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	handler.compressedApi.ServeHTTP(w, r)
+}
+
+// megabytes writes a size the way a person reads it in a log line.
+func megabytes(size int64) string {
+	return fmt.Sprintf("%.1f MB", float64(size)/float64(mebibyte))
 }
 
 // setSecurityHeaders puts the headers every response carries. A handler may still set its own value.
