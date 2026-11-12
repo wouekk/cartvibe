@@ -55,7 +55,7 @@ describe('AuthForm', () => {
     fixture = TestBed.createComponent(AuthForm);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    // The page reloads the feature config on open (Logo.dev attribution, sign-up): answer it as an older server would.
+    // The page reloads the feature config on open (sign-up, the identity providers): answer it as an older server would.
     TestBed.inject(HttpTestingController).expectOne('/api/featureConfig').flush({ enableLocalSignUp: true, aiPoweredReceipts: false });
   });
 
@@ -63,16 +63,13 @@ describe('AuthForm', () => {
     expect(component).toBeTruthy();
   });
 
-  it("credits Logo.dev only while logos are on", async () => {
-    const attribution = () => fixture.nativeElement.querySelector('[data-testid="logo-dev-attribution"]');
-    expect(attribution()).toBeNull();
-
+  it("carries no credit line for the shop logos, also while logos are on (the About page credits Logo.dev)", async () => {
     TestBed.inject(FeatureConfigStore).setFeatureConfig({ enableLocalSignUp: true, aiPoweredReceipts: false, shopLogosEnabled: true });
     fixture.changeDetectorRef.markForCheck();
     fixture.detectChanges();
 
-    expect(attribution().textContent.trim()).toBe('Logos provided by Logo.dev');
-    expect(attribution().querySelector('a').getAttribute('href')).toBe('https://logo.dev');
+    expect(fixture.nativeElement.textContent).not.toContain('Logo.dev');
+    expect(fixture.nativeElement.querySelector('a[href*="logo.dev"]')).toBeNull();
   });
 
   describe('signing in with an identity provider', () => {

@@ -58,7 +58,9 @@ func AssertWithinDataDir(path string) error {
 }
 
 // MakeDataDirectory creates a directory inside the data directory, refusing any
-// path that would escape it.
+// path that would escape it. It fails when the directory is already there: a
+// folder that later writes share (a household's, the image copies') is made
+// with EnsureDataDirectory instead.
 func MakeDataDirectory(path string) error {
 	if err := AssertWithinDataDir(path); err != nil {
 		return err

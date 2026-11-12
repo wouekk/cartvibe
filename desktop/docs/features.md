@@ -495,8 +495,9 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
     shared save, relabelled on this tab). The server downloads and serves the logos (`../../api/docs/shop-logos.md`);
     `ShopLogoCatalog` loads `GET /shopLogo` once per sign-in while `FeatureConfig.shopLogosEnabled`, and
     `app-shop-monogram` matches a shop name against it (`findShopBrand`) and loads `/api/shopLogo/<slug>` from this
-    server, falling back to the letter on any error. Browsers never contact Logo.dev. The login page (`AuthForm`,
-    which reloads the feature config on open) shows "Logos provided by Logo.dev" while logos are on.
+    server, falling back to the letter on any error. Browsers never contact Logo.dev. Logo.dev is credited on the
+    About page only: the login page's "Logos provided by Logo.dev" line went on 2026-11-12 (Logo.dev asks it of
+    commercial projects on its free plan, not of a household; the Shop Logos tab says so).
   - Time zone: a typeahead over `UTC` + `Intl.supportedValuesOf('timeZone')` with `timeZoneDisplayWith`; after save
     `SetTimeZone` (and `SetCurrencyData` for currency) repaint the open app.
   - Date format (`system-settings-date-format`, first on General, then the time zone, then the currency card): one of
