@@ -110,6 +110,10 @@ func BuildRootRouter() *chi.Mux {
 	receiptProcessingSettingsRouter := BuildReceiptProcessingSettingsRouter()
 	rootRouter.Mount("/api/receiptProcessingSettings", receiptProcessingSettingsRouter)
 
+	// Scan queue router (the quick scans not read yet, and the receipts saved without a read)
+	scanQueueRouter := BuildScanQueueRouter()
+	rootRouter.Mount("/api/scanQueue", scanQueueRouter)
+
 
 	// System Settings router
 	systemSettingsRouter := BuildSystemSettingsRouter()

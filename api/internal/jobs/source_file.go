@@ -1,7 +1,6 @@
 package jobs
 
 import (
-	"encoding/json"
 	"errors"
 	"time"
 
@@ -273,28 +272,5 @@ func ResolveSystemTaskSourceFile(systemTask models.SystemTask) (SystemTaskSource
 		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
 	}
 
-	var payload QuickScanTaskPayload
-	if err := json.Unmarshal([]byte(job.Payload), &payload); err != nil {
-		return SystemTaskSourceFile{}, err
-	}
-
-	sourceFile := SystemTaskSourceFile{
-		GroupId:  utils.UintToString(payload.GroupId),
-		Path:     payload.TempPath,
-		FileName: payload.OriginalFileName,
-	}
-	if len(sourceFile.Path) == 0 {
-		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
-	}
-
-	fileRepository := repositories.NewFileRepository(nil)
-	if err := fileRepository.AssertWithinTempDirectory(sourceFile.Path); err != nil {
-		return SystemTaskSourceFile{}, err
-	}
-
-	if !utils.FileExists(sourceFile.Path) {
-		return SystemTaskSourceFile{}, ErrSourceFileUnavailable
-	}
-
-	return sourceFile, nil
+	return resolveJobSourceFile(job)
 }

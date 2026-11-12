@@ -3,6 +3,7 @@ package repositories
 import (
 	"cartvibe/api/internal/commands"
 	"cartvibe/api/internal/models"
+	"cartvibe/api/internal/structs"
 	"errors"
 	"strings"
 	"time"
@@ -249,6 +250,34 @@ func (repository ReceiptProductRepository) DeleteReceiptProducts(receiptId uint)
 	}
 
 	return db.Where("receipt_id = ?", receiptId).Delete(&models.ReceiptProductExtraction{}).Error
+}
+
+// ListUnreadReceipts returns the receipts whose products the AI has not read: waiting for a read, being read,
+// waiting out an outage, or given up. The most recently touched come first, at most limit of them, with how many
+// there are in all (a server with no AI keeps every photographed receipt waiting). Never nil.
+func (repository ReceiptProductRepository) ListUnreadReceipts(limit int) ([]structs.ScanQueueReceipt, int64, error) {
+	unread := func() *gorm.DB {
+		return repository.GetDB().
+			Table("receipt_product_extractions AS extraction").
+			Joins("JOIN receipts AS receipt ON receipt.id = extraction.receipt_id").
+			Where("extraction.status <> ?", models.PRODUCT_EXTRACTION_DONE)
+	}
+
+	var count int64
+	if err := unread().Count(&count).Error; err != nil {
+		return nil, 0, err
+	}
+
+	receipts := []structs.ScanQueueReceipt{}
+	err := unread().
+		Select("extraction.receipt_id AS receipt_id, receipt.name AS name, receipt.group_id AS group_id, " +
+			"receipt.date AS date, extraction.status AS status, extraction.attempts AS attempts, " +
+			"extraction.last_error AS last_error, extraction.updated_at AS updated_at").
+		Order("extraction.updated_at DESC, extraction.receipt_id DESC").
+		Limit(limit).
+		Scan(&receipts).Error
+
+	return receipts, count, err
 }
 
 // deleteProductTags removes the tag links of the products the subquery selects (their ids). Call it
