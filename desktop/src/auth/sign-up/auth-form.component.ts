@@ -46,9 +46,6 @@ export class AuthForm implements OnInit {
   public secondaryButtonRouterLink: string[] = [];
   public readonly isLoading = signal<boolean>(false);
 
-  /** On while the household has a Logo.dev key: the page then credits Logo.dev. */
-  protected readonly shopLogosEnabled = inject(FeatureConfigStore).shopLogosEnabled;
-
   /** The identity providers an admin switched on: one button each under the form. Empty on most installs. */
   protected readonly oidcProviders = inject(FeatureConfigStore).oidcProviders;
 
@@ -108,8 +105,8 @@ export class AuthForm implements OnInit {
 
   /**
    * The app loads the feature config at start only for a browser that never signed in; one coming back from a
-   * session (signed out, or its session expired) would show stale or default settings here, and miss the Logo.dev
-   * credit. A failure keeps what the store has.
+   * session (signed out, or its session expired) would show stale or default settings here (sign-up, the
+   * identity providers). A failure keeps what the store has.
    */
   private refreshFeatureConfig(): void {
     this.featureConfigService

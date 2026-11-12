@@ -127,6 +127,31 @@ func TestTheEmbeddedBrandListIsUsable(t *testing.T) {
 	}
 }
 
+// Shops a household asked for by name: each is in the list under the spellings a receipt prints, and a longer
+// name that only begins the same way is left alone.
+func TestTheEmbeddedBrandListKnowsTheShopsAskedFor(t *testing.T) {
+	cases := map[string]string{
+		"Fressnapf":                        "fressnapf",
+		"Fressnapf XXL Berlin":             "fressnapf",
+		"Maxi Zoo Polska Sp. z o.o.":       "maxi-zoo",
+		"Apple":                            "apple",
+		"Apple Store, Kurfürstendamm":      "apple",
+		"APPLE.COM/BILL":                   "apple",
+		"Apple Distribution International": "apple",
+		"Applebee's":                       "",
+		"Pineapple Bar":                    "",
+	}
+	for name, want := range cases {
+		got := ""
+		if brands := BrandsFor([]string{name}); len(brands) > 0 {
+			got = brands[0].Slug
+		}
+		if got != want {
+			t.Errorf("%q: got %q, want %q", name, got, want)
+		}
+	}
+}
+
 func TestSyncDownloadsLogosAndRemembersWhatLogoDevHasNot(t *testing.T) {
 	withBrands(t, testBrands)
 	fake := newFakeLogoDev(t)

@@ -163,8 +163,9 @@ The cheapest picks below accept photos.
 Logo.dev supplies the shop logos shown next to receipts. It is optional: without a key CartVibe shows a letter for each shop.
 
 1. Sign up at Logo.dev, open [logo.dev/dashboard/api-keys](https://www.logo.dev/dashboard/api-keys) and copy the **secret key**.
-   It starts with `sk_`; the publishable `pk_` key will not work. There is a free plan, and CartVibe then shows
-   "Logos provided by Logo.dev" on the login page.
+   It starts with `sk_`; the publishable `pk_` key will not work. There is a free plan. Logo.dev asks only
+   commercial projects on it for a visible credit, so a household needs none; CartVibe names Logo.dev on its About
+   page. If you run CartVibe for a company or for money, read Logo.dev's attribution rules first.
 2. In CartVibe, sign in as an admin and open **System Settings**, then the **Shop Logos** tab.
 3. Paste the key and press **Save key**, then **Download logos**.
 

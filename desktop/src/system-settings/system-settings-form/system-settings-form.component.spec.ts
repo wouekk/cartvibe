@@ -631,13 +631,14 @@ describe("SystemSettingsFormComponent", () => {
       expect(cards()).toEqual(["regional", "currency", "shop-logos", "signup-session", "retention"]);
     });
 
-    it("Shop Logos holds the Logo.dev key with how to get it and the attribution", () => {
+    it("Shop Logos holds the Logo.dev key with how to get it and where Logo.dev is credited", () => {
       place("logos");
 
       expect(cards()).toEqual(["shop-logos"]);
       expect(fixture.nativeElement.querySelector("[data-testid=system-settings-shop-logo-key]")).not.toBeNull();
       expect(fixture.nativeElement.querySelector("[data-testid=shop-logos-steps]")).not.toBeNull();
-      expect(fixture.nativeElement.textContent).toContain("Logos provided by Logo.dev");
+      expect(fixture.nativeElement.textContent).toContain("CartVibe names Logo.dev on its About page");
+      expect(fixture.nativeElement.textContent).not.toContain("login page");
     });
 
     it("General holds the date format and time zone first, then the currency (with rates)", () => {

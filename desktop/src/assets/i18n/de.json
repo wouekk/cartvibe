@@ -586,7 +586,7 @@
     "Loading…": "Wird geladen…",
     "Local LM": "Lokales Modell",
     "Login": "Anmelden",
-    "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\".": "Logo.dev bittet kommerzielle Projekte um eine Nennung; solange Logos an sind, zeigt die Anmeldeseite „Logos provided by Logo.dev“.",
+    "Logo.dev asks only commercial projects on its free plan for a visible credit, so a household needs none. CartVibe names Logo.dev on its About page.": "Logo.dev verlangt nur von kommerziellen Projekten im kostenlosen Tarif eine sichtbare Nennung, ein Haushalt braucht also keine. CartVibe nennt Logo.dev auf der Seite „Über“.",
     "Logo.dev secret key": "Geheimer Logo.dev-Schlüssel",
     "Logos for {downloaded} of the {total} known shops on your receipts.": "Logos für {downloaded} der {total} bekannten Geschäfte auf deinen Belegen.",
     "Logos next to your receipts": "Logos neben deinen Belegen",
@@ -1873,6 +1873,9 @@
     },
     "Limit this user to specific categories and tags, per group. This narrows within whatever their group role already allows — it can never widen it.": {
       "value": "Beschränke diesen Benutzer pro Gruppe auf bestimmte Kategorien und Schlagwörter. Das grenzt nur ein, was seine Gruppenrolle bereits erlaubt — es erweitert es nie."
+    },
+    "Logo.dev asks commercial projects to credit it; while logos are on, the login page shows \"Logos provided by Logo.dev\".": {
+      "value": "Logo.dev bittet kommerzielle Projekte um eine Nennung; solange Logos an sind, zeigt die Anmeldeseite „Logos provided by Logo.dev“."
     },
     "Logo.dev publishable key": {
       "value": "Öffentlicher Logo.dev-Schlüssel",

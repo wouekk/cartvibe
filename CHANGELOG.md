@@ -96,6 +96,13 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **The login page no longer carries a line about the shop logos.** "Logos provided by Logo.dev" is gone from it:
+  Logo.dev asks only commercial projects on its free plan for a visible credit, and CartVibe is a household's app.
+  Logo.dev is still named on the About page, and the Shop Logos tab says where. If you run CartVibe for a company
+  or for money, read Logo.dev's attribution rules *(RCPT-14, ADM-07)*.
+- **Three more shops have a logo:** Fressnapf, Maxi Zoo and Apple (an Apple Store, an App Store or iTunes bill).
+  With a Logo.dev key they are downloaded at the next look for new logos, or at once with *Download logos*
+  *(RCPT-14)*.
 - **A receipt opens ready to edit.** Opening a receipt no longer shows a read-only page with an Edit button: the
   fields can be changed at once, and *Cancel* and *Save* are at the end of the page. *Save* stands out only once
   something changed, the page stays open after saving, and *Cancel* goes back to the receipts list. *Looks right*
