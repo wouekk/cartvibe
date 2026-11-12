@@ -1,4 +1,40 @@
-import { monthSummary } from "./overview-summary";
+import { monthSummary, sentenceParts } from "./overview-summary";
+
+describe("sentenceParts", () => {
+  it("splits a sentence at its marks and keeps the spaces between them", () => {
+    expect(sentenceParts("<b>92 € spent this month:</b> <mark>12 € over the goal</mark> of 80 €.")).toEqual([
+      { text: "92 € spent this month:", style: "lead" },
+      { text: " ", style: "plain" },
+      { text: "12 € over the goal", style: "verdict" },
+      { text: " of 80 €.", style: "plain" },
+    ]);
+  });
+
+  it("takes the marks wherever a language puts them", () => {
+    expect(sentenceParts("Ce mois-ci, <mark>12 € de trop</mark> : <b>92 € dépensés</b>").map((part) => part.style)).toEqual([
+      "plain",
+      "verdict",
+      "plain",
+      "lead",
+    ]);
+  });
+
+  it("gives a sentence without marks back as one plain part, and an empty one as nothing", () => {
+    expect(sentenceParts("92 € spent this month.")).toEqual([{ text: "92 € spent this month.", style: "plain" }]);
+    expect(sentenceParts("")).toEqual([]);
+  });
+
+  it("shows a mark that was left open as it was typed, never hides words", () => {
+    const parts = sentenceParts("<b>92 € spent: <mark>12 € over</mark> of 80 €.");
+
+    expect(parts.map((part) => part.text).join("")).toBe("<b>92 € spent: 12 € over of 80 €.");
+    expect(parts.find((part) => part.style === "verdict")?.text).toBe("12 € over");
+  });
+
+  it("drops an empty mark", () => {
+    expect(sentenceParts("<b></b>92 €")).toEqual([{ text: "92 €", style: "plain" }]);
+  });
+});
 
 describe("monthSummary", () => {
   const november = ["2026-11-01", "2026-11-30"] as const;

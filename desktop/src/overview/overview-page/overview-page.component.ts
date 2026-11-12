@@ -71,7 +71,7 @@ import {
 } from "../overview-detail-dialog/overview-detail-dialog.component";
 import { summarizeShoppingLists } from "../overview-lists";
 import { previousLabel, resolvePeriod, ResolvedPeriod } from "../overview-period";
-import { monthSummary } from "../overview-summary";
+import { monthSummary, sentenceParts } from "../overview-summary";
 import { marker } from "../../i18n/marker";
 import { formatDateInput, parseDateInput } from "../../datepicker/date-input.directive";
 import { addCalendarMonths, WARRANTY_ENDING_SOON_MONTHS, warrantyRows } from "../../utils/warranty-period";
@@ -234,18 +234,21 @@ export class OverviewPageComponent {
   });
 
   /**
-   * The sentence above the panels, while the running month is shown and a goal is set: what was spent, the goal,
-   * the days left and what a day may cost to end the month on the goal. Empty otherwise (no goal, another range,
-   * a month that is over, or nothing loaded yet).
+   * The sentence above the panels, while the running month is shown and a goal is set: what was spent (the bold
+   * lead), how far that is over or under the goal (red over it, green otherwise), and under the goal what a day
+   * may cost to end the month on it. The translated text carries `<b>` and `<mark>` around those two stretches
+   * (`sentenceParts`). Empty otherwise (no goal, another range, a month that is over, or nothing loaded yet).
    */
-  public readonly summarySentence = computed(() => {
+  private readonly monthAgainstGoal = computed(() => {
     const overview = this.overview();
     const period = this.period();
-    if (!overview) {
-      return "";
-    }
+    return overview
+      ? monthSummary(Number(overview.total), this.goal(), period?.from, period?.to, this.appToday())
+      : undefined;
+  });
 
-    const summary = monthSummary(Number(overview.total), this.goal(), period?.from, period?.to, this.appToday());
+  private readonly markedSummary = computed(() => {
+    const summary = this.monthAgainstGoal();
     if (!summary) {
       return "";
     }
@@ -255,17 +258,29 @@ export class OverviewPageComponent {
       spent: money(summary.spent),
       goal: money(summary.goal),
       over: money(summary.over),
+      left: money(summary.remaining),
       perDay: money(summary.perDay),
-      days: `${summary.daysLeft} ${this.translation.plural(summary.daysLeft, "day", "days")}`,
     };
     if (summary.over > 0) {
-      return this.translation.t(marker("{spent} spent this month: {over} over the goal of {goal}. Left: {days}."), params);
+      return this.translation.t(marker("<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}."), params);
     }
     if (summary.remaining === 0) {
-      return this.translation.t(marker("{spent} spent this month: the goal of {goal} is reached. Left: {days}."), params);
+      return this.translation.t(marker("<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>."), params);
     }
-    return this.translation.t(marker("{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal."), params);
+    return this.translation.t(
+      marker("<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal."),
+      params
+    );
   });
+
+  /** The sentence in its parts, for the page to draw the lead bold and the verdict in colour. */
+  public readonly summaryParts = computed(() => sentenceParts(this.markedSummary()));
+
+  /** The same sentence as plain words. */
+  public readonly summarySentence = computed(() => this.summaryParts().map((part) => part.text).join(""));
+
+  /** Over the goal the verdict is red; under it, or exactly on it, green. */
+  public readonly summaryOverGoal = computed(() => (this.monthAgainstGoal()?.over ?? 0) > 0);
 
   private readonly groups = this.groupStore.groups;
 

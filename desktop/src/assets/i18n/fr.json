@@ -10,6 +10,9 @@
     "0 reminds you on the day.": "0 vous le rappelle le jour même.",
     "2 years in the EU (legal minimum), 1 year elsewhere; only sets where a new warranty date starts.": "2 ans dans l'UE (minimum légal), 1 an ailleurs ; fixe seulement où commence une nouvelle date de garantie.",
     "8, 12 or 13 digits": "8, 12 ou 13 chiffres",
+    "<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>.": "<b>{spent} dépensés ce mois-ci :</b> <mark>l'objectif de {goal} est atteint</mark>.",
+    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal.": "<b>{spent} dépensés ce mois-ci :</b> <mark>{left} sous l'objectif</mark> de {goal}, soit {perDay} par jour pour tenir l'objectif.",
+    "<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}.": "<b>{spent} dépensés ce mois-ci :</b> <mark>{over} au-dessus de l'objectif</mark> de {goal}.",
     "A Logo.dev secret key starts with sk_": "Une clé secrète Logo.dev commence par sk_",
     "A Quick Scan is a photo and nothing else: whoever scans paid, and the receipt is to check until the AI has read it. You can add a note to it, and change what a scan falls back on.": "Un scan rapide, c'est une photo et rien d'autre : la personne qui scanne a payé, et le ticket est à vérifier jusqu'à ce que l'IA l'ait lu. Vous pouvez y ajouter une note et changer les valeurs par défaut d'un scan.",
     "A few choices to make it yours. You can change them any time under Settings.": "Quelques choix pour commencer. Vous pourrez les modifier à tout moment dans les Paramètres.",
@@ -1514,9 +1517,6 @@
     "{range} on {field}": "{range} selon {field}",
     "{selected} of {total} selected": "{selected} sur {total} sélectionnés",
     "{share}% of the spending": "{share} % des dépenses",
-    "{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal.": "{spent} dépensés sur {goal} ce mois-ci. Reste : {days}, soit {perDay} par jour pour tenir l'objectif.",
-    "{spent} spent this month: the goal of {goal} is reached. Left: {days}.": "{spent} dépensés ce mois-ci : l'objectif de {goal} est atteint. Reste : {days}.",
-    "{spent} spent this month: {over} over the goal of {goal}. Left: {days}.": "{spent} dépensés ce mois-ci : {over} au-dessus de l'objectif de {goal}. Reste : {days}.",
     "{start} to {end}": "du {start} au {end}",
     "{user} added to the list {list}.": "{user} a ajouté des articles à la liste {list}.",
     "{user} has added a comment to a receipt in group {group}.": "{user} a commenté un ticket dans le groupe {group}.",
@@ -2282,6 +2282,18 @@
     "{downloaded} of {total} logos downloaded.": {
       "value": "{downloaded} logos téléchargés sur {total}.",
       "closest": "Downloading logos: {downloaded} of {total} so far."
+    },
+    "{spent} of {goal} spent this month. Left: {days}, so {perDay} a day stays on goal.": {
+      "value": "{spent} dépensés sur {goal} ce mois-ci. Reste : {days}, soit {perDay} par jour pour tenir l'objectif.",
+      "closest": "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal."
+    },
+    "{spent} spent this month: the goal of {goal} is reached. Left: {days}.": {
+      "value": "{spent} dépensés ce mois-ci : l'objectif de {goal} est atteint. Reste : {days}.",
+      "closest": "<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>."
+    },
+    "{spent} spent this month: {over} over the goal of {goal}. Left: {days}.": {
+      "value": "{spent} dépensés ce mois-ci : {over} au-dessus de l'objectif de {goal}. Reste : {days}.",
+      "closest": "<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}."
     }
   }
 }

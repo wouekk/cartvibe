@@ -14,6 +14,36 @@ export interface MonthSummary {
   perDay: number;
 }
 
+/** One stretch of the sentence: plain words, the bold lead, or the part that says where the month stands. */
+export interface SentencePart {
+  text: string;
+  style: "plain" | "lead" | "verdict";
+}
+
+/**
+ * Splits a translated sentence at its marks: `<b>…</b>` is the lead and `<mark>…</mark>` the verdict. The marks
+ * travel inside the translation, so each language keeps its own word order and the page never glues fragments
+ * together. A sentence without marks is one plain part; a mark left open is shown as it was typed.
+ */
+export function sentenceParts(sentence: string): SentencePart[] {
+  const parts: SentencePart[] = [];
+  const marked = /<(b|mark)>(.*?)<\/\1>/g;
+  let at = 0;
+  for (const match of sentence.matchAll(marked)) {
+    if (match.index > at) {
+      parts.push({ text: sentence.slice(at, match.index), style: "plain" });
+    }
+    if (match[2]) {
+      parts.push({ text: match[2], style: match[1] === "b" ? "lead" : "verdict" });
+    }
+    at = match.index + match[0].length;
+  }
+  if (at < sentence.length) {
+    parts.push({ text: sentence.slice(at), style: "plain" });
+  }
+  return parts;
+}
+
 /**
  * The summary of the month that is running, or nothing: it needs a goal, a period that is one whole calendar
  * month, and today inside that month. A month that is over has no days left to plan, and a range that is not a
