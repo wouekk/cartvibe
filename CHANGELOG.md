@@ -45,6 +45,15 @@ and you can add `stop_grace_period: 30s` to your stack as the README shows, so a
 it is doing.
 
 ### Added
+- **A scan queue, so a photo that is not a receipt yet is somewhere you can see.** The AI page has a new *Scan
+  queue* card. *Waiting to be read* lists the Quick Scan photos the server still holds: who sent each, when, and
+  whether it waits, is being read, is between tries or failed, with what the last try said. A photo opens from
+  its name, and a failed one can be *Run again*. *Saved without a read* lists the receipts whose products the AI
+  has not read, each with a link and *Read again*. The receipts page tells everyone under its title how many
+  photos wait and how many could not be read, and reads its list again when one has become a receipt. A phone's
+  Scan button and the Dashboard's Quick Scan button carry the number of photos still on the device, waiting for
+  a connection. Until now a waiting photo showed nowhere, and a failed one could not be run again from the app
+  *(SCAN-15, SCAN-12)*.
 - **The list in the order you usually shop.** In Shop mode, what is left to buy is sorted by where you crossed
   things off on earlier trips, so the list follows your walk through the shop: fruit first if that is where you
   start, the tills last. A line above the list says so. It needs at least one earlier list that was crossed off

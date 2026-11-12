@@ -71,11 +71,25 @@ function isTextField(target: EventTarget | null): boolean {
                 </a>
               }
               @case ("scan") {
-                <button type="button" [class]="slotClass" data-testid="tab-scan" (click)="scan.emit()">
+                <button
+                  type="button"
+                  [class]="slotClass"
+                  data-testid="tab-scan"
+                  [attr.aria-label]="waiting() > 0 ? ('Scan, {count} waiting to upload' | t: { count: waiting() }) : null"
+                  (click)="scan.emit()"
+                >
                   <span
-                    class="-mt-5 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground ring-4 ring-background"
+                    class="relative -mt-5 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground ring-4 ring-background"
                   >
                     <ng-icon name="lucideScanLine" size="22" />
+                    @if (waiting() > 0) {
+                      <span
+                        class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-border bg-card px-1 text-[0.6875rem] font-semibold text-foreground tabular-nums"
+                        data-testid="tab-scan-waiting"
+                        aria-hidden="true"
+                        >{{ waiting() }}</span
+                      >
+                    }
                   </span>
                   <span class="max-w-full truncate">{{ 'Scan' | t }}</span>
                 </button>
@@ -105,6 +119,9 @@ export class TabBarComponent {
 
   /** Whether the person may scan a receipt into the household being browsed. */
   public readonly canScan = input(false);
+
+  /** Quick Scans kept on this device because there was no connection; drawn as a count on Scan until they are up. */
+  public readonly waiting = input(0);
 
   public readonly scan = output<void>();
 

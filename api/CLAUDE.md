@@ -280,6 +280,9 @@ which day an instant falls on and what "today" means.
     (`DailySnapshotDue`), so restarts neither skip a day nor add copies.
   - A system task names its job in `SystemTask.JobId` (column `asynq_task_id`, kept for existing rows; an id from
     before 2026-11-10 is simply not a job). Schedules and the quick-scan pipeline: `docs/domain.md`.
+  - The **scan queue** (`/scanQueue`, `docs/domain.md`) shows the quick scan jobs and the unread receipts to
+    people. A job's household comes from its payload there, so a new field a row shows is read through
+    `jobs.queuedScanFrom`, and a new action on a queued scan is gated on that household like the two it has.
 - **AI is fallible:** no AI configured means nothing is called and nothing counted. A failed call or unreadable answer
   counts an attempt; extraction and trips give up after 3 or 14 days. Classification never fails a product on an outage
   but backs off in memory (`outageBackoff`). Guessing "unplanned" on an incomplete trip answer is forbidden (it would

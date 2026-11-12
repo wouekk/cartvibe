@@ -4,6 +4,8 @@ import {
   BackupSummary,
   CurrencyRateTable,
   ReceiptProcessingSettings,
+  ScanQueue,
+  ScanQueueSummary,
   SystemSettings,
   UpsertReceiptProcessingSettingsCommand,
   UpsertSystemSettingsCommand,
@@ -91,6 +93,50 @@ export function registerAdmin(router: DemoRouter): void {
   router.get("/receiptProcessingSettings/usage", (ctx): AiUsageMonth[] => [
     { month: ctx.db.today.slice(0, 7), aiType: "GEMINI", model: "demo", calls: 4, inputTokens: 6120, outputTokens: 1480 },
   ]);
+  // The scan queue: the demo reads no photos, so one scripted photo that failed and one receipt without a read
+  // stand in for what the card shows on a real server. Neither can be run or read again here.
+  router.get("/scanQueue", (ctx): ScanQueue => {
+    const receipt = ctx.db.receipts[ctx.db.receipts.length - 1];
+    const groupId = ctx.db.groups.find((group) => !group.isAllGroup)?.id ?? 0;
+    return {
+      scans: [
+        {
+          id: 1,
+          status: "FAILED",
+          fileName: "bakery-receipt.jpg",
+          groupId,
+          uploadedByUserId: ctx.db.users[0]?.id ?? 0,
+          uploadedAt: instantOn(ctx.db.today),
+          attempts: 4,
+          maxAttempts: 4,
+          lastError: "The demo reads no photos: this one is a sample.",
+          hasFile: false,
+          canRerun: false,
+        },
+      ],
+      unreadReceipts: receipt
+        ? [
+            {
+              receiptId: receipt.id,
+              name: receipt.name,
+              groupId: receipt.groupId,
+              date: receipt.date,
+              status: "UNAVAILABLE",
+              attempts: 0,
+              lastError: "The demo has no AI to reach: this one is a sample.",
+              updatedAt: instantOn(ctx.db.today),
+              canReadAgain: false,
+            },
+          ]
+        : [],
+      unreadReceiptCount: receipt ? 1 : 0,
+    };
+  });
+  // Nothing waits in the demo, so the receipts page shows no line.
+  router.get("/scanQueue/summary", (): ScanQueueSummary => ({ waiting: 0, failed: 0 }));
+  router.post("/scanQueue/:id/rerun", () => badRequest(NOT_IN_DEMO));
+  router.get("/scanQueue/:id/file", () => notFound("The demo keeps no photo of a waiting scan."));
+
   router.post("/receiptProcessingSettings", (ctx) => {
     const command = body<UpsertReceiptProcessingSettingsCommand>(ctx);
     const settings: ReceiptProcessingSettings = { ...command, id: nextId(ctx.db, "processing"), createdAt: instantOn(ctx.db.today), key: undefined };

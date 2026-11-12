@@ -197,6 +197,7 @@
       <app-tab-bar
         [items]="tabItems()"
         [canScan]="canQuickScan()"
+        [waiting]="scansOnDevice()"
         (scan)="openQuickScan()"
         (more)="openMobileSidebar()"
       ></app-tab-bar>

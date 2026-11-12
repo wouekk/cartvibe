@@ -8,6 +8,7 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { GroupReceiptSettings, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
+import { ScanSummaryService } from "../../services/scan-summary.service";
 import { GroupStore, AuthStore } from "../../store";
 import { codePointMaxLengthValidator } from "../../validators";
 import { UploadImageComponent } from "../upload-image/upload-image.component";
@@ -78,6 +79,8 @@ export class QuickScanDialogComponent implements OnInit {
   public readonly soleGroupId = this.groupStore.soleGroupId;
 
   private readonly queuedScans = inject(QueuedScanService);
+
+  private readonly scanSummary = inject(ScanSummaryService);
 
   constructor(
     private dialogRef: AppDialogRef<QuickScanDialogComponent>,
@@ -209,6 +212,8 @@ export class QuickScanDialogComponent implements OnInit {
             this.snackbarService.success(
               marker("Receipts uploaded. You will get a notification once the AI has read them, or if it fails.")
             );
+            // The receipts page's line counts them from now on.
+            this.scanSummary.refresh();
             this.dialogRef.close();
           }),
           // A refused or failed upload (the interceptor already reports it) leaves the dialog open and the bar away.

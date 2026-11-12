@@ -9,6 +9,7 @@ import { AboutComponent } from "../../about/about/about.component";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants";
 import { AuthService, Group, GroupStatus, Permission } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { QueuedScanService } from "../../services/queued-scan.service";
 import { ViewportService } from "../../services/viewport.service";
 import { GroupStore, AuthStore } from "../../store";
 import { hasAll } from "../../utils/permission.utils";
@@ -368,6 +369,9 @@ export class SidebarComponent {
     const groupId = this.addTargetGroupId();
     return groupId !== undefined && hasAll(this.groupPermissions()?.[groupId] ?? [], Permission.GroupReceiptsQuickScan);
   });
+
+  /** Quick Scans kept on this device until there is a connection: the tab bar's Scan carries the count. */
+  protected readonly scansOnDevice = inject(QueuedScanService).waiting;
 
   protected readonly isAdmin = computed(() => this.authStore.hasAppPermission(Permission.AppUsersRead));
 

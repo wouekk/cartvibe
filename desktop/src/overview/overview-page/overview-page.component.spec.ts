@@ -1,5 +1,6 @@
 import { WarrantyMenuComponent } from "../../warranties/warranty-menu/warranty-menu.component";
 import { SnackbarService } from "../../services";
+import { QueuedScanService } from "../../services/queued-scan.service";
 import { TranslatePipe } from "../../i18n/translate.pipe";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { HlmCheckboxImports } from "@spartan-ng/helm/checkbox";
@@ -664,6 +665,19 @@ describe("OverviewPageComponent", () => {
       expect(open).toHaveBeenCalledWith(ConfirmationDialogComponent);
       expect(confirm.confirmText).toBe("Add AI API key");
       expect(navigate).toHaveBeenCalledWith(["/ai"]);
+    });
+
+    it("carries the count of scans still on this device, and nothing while there are none", async () => {
+      TestBed.inject(AuthStore).setPermissions([], { 1: [Permission.GroupReceiptsRead, Permission.GroupReceiptsQuickScan] });
+      await fixture.whenStable();
+      const count = () => fixture.nativeElement.querySelector("[data-testid=overview-quick-scan-waiting]");
+      expect(count()).toBeNull();
+
+      TestBed.inject(QueuedScanService).waiting.set(2);
+      await fixture.whenStable();
+
+      expect(count().textContent.trim()).toBe("2");
+      expect(count().getAttribute("aria-label")).toBe("2 waiting to upload");
     });
 
     it("tells a member who cannot configure the AI to ask an admin, and goes nowhere", async () => {
