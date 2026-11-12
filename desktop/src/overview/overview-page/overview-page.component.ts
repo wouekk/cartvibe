@@ -32,6 +32,9 @@ import {
   DashboardLayout,
   defaultLayout,
   GRID_COLUMNS,
+  GRID_ROW_REM,
+  isTilePanel,
+  panelHeight,
   movePanel,
   applyPlacements,
   makeRoom,
@@ -93,23 +96,22 @@ import { HlmDropdownMenuSeparator } from "../../ui/dropdown-menu/lib/hlm-dropdow
 import { TranslatePipe, PluralPipe } from "../../i18n/translate.pipe";
 import { HlmTooltip } from "@spartan-ng/helm/tooltip";
 
-/** Receipts listed per height step of the receipts panel. */
+/** Receipts listed in the receipts panel at its usual height, how many more each further grid row holds, and the fewest it lists. */
 const RECENT_RECEIPT_COUNT = 6;
+const RECEIPTS_PER_GRID_ROW = 2;
+const RECENT_RECEIPT_MIN = 2;
 
 /** With a mouse the receipts panel loads this many of the period and scrolls them within its own height. */
 const RECENT_RECEIPT_SCROLL_LIMIT = 50;
 
+/** The receipts panel's usual height, in grid rows. */
+const RECENT_RECEIPT_ROWS = panelDefinition("recentReceipts")?.defaultRows ?? 5;
+
 /** The customise screen's preview sizes, in CSS pixels; the PC preview takes the full width. */
 const PREVIEW_WIDTHS: Record<string, number | null> = { mobile: 375, tablet: 768, pc: null };
 
-/** The gap between panels (`gap-4`), which the panel widths make room for. */
+/** The gap between panels (`gap-4`) where the browser does not say (it is read from the grid otherwise). */
 const PANEL_GAP_PX = 16;
-
-/** The taller height step of a chart, list or table panel. */
-const TALL_PANEL_HEIGHT = "34rem";
-
-/** How far the pointer travels to change a panel's height step while resizing. */
-const RESIZE_ROW_STEP_PX = 80;
 
 /** How long panels take to glide to a new place (the design's default motion). */
 const PANEL_GLIDE_MS = 150;
@@ -299,8 +301,10 @@ export class OverviewPageComponent {
 
   private readonly finePointer = finePointerSignal();
 
-  /** The receipts the panel is tall enough for: six, or twelve when it is made taller. */
-  private readonly receiptsPanelVisible = computed(() => RECENT_RECEIPT_COUNT * this.receiptsPanelRows());
+  /** The receipts the panel is tall enough for: six at its usual height, two more for each grid row it is made taller. */
+  private readonly receiptsPanelVisible = computed(() =>
+    Math.max(RECENT_RECEIPT_MIN, RECENT_RECEIPT_COUNT + RECEIPTS_PER_GRID_ROW * (this.receiptsPanelRows() - RECENT_RECEIPT_ROWS))
+  );
 
   /**
    * With a mouse the panel loads more of the period and scrolls them under the wheel. On a touch screen it lists only
@@ -540,7 +544,7 @@ export class OverviewPageComponent {
   public readonly panels = computed(() => resolveLayout(this.activeLayout(), this.availablePanels(), this.sizeClass()));
 
   private readonly receiptsPanelRows = computed(
-    () => completeLayout(this.activeLayout(), this.availablePanels()).panels.find((panel) => panel.id === "recentReceipts")?.rows ?? 1
+    () => completeLayout(this.activeLayout(), this.availablePanels()).panels.find((panel) => panel.id === "recentReceipts")?.rows ?? RECENT_RECEIPT_ROWS
   );
 
   public readonly layoutDirty = computed(() => {
@@ -593,16 +597,20 @@ export class OverviewPageComponent {
   }
 
   /**
-   * A panel sits in a cell of the grid: its start column and row, and exactly its width in columns. Panels never stretch,
-   * so the size set in the editor is the size drawn, and a row may have empty columns.
+   * A panel sits in cells of the grid: its start column and row, and exactly its width in columns and its height in
+   * rows. Panels never stretch sideways, so the size set in the editor is the size drawn, and there may be empty cells
+   * beside one (never above one: panels float up).
    */
   public gridColumn(panel: ResolvedPanel): string {
     return `${panel.x + 1} / span ${panel.span}`;
   }
 
-  public gridRow(panel: ResolvedPanel): number {
-    return panel.row + 1;
+  public gridRow(panel: Placement): string {
+    return `${panel.row + 1} / span ${panel.height}`;
   }
+
+  /** The PC grid's rows are all one height (and grow only when a panel's content needs more); elsewhere the content sets them. */
+  public readonly gridAutoRows = computed(() => (this.sizeClass() === "wide" ? `minmax(${GRID_ROW_REM}rem, auto)` : null));
 
   /**
    * The panels as drawn. While one is dragged, the others move live to where they would be if it were dropped now: on a
@@ -632,12 +640,6 @@ export class OverviewPageComponent {
 
   /** Where every panel would be if the dragged one were dropped now (PC view). */
   private readonly dragPlaces = signal<Placement[] | undefined>(undefined);
-
-  /**
-   * The place the dragged panel came from, kept as an empty box of its size while it is dragged: the row it left
-   * keeps its height, so the rows below do not jump up under the pointer.
-   */
-  public readonly dragOrigin = signal<{ x: number; row: number; span: number; height: number } | undefined>(undefined);
 
   private readonly injector = inject(Injector);
 
@@ -674,14 +676,25 @@ export class OverviewPageComponent {
     );
   }
 
-  /** "2/6": the width a panel has, so a change is always visible. */
+  /** "3 × 6": the columns and rows a panel takes, shown beside its corner handle. */
   public sizeLabel(panel: ResolvedPanel): string {
-    return `${panel.span}/${this.gridColumns()}`;
+    return `${panel.span} × ${panel.height}`;
   }
 
-  /** A taller panel keeps its extra height; the content grows past it rather than being cut. */
+  /**
+   * Where a panel's height is its own to set: everywhere in the PC grid; on a tablet for charts, lists and tables (a
+   * tile there is as tall as the row it shares, which is not the row it has on a PC); never on a phone.
+   */
+  public canSetHeight(panel: ResolvedPanel): boolean {
+    return this.sizeClass() === "wide" || (this.sizeClass() === "regular" && !isTilePanel(panel.id));
+  }
+
+  /**
+   * On a tablet a chart, list or table is at least as tall as it is set (the PC grid's rows do that there). The
+   * content grows past it rather than being cut.
+   */
   public panelMinHeight(panel: ResolvedPanel): string | null {
-    return panel.rows > 1 && this.sizeClass() !== "compact" ? TALL_PANEL_HEIGHT : null;
+    return this.sizeClass() === "regular" && this.canSetHeight(panel) ? panelHeight(panel.rows) : null;
   }
 
   /** Edits start from the saved layout completed with what is available now (new tags included). */
@@ -726,17 +739,19 @@ export class OverviewPageComponent {
 
   /**
    * Writes a size that fits (limits and the grid's edge already respected). In the PC view every panel is pinned
-   * where it is, and a panel that got wider stays put while the ones in its way step aside or drop to a row below.
+   * where it is, the resized panel stays put, and the ones in its way step aside or are pushed down; when it gets
+   * smaller the panels below float up. A resize by the corner handle passes what the grid was when it began (`from`),
+   * so going back to the first size puts everything back.
    */
-  private commitSize(id: string, size: { cols?: number; rows?: number }): void {
-    const placements = this.panels();
+  private commitSize(id: string, size: { cols?: number; rows?: number }, from?: { layout: DashboardLayout; placements: Placement[] }): void {
+    const placements = from?.placements ?? this.panels();
     const own = placements.find((panel) => panel.id === id);
     if (this.sizeClass() !== "wide" || !own) {
       this.editLayout((layout) => resizePanel(layout, id, size));
       return;
     }
-    const arranged = size.cols !== undefined && size.cols !== own.span ? makeRoom(placements, id, size.cols, own.row, own.x, { fixed: true }).placements : placements;
-    this.editLayout((layout) => resizePanel(applyPlacements(pinPlacements(layout, placements), arranged), id, size));
+    const arranged = makeRoom(placements, id, size.cols ?? own.span, own.row, own.x, { fixed: true, height: size.rows ?? own.height });
+    this.editLayout((layout) => resizePanel(applyPlacements(pinPlacements(from?.layout ?? layout, placements), arranged), id, size));
   }
 
   /** A requested size cut back to what the panel's limits and the room beside it allow. */
@@ -748,7 +763,7 @@ export class OverviewPageComponent {
     const maxCols = this.sizeClass() === "wide" ? Math.min(definition.maxCols, this.roomToTheEdge(id)) : definition.maxCols;
     return {
       cols: Math.min(maxCols, Math.max(definition.minCols, size.cols)),
-      rows: Math.min(definition.maxRows, Math.max(1, size.rows)),
+      rows: Math.min(definition.maxRows, Math.max(definition.minRows, size.rows)),
     };
   }
 
@@ -764,14 +779,6 @@ export class OverviewPageComponent {
     this.resize(id, byCols !== 0 ? { cols: current.cols + byCols } : { rows: current.rows + byRows });
   }
 
-  public toggleHeight(id: string): void {
-    this.stepSize(id, 0, this.rowsOf(id) === 1 ? 1 : -1);
-  }
-
-  public rowsOf(id: string): number {
-    return this.panels().find((panel) => panel.id === id)?.rows ?? 1;
-  }
-
   private notifyLimit(id: string, limit: SizeLimit): void {
     shakeElement(this.panelElement(id));
     this.snackbarService.hint(this.translation.t(SIZE_LIMIT_MESSAGES[limit], { name: this.panelLabel(id) }));
@@ -779,10 +786,6 @@ export class OverviewPageComponent {
 
   private panelElement(id: string): HTMLElement | null {
     return this.panelGrid()?.nativeElement.querySelector<HTMLElement>(`[data-panel-id="${id}"]`) ?? null;
-  }
-
-  public canChangeHeight(panel: ResolvedPanel): boolean {
-    return (panelDefinition(panel.id)?.maxRows ?? 1) > 1;
   }
 
   public isFirstPanel(id: string): boolean {
@@ -804,8 +807,8 @@ export class OverviewPageComponent {
 
   /**
    * The PC view's Move left / right / up / down. Sideways: one free cell that way, or past the neighbour that is in the
-   * way (they change places). Up and down: into the row above or below, where the panels make room. It says so when
-   * there is nowhere to go.
+   * way (they change places). Down: below the panel under it; up: to where the panel over it is, which goes below.
+   * The panels it lands on make room (`makeRoom`). It says so when there is nowhere to go.
    */
   public nudgePanel(id: string, dx: number, dy: number): void {
     const placements = this.panels();
@@ -813,30 +816,45 @@ export class OverviewPageComponent {
     if (!own) {
       return;
     }
+    const others = placements.filter((place) => place.id !== id);
+    const besideOwn = (place: Placement) => place.row < own.row + own.height && own.row < place.row + place.height;
+    const inOwnColumns = (place: Placement) => place.x < own.x + own.span && own.x < place.x + place.span;
 
-    let room = makeRoom(placements, id, own.span, own.row + dy, own.x);
+    let moved: Placement[] = placements;
     if (dx !== 0) {
-      const inRow = placements.filter((place) => place.id !== id && place.row === own.row);
+      const beside = others.filter(besideOwn);
       const neighbour =
         dx > 0
-          ? inRow.filter((place) => place.x >= own.x + own.span).sort((a, b) => a.x - b.x)[0]
-          : inRow.filter((place) => place.x + place.span <= own.x).sort((a, b) => b.x - a.x)[0];
+          ? beside.filter((place) => place.x >= own.x + own.span).sort((a, b) => a.x - b.x || a.row - b.row)[0]
+          : beside.filter((place) => place.x + place.span <= own.x).sort((a, b) => b.x + b.span - (a.x + a.span) || a.row - b.row)[0];
       const touching = neighbour && (dx > 0 ? neighbour.x === own.x + own.span : neighbour.x + neighbour.span === own.x);
       if (touching) {
         // Past the neighbour: it ends up on the side the panel came from, whatever their widths.
         const middle = neighbour.x + neighbour.span / 2;
-        room = makeRoom(placements, id, own.span, own.row, dx > 0 ? own.x + neighbour.span : neighbour.x, { centre: middle + (dx > 0 ? 0.01 : -0.01) });
+        moved = makeRoom(placements, id, own.span, own.row, dx > 0 ? own.x + neighbour.span : neighbour.x, { centre: middle + (dx > 0 ? 0.01 : -0.01) });
       } else {
-        room = makeRoom(placements, id, own.span, own.row, own.x + dx);
+        moved = makeRoom(placements, id, own.span, own.row, own.x + dx);
+      }
+    } else if (dy > 0) {
+      const below = others.filter((place) => inOwnColumns(place) && place.row >= own.row + own.height).sort((a, b) => a.row - b.row || a.x - b.x)[0];
+      if (below) {
+        moved = makeRoom(placements, id, own.span, below.row + below.height, own.x);
+      }
+    } else if (dy < 0) {
+      const above = others
+        .filter((place) => inOwnColumns(place) && place.row + place.height <= own.row)
+        .sort((a, b) => b.row + b.height - (a.row + a.height) || a.x - b.x)[0];
+      if (above) {
+        moved = makeRoom(placements, id, own.span, above.row, own.x);
       }
     }
 
-    if (samePlacements(room.placements, placements)) {
+    if (samePlacements(moved, placements)) {
       shakeElement(this.panelElement(id));
       this.snackbarService.hint(this.translation.t(marker("There is no room to move {name} that way."), { name: this.panelLabel(id) }));
       return;
     }
-    this.editLayout((layout) => applyPlacements(pinPlacements(layout, placements), room.placements));
+    this.editLayout((layout) => applyPlacements(pinPlacements(layout, placements), moved));
   }
 
   // ---- Dragging a panel (any direction, diagonals included) -----------------------------------------------------
@@ -847,10 +865,21 @@ export class OverviewPageComponent {
   public readonly draggingId = signal<string | undefined>(undefined);
 
   /**
-   * Starts moving a panel by its handle. The panel follows the pointer and the others move live to where they would be
-   * if it were dropped now: in the PC view they make room around the cell under it, on a phone or tablet they reflow
-   * to the order it would have (the nearest panel to the pointer). Letting go keeps what is shown; Escape or a
-   * cancelled pointer puts everything back.
+   * On the customise screen a mouse moves a panel by any part of it. A finger needs the grip in the panel's controls:
+   * a touch on the panel itself has to keep scrolling the page.
+   */
+  public grabPanel(event: PointerEvent, panel: ResolvedPanel): void {
+    const onControl = !!(event.target as HTMLElement | null)?.closest?.("[data-panel-control]");
+    if (this.customising() && event.pointerType === "mouse" && !onControl) {
+      this.startDrag(event, panel);
+    }
+  }
+
+  /**
+   * Starts moving a panel. The panel follows the pointer and the others move live to where they would be if it were
+   * dropped now: in the PC view they make room around the cell its top left corner is over and float up into what it
+   * left, on a phone or tablet they reflow to the order it would have (the nearest panel to the pointer). Letting go
+   * keeps what is shown; Escape or a cancelled pointer puts everything back.
    */
   public startDrag(event: PointerEvent, panel: ResolvedPanel): void {
     const grid = this.panelGrid()?.nativeElement;
@@ -878,13 +907,6 @@ export class OverviewPageComponent {
     const placements = this.panels();
     this.draggingId.set(panel.id);
     this.dragOrder.set(wide ? undefined : original);
-    if (wide) {
-      this.dragOrigin.set({ x: panel.x, row: panel.row, span: panel.span, height: startRect.height });
-    }
-    /** The panels that left their row to make room: they say nothing about where the rows are. */
-    let displaced: string[] = [];
-    /** The row the panel is shown in now, counted as the rows were when the drag began. */
-    let shownRow = panel.row;
 
     const place = () => {
       // The panel's own slot is where it would sit untransformed, so the drag follows the pointer across reflows.
@@ -896,18 +918,15 @@ export class OverviewPageComponent {
       element.style.transform = `translate(${translateX}px, ${translateY}px)`;
 
       if (wide) {
-        // The PC view: the panel takes the cell under it and the others make room, worked out from where everything
-        // was when the drag began, so moving on puts a row back as it was.
-        const cell = this.cellUnderPanel(panel, pointer.x - grabX, pointer.y, displaced, { row: shownRow, top: slotTop, bottom: slotTop + rect.height });
-        const room = makeRoom(placements, panel.id, panel.span, cell.row, cell.x, { columns: this.gridColumns(), keepOriginRow: true });
+        // The PC view: the panel takes the cell its top left corner is nearest to and the others make room, worked
+        // out from where everything was when the drag began, so moving on puts things back as they were.
+        const cell = this.cellAt(pointer.x - grabX, pointer.y - grabY);
+        const room = makeRoom(placements, panel.id, panel.span, cell.row, cell.x, { columns: this.gridColumns() });
         const shown = this.dragPlaces();
-        shownRow = cell.row;
-        if (!shown || !samePlacements(shown, room.placements)) {
-          displaced = room.displaced;
+        if (!shown || !samePlacements(shown, room)) {
           this.glide(() => {
-            this.dragPlaces.set(room.placements);
-            this.dropPreview.set(room.placements.find((place) => place.id === panel.id));
-            this.dragOrigin.update((origin) => (origin ? { ...origin, row: room.originRow ?? origin.row } : origin));
+            this.dragPlaces.set(room);
+            this.dropPreview.set(room.find((place) => place.id === panel.id));
           });
         }
         return;
@@ -967,11 +986,10 @@ export class OverviewPageComponent {
         this.dragOrder.set(undefined);
         this.dropPreview.set(undefined);
         this.dragPlaces.set(undefined);
-        this.dragOrigin.set(undefined);
         this.draggingId.set(undefined);
         const layout = completeLayout(this.draftLayout(), this.availablePanels());
         if (commit && wide && places) {
-          // What is on screen is what is kept. A row the panel left empty closes: rows are numbered without gaps.
+          // What is on screen is what is kept.
           this.draftLayout.set(applyPlacements(layout, places));
         } else if (commit && order) {
           const index = order.indexOf(panel.id);
@@ -998,62 +1016,54 @@ export class OverviewPageComponent {
     place();
   }
 
-  /**
-   * The grid cell under a panel dragged in the PC view: its left edge picks the column and the pointer picks the row
-   * (below the last row is a new one). Rows are the ones the drag began with, found by where their panels are now.
-   */
-  private cellUnderPanel(
-    panel: ResolvedPanel,
-    leftEdge: number,
-    pointerY: number,
-    displaced: string[],
-    slot: { row: number; top: number; bottom: number }
-  ): { x: number; row: number } {
-    const grid = this.panelGrid()?.nativeElement;
-    const placements = this.panels();
-    if (!grid) {
-      return { x: panel.x, row: panel.row };
-    }
+  /** The PC grid as it is drawn now: where it is, how wide a column is, how tall a row, and the rows it has. */
+  private gridMetrics(grid: HTMLElement): { box: DOMRect; gap: number; columnWidth: number; rowUnit: number; tracks: number[] } {
+    const style = getComputedStyle(grid);
+    const gap = parseFloat(style.columnGap) || PANEL_GAP_PX;
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     const box = grid.getBoundingClientRect();
-    const columnWidth = (box.width + PANEL_GAP_PX) / this.gridColumns();
-    const x = Math.round((leftEdge - box.left) / columnWidth);
-
-    const bands = new Map<number, { top: number; bottom: number }>();
-    const widen = (row: number, rect: DOMRect | undefined) => {
-      if (rect) {
-        const band = bands.get(row);
-        bands.set(row, { top: Math.min(band?.top ?? rect.top, rect.top), bottom: Math.max(band?.bottom ?? rect.bottom, rect.bottom) });
-      }
+    return {
+      box,
+      gap,
+      columnWidth: (box.width + gap) / this.gridColumns(),
+      rowUnit: GRID_ROW_REM * rem + gap,
+      tracks: (style.gridTemplateRows ?? "")
+        .split(" ")
+        .map((track) => parseFloat(track))
+        .filter((size) => Number.isFinite(size)),
     };
-    // The row the panel came from is where its empty box stands, and the row it is shown in is where its own cell
-    // is: a row whose panels all gave way would otherwise have no place of its own, and the pointer would fall
-    // through it to the next one.
-    widen(panel.row, grid.querySelector<HTMLElement>("[data-drag-origin]")?.getBoundingClientRect());
-    widen(slot.row, { top: slot.top, bottom: slot.bottom } as DOMRect);
-    for (const place of placements) {
-      // Skipped: the dragged panel (it is under the pointer, so its own box would put the pointer in every row it
-      // passes) and the panels that dropped to another row to make room (they are not where their row is).
-      if (place.id !== panel.id && !displaced.includes(place.id)) {
-        widen(place.row, this.panelElement(place.id)?.getBoundingClientRect());
-      }
-    }
-    const sorted = [...bands.entries()].sort((a, b) => a[0] - b[0]);
-    let row = sorted.length;
-    if (sorted.length > 0 && pointerY < sorted[0][1].top) {
-      row = 0;
-    }
-    for (const [rank, band] of sorted) {
-      if (pointerY <= band.bottom + PANEL_GAP_PX / 2) {
-        row = rank;
-        break;
-      }
-    }
-    return { x, row };
   }
 
   /**
+   * The grid cell whose corner is nearest to a point: where the top left corner of a panel dragged in the PC view is.
+   * Rows are as tall as they are drawn now (a row grows when a panel's content needs it); below the last one they
+   * go on at the usual height.
+   */
+  private cellAt(left: number, top: number): { x: number; row: number } {
+    const grid = this.panelGrid()?.nativeElement;
+    if (!grid) {
+      return { x: 0, row: 0 };
+    }
+    const { box, gap, columnWidth, rowUnit, tracks } = this.gridMetrics(grid);
+    const x = Math.round((left - box.left) / columnWidth);
+    let edge = box.top;
+    for (let row = 0; row < tracks.length; row++) {
+      const next = edge + tracks[row] + gap;
+      if (top < (edge + next) / 2) {
+        return { x, row };
+      }
+      edge = next;
+    }
+    return { x, row: tracks.length + Math.max(0, Math.round((top - edge) / rowUnit)) };
+  }
+
+  /** The panel whose corner handle is being dragged: its size shows beside the handle meanwhile. */
+  public readonly resizingId = signal<string | undefined>(undefined);
+
+  /**
    * Corner-handle resize in the PC view, wider or narrower, taller or shorter and diagonally in one gesture: the width
-   * snaps to grid columns and the height to its steps. At a limit the panel shakes and says so, once per time it is hit.
+   * snaps to grid columns and the height to grid rows. The panels in the way give way as it goes, worked out from how
+   * the grid was when the resize began. At a limit the panel shakes and says so, once per time it is hit.
    */
   public startResize(event: PointerEvent, panel: ResolvedPanel): void {
     const grid = this.panelGrid()?.nativeElement;
@@ -1063,31 +1073,33 @@ export class OverviewPageComponent {
     event.preventDefault();
     event.stopPropagation();
 
-    const columnWidth = (grid.getBoundingClientRect().width + PANEL_GAP_PX) / this.gridColumns();
+    const { columnWidth, rowUnit } = this.gridMetrics(grid);
+    const from = { layout: completeLayout(this.draftLayout(), this.availablePanels()), placements: this.panels() };
     const startX = event.clientX;
     const startY = event.clientY;
     const handle = event.currentTarget as HTMLElement;
     handle.setPointerCapture?.(event.pointerId);
     let atLimit = false;
+    let shown = { cols: panel.cols, rows: panel.rows };
+    this.resizingId.set(panel.id);
 
     const move = (moveEvent: PointerEvent) => {
       const cols = panel.cols + Math.round((moveEvent.clientX - startX) / columnWidth);
-      const dy = moveEvent.clientY - startY;
-      const rows = dy > RESIZE_ROW_STEP_PX ? panel.rows + 1 : dy < -RESIZE_ROW_STEP_PX ? panel.rows - 1 : panel.rows;
+      const rows = panel.rows + Math.round((moveEvent.clientY - startY) / rowUnit);
       const hit = sizeLimitHit(panel.id, { cols, rows }) ?? this.noRoomToWiden(panel.id, cols);
-      if (hit) {
-        if (!atLimit) {
-          atLimit = true;
-          this.notifyLimit(panel.id, hit.limit);
-        }
-        // Keep what still fits: a diagonal drag past the width limit can still change the height.
-        this.commitSize(panel.id, this.clampSize(panel.id, { cols, rows }));
-        return;
+      if (hit && !atLimit) {
+        this.notifyLimit(panel.id, hit.limit);
       }
-      atLimit = false;
-      this.resize(panel.id, { cols, rows });
+      atLimit = !!hit;
+      // Keep what still fits: a diagonal drag past the width limit can still change the height.
+      const size = hit ? this.clampSize(panel.id, { cols, rows }) : { cols, rows };
+      if (size.cols !== shown.cols || size.rows !== shown.rows) {
+        shown = size;
+        this.commitSize(panel.id, size, from);
+      }
     };
     const end = () => {
+      this.resizingId.set(undefined);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", end);
       window.removeEventListener("pointercancel", end);

@@ -813,6 +813,7 @@
     "Plane": "Samolot",
     "Planned": "Planowane",
     "Planned / Unplanned": "Planowane / nieplanowane",
+    "Please double-check this receipt and correct anything that looks wrong.": "Sprawdź ten paragon i popraw, jeśli coś się nie zgadza.",
     "Please enter your password to confirm account deletion.": "Wpisz hasło, aby potwierdzić usunięcie konta.",
     "Please fill in all required fields. Some images are missing required fields.": "Wypełnij wszystkie wymagane pola. W niektórych obrazach brakuje wymaganych pól.",
     "Please select images to upload": "Wybierz obrazy do wysłania",
@@ -1251,7 +1252,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Tę stronę wczytano przez HTTP. Jeśli zapiszesz z włączonymi bezpiecznymi plikami cookie, przeglądarki odrzucą pliki cookie logowania w połączeniach HTTP: zostaniesz wylogowany, a nikt łączący się przez HTTP nie zaloguje się ponownie, dopóki nie wyłączysz tej opcji.",
     "This part of CartVibe is not part of the demo.": "Ta część CartVibe nie jest dostępna w demo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Ten dostawca jest jedynym sposobem logowania na Twoje konto, więc nie można go rozłączyć.",
-    "This receipt is to check. Settle it once it matches the paper one.": "Ten paragon jest do sprawdzenia. Rozlicz go, gdy zgadza się z papierowym.",
+    "This receipt was read by AI. Please double-check it and correct anything that looks wrong.": "Ten paragon odczytała AI. Sprawdź go i popraw, jeśli coś się nie zgadza.",
     "This role grants no permissions.": "Ta rola nie nadaje żadnych uprawnień.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Na tym serwerze są już paragony lub listy zakupów. Plik można zaimportować tylko do pustego gospodarstwa.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Ta strona nie ustawia plików cookie i nie uruchamia analityki ani skryptów stron trzecich.",
@@ -2149,6 +2150,10 @@
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "To jest klucz tajny. Użyj klucza publicznego, który zaczyna się od pk_",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "This receipt is to check. Settle it once it matches the paper one.": {
+      "value": "Ten paragon jest do sprawdzenia. Rozlicz go, gdy zgadza się z papierowym.",
+      "closest": "The receipt: {name} has been uploaded to the group {group}. Check it out!"
     },
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Trzy litery, np. PLN lub USD. Zostaw puste, aby widzieć walutę gospodarstwa. Przelicza tylko Pulpit; paragony zostają bez zmian."

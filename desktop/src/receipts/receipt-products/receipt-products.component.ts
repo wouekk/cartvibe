@@ -150,6 +150,9 @@ export class ReceiptProductsComponent {
   });
 
   /** How many lines have no amount: what the review asks about before "Looks right". */
+  /** The lines on screen are the AI's reading (a scan), not typed by hand: the note beside "Looks right" says so. */
+  public readonly readByAi = computed(() => this.view()?.status === "DONE");
+
   public readonly linesWithoutAmount = computed(() => (this.view()?.products ?? []).filter((product) => !product.amount).length);
 
   private readonly groupPermissions = this.authStore.groupPermissions;
