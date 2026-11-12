@@ -176,6 +176,16 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   *Being read* and leave the list as receipts appear, without a reload); the receipts page shows the count and
   loses it when they are read; a receipt listed under *Saved without a read* opens from its name and *Read
   again* moves it on; with the phone in flight mode a Quick Scan puts a number on the Scan button.
+- **Quick Scan from the camera on Android** (the owner's report of 2026-11-12: *Take a photo* over plain http
+  "does not work" and leaves no trace). Not reproduced: in Chromium as a Pixel 7 on a plain-http `.test`
+  address the real app scans fine, so http is not the cause; the likely one is Android closing the page while
+  the camera app is open, which only a real phone shows. `feature/scan-trace` (`1a5778ad`, green CI, in
+  `:preview`, SCAN-16) makes it visible instead: a message at the next start with the workaround (camera app
+  first, then *Upload photos*) and an "app report" line in the server log (`POST /clientReport`). It also
+  fixed three silent failures found on the way (a file left out, 50 MB together, a 413 not logged). **Ask the
+  owner** what the phone shows after the update: the message (then the cause is confirmed), an empty dialog,
+  or something else, and what the log's "app report" line says. If the page is being closed, the real fix
+  would be a camera inside the page, which needs HTTPS.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
