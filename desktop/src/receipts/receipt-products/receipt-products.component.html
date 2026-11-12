@@ -367,8 +367,10 @@
       <p class="m-0 min-w-0 flex-1 text-sm text-muted-foreground" data-testid="receipt-review-hint">
         @if (linesWithoutAmount() > 0) {
           {{ 'Lines without an amount: {count}. They are listed first.' | t: { count: linesWithoutAmount() } }}
+        } @else if (readByAi()) {
+          {{ 'This receipt was read by AI. Please double-check it and correct anything that looks wrong.' | t }}
         } @else {
-          {{ 'This receipt is to check. Settle it once it matches the paper one.' | t }}
+          {{ 'Please double-check this receipt and correct anything that looks wrong.' | t }}
         }
       </p>
       <button hlmBtn type="button" data-testid="receipt-looks-right" (click)="settle.emit()">

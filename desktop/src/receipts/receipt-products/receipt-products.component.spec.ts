@@ -347,10 +347,12 @@ describe("ReceiptProductsComponent", () => {
       expect(element("receipt-looks-right")?.textContent).toContain("Looks right");
     });
 
-    it("asks only to compare with the paper receipt when every line has an amount", async () => {
+    it("asks for a second look when every line has an amount, and says when the AI read the receipt", async () => {
       await renderToCheck([lines[0], lines[2]]);
 
-      expect(element("receipt-review-hint")?.textContent).toContain("Settle it once it matches the paper one.");
+      const hint = element("receipt-review-hint")?.textContent ?? "";
+      expect(hint).toContain("correct anything that looks wrong");
+      expect(hint.includes("read by AI")).toBe(fixture.componentInstance.readByAi());
     });
 
     it("tells the page to settle the receipt, once per press", async () => {

@@ -813,6 +813,7 @@
     "Plane": "Flugzeug",
     "Planned": "Geplant",
     "Planned / Unplanned": "Geplant / ungeplant",
+    "Please double-check this receipt and correct anything that looks wrong.": "Bitte prüfe diesen Beleg und korrigiere, was nicht stimmt.",
     "Please enter your password to confirm account deletion.": "Gib dein Passwort ein, um das Löschen des Kontos zu bestätigen.",
     "Please fill in all required fields. Some images are missing required fields.": "Bitte fülle alle Pflichtfelder aus. Bei einigen Bildern fehlen Pflichtfelder.",
     "Please select images to upload": "Wähle Bilder zum Hochladen",
@@ -1251,7 +1252,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Diese Seite wurde über HTTP geladen. Wenn du mit sicheren Cookies speicherst, verwerfen Browser die Anmelde-Cookies bei HTTP-Verbindungen: Du wirst abgemeldet, und niemand, der CartVibe über HTTP erreicht, kann sich wieder anmelden, bis es ausgeschaltet wird.",
     "This part of CartVibe is not part of the demo.": "Dieser Teil von CartVibe gehört nicht zur Demo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Dieser Anbieter ist der einzige Weg in dein Konto und kann deshalb nicht getrennt werden.",
-    "This receipt is to check. Settle it once it matches the paper one.": "Dieser Beleg ist zu prüfen. Erledige ihn, sobald er mit dem Papierbeleg übereinstimmt.",
+    "This receipt was read by AI. Please double-check it and correct anything that looks wrong.": "Diesen Beleg hat die KI gelesen. Bitte prüfe ihn und korrigiere, was nicht stimmt.",
     "This role grants no permissions.": "Diese Rolle gewährt keine Berechtigungen.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Dieser Server hat schon Belege oder Einkaufslisten. Eine Datei lässt sich nur in einen leeren Haushalt importieren.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Diese Seite setzt keine Cookies und nutzt weder Analyse noch Skripte von Dritten.",
@@ -2117,6 +2118,10 @@
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "Das ist ein geheimer Schlüssel. Verwende den öffentlichen Schlüssel, der mit pk_ beginnt",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "This receipt is to check. Settle it once it matches the paper one.": {
+      "value": "Dieser Beleg ist zu prüfen. Erledige ihn, sobald er mit dem Papierbeleg übereinstimmt.",
+      "closest": "The receipt: {name} has been uploaded to the group {group}. Check it out!"
     },
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Drei Buchstaben, z. B. EUR oder USD. Leer lassen, um die Haushaltswährung zu sehen. Nur das Dashboard rechnet um; Belege bleiben wie eingegeben."

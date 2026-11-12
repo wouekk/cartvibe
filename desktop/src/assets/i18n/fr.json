@@ -813,6 +813,7 @@
     "Plane": "Avion",
     "Planned": "Prévu",
     "Planned / Unplanned": "Prévu / imprévu",
+    "Please double-check this receipt and correct anything that looks wrong.": "Vérifiez ce ticket et corrigez ce qui ne va pas.",
     "Please enter your password to confirm account deletion.": "Saisissez votre mot de passe pour confirmer la suppression du compte.",
     "Please fill in all required fields. Some images are missing required fields.": "Veuillez remplir tous les champs obligatoires. Certaines images ont des champs obligatoires manquants.",
     "Please select images to upload": "Veuillez sélectionner des images à envoyer",
@@ -1251,7 +1252,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Cette page a été chargée en HTTP. Si vous enregistrez avec les cookies sécurisés activés, les navigateurs abandonneront les cookies de connexion en HTTP : vous serez déconnecté, et personne accédant à CartVibe en HTTP ne pourra se reconnecter tant que l’option ne sera pas désactivée.",
     "This part of CartVibe is not part of the demo.": "Cette partie de CartVibe ne fait pas partie de la démo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Ce fournisseur est le seul moyen d’accéder à votre compte ; il ne peut donc pas être délié.",
-    "This receipt is to check. Settle it once it matches the paper one.": "Ce ticket est à vérifier. Réglez-le une fois qu'il correspond au ticket papier.",
+    "This receipt was read by AI. Please double-check it and correct anything that looks wrong.": "Ce ticket a été lu par l'IA. Vérifiez-le et corrigez ce qui ne va pas.",
     "This role grants no permissions.": "Ce rôle n’accorde aucun droit.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Ce serveur a déjà des tickets ou des listes de courses. Un fichier ne peut être importé que dans un foyer vide.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Ce site ne dépose aucun cookie et n’exécute ni analyse ni script tiers.",
@@ -2133,6 +2134,10 @@
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "C'est une clé secrète. Utilisez la clé publique, qui commence par pk_",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "This receipt is to check. Settle it once it matches the paper one.": {
+      "value": "Ce ticket est à vérifier. Réglez-le une fois qu'il correspond au ticket papier.",
+      "closest": "The receipt: {name} has been uploaded to the group {group}. Check it out!"
     },
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Trois lettres, comme EUR ou USD. Laissez vide pour voir la devise du foyer. Seul le tableau de bord convertit ; les tickets restent tels que saisis."

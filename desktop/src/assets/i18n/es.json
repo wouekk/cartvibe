@@ -813,6 +813,7 @@
     "Plane": "Avión",
     "Planned": "Previsto",
     "Planned / Unplanned": "Previsto / imprevisto",
+    "Please double-check this receipt and correct anything that looks wrong.": "Revisa este recibo y corrige lo que no esté bien.",
     "Please enter your password to confirm account deletion.": "Escribe tu contraseña para confirmar la eliminación de la cuenta.",
     "Please fill in all required fields. Some images are missing required fields.": "Rellena todos los campos obligatorios. A algunas imágenes les faltan campos obligatorios.",
     "Please select images to upload": "Selecciona imágenes para subir",
@@ -1251,7 +1252,7 @@
     "This page was loaded over HTTP. If you save with secure cookies on, browsers will drop the login cookies on HTTP connections: you will be signed out, and nobody reaching CartVibe over HTTP will be able to log back in until it is turned off again.": "Esta página se cargó por HTTP. Si guardas con las cookies seguras activadas, los navegadores descartarán las cookies de inicio de sesión en conexiones HTTP: se cerrará tu sesión, y nadie que acceda a CartVibe por HTTP podrá volver a entrar hasta que se desactive.",
     "This part of CartVibe is not part of the demo.": "Esta parte de CartVibe no forma parte de la demo.",
     "This provider is the only way into your account, so it cannot be disconnected.": "Este proveedor es la única forma de entrar en tu cuenta, así que no se puede desconectar.",
-    "This receipt is to check. Settle it once it matches the paper one.": "Este recibo está por revisar. Liquídalo cuando coincida con el de papel.",
+    "This receipt was read by AI. Please double-check it and correct anything that looks wrong.": "La IA ha leído este recibo. Revísalo y corrige lo que no esté bien.",
     "This role grants no permissions.": "Este rol no concede ningún permiso.",
     "This server already has receipts or shopping lists. A file can only be imported into an empty household.": "Este servidor ya tiene recibos o listas de la compra. Un archivo solo se puede importar en un hogar vacío.",
     "This site sets no cookies and runs no analytics or third-party scripts.": "Este sitio no usa cookies ni ejecuta analítica ni scripts de terceros.",
@@ -2133,6 +2134,10 @@
     "This is a secret key. Use the publishable key, which starts with pk_": {
       "value": "Es una clave secreta. Usa la clave pública, que empieza por pk_",
       "closest": "This is the publishable key. The server needs the secret key, which starts with sk_"
+    },
+    "This receipt is to check. Settle it once it matches the paper one.": {
+      "value": "Este recibo está por revisar. Liquídalo cuando coincida con el de papel.",
+      "closest": "The receipt: {name} has been uploaded to the group {group}. Check it out!"
     },
     "Three letters, like PLN or USD. Leave empty to see the household currency. Only the Dashboard converts; receipts stay as entered.": {
       "value": "Tres letras, como EUR o USD. Déjalo vacío para ver la moneda del hogar. Solo el panel convierte; los recibos se quedan como se introdujeron."
