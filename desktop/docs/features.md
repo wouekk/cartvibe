@@ -87,10 +87,21 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Layout and customise** (`src/overview/dashboard-layout/`): panels have plain-string ids (`spent`, `tag:<id>`,
   `shoppingList`, …). `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE`, `defaultLayout` (`fillRows` leaves
   no gaps), `parseLayout` (unreadable → default, unknown ids kept), `completeLayout`, `resolveLayout`, `placePanels`,
-  `pinPlacements` (any PC edit pins every shown panel first so one change never moves the rest), `resolveDrop`,
-  `applyDrop`, `roomToTheRight`. Size class comes from the grid's own width (ResizeObserver): compact < 640px, regular
-  < 1024, wide. Saved cells apply to the wide grid only. Dragging is pointer-driven on the handle; keyboard moves are in
-  the panel menu. The customise screen is the same page at `.../customize` (route data `customise: true`) so previews
+  `pinPlacements`, `makeRoom` and `applyPlacements`. Size class comes from the grid's own width (ResizeObserver):
+  compact < 640px, regular < 1024, wide. Saved cells apply to the wide grid only. Dragging is pointer-driven on the
+  handle; keyboard moves are in the panel menu.
+  - **Moving and widening in the PC view go through `makeRoom`**: the panel gets the cell it is put on and the rest
+    of that row gives way, by the four rules at the function's head (free cell; the row slides; a swap with the place
+    it came from; a new row below). `nudgePanel` (the menu), `commitSize` (`fixed: true`, the panel stays put) and a
+    drag all call it, and `applyPlacements` saves the result with every panel pinned.
+  - **A drag is a live preview** (`startDrag`): each frame `makeRoom` runs on the placements the drag began with,
+    never on what is shown, so moving on puts a row back as it was; `dragPlaces` is drawn (`displayPanels`) and a
+    drop keeps exactly that. The row under the pointer is found from where the panels are now, keyed by the rows the
+    drag began with (`cellUnderPanel`): panels that dropped to another row are left out, and two boxes are added,
+    the cell the dragged panel is shown in and the empty box that holds its old place open (`dragOrigin`,
+    `data-drag-origin`). Without those a row whose panels all gave way has no place and the target flickers.
+  - **Panels glide** (`glide`, 150 ms, FLIP with the Web Animations API, off under reduced motion): every layout
+    edit goes through it, and so does each step of a drag. The customise screen is the same page at `.../customize` (route data `customise: true`) so previews
   show real figures; panel content is `inert` while editing. `DashboardLayoutStore` loads once per session (cleared on
   `Logout`), `canCustomise` from the API shows the button.
 - **Page width:** `--page-max` is set once on the wrapper around the router outlet; pages do not set their own max width.
@@ -144,9 +155,15 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
   the total never change it by themselves (the gap may be a discount): `overTotal` says so and, with update
   permission on an unconverted receipt, offers **Set total to …** (`setTotal` output; the form calls
   `setReceiptAmount` and patches its amount).
-- **Date on the view page:** editable in place, settled or not, with update permission on an unconverted receipt
-  (`canSetDateInPlace`); a change is saved alone through `setReceiptDate` after `DATE_IN_PLACE_DEBOUNCE_MS`, and a
-  failure puts the stored day back.
+- **A saved receipt opens ready to edit** (`openMode`): `/receipts/:id/view` shows the form in edit mode for whoever
+  holds `group.receipts.update` on the receipt's household, so there is no Edit button; it stays read-only without
+  that permission and in a queue started in View Mode. The title is the receipt's name. Save (`updateReceipt`) keeps
+  the page open: `showSaved` takes the server's answer and marks the form pristine, so `app-submit-button` dims
+  again; a save from `/edit` then lands on `/view`. Cancel goes to the receipts list. *Looks right* and Duplicate
+  show in both modes. Images, lines, the warranty and *Set total to …* save on their own and never dirty the form.
+- **Date in place** (read-only mode only, so a View Mode queue): editable settled or not, with update permission on
+  an unconverted receipt (`canSetDateInPlace`); a change is saved alone through `setReceiptDate` after
+  `DATE_IN_PLACE_DEBOUNCE_MS`, and a failure puts the stored day back.
 - **Currency:** `app-receipt-currency-note` shows a converted amount's source; the rates editor `app-exchange-rates`
   sanitizes per keystroke (`sanitizeRateInput`) and Enter never submits the outer form.
 - **Image:** the stage is `app-image-canvas` (`image-canvas.md`); the image menu (`hlmDropdownMenuTrigger` over
