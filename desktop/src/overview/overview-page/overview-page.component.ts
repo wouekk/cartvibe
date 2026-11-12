@@ -235,9 +235,9 @@ export class OverviewPageComponent {
 
   /**
    * The sentence above the panels, while the running month is shown and a goal is set: what was spent (the bold
-   * lead), how far that is over or under the goal (red over it, green otherwise), and under the goal what a day
-   * may cost to end the month on it. The translated text carries `<b>` and `<mark>` around those two stretches
-   * (`sentenceParts`). Empty otherwise (no goal, another range, a month that is over, or nothing loaded yet).
+   * lead) and how far that is over or under the goal (red over it, green otherwise). The translated text carries
+   * `<b>` and `<mark>` around those two stretches (`sentenceParts`). Empty otherwise (no goal, another range, a
+   * month that is over, or nothing loaded yet).
    */
   private readonly monthAgainstGoal = computed(() => {
     const overview = this.overview();
@@ -259,7 +259,6 @@ export class OverviewPageComponent {
       goal: money(summary.goal),
       over: money(summary.over),
       left: money(summary.remaining),
-      perDay: money(summary.perDay),
     };
     if (summary.over > 0) {
       return this.translation.t(marker("<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}."), params);
@@ -267,10 +266,7 @@ export class OverviewPageComponent {
     if (summary.remaining === 0) {
       return this.translation.t(marker("<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>."), params);
     }
-    return this.translation.t(
-      marker("<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal."),
-      params
-    );
+    return this.translation.t(marker("<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}."), params);
   });
 
   /** The sentence in its parts, for the page to draw the lead bold and the verdict in colour. */

@@ -11,7 +11,7 @@
     "2 years in the EU (legal minimum), 1 year elsewhere; only sets where a new warranty date starts.": "2 years in the EU (legal minimum), 1 year elsewhere; only sets where a new warranty date starts.",
     "8, 12 or 13 digits": "8, 12 or 13 digits",
     "<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>.": "<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>.",
-    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal.": "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal.",
+    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}.": "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}.",
     "<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}.": "<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}.",
     "A Logo.dev secret key starts with sk_": "A Logo.dev secret key starts with sk_",
     "A Quick Scan is a photo and nothing else: whoever scans paid, and the receipt is to check until the AI has read it. You can add a note to it, and change what a scan falls back on.": "A Quick Scan is a photo and nothing else: whoever scans paid, and the receipt is to check until the AI has read it. You can add a note to it, and change what a scan falls back on.",
