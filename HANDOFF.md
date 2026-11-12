@@ -166,12 +166,16 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
     turned down: its free logos must load from its CDN in every browser). The login page's credit line is gone
     (Logo.dev asks it of commercial projects only; About and `NOTICE.md` keep the credit). Fressnapf, Maxi Zoo
     and Apple were missing from `brands.json`, not short of credits: press *Download logos* after the update.
-  - **Proposed, waiting for the owner's word:** a *Scan queue* section on the AI page (photos waiting to be
-    read, being read, trying again or failed; and receipts saved without a read, with *Read again*), one line
-    on the Receipts page for everyone, and the count of photos still on the phone on the Quick Scan button.
-    Today a waiting scan shows nowhere, and `QueuedScanService.waiting` is drawn by no screen.
-    `docs/FEATURES.md` ADM-15 wrongly says a scan the AI could not be reached for is tried three more times
-    (it is saved as a receipt instead): correct it with that work.
+- **The scan queue** (`feature/scan-queue`, `df4cbe3a`, green CI, in `:preview`, 2026-11-12; SCAN-15): the AI
+  page ends with a *Scan queue* card (the Quick Scan photos the server still holds, with the photo and *Run
+  again*; the receipts saved without a read, with *Read again*), the receipts page says under its title how
+  many photos wait or could not be read, and the phone's Scan button and the Dashboard's Quick Scan button
+  carry the count of scans still on the device. Four new endpoints under `/scanQueue`, no schema change.
+  Proved by specs, Go tests and the built demo (which shows one scripted sample each); never seen with a real
+  queue. Worth a look on the NAS: scan three photos at once and open the AI page (they go from *Waiting* to
+  *Being read* and leave the list as receipts appear, without a reload); the receipts page shows the count and
+  loses it when they are read; a receipt listed under *Saved without a read* opens from its name and *Read
+  again* moves it on; with the phone in flight mode a Quick Scan puts a number on the Scan button.
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
