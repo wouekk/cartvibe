@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, inject, linkedSignal, signal, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { afterNextRender, Component, computed, effect, ElementRef, inject, Injector, linkedSignal, signal, untracked, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { shakeElement } from "../../utils/shake";
 import { AppDialog } from "../../dialog/app-dialog";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
@@ -33,12 +33,12 @@ import {
   defaultLayout,
   GRID_COLUMNS,
   movePanel,
-  applyDrop,
-  DropCell,
+  applyPlacements,
+  makeRoom,
   pinPlacements,
+  Placement,
   placePanels,
-  resolveDrop,
-  roomToTheRight,
+  samePlacements,
   PanelGroup,
   panelDefinition,
   panelKind,
@@ -110,6 +110,9 @@ const TALL_PANEL_HEIGHT = "34rem";
 
 /** How far the pointer travels to change a panel's height step while resizing. */
 const RESIZE_ROW_STEP_PX = 80;
+
+/** How long panels take to glide to a new place (the design's default motion). */
+const PANEL_GLIDE_MS = 150;
 
 /** Dragging near the top or bottom edge of the scrolling area scrolls it. */
 const DRAG_SCROLL_EDGE_PX = 56;
@@ -602,12 +605,20 @@ export class OverviewPageComponent {
   }
 
   /**
-   * The panels as drawn. While one is dragged on a phone or tablet, the others reflow live to the order it would have if
-   * dropped now; in the PC view they stay where they are and a dashed outline shows the cell it would take.
+   * The panels as drawn. While one is dragged, the others move live to where they would be if it were dropped now: on a
+   * phone or tablet they reflow to the new order, in the PC view they make room around the cell it would take
+   * (`makeRoom`), which a dashed outline marks.
    */
   public readonly displayPanels = computed(() => {
     const order = this.dragOrder();
     const panels = this.panels();
+    const places = this.dragPlaces();
+    if (places) {
+      return panels.map((panel) => {
+        const place = places.find((candidate) => candidate.id === panel.id);
+        return place ? { ...panel, x: place.x, row: place.row } : panel;
+      });
+    }
     if (!order) {
       return panels;
     }
@@ -617,7 +628,51 @@ export class OverviewPageComponent {
   });
 
   /** The cell a dragged panel would take in the PC view. */
-  public readonly dropPreview = signal<(DropCell & { span: number }) | undefined>(undefined);
+  public readonly dropPreview = signal<Placement | undefined>(undefined);
+
+  /** Where every panel would be if the dragged one were dropped now (PC view). */
+  private readonly dragPlaces = signal<Placement[] | undefined>(undefined);
+
+  /**
+   * The place the dragged panel came from, kept as an empty box of its size while it is dragged: the row it left
+   * keeps its height, so the rows below do not jump up under the pointer.
+   */
+  public readonly dragOrigin = signal<{ x: number; row: number; span: number; height: number } | undefined>(undefined);
+
+  private readonly injector = inject(Injector);
+
+  /**
+   * Makes a change to where panels are and lets them glide from their old places to the new ones instead of jumping
+   * (not under reduced motion). The panel being dragged is left alone: it follows the pointer.
+   */
+  private glide(change: () => void): void {
+    const grid = this.panelGrid()?.nativeElement;
+    const still = !grid || typeof window.matchMedia !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) {
+      change();
+      return;
+    }
+
+    const before = new Map<HTMLElement, DOMRect>();
+    grid.querySelectorAll<HTMLElement>("[data-panel-id]").forEach((element) => before.set(element, element.getBoundingClientRect()));
+    change();
+    afterNextRender(
+      () => {
+        for (const [element, was] of before) {
+          if (!element.isConnected || element.dataset["panelId"] === this.draggingId()) {
+            continue;
+          }
+          const now = element.getBoundingClientRect();
+          const dx = was.left - now.left;
+          const dy = was.top - now.top;
+          if (dx !== 0 || dy !== 0) {
+            element.animate?.([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }], { duration: PANEL_GLIDE_MS, easing: "ease-out" });
+          }
+        }
+      },
+      { injector: this.injector }
+    );
+  }
 
   /** "2/6": the width a panel has, so a change is always visible. */
   public sizeLabel(panel: ResolvedPanel): string {
@@ -631,7 +686,7 @@ export class OverviewPageComponent {
 
   /** Edits start from the saved layout completed with what is available now (new tags included). */
   private editLayout(change: (layout: DashboardLayout) => DashboardLayout): void {
-    this.draftLayout.set(change(completeLayout(this.draftLayout(), this.availablePanels())));
+    this.glide(() => this.draftLayout.set(change(completeLayout(this.draftLayout(), this.availablePanels()))));
   }
 
   public setPanelVisible(id: string, visible: boolean): void {
@@ -654,19 +709,34 @@ export class OverviewPageComponent {
     return true;
   }
 
-  /** In the PC view a panel may only grow up to the next panel in its row, or the grid's edge. */
+  /** How wide a panel may get where it stands in the PC view: up to the grid's right edge. */
+  private roomToTheEdge(id: string): number {
+    const own = this.panels().find((panel) => panel.id === id);
+    return own ? this.gridColumns() - own.x : this.gridColumns();
+  }
+
+  /** In the PC view a panel grows to the right, over its neighbours (they make room), but not past the grid's edge. */
   private noRoomToWiden(id: string, cols: number | undefined): { limit: SizeLimit; value: number } | undefined {
     if (cols === undefined || this.sizeClass() !== "wide") {
       return undefined;
     }
-    const room = roomToTheRight(this.panels(), id);
+    const room = this.roomToTheEdge(id);
     return cols > room ? { limit: "max-cols", value: room } : undefined;
   }
 
-  /** Writes a size that fits (limits and room already respected), keeping every other panel where it is. */
+  /**
+   * Writes a size that fits (limits and the grid's edge already respected). In the PC view every panel is pinned
+   * where it is, and a panel that got wider stays put while the ones in its way step aside or drop to a row below.
+   */
   private commitSize(id: string, size: { cols?: number; rows?: number }): void {
     const placements = this.panels();
-    this.editLayout((layout) => resizePanel(this.sizeClass() === "wide" ? pinPlacements(layout, placements) : layout, id, size));
+    const own = placements.find((panel) => panel.id === id);
+    if (this.sizeClass() !== "wide" || !own) {
+      this.editLayout((layout) => resizePanel(layout, id, size));
+      return;
+    }
+    const arranged = size.cols !== undefined && size.cols !== own.span ? makeRoom(placements, id, size.cols, own.row, own.x, { fixed: true }).placements : placements;
+    this.editLayout((layout) => resizePanel(applyPlacements(pinPlacements(layout, placements), arranged), id, size));
   }
 
   /** A requested size cut back to what the panel's limits and the room beside it allow. */
@@ -675,7 +745,7 @@ export class OverviewPageComponent {
     if (!definition) {
       return size;
     }
-    const maxCols = this.sizeClass() === "wide" ? Math.min(definition.maxCols, roomToTheRight(this.panels(), id)) : definition.maxCols;
+    const maxCols = this.sizeClass() === "wide" ? Math.min(definition.maxCols, this.roomToTheEdge(id)) : definition.maxCols;
     return {
       cols: Math.min(maxCols, Math.max(definition.minCols, size.cols)),
       rows: Math.min(definition.maxRows, Math.max(1, size.rows)),
@@ -732,20 +802,41 @@ export class OverviewPageComponent {
     }
   }
 
-  /** The PC view's Move left / right / up / down: one cell that way, else the nearest free spot, else it says there is no room. */
+  /**
+   * The PC view's Move left / right / up / down. Sideways: one free cell that way, or past the neighbour that is in the
+   * way (they change places). Up and down: into the row above or below, where the panels make room. It says so when
+   * there is nowhere to go.
+   */
   public nudgePanel(id: string, dx: number, dy: number): void {
     const placements = this.panels();
     const own = placements.find((place) => place.id === id);
     if (!own) {
       return;
     }
-    const cell = resolveDrop(placements, id, own.span, own.row + dy, own.x + dx);
-    if (!cell.newRow && cell.x === own.x && cell.row === own.row) {
+
+    let room = makeRoom(placements, id, own.span, own.row + dy, own.x);
+    if (dx !== 0) {
+      const inRow = placements.filter((place) => place.id !== id && place.row === own.row);
+      const neighbour =
+        dx > 0
+          ? inRow.filter((place) => place.x >= own.x + own.span).sort((a, b) => a.x - b.x)[0]
+          : inRow.filter((place) => place.x + place.span <= own.x).sort((a, b) => b.x - a.x)[0];
+      const touching = neighbour && (dx > 0 ? neighbour.x === own.x + own.span : neighbour.x + neighbour.span === own.x);
+      if (touching) {
+        // Past the neighbour: it ends up on the side the panel came from, whatever their widths.
+        const middle = neighbour.x + neighbour.span / 2;
+        room = makeRoom(placements, id, own.span, own.row, dx > 0 ? own.x + neighbour.span : neighbour.x, { centre: middle + (dx > 0 ? 0.01 : -0.01) });
+      } else {
+        room = makeRoom(placements, id, own.span, own.row, own.x + dx);
+      }
+    }
+
+    if (samePlacements(room.placements, placements)) {
       shakeElement(this.panelElement(id));
       this.snackbarService.hint(this.translation.t(marker("There is no room to move {name} that way."), { name: this.panelLabel(id) }));
       return;
     }
-    this.editLayout((layout) => applyDrop(pinPlacements(layout, placements), placements, id, cell));
+    this.editLayout((layout) => applyPlacements(pinPlacements(layout, placements), room.placements));
   }
 
   // ---- Dragging a panel (any direction, diagonals included) -----------------------------------------------------
@@ -756,8 +847,10 @@ export class OverviewPageComponent {
   public readonly draggingId = signal<string | undefined>(undefined);
 
   /**
-   * Starts moving a panel by its handle. The panel follows the pointer; the others reflow live to the place it would
-   * take (the nearest panel to the pointer), and letting go keeps that order. Escape or a cancelled pointer puts it back.
+   * Starts moving a panel by its handle. The panel follows the pointer and the others move live to where they would be
+   * if it were dropped now: in the PC view they make room around the cell under it, on a phone or tablet they reflow
+   * to the order it would have (the nearest panel to the pointer). Letting go keeps what is shown; Escape or a
+   * cancelled pointer puts everything back.
    */
   public startDrag(event: PointerEvent, panel: ResolvedPanel): void {
     const grid = this.panelGrid()?.nativeElement;
@@ -782,8 +875,16 @@ export class OverviewPageComponent {
     let frame = 0;
 
     const wide = this.sizeClass() === "wide";
+    const placements = this.panels();
     this.draggingId.set(panel.id);
     this.dragOrder.set(wide ? undefined : original);
+    if (wide) {
+      this.dragOrigin.set({ x: panel.x, row: panel.row, span: panel.span, height: startRect.height });
+    }
+    /** The panels that left their row to make room: they say nothing about where the rows are. */
+    let displaced: string[] = [];
+    /** The row the panel is shown in now, counted as the rows were when the drag began. */
+    let shownRow = panel.row;
 
     const place = () => {
       // The panel's own slot is where it would sit untransformed, so the drag follows the pointer across reflows.
@@ -795,8 +896,20 @@ export class OverviewPageComponent {
       element.style.transform = `translate(${translateX}px, ${translateY}px)`;
 
       if (wide) {
-        // The PC view: the others stay put and a dashed outline shows the cell the panel would take.
-        this.dropPreview.set(this.cellUnderPanel(panel, pointer.x - grabX, pointer.y));
+        // The PC view: the panel takes the cell under it and the others make room, worked out from where everything
+        // was when the drag began, so moving on puts a row back as it was.
+        const cell = this.cellUnderPanel(panel, pointer.x - grabX, pointer.y, displaced, { row: shownRow, top: slotTop, bottom: slotTop + rect.height });
+        const room = makeRoom(placements, panel.id, panel.span, cell.row, cell.x, { columns: this.gridColumns(), keepOriginRow: true });
+        const shown = this.dragPlaces();
+        shownRow = cell.row;
+        if (!shown || !samePlacements(shown, room.placements)) {
+          displaced = room.displaced;
+          this.glide(() => {
+            this.dragPlaces.set(room.placements);
+            this.dropPreview.set(room.placements.find((place) => place.id === panel.id));
+            this.dragOrigin.update((origin) => (origin ? { ...origin, row: room.originRow ?? origin.row } : origin));
+          });
+        }
         return;
       }
 
@@ -845,23 +958,29 @@ export class OverviewPageComponent {
       window.removeEventListener("pointercancel", cancel);
       window.removeEventListener("keydown", key);
       handle.releasePointerCapture?.(event.pointerId);
-      element.style.transform = "";
 
       const order = this.dragOrder();
-      const preview = this.dropPreview();
-      this.dragOrder.set(undefined);
-      this.dropPreview.set(undefined);
-      this.draggingId.set(undefined);
-      if (commit && wide && preview) {
-        const placements = this.panels();
-        this.editLayout((layout) => applyDrop(pinPlacements(layout, placements), placements, panel.id, preview));
-      } else if (commit && order) {
-        const index = order.indexOf(panel.id);
-        const target = original[index];
-        if (target && target !== panel.id) {
-          this.editLayout((layout) => movePanel(layout, this.sizeClass(), panel.id, target));
+      const places = this.dragPlaces();
+      // One glide for all of it: the dropped panel settles into its cell from under the pointer, the others into theirs.
+      this.glide(() => {
+        element.style.transform = "";
+        this.dragOrder.set(undefined);
+        this.dropPreview.set(undefined);
+        this.dragPlaces.set(undefined);
+        this.dragOrigin.set(undefined);
+        this.draggingId.set(undefined);
+        const layout = completeLayout(this.draftLayout(), this.availablePanels());
+        if (commit && wide && places) {
+          // What is on screen is what is kept. A row the panel left empty closes: rows are numbered without gaps.
+          this.draftLayout.set(applyPlacements(layout, places));
+        } else if (commit && order) {
+          const index = order.indexOf(panel.id);
+          const target = original[index];
+          if (target && target !== panel.id) {
+            this.draftLayout.set(movePanel(layout, this.sizeClass(), panel.id, target));
+          }
         }
-      }
+      });
     };
     const up = () => finish(true);
     const cancel = () => finish(false);
@@ -880,26 +999,42 @@ export class OverviewPageComponent {
   }
 
   /**
-   * The grid cell a panel dragged in the PC view would land in: its left edge picks the column, the pointer picks the row
-   * (below the last row opens a new one), and a taken cell moves to the nearest free spot (see `resolveDrop`).
+   * The grid cell under a panel dragged in the PC view: its left edge picks the column and the pointer picks the row
+   * (below the last row is a new one). Rows are the ones the drag began with, found by where their panels are now.
    */
-  private cellUnderPanel(panel: ResolvedPanel, leftEdge: number, pointerY: number): DropCell & { span: number } {
+  private cellUnderPanel(
+    panel: ResolvedPanel,
+    leftEdge: number,
+    pointerY: number,
+    displaced: string[],
+    slot: { row: number; top: number; bottom: number }
+  ): { x: number; row: number } {
     const grid = this.panelGrid()?.nativeElement;
     const placements = this.panels();
     if (!grid) {
-      return { x: panel.x, row: panel.row, newRow: false, span: panel.span };
+      return { x: panel.x, row: panel.row };
     }
     const box = grid.getBoundingClientRect();
     const columnWidth = (box.width + PANEL_GAP_PX) / this.gridColumns();
     const x = Math.round((leftEdge - box.left) / columnWidth);
 
     const bands = new Map<number, { top: number; bottom: number }>();
-    for (const place of placements) {
-      // The dragged panel is skipped: it is under the pointer, so its own box would put the pointer in every row it passes.
-      const rect = place.id === panel.id ? undefined : this.panelElement(place.id)?.getBoundingClientRect();
+    const widen = (row: number, rect: DOMRect | undefined) => {
       if (rect) {
-        const band = bands.get(place.row);
-        bands.set(place.row, { top: Math.min(band?.top ?? rect.top, rect.top), bottom: Math.max(band?.bottom ?? rect.bottom, rect.bottom) });
+        const band = bands.get(row);
+        bands.set(row, { top: Math.min(band?.top ?? rect.top, rect.top), bottom: Math.max(band?.bottom ?? rect.bottom, rect.bottom) });
+      }
+    };
+    // The row the panel came from is where its empty box stands, and the row it is shown in is where its own cell
+    // is: a row whose panels all gave way would otherwise have no place of its own, and the pointer would fall
+    // through it to the next one.
+    widen(panel.row, grid.querySelector<HTMLElement>("[data-drag-origin]")?.getBoundingClientRect());
+    widen(slot.row, { top: slot.top, bottom: slot.bottom } as DOMRect);
+    for (const place of placements) {
+      // Skipped: the dragged panel (it is under the pointer, so its own box would put the pointer in every row it
+      // passes) and the panels that dropped to another row to make room (they are not where their row is).
+      if (place.id !== panel.id && !displaced.includes(place.id)) {
+        widen(place.row, this.panelElement(place.id)?.getBoundingClientRect());
       }
     }
     const sorted = [...bands.entries()].sort((a, b) => a[0] - b[0]);
@@ -913,7 +1048,7 @@ export class OverviewPageComponent {
         break;
       }
     }
-    return { ...resolveDrop(placements, panel.id, panel.span, row, x, this.gridColumns()), span: panel.span };
+    return { x, row };
   }
 
   /**

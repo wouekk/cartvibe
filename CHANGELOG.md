@@ -96,6 +96,15 @@ it is doing.
   *(APP-12)*.
 
 ### Changed
+- **A receipt opens ready to edit.** Opening a receipt no longer shows a read-only page with an Edit button: the
+  fields can be changed at once, and *Cancel* and *Save* are at the end of the page. *Save* stands out only once
+  something changed, the page stays open after saving, and *Cancel* goes back to the receipts list. *Looks right*
+  and *Duplicate* are still there. A receipt you may only look at, and a queue started in View Mode, stay read-only
+  *(RCPT-17, RCPT-08)*.
+- **Dashboard panels make room for each other.** While you customise, a panel you drag takes the place it is over
+  and the others move aside as you go: two neighbours change places, a panel of the same size swaps with the one
+  you drop it on, and a row that gets too full passes what no longer fits to a new row below. Making a panel wider
+  now pushes its neighbours instead of being refused. Panels glide to their new places *(DASH-09)*.
 - **The web app keeps its state without a state library.** Nothing looks or works differently, and what your
   browser remembers (that you are signed in, page sizes, filters, the columns of the receipts list, the collapsed
   sidebar) is read as before, so nobody is signed out by this update. The app's first load is a little smaller.

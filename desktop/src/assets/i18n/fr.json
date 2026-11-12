@@ -375,7 +375,6 @@
     "Edit User Preferences": "Modifier les préférences de l’utilisateur",
     "Edit User Profile": "Modifier le profil de l’utilisateur",
     "Edit group member": "Modifier le membre du groupe",
-    "Edit receipt": "Modifier le ticket",
     "Edit sign-in provider": "Modifier le fournisseur de connexion",
     "Edit the monthly spending goal": "Modifier l’objectif de dépenses mensuel",
     "Edit warranty": "Modifier la garantie",
@@ -1787,6 +1786,10 @@
     "Edit group": {
       "value": "Modifier le groupe",
       "closest": "Edit Group Member"
+    },
+    "Edit receipt": {
+      "value": "Modifier le ticket",
+      "closest": "Add Receipt"
     },
     "Enter API key description (optional)": {
       "value": "Description de la clé API (facultatif)",
