@@ -266,6 +266,20 @@ it is doing.
   HEIC, a PDF or a text-only AI model still works.
 
 ### Fixed
+- **A Quick Scan no longer fails without a word.** Four ways it could, with nothing on the phone and nothing in
+  the server's log *(SCAN-16)*:
+  - *Take a photo* on an Android phone: some phones close the browser's page while the camera app is open, so
+    on return the scan was gone. The app now notices at its next start, says what happened and what works
+    instead (take the photo with the camera app first, then add it with *Upload photos*), and tells the server's
+    log. It cannot stop the phone from closing the page.
+  - A file that is not a photo or a PDF was dropped silently. It is now left out by name, and a photo the
+    phone hands over without a type is taken by the end of its name.
+  - Photos of more than 50 MB together were cut off by the server, which the phone read as a lost connection:
+    the scan was "kept on this device" and sent again at every start, never to arrive. The dialog now says
+    how much the photos are and does not send them. A scan already kept that way stays on that phone until
+    you sign out there.
+  - The server now writes a line when it refuses a request for its size, and takes short reports from the
+    app about what went wrong in the browser (look for "app report" under System Settings → Logs).
 - **Warranty reminders can arrive as notifications on the device.** The app asked the server for its push key and
   then lost it, so it never offered to notify you, whatever the server was set up to do. It keeps the key now: with
   push configured on the server and the app opened over HTTPS, adding a warranty date asks once whether reminders

@@ -108,6 +108,9 @@ The cross-cutting hard rules are in the root `CLAUDE.md` and are not repeated he
   stricter, never looser); the security headers; compression. Traps:
   - A refusal for asking too often is a 429 **without** `errorMsg`: the web app sends such a request again. A
     429 the API writes itself must carry `errorMsg`.
+  - A refusal for size (413) is said in the log by the edge itself, since the API never sees the request. A
+    browser still sending the body when the answer comes reports a lost connection, not a 413: a client that
+    can know the size checks it before sending (the Quick Scan dialog does).
   - The visitor's address is the connection's unless that is a private network, whose `X-Forwarded-For` is then
     believed (`ClientIP`). Nothing else may read that header.
   - A middleware that wraps the `ResponseWriter` must pass `Flush` and `Unwrap` through, or the live stream
@@ -280,6 +283,10 @@ which day an instant falls on and what "today" means.
     (`DailySnapshotDue`), so restarts neither skip a day nor add copies.
   - A system task names its job in `SystemTask.JobId` (column `asynq_task_id`, kept for existing rows; an id from
     before 2026-11-10 is simply not a job). Schedules and the quick-scan pipeline: `docs/domain.md`.
+  - **`POST /clientReport`** (`handlers/client_report.go`) is how a failure only the browser saw reaches the
+    log: one clipped ERROR line, "app report from user N: kind: detail (browser: …)". Sign-in only, nothing
+    stored, always 204; the same report is logged once in ten minutes and one person adds thirty lines an
+    hour at most. The text is a browser's: never act on it, never store it, never echo it back.
   - The **scan queue** (`/scanQueue`, `docs/domain.md`) shows the quick scan jobs and the unread receipts to
     people. A job's household comes from its payload there, so a new field a row shows is read through
     `jobs.queuedScanFrom`, and a new action on a queued scan is gated on that household like the two it has.

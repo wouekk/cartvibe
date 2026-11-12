@@ -134,6 +134,17 @@ describe("httpInterceptor", () => {
     expect(errorSpy).toHaveBeenCalledWith("Invalid credentials.");
   });
 
+  it("says so when an upload is more than the server takes, which answers without a message of its own", () => {
+    httpClient.post("/api/receipt/quickScan", {}).subscribe({ error: () => undefined });
+
+    httpTestingController
+      .expectOne("/api/receipt/quickScan")
+      .flush("Request body too large", { status: 413, statusText: "Request Entity Too Large" });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith("That is more than the server takes at once. Send fewer or smaller files.");
+  });
+
   it("falls back to the generic message when a 5xx carries no errorMsg", () => {
     httpClient.get("/test").subscribe({ error: () => {} });
 

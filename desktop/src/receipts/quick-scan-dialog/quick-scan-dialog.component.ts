@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { Component, OnDestroy, OnInit, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { UploadStage, withUploadProgress } from "../../utils/upload-progress";
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { AppDialogRef } from "../../dialog/app-dialog";
@@ -8,6 +8,8 @@ import { ReceiptFileUploadCommand } from "../../interfaces";
 import { GroupReceiptSettings, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
 import { QueuedScan, QueuedScanService } from "../../services/queued-scan.service";
+import { ProblemReporter } from "../../services/problem-reporter.service";
+import { QuickScanCameraWatch } from "../../services/quick-scan-camera-watch.service";
 import { ScanSummaryService } from "../../services/scan-summary.service";
 import { GroupStore, AuthStore } from "../../store";
 import { codePointMaxLengthValidator } from "../../validators";
@@ -32,7 +34,14 @@ import { TextareaComponent } from "../../textarea/textarea/textarea.component";
 import { UploadProgressComponent } from "../../shared-ui/upload-progress/upload-progress.component";
 import { DialogFooterComponent } from "../../shared-ui/dialog-footer/dialog-footer.component";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslationService } from "../../i18n/translation.service";
 import { FormGetPipe } from "../../pipes/form-get.pipe";
+
+/**
+ * What one scan may weigh, photos together. The server takes 50 MB in one request (`apiBody` in the API's
+ * internal/edge/routes.go); a megabyte is left for the form around the photos.
+ */
+export const QUICK_SCAN_MAX_BYTES = 49 * 1024 * 1024;
 
 /**
  * Quick Scan: photos in, receipts out. Each photo becomes its own receipt, read by the AI. Nothing but the photo
@@ -47,7 +56,7 @@ import { FormGetPipe } from "../../pipes/form-get.pipe";
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [DialogComponent, ReactiveFormsModule, UploadImageComponent, AppIconComponent, HlmAttachment, HlmAttachmentMedia, HlmAttachmentContent, HlmAttachmentTitle, HlmAttachmentDescription, HlmAttachmentActions, BrnButton, HlmButton, HlmAttachmentAction, GroupAutocompleteComponent, TextareaComponent, UploadProgressComponent, DialogFooterComponent, TranslatePipe, FormGetPipe]
 })
-export class QuickScanDialogComponent implements OnInit {
+export class QuickScanDialogComponent implements OnInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
 
   private readonly groupStore = inject(GroupStore);
@@ -81,6 +90,13 @@ export class QuickScanDialogComponent implements OnInit {
   private readonly queuedScans = inject(QueuedScanService);
 
   private readonly scanSummary = inject(ScanSummaryService);
+
+  private readonly translation = inject(TranslationService);
+
+  private readonly problemReporter = inject(ProblemReporter);
+
+  /** Watches for a photo that never comes back from the camera because the phone closed the page. */
+  protected readonly cameraWatch = inject(QuickScanCameraWatch);
 
   constructor(
     private dialogRef: AppDialogRef<QuickScanDialogComponent>,
@@ -171,7 +187,16 @@ export class QuickScanDialogComponent implements OnInit {
 
   /** Photos taken or chosen with either button go the same way as dropped ones. */
   public filesPicked(event: Event): void {
-    void this.uploadImageComponent().onFileChange(event);
+    // Shrinking a very large photo is the other moment a phone may close the page; the watch ends once the
+    // photo is in the list, or was left out.
+    this.cameraWatch.preparing();
+    void this.uploadImageComponent()
+      .onFileChange(event)
+      .finally(() => this.cameraWatch.done());
+  }
+
+  public ngOnDestroy(): void {
+    this.cameraWatch.done();
   }
 
   public removeImage(index: number): void {
@@ -185,6 +210,9 @@ export class QuickScanDialogComponent implements OnInit {
 
   public submitButtonClicked(): void {
     if (this.uploadStage() !== null) {
+      return;
+    }
+    if (this.form.valid && this.images.length > 0 && this.tooLargeToSend()) {
       return;
     }
     if (this.form.valid && this.images.length > 0) {
@@ -262,6 +290,28 @@ export class QuickScanDialogComponent implements OnInit {
       tagIds: this.images.map(() => ""),
       notes: this.images.map((_image, index) => (this.showNote(index) ? String(this.notes.at(index).value ?? "") : "")),
     };
+  }
+
+  /**
+   * Says so, and reports it, when the photos together are more than the server takes in one request. The server
+   * cuts such an upload off mid-way, which a browser reads as a lost connection: the scan was then kept "until
+   * the connection is back" and sent again at every start, never to arrive.
+   */
+  private tooLargeToSend(): boolean {
+    const bytes = this.images.reduce((total, image) => total + (image.file?.size ?? 0), 0);
+    if (bytes <= QUICK_SCAN_MAX_BYTES) {
+      return false;
+    }
+
+    const megabytes = Math.ceil(bytes / (1024 * 1024));
+    this.snackbarService.error(
+      this.translation.t(
+        marker("These photos are {size} MB together, and the server takes 50 MB at once. Remove some and send them as a second scan."),
+        { size: megabytes }
+      )
+    );
+    this.problemReporter.report("quick-scan-too-large", `${this.images.length} file(s), ${megabytes} MB together`);
+    return true;
   }
 
   public cancelButtonClicked(): void {

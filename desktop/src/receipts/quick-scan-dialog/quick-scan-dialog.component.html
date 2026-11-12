@@ -32,6 +32,8 @@
               capture="environment"
               class="sr-only"
               data-testid="quick-scan-take-photo"
+              (click)="cameraWatch.cameraOpened()"
+              (cancel)="cameraWatch.done()"
               (change)="filesPicked($event)"
             />
             <app-icon name="photo_camera"></app-icon>

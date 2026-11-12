@@ -22,6 +22,7 @@ export * from './category';
 export * from './categoryView';
 export * from './checkReceiptProcessingSettingsConnectivityCommand';
 export * from './claims';
+export * from './clientReportCommand';
 export * from './currencyRate';
 export * from './currencyRateTable';
 export * from './currencySeparator';
