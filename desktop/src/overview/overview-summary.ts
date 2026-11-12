@@ -4,14 +4,10 @@ import { isWholeCalendarMonth } from "./overview-period";
 export interface MonthSummary {
   spent: number;
   goal: number;
-  /** Days of the month still to come, today included: on the last day it is 1. */
-  daysLeft: number;
   /** What is left of the goal; 0 once it is reached. */
   remaining: number;
   /** What was spent above the goal; 0 while under it. */
   over: number;
-  /** What can be spent each remaining day and still end the month on the goal; 0 once it is reached. */
-  perDay: number;
 }
 
 /** One stretch of the sentence: plain words, the bold lead, or the part that says where the month stands. */
@@ -46,8 +42,8 @@ export function sentenceParts(sentence: string): SentencePart[] {
 
 /**
  * The summary of the month that is running, or nothing: it needs a goal, a period that is one whole calendar
- * month, and today inside that month. A month that is over has no days left to plan, and a range that is not a
- * month has no monthly goal to compare with.
+ * month, and today inside that month. A month that is over is no longer the one being lived, and a range that is
+ * not a month has no monthly goal to compare with.
  *
  * `from`, `to` and `today` are calendar days as "yyyy-MM-dd"; `today` is the day in the app time zone.
  */
@@ -65,7 +61,6 @@ export function monthSummary(
     return undefined;
   }
 
-  const daysLeft = Number(to.slice(8)) - Number(today.slice(8)) + 1;
   // Money is compared in cents, so 0.1 + 0.2 never leaves a goal "0.00 short".
   const cents = (value: number) => Math.round(value * 100);
   const remainingCents = Math.max(0, cents(goal) - cents(spent));
@@ -74,10 +69,7 @@ export function monthSummary(
   return {
     spent,
     goal,
-    daysLeft,
     remaining: remainingCents / 100,
     over: overCents / 100,
-    // Rounded down to the cent: spending the figure every day never passes the goal.
-    perDay: Math.floor(remainingCents / daysLeft) / 100,
   };
 }

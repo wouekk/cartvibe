@@ -13,8 +13,8 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ### Changed
 - **The Dashboard's sentence shows at a glance where the month stands.** What was spent is in bold, and how far
-  that is from the goal is coloured: red over the goal, green under it or on it. The days left in the month are
-  no longer part of it; under the goal it still says what a day may cost *(DASH-12)*.
+  that is from the goal is coloured: red over the goal, green under it or on it. The days left in the month and
+  what a day may cost are no longer part of it *(DASH-12)*.
 
 ## [0.19.0] - 2026-11-12
 

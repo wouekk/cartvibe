@@ -11,7 +11,7 @@
     "2 years in the EU (legal minimum), 1 year elsewhere; only sets where a new warranty date starts.": "2 lata w UE (ustawowe minimum), 1 rok gdzie indziej; ustala tylko, od czego zaczyna się nowa data gwarancji.",
     "8, 12 or 13 digits": "8, 12 lub 13 cyfr",
     "<b>{spent} spent this month:</b> <mark>the goal of {goal} is reached</mark>.": "<b>W tym miesiącu wydano {spent}:</b> <mark>cel {goal} został osiągnięty</mark>.",
-    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal.": "<b>W tym miesiącu wydano {spent}:</b> <mark>{left} poniżej celu</mark> wynoszącego {goal}, czyli {perDay} dziennie, aby zmieścić się w celu.",
+    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}.": "<b>W tym miesiącu wydano {spent}:</b> <mark>{left} poniżej celu</mark> wynoszącego {goal}.",
     "<b>{spent} spent this month:</b> <mark>{over} over the goal</mark> of {goal}.": "<b>W tym miesiącu wydano {spent}:</b> <mark>{over} ponad cel</mark> wynoszący {goal}.",
     "A Logo.dev secret key starts with sk_": "Klucz tajny Logo.dev zaczyna się od sk_",
     "A Quick Scan is a photo and nothing else: whoever scans paid, and the receipt is to check until the AI has read it. You can add a note to it, and change what a scan falls back on.": "Szybkie skanowanie to zdjęcie i nic więcej: płaci ten, kto skanuje, a paragon jest do sprawdzenia, dopóki AI go nie odczyta. Możesz dodać do niego notatkę i zmienić wartości domyślne skanu.",
@@ -1626,6 +1626,10 @@
   "_orphaned": {
     "(Restricted)": {
       "value": "(Ograniczone)"
+    },
+    "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}, so {perDay} a day stays on goal.": {
+      "value": "<b>W tym miesiącu wydano {spent}:</b> <mark>{left} poniżej celu</mark> wynoszącego {goal}, czyli {perDay} dziennie, aby zmieścić się w celu.",
+      "closest": "<b>{spent} spent this month:</b> <mark>{left} under the goal</mark> of {goal}."
     },
     "A Logo.dev publishable key starts with pk_": {
       "value": "Klucz publiczny Logo.dev zaczyna się od pk_",

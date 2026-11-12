@@ -390,23 +390,24 @@ describe("OverviewPageComponent", () => {
         Array.from(sentence()?.querySelectorAll(`[data-part=${style}]`) ?? []).map((part) => part.textContent ?? "");
       const verdict = () => sentence()?.querySelector("[data-part=verdict]") as HTMLElement | null;
 
-      it("leads in bold with what was spent, then says in green how far under the goal the month is and what a day may cost", async () => {
+      it("leads in bold with what was spent, then says in green how far under the goal the month is, and nothing more", async () => {
         await setGoal("100");
 
         // The page opens on the running month; the figures are the mocked total (92) and the goal.
         const words = sentence()?.textContent ?? "";
-        expect(words).toMatch(/^.*92.* spent this month: .*8.* under the goal of .*100.*, so .+ a day stays on goal\.$/);
+        expect(words).toMatch(/^.*92.* spent this month: .*8.* under the goal of .*100[^,]*\.$/);
+        // Neither the daily amount nor the days left are said.
+        expect(words).not.toContain("a day");
         expect(parts("lead")).toHaveLength(1);
         expect(parts("lead")[0]).toMatch(/^.*92.* spent this month:$/);
         expect(sentence()?.querySelector("[data-part=lead]")?.classList).toContain("font-semibold");
         expect(parts("verdict")[0]).toMatch(/^.*8.* under the goal$/);
         expect(verdict()?.classList).toContain("text-success-text");
         expect(verdict()?.classList).not.toContain("text-destructive");
-        // The days left are no longer said.
         expect(words).not.toMatch(/Left:|\d+ days?\b/);
       });
 
-      it("says in red how far over the goal the month is, and no daily amount", async () => {
+      it("says in red how far over the goal the month is", async () => {
         await setGoal("80");
 
         const words = sentence()?.textContent ?? "";
