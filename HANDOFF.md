@@ -9,6 +9,10 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   holds the whole audit of 2026-11-09 (`docs/AUDIT-REPORT.md`, every sprint ticked) and what the owner's NAS try
   turned up; `CHANGELOG.md` has it all, with the update notes. New work is a `feature/<name>` branch from `main`,
   merged into `preview` and published as `:preview`; `main` waits for the owner's go again.
+- **In `preview`, not on `main`** (waiting for the owner's go): `feature/dashboard-sentence` (`714f2e93`, green
+  CI, in `:preview`, 2026-11-12): the Dashboard's sentence leads in bold, colours how far the month is from the
+  goal (red over, green under or on it) and no longer says the days left (DASH-12). The agent kept "so X a day
+  stays on goal" under the goal, which the owner did not ask to remove: say so if it should go too.
 - **Left out of the release on purpose:** a GitHub Release page for v0.19.0 (0.18.0 has none either; the tag and
   the images are the release), and the upgrade fixture `api/internal/repositories/testdata/schema-v0.19.0.sql`
   (add it with the next API change; the header of `release_upgrade_test.go` says how).
