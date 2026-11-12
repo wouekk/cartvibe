@@ -573,6 +573,27 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   table reloads on it (an `effect`). The requests are quiet, and a count that cannot be read shows nothing.
 - **Scans still on the device:** `QueuedScanService.waiting` is drawn as a count on the tab bar's Scan
   (`[waiting]`, with the count in its `aria-label`) and on the Dashboard's Quick Scan button.
+- **A scan that fails says why** (SCAN-16). Nothing in Quick Scan may fail silently; four places saw to that on
+  2026-11-12:
+  - `QuickScanCameraWatch` (root): *Take a photo* hands over to the phone's camera app, and Android may close
+    the page meanwhile (no event runs, the page just starts again). The dialog leaves a note in `localStorage`
+    on the input's `click` (`cameraOpened`), moves it on when the page is visible again and when the photo is
+    being shrunk (`preparing`), and removes it once the photo is in the list, on the input's `cancel`, twenty
+    seconds after a return without a photo, and when the dialog goes (`done`). `AppComponent` calls
+    `checkAtStart()`: a note still there becomes a message that stays until dismissed and a report. It cannot
+    be proved without a real phone; the local proof reloads the page while the picker is open.
+  - `UploadImageComponent.processFiles` names each file it leaves out (it used to drop them without a word)
+    and gives a file with an empty type the type its name ends with (`withKnownType`).
+  - The Quick Scan dialog does not send photos that are together over `QUICK_SCAN_MAX_BYTES` (the server's
+    50 MB less a megabyte for the form): the server cuts such an upload off mid-way, the browser reports
+    status 0, and `QueuedScanService` would keep it and send it again for ever. Keep the constant in step with
+    `apiBody` in the API's `internal/edge/routes.go`.
+  - `httpInterceptor` says so on a 413, which carries no `errorMsg`.
+- **Reports to the server's log** (`ProblemReporter`, root): `report(kind, detail)` sends
+  `POST /clientReport` with `QUIET_ERRORS`, never throws, and keeps what could not be sent (the last ten, a
+  week at most) in `localStorage` for the next report or the next start (`flush()` in `AppComponent`). Use it
+  where the browser knows of a failure the server cannot have seen; a kind is lower-case words joined by
+  hyphens. Never put a person's text or a file's content in a detail: a name, a type and a size are enough.
 - **Roles:** they are fixed, two per scope, and the pickers show both as Admin and User (`src/utils/family-roles.ts`
   maps the row names `Legacy Admin` / `User` and `Legacy Owner` / `Member`). User and member forms load them with
   `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group role ids

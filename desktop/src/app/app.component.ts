@@ -4,7 +4,9 @@ import { RouterOutlet } from "@angular/router";
 import { interval, take, tap } from "rxjs";
 import { LayoutStore } from "src/store/layout.store";
 import { TokenRefreshService } from "../services";
+import { ProblemReporter } from "../services/problem-reporter.service";
 import { PullToRefreshService } from "../services/pull-to-refresh.service";
+import { QuickScanCameraWatch } from "../services/quick-scan-camera-watch.service";
 import { SignInTransitionService } from "../services/sign-in-transition.service";
 import { CartVibeSplashComponent } from "../shared-ui/cartvibe-splash/cartvibe-splash.component";
 import { ThemeService } from "../theme/theme.service";
@@ -23,6 +25,10 @@ export class AppComponent implements OnInit {
   private readonly layoutStore = inject(LayoutStore);
 
   protected readonly signInTransition = inject(SignInTransitionService);
+
+  private readonly cameraWatch = inject(QuickScanCameraWatch);
+
+  private readonly problemReporter = inject(ProblemReporter);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
@@ -36,6 +42,10 @@ export class AppComponent implements OnInit {
   public ngOnInit(): void {
     this.layoutStore.hideProgress();
     this.refreshTokens();
+    // A Quick Scan photo that never arrived because the phone closed the page: said now, and reported. Then
+    // whatever reports an earlier visit could not send.
+    this.cameraWatch.checkAtStart();
+    this.problemReporter.flush();
   }
 
   private refreshTokens(): void {

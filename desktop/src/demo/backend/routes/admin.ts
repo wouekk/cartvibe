@@ -135,6 +135,8 @@ export function registerAdmin(router: DemoRouter): void {
   // Nothing waits in the demo, so the receipts page shows no line.
   router.get("/scanQueue/summary", (): ScanQueueSummary => ({ waiting: 0, failed: 0 }));
   router.post("/scanQueue/:id/rerun", () => badRequest(NOT_IN_DEMO));
+  // The demo has no server log to write a report to.
+  router.post("/clientReport", () => ok());
   router.get("/scanQueue/:id/file", () => notFound("The demo keeps no photo of a waiting scan."));
 
   router.post("/receiptProcessingSettings", (ctx) => {

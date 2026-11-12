@@ -226,6 +226,11 @@ dropped over plain HTTP, so nobody reaching CartVibe that way can sign in until 
   when the phone reaches your server again. A receipt photographed with Quick Scan is kept on the phone and uploaded
   later. Editing or deleting items, new lists, receipts, the Dashboard and reports come from your server, so they need
   your network (or your HTTPS address from outside the house).
+* **If *Take a photo* in Quick Scan brings you back to an empty app**, the phone closed CartVibe while its camera
+  was open: some Android phones do that to free memory, with or without HTTPS. CartVibe says so when it opens
+  again and notes it in the server's log (an "app report" line under System Settings → Logs). Take the photo
+  with the phone's camera app first, then choose it in Quick Scan with **Upload photos**: picking a photo does
+  not leave the app.
 * **Opening the app in a dead zone needs HTTPS too.** On a plain `http://` address an app that is already open keeps
   working as described, but the phone cannot start it without a connection, because browsers keep the app's own files
   only for an HTTPS address.

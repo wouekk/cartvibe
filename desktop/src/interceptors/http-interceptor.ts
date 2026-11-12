@@ -10,6 +10,9 @@ const FORBIDDEN_MESSAGE = marker("You do not have permission to perform this act
 
 const TOO_MANY_REQUESTS_MESSAGE = marker("Too many requests at once. Try again in a moment.");
 
+/** The server takes 50 MB in one request; its refusal carries no message of its own, so this one is said here. */
+const TOO_LARGE_MESSAGE = marker("That is more than the server takes at once. Send fewer or smaller files.");
+
 /**
  * Set on a request whose failure its caller reports itself (or retries without a word): work sent in the
  * background, such as the shopping list's waiting changes, would otherwise toast on every attempt while a server
@@ -65,6 +68,9 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
         } else if (e.status === 429) {
           // The request limit in front of the API refused it, and the tries after it (rateLimitRetryInterceptor).
           snackbarService.error(TOO_MANY_REQUESTS_MESSAGE);
+        } else if (e.status === 413) {
+          // An upload over the limit used to fail without a word: the progress bar went away and nothing was said.
+          snackbarService.error(TOO_LARGE_MESSAGE);
         } else if (e.status >= 500) {
           snackbarService.error(e.message);
         }

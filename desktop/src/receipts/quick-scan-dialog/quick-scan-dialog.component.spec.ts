@@ -13,7 +13,9 @@ import { RECEIPT_NOTE_MAX_LENGTH } from "../../constants/receipt-note.constant";
 import { ReceiptFileUploadCommand } from "../../interfaces";
 import { ApiModule, ReceiptService, ReceiptStatus } from "../../open-api";
 import { SnackbarService } from "../../services";
+import { ProblemReporter } from "../../services/problem-reporter.service";
 import { QueuedScanService } from "../../services/queued-scan.service";
+import { QuickScanCameraWatch } from "../../services/quick-scan-camera-watch.service";
 import { QuickScanDialogComponent } from "./quick-scan-dialog.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import { seedStore } from "../../testing/seed-store";
@@ -178,6 +180,66 @@ describe("QuickScanDialogComponent", () => {
 
       expect(scan).not.toHaveBeenCalled();
       expect(snackbarSpy).toHaveBeenCalledWith("Please fill in all required fields. Some images are missing required fields.");
+    });
+  });
+
+  describe("a scan that is more than the server takes at once", () => {
+    it("is not sent: the person is told how much it is, and the server's log gets a line", () => {
+      seedHousehold({}, { userId: "5" });
+      const scan = spyOnScan();
+      const error = vi.spyOn(TestBed.inject(SnackbarService), "error").mockImplementation(() => undefined);
+      const report = vi.spyOn(TestBed.inject(ProblemReporter), "report").mockImplementation(() => undefined);
+      const queue = vi.spyOn(TestBed.inject(QueuedScanService), "queue").mockResolvedValue();
+
+      component.fileLoaded({ file: { name: "a.jpg", size: 30 * 1024 * 1024 } } as any);
+      component.fileLoaded({ file: { name: "b.jpg", size: 30 * 1024 * 1024 } } as any);
+      component.submitButtonClicked();
+
+      expect(scan).not.toHaveBeenCalled();
+      // Never kept "until the connection is back": it would be sent again at every start and never arrive.
+      expect(queue).not.toHaveBeenCalled();
+      expect(error).toHaveBeenCalledWith(
+        "These photos are 60 MB together, and the server takes 50 MB at once. Remove some and send them as a second scan."
+      );
+      expect(report).toHaveBeenCalledWith("quick-scan-too-large", "2 file(s), 60 MB together");
+      expect(component.uploadStage()).toBeNull();
+    });
+
+    it("is sent once it fits", () => {
+      seedHousehold({}, { userId: "5" });
+      const scan = spyOnScan();
+      const error = vi.spyOn(TestBed.inject(SnackbarService), "error").mockImplementation(() => undefined);
+
+      component.fileLoaded({ file: { name: "a.jpg", size: 30 * 1024 * 1024 } } as any);
+      component.fileLoaded({ file: { name: "b.jpg", size: 30 * 1024 * 1024 } } as any);
+      component.removeImage(1);
+      component.submitButtonClicked();
+
+      expect(scan).toHaveBeenCalledTimes(1);
+      expect(error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("the camera watch", () => {
+    it("ends when the dialog goes, whatever happened in it", () => {
+      const done = vi.spyOn(TestBed.inject(QuickScanCameraWatch), "done");
+
+      fixture.destroy();
+
+      expect(done).toHaveBeenCalled();
+    });
+
+    it("follows a photo from the picker into the list", async () => {
+      const watch = TestBed.inject(QuickScanCameraWatch);
+      const preparing = vi.spyOn(watch, "preparing");
+      const done = vi.spyOn(watch, "done");
+
+      component.filesPicked({ target: { files: [] } } as unknown as Event);
+      expect(preparing).toHaveBeenCalledTimes(1);
+      expect(done).not.toHaveBeenCalled();
+
+      await new Promise<void>((resolve) => setTimeout(resolve));
+      expect(done).toHaveBeenCalledTimes(1);
     });
   });
 
