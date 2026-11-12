@@ -231,13 +231,8 @@ export class ReceiptFormComponent implements OnInit {
     private snackbarService: SnackbarService
   ) {}
 
-  /** Leaves without saving: back to the receipt when editing one, to the receipts list when adding. */
+  /** Leaves without saving, for the receipts list: a receipt opens ready to edit, so there is no view page to go back to. */
   public cancel(): void {
-    if (this.mode === FormMode.edit && this.originalReceipt?.id) {
-      this.router.navigate([`/receipts/${this.originalReceipt.id}/view`]);
-      return;
-    }
-
     this.router.navigate([this.receiptListLink()]);
   }
 
@@ -263,14 +258,25 @@ export class ReceiptFormComponent implements OnInit {
         this.originalReceipt = data["receipt"];
         this.editLink = `/receipts/${this.originalReceipt?.id}/edit`;
         this.mode = data["mode"];
+        this.setQueueData();
+        this.setReceiptPermissions();
+        this.mode = this.openMode(this.mode);
         this.setCancelLink();
         this.initForm();
-        this.setReceiptPermissions();
         this.getImageFiles();
         this.setHeaderText();
-        this.setQueueData();
         document.scrollingElement?.scrollTo(0, 0);
       });
+  }
+
+  /**
+   * A receipt opens ready to edit for whoever may change it: no pencil to press first, and Save lights up once
+   * something changed. It stays read-only for someone who may not change it, and in a queue started in View Mode,
+   * which is a choice to only look.
+   */
+  private openMode(routeMode: FormMode): FormMode {
+    const inQueue = this.queueIds.length > 0;
+    return routeMode === FormMode.view && !inQueue && this.canEditReceipt() ? FormMode.edit : routeMode;
   }
 
   private setQueueData(): void {
@@ -292,15 +298,8 @@ export class ReceiptFormComponent implements OnInit {
         startWith(this.form.get("name")?.value),
         takeUntilDestroyed(this.destroyRef),
         map((name) => {
-          // The page title is the action, or the receipt's own name when it is only being looked at.
-          switch (this.mode) {
-            case FormMode.add:
-              return marker("Add receipt");
-            case FormMode.edit:
-              return marker("Edit receipt");
-            default:
-              return (name ?? "").toString().trim() || marker("Receipt");
-          }
+          // A new receipt's title is the action; a saved one's is its own name, as it is typed.
+          return this.mode === FormMode.add ? marker("Add receipt") : (name ?? "").toString().trim() || marker("Receipt");
         })
       )
     ));
@@ -337,7 +336,7 @@ export class ReceiptFormComponent implements OnInit {
     this.canDuplicate = computed(() => this.authStore.hasGroupPermission(groupId, Permission.GroupReceiptsDuplicate));
   }
 
-  /** "Looks right" under the lines on the view screen: settles the receipt without opening the edit form. */
+  /** "Looks right" under the lines: settles the receipt at once, whatever else on the page is still unsaved. */
   public markDone(): void {
     const receiptId = this.originalReceipt?.id;
     if (!receiptId) {
@@ -1000,6 +999,21 @@ export class ReceiptFormComponent implements OnInit {
       .subscribe({ error: () => undefined });
   }
 
+  /**
+   * The page stays open after a save: it shows what the server stored, and the form counts as unchanged again, so
+   * Save dims until the next change.
+   */
+  private showSaved(saved: Receipt | null | undefined): void {
+    if (saved && this.originalReceipt) {
+      this.originalReceipt = { ...this.originalReceipt, ...saved };
+      this.receiptDone.set(isSettled(this.originalReceipt.status));
+      // The household may have changed with the save, and with it what the person may do here.
+      this.setReceiptPermissions();
+    }
+    this.form.markAsPristine();
+    this.changeDetectorRef.markForCheck();
+  }
+
   /** Where the receipt upload stands (percent, then saving); null while nothing is being sent. */
   public readonly uploadStage = signal<UploadStage | null>(null);
 
@@ -1008,10 +1022,12 @@ export class ReceiptFormComponent implements OnInit {
       .updateReceipt(this.originalReceipt?.id as number, this.buildSubmitCommand())
       .pipe(
         take(1),
-        tap(() => {
+        tap((saved) => {
           this.snackbarService.success("Successfully updated receipt");
+          this.showSaved(saved);
 
           if (this.queueIndex === -1) {
+            // The receipt's page is the one it opens on; coming from /edit this lands there, otherwise nothing moves.
             this.router.navigate([`/receipts/${this.originalReceipt?.id}/view`]);
           } else if (this.queueIndex >= 0 && this.queueIndex !== this.queueIds.length - 1) {
             this.queueNext();

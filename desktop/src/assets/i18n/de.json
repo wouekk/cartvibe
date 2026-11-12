@@ -375,7 +375,6 @@
     "Edit User Preferences": "Benutzereinstellungen bearbeiten",
     "Edit User Profile": "Benutzerprofil bearbeiten",
     "Edit group member": "Gruppenmitglied bearbeiten",
-    "Edit receipt": "Beleg bearbeiten",
     "Edit sign-in provider": "Anmeldeanbieter bearbeiten",
     "Edit the monthly spending goal": "Monatliches Ausgabenziel bearbeiten",
     "Edit warranty": "Garantie bearbeiten",
@@ -1771,6 +1770,10 @@
     "Edit group": {
       "value": "Gruppe bearbeiten",
       "closest": "Edit Group Member"
+    },
+    "Edit receipt": {
+      "value": "Beleg bearbeiten",
+      "closest": "Add Receipt"
     },
     "Enter API key description (optional)": {
       "value": "Beschreibung des API-Schlüssels eingeben (optional)",

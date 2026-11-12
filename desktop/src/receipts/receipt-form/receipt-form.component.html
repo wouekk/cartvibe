@@ -195,7 +195,7 @@
               [groupId]="receipt!.groupId"
               [receiptAmount]="receipt!.amount"
               [receiptConverted]="!!receipt!.originalCurrency"
-              [canSettle]="(mode | inputReadonly) && canEditReceipt() && !receiptDone()"
+              [canSettle]="canEditReceipt() && !receiptDone()"
               (setTotal)="setTotal($event)"
               (settle)="markDone()"
             ></app-receipt-products>
@@ -291,7 +291,7 @@
     <app-icon name="edit"></app-icon>
   </button>
   <button
-    *ngIf="mode | inputReadonly"
+    *ngIf="mode !== formMode.add"
     hlmBtn
     type="button"
     variant="ghost"

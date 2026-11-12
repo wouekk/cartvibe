@@ -132,13 +132,14 @@ describe("ReceiptFormComponent", () => {
       expect(navigate).toHaveBeenCalledWith([component.receiptListLink()]);
     });
 
-    it("cancels an edit back to the receipt itself", () => {
+    // A receipt opens ready to edit, so there is no view page of it to go back to.
+    it("cancels an edit back to the receipts list", () => {
       const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
       routeDataSubject.next({ mode: FormMode.edit, receipt: { id: 7, name: "R", amount: "1.00", paidByUserId: 1 } as any });
 
       component.cancel();
 
-      expect(navigate).toHaveBeenCalledWith(["/receipts/7/view"]);
+      expect(navigate).toHaveBeenCalledWith([component.receiptListLink()]);
     });
 
     it("asks for Paid By on a saved receipt without one", () => {
@@ -390,10 +391,83 @@ describe("ReceiptFormComponent", () => {
     expect(component.originalReceipt?.amount).toEqual("85.00");
   });
 
-  it("changes only the date on the view page of a settled receipt", () => {
+  describe("opening a saved receipt", () => {
+    const market = { id: 4, groupId: 4, name: "Market", amount: "75.00", paidByUserId: 1, status: ReceiptStatus.Open, date: "2026-10-01T00:00:00Z" } as any;
+
+    it("is ready to edit for someone who may change it, with Save waiting for a change", () => {
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+      routeDataSubject.next({ mode: FormMode.view, receipt: market });
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(component.mode).toBe(FormMode.edit);
+      expect(component.form.pristine).toBe(true);
+      expect(component.formHeaderText()).toBe("Market");
+      expect(fixture.nativeElement.querySelector('[data-testid="receipt-form-cancel"]')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="receipt-duplicate"]')).not.toBeNull();
+    });
+
+    it("stays read-only for someone who may not change it", () => {
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsRead] });
+      routeDataSubject.next({ mode: FormMode.view, receipt: market });
+      fixture.changeDetectorRef.markForCheck();
+      fixture.detectChanges();
+
+      expect(component.mode).toBe(FormMode.view);
+      expect(fixture.nativeElement.querySelector('[data-testid="receipt-form-cancel"]')).toBeNull();
+    });
+
+    // Starting a queue in View Mode is a choice to only look.
+    it("stays read-only in a queue started in View Mode", () => {
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+      TestBed.inject(ActivatedRoute).snapshot.queryParams = { ids: ["4", "9"], queueMode: QueueMode.VIEW };
+      routeDataSubject.next({ mode: FormMode.view, receipt: market });
+
+      expect(component.mode).toBe(FormMode.view);
+    });
+
+    it("stays open after a save, shows what the server stored and counts as unchanged again", () => {
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+      const navigate = vi.spyOn(TestBed.inject(Router), "navigate").mockResolvedValue(true);
+      const update = vi
+        .spyOn(TestBed.inject(ReceiptService), "updateReceipt")
+        .mockReturnValue(of({ ...market, name: "Market hall", status: ReceiptStatus.Resolved, updatedAt: "2026-10-02T08:00:00Z" }) as any);
+      routeDataSubject.next({ mode: FormMode.view, receipt: market });
+
+      component.form.get("name")?.setValue("Market hall");
+      component.form.markAsDirty();
+      component.submit();
+
+      expect(update).toHaveBeenCalledTimes(1);
+      expect(component.form.pristine).toBe(true);
+      expect(component.originalReceipt?.name).toBe("Market hall");
+      expect(component.originalReceipt?.updatedAt).toBe("2026-10-02T08:00:00Z");
+      expect(component.receiptDone()).toBe(true);
+      // The receipt's own address: a no-op here, and where a save from /edit lands.
+      expect(navigate).toHaveBeenCalledWith(["/receipts/4/view"]);
+    });
+
+    it("can be settled from under its lines without leaving the edit form", () => {
+      TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+      vi.spyOn(TestBed.inject(ReceiptService), "bulkReceiptStatusUpdate").mockReturnValue(of(undefined) as any);
+      routeDataSubject.next({ mode: FormMode.view, receipt: market });
+      component.form.get("name")?.setValue("Edited, not saved");
+      component.form.markAsDirty();
+
+      component.markDone();
+
+      expect(component.receiptDone()).toBe(true);
+      expect(component.form.get("status")?.value).toBe(ReceiptStatus.Resolved);
+      expect(component.form.get("name")?.value).toBe("Edited, not saved");
+      expect(component.form.dirty).toBe(true);
+    });
+  });
+
+  it("changes only the date in place on a settled receipt in a View Mode queue", () => {
     vi.useFakeTimers();
     try {
       TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+      TestBed.inject(ActivatedRoute).snapshot.queryParams = { ids: ["4"], queueMode: QueueMode.VIEW };
       routeDataSubject.next({
         mode: FormMode.view,
         receipt: { id: 4, groupId: 4, name: "Market", amount: "75.00", status: ReceiptStatus.Resolved, date: "2026-10-01T00:00:00Z" } as any,
@@ -415,6 +489,7 @@ describe("ReceiptFormComponent", () => {
 
   it("keeps the date read-only on the view page of a converted receipt or without update permission", () => {
     TestBed.inject(AuthStore).setPermissions([], { 4: [Permission.GroupReceiptsUpdate] });
+    TestBed.inject(ActivatedRoute).snapshot.queryParams = { ids: ["4", "5"], queueMode: QueueMode.VIEW };
     routeDataSubject.next({ mode: FormMode.view, receipt: { id: 4, groupId: 4, amount: "75.00", originalCurrency: "PLN" } as any });
     expect(component.canSetDateInPlace()).toBe(false);
 
