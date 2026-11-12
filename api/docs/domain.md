@@ -311,6 +311,18 @@ guide's roles, time zone, AI and reporting sections. The traps every change must
 - **Quick scans** are jobs (`jobs/queue.go`): one worker reads them one at a time, a failed try is made again after
   20 s, 1 min and 3 min, and the fourth failure leaves the job `FAILED` for the activity list to hand the upload back
   or run it again (`activity-source-files.md`).
+- **The scan queue** (`handlers/scan_queue.go`, `jobs/scan_queue.go`) is what people see of that table and of
+  the product reads. `GET /scanQueue` (the AI page's permission) lists every quick scan job with what its
+  payload says (file name, household, uploader) and a status in the contract's words (`jobs.ScanStatus`:
+  WAITING, READING, RETRYING, FAILED), and the receipts whose extraction is not DONE
+  (`ListUnreadReceipts`: the 50 most recently touched and the count of all; a server with no AI keeps every
+  photographed receipt PENDING). It lists every household and resolves `hasFile`, `canRerun` and
+  `canReadAgain` for the caller, so a button never answers 403. `GET /scanQueue/summary` asks for sign-in only
+  and counts the scans of the households the caller reads receipts in. `POST /scanQueue/{id}/rerun` and
+  `GET /scanQueue/{id}/file` are gated on the scan's household (`group.activities.rerun` / `.read`), read from
+  the payload the upload stored; an id that is not a queued quick scan, or a payload that cannot be read,
+  answers the 403 of a refusal. They share `CanRerunJob`, `RerunSourceFilePresent` and `resolveJobSourceFile`
+  with the activity endpoints, so the two ways to a failed scan cannot drift.
 - A product read is stored in one transaction against the receipt re-read after the AI call (`applyProducts`): a
   receipt deleted meanwhile gets nothing, and it is moved to Done only if its status is still the one before the call
   and it has a total.

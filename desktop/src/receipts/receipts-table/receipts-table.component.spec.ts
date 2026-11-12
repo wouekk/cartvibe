@@ -11,6 +11,7 @@ import { ReceiptTableStore } from "src/store/receipt-table.store";
 import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { ApiModule, FilterOperation, Group, Permission, Receipt, ReceiptService, ReceiptStatus } from "../../open-api";
 import { ReceiptFilterService } from "../../services/receipt-filter.service";
+import { ScanSummaryService } from "../../services/scan-summary.service";
 import { AuthStore } from "../../store";
 import { ReceiptsTableComponent } from "./receipts-table.component";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
@@ -51,7 +52,8 @@ describe("ReceiptsTableComponent", () => {
     component = fixture.componentInstance;
     Object.defineProperty(component, 'table', {
       value: () => ({
-        selection: {},
+        // An empty stream of selection changes: the page subscribes to it once it has rendered.
+        selection: { changed: of() },
         changed: of(undefined),
       }),
     });
@@ -59,6 +61,48 @@ describe("ReceiptsTableComponent", () => {
 
   it("should create", () => {
     expect(component).toBeTruthy();
+  });
+
+  describe("the Quick Scan line", () => {
+    const line = (): HTMLElement | null => fixture.nativeElement.querySelector('[data-testid="receipts-scan-summary"]');
+    const text = (testId: string): string =>
+      (fixture.nativeElement.querySelector(`[data-testid="${testId}"]`)?.textContent ?? "").replace(/\s+/g, " ").trim();
+
+    it("is not there while nothing waits", () => {
+      fixture.detectChanges();
+
+      expect(line()).toBeNull();
+    });
+
+    it("says how many photos wait and how many could not be read", () => {
+      const summary = TestBed.inject(ScanSummaryService);
+      summary.waiting.set(2);
+      summary.failed.set(1);
+      fixture.detectChanges();
+
+      expect(text("receipts-scans-waiting")).toBe("Quick Scan: 2 waiting to be read");
+      expect(text("receipts-scans-failed")).toBe("Quick Scan: 1 could not be read");
+      // The link is the AI page's, so only whoever may open that page gets it.
+      expect(fixture.nativeElement.querySelector('[data-testid="receipts-scan-queue-link"]')).toBeNull();
+    });
+
+    it("links to the scan queue for someone who may open the AI page", () => {
+      TestBed.inject(AuthStore).setPermissions([Permission.AppReceiptProcessingSettingsUpdate], {});
+      TestBed.inject(ScanSummaryService).failed.set(1);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('[data-testid="receipts-scan-queue-link"]')?.getAttribute("href")).toBe("/ai");
+    });
+
+    it("reads the receipts again when a photo has left the queue", async () => {
+      fixture.detectChanges();
+      const reload = vi.spyOn(component, "getFilteredReceipts").mockImplementation(() => undefined);
+
+      TestBed.inject(ScanSummaryService).settled.update((count) => count + 1);
+      await fixture.whenStable();
+
+      expect(reload).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("gates each header action on its own group permission", () => {

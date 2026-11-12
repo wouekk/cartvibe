@@ -556,6 +556,23 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   another provider empties it and the key, and the API refuses a cloud setting without a model and returns
   `ai.ErrNoModelChosen` instead of falling back (the old fallbacks were Claude Opus and `gpt-3.5-turbo`). Save buttons
   take `.cv-unsaved` from the form's dirty state (`../DESIGN.md`).
+- **Scan queue** (`src/ai-settings/scan-queue-card/`, the AI page's last card, drawn outside the load of the AI
+  settings so it is there with no AI set up): `GET /scanQueue` in one read, the queued Quick Scans and the receipts
+  without a read. The card is always shown ("No photo is waiting." is something to see). Status words come from
+  two maps in the component (`SCAN_STATUS`, `RECEIPT_STATUS`); a status the build does not know shows as it came.
+  A button shows only where the row's own flag allows it (`hasFile`, `canRerun`, `canReadAgain`: the server
+  resolved them for the caller). *Run again* is `POST /scanQueue/{id}/rerun`, the photo opens
+  `SourceFileViewerDialogComponent` from `GET /scanQueue/{id}/file`, *Read again* is the receipt's own
+  `POST /receiptProduct/receipt/{id}/read`. While a scan is not failed, a receipt is being read, or one was
+  asked to be read again in this visit, the card reads the queue again every `SCAN_QUEUE_REFRESH_MS` with
+  `QUIET_ERRORS`; a failed later read keeps what is shown, a failed first one says so and Refresh tries again.
+  A row has the name as its link and at most one button, so a phone never gets a row of icon buttons.
+- **The receipts page's Quick Scan line** (`ScanSummaryService`, root): `GET /scanQueue/summary`, read when the
+  page opens, after a Quick Scan upload and after the photos kept on the device went up, then every
+  `SCAN_SUMMARY_REFRESH_MS` while photos wait. `settled` goes up when photos left the queue and the receipts
+  table reloads on it (an `effect`). The requests are quiet, and a count that cannot be read shows nothing.
+- **Scans still on the device:** `QueuedScanService.waiting` is drawn as a count on the tab bar's Scan
+  (`[waiting]`, with the count in its `aria-label`) and on the Dashboard's Quick Scan button.
 - **Roles:** they are fixed, two per scope, and the pickers show both as Admin and User (`src/utils/family-roles.ts`
   maps the row names `Legacy Admin` / `User` and `Legacy Owner` / `Member`). User and member forms load them with
   `loadAssignableRoles` and show names via `RoleNamePipe`, which matches on id **and** scope (app and group role ids

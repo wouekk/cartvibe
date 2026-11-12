@@ -59,6 +59,17 @@ describe("TabBarComponent", () => {
     expect(byTestId("tab-nav-receipts").getAttribute("aria-current")).toBeNull();
   });
 
+  it("draws how many scans still wait on this device on Scan, and says it", async () => {
+    expect(byTestId("tab-scan-waiting")).toBeNull();
+    expect(byTestId("tab-scan").getAttribute("aria-label")).toBeNull();
+
+    fixture.componentRef.setInput("waiting", 2);
+    await fixture.whenStable();
+
+    expect(byTestId("tab-scan-waiting").textContent?.trim()).toBe("2");
+    expect(byTestId("tab-scan").getAttribute("aria-label")).toBe("Scan, 2 waiting to upload");
+  });
+
   it("asks the shell to scan and to open the rest of the navigation", () => {
     const scan = vi.fn();
     const more = vi.fn();

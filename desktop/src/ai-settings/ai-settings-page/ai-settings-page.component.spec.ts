@@ -7,6 +7,7 @@ import { AiType } from "../../constants/ai-type";
 import {
   FeatureConfigService,
   ReceiptProcessingSettingsService,
+  ScanQueueService,
   SystemSettingsService,
   SystemTaskStatus,
 } from "../../open-api";
@@ -14,6 +15,9 @@ import { SnackbarService } from "../../services";
 import { AI_SETTINGS_NAME, AiSettingsPageComponent, describeConnection } from "./ai-settings-page.component";
 
 import type { Mock } from "vitest";
+
+/** The scan queue card's own read: nothing waits. */
+const emptyScanQueue = { getScanQueue: vi.fn(() => of({ scans: [], unreadReceipts: [], unreadReceiptCount: 0 })) };
 describe("AiSettingsPageComponent", () => {
   let fixture: ComponentFixture<AiSettingsPageComponent>;
   let component: AiSettingsPageComponent;
@@ -46,6 +50,7 @@ describe("AiSettingsPageComponent", () => {
         provideHttpClientTesting(),
         { provide: ReceiptProcessingSettingsService, useValue: processingService },
         { provide: SystemSettingsService, useValue: systemSettingsService },
+        { provide: ScanQueueService, useValue: emptyScanQueue },
         { provide: FeatureConfigService, useValue: { getFeatureConfig: vi.fn(() => of({ aiPoweredReceipts: true })) } },
         { provide: SnackbarService, useValue: snackbar },
       ],
@@ -55,6 +60,13 @@ describe("AiSettingsPageComponent", () => {
     component = fixture.componentInstance;
     await fixture.whenStable();
   };
+
+  it("shows the scan queue under the AI's own cards", async () => {
+    await setUp({ pdfDpi: 200 });
+
+    expect(fixture.nativeElement.querySelector('[data-testid="ai-card-scan-queue"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="scan-queue-scans-empty"]')).not.toBeNull();
+  });
 
   it("creates Gemini settings and points System Settings at them", async () => {
     await setUp({ pdfDpi: 200 });
@@ -269,6 +281,7 @@ describe("AiSettingsPageComponent", () => {
           provideHttpClientTesting(),
           { provide: ReceiptProcessingSettingsService, useValue: processingService },
           { provide: SystemSettingsService, useValue: systemSettingsService },
+        { provide: ScanQueueService, useValue: emptyScanQueue },
           { provide: FeatureConfigService, useValue: { getFeatureConfig: vi.fn(() => of({ aiPoweredReceipts: true })) } },
           { provide: SnackbarService, useValue: { success: vi.fn(), error: vi.fn() } },
         ],

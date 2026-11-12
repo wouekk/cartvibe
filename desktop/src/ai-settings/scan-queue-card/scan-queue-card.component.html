@@ -1,0 +1,166 @@
+<app-settings-section
+  testId="ai-card-scan-queue"
+  title="Scan queue"
+  description="What the AI has not read yet: photos that are not receipts yet, and receipts that were saved without a read."
+>
+  <button
+    sectionActions
+    hlmBtn
+    type="button"
+    variant="outline"
+    data-testid="scan-queue-refresh"
+    [disabled]="loading()"
+    (click)="refresh()"
+  >
+    <app-icon name="refresh"></app-icon>
+    <span class="font-medium">{{ 'Refresh' | t }}</span>
+  </button>
+
+  @if (failedToLoad()) {
+    <div class="cv-section">
+      <p class="m-0 text-sm text-muted-foreground" role="status" data-testid="scan-queue-error">
+        {{ 'The scan queue could not be loaded.' | t }}
+      </p>
+    </div>
+  } @else {
+    <div class="cv-section" data-testid="scan-queue-scans">
+      <div class="cv-section__head">
+        <h3 class="cv-section__title">{{ 'Waiting to be read' | t }}</h3>
+        <p class="cv-section__desc">
+          {{ 'Quick Scan photos are read one at a time, oldest first. A photo that could not be turned into a receipt is tried three more times, then stays here as failed.' | t }}
+        </p>
+      </div>
+      @if (scans().length === 0) {
+        <p class="m-0 text-sm text-muted-foreground" data-testid="scan-queue-scans-empty">
+          {{ (loading() ? 'Loading…' : 'No photo is waiting.') | t }}
+        </p>
+      } @else {
+        <ul class="m-0 flex list-none flex-col p-0">
+          @for (scan of scans(); track scan.id) {
+            <li
+              class="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/40 py-3 first:border-t-0 first:pt-0 last:pb-0"
+              data-testid="scan-queue-scan"
+              [attr.data-status]="scan.status"
+            >
+              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  @if (scan.hasFile) {
+                    <button
+                      type="button"
+                      class="cv-link min-w-0 cursor-pointer border-0 bg-transparent p-0 text-left break-all underline-offset-4 hover:underline"
+                      data-testid="scan-queue-photo"
+                      [disabled]="busy() === 'photo-' + scan.id"
+                      [attr.aria-label]="'Show the photo: {name}' | t: { name: scan.fileName }"
+                      (click)="openPhoto(scan)"
+                    >
+                      {{ scan.fileName }}
+                    </button>
+                  } @else {
+                    <span class="min-w-0 font-medium break-all">{{ scan.fileName }}</span>
+                  }
+                  <app-status-chip [customStatus]="scan.label | t" [customStatusColor]="scan.color"></app-status-chip>
+                </div>
+                <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-meta">
+                  @if (scan.who) {
+                    {{ scan.who }} ·
+                  }
+                  {{ scan.uploadedAt | appDate: 'short' }}
+                  @if (scan.household) {
+                    · {{ scan.household }}
+                  }
+                </p>
+                @if (scan.status === 'RETRYING') {
+                  <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-detail">
+                    {{ 'Try {attempt} of {max} failed. The next one is at {time}.' | t: { attempt: scan.attempts, max: scan.maxAttempts, time: (scan.nextAttemptAt | appDate: 'shortTime') } }}
+                  </p>
+                } @else if (scan.status === 'FAILED') {
+                  <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-detail">
+                    {{ 'Not read after {attempt} of {max} tries.' | t: { attempt: scan.attempts, max: scan.maxAttempts } }}
+                  </p>
+                }
+                @if (scan.lastError) {
+                  <p class="m-0 text-xs break-words text-muted-foreground" data-testid="scan-queue-scan-error">{{ scan.lastError }}</p>
+                }
+              </div>
+              @if (scan.canRerun) {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  data-testid="scan-queue-rerun"
+                  [disabled]="busy() === 'scan-' + scan.id"
+                  (click)="runAgain(scan)"
+                >
+                  <span class="font-medium">{{ 'Run again' | t }}</span>
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <div class="cv-section" data-testid="scan-queue-receipts">
+      <div class="cv-section__head">
+        <h3 class="cv-section__title">{{ 'Saved without a read' | t }}</h3>
+        <p class="cv-section__desc">
+          {{ 'Receipts whose products the AI has not read: it has not got to them, could not be reached, or gave up. They can be filled in by hand or read again.' | t }}
+        </p>
+      </div>
+      @if (receipts().length === 0) {
+        <p class="m-0 text-sm text-muted-foreground" data-testid="scan-queue-receipts-empty">
+          {{ (loading() ? 'Loading…' : 'Every receipt with a photo has been read.') | t }}
+        </p>
+      } @else {
+        <ul class="m-0 flex list-none flex-col p-0">
+          @for (receipt of receipts(); track receipt.receiptId) {
+            <li
+              class="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/40 py-3 first:border-t-0 first:pt-0 last:pb-0"
+              data-testid="scan-queue-receipt"
+              [attr.data-status]="receipt.status"
+            >
+              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <a
+                    class="cv-link min-w-0 break-words underline-offset-4 hover:underline"
+                    data-testid="scan-queue-receipt-link"
+                    [routerLink]="['/receipts', receipt.receiptId, 'view']"
+                  >
+                    {{ receipt.name }}
+                  </a>
+                  <app-status-chip [customStatus]="receipt.label | t" [customStatusColor]="receipt.color"></app-status-chip>
+                </div>
+                <p class="m-0 text-xs text-muted-foreground">
+                  {{ receipt.date | appDate: 'mediumDate' : 'calendar' }}
+                  @if (receipt.household) {
+                    · {{ receipt.household }}
+                  }
+                </p>
+                @if (receipt.lastError) {
+                  <p class="m-0 text-xs break-words text-muted-foreground" data-testid="scan-queue-receipt-error">{{ receipt.lastError }}</p>
+                }
+              </div>
+              @if (receipt.canReadAgain && receipt.status !== 'RUNNING') {
+                <button
+                  hlmBtn
+                  type="button"
+                  variant="outline"
+                  data-testid="scan-queue-read-again"
+                  [disabled]="busy() === 'receipt-' + receipt.receiptId"
+                  (click)="readAgain(receipt)"
+                >
+                  <span class="font-medium">{{ 'Read again' | t }}</span>
+                </button>
+              }
+            </li>
+          }
+        </ul>
+        @if (receiptsNotShown() > 0) {
+          <p class="mt-3 mb-0 text-xs text-muted-foreground" data-testid="scan-queue-receipts-more">
+            {{ 'These are the newest {shown} of {count}.' | t: { shown: receipts().length, count: receiptCount() } }}
+          </p>
+        }
+      }
+    </div>
+  }
+</app-settings-section>

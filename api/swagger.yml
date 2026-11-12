@@ -2916,6 +2916,100 @@ paths:
           $ref: "#/components/responses/Internal"
         403:
           $ref: "#/components/responses/Forbidden"
+  /scanQueue:
+    get:
+      tags:
+        - ScanQueue
+      summary: What the AI has not read yet
+      description: >-
+        The quick scans the queue still holds (waiting, being read, between tries or failed), oldest first, and the
+        receipts that were saved without a read, most recently touched first. For the AI page: it needs
+        app.receipt-processing-settings.read. The flags on each row are resolved for the caller.
+      operationId: getScanQueue
+      responses:
+        200:
+          description: The scan queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanQueue"
+        500:
+          $ref: "#/components/responses/Internal"
+        403:
+          $ref: "#/components/responses/Forbidden"
+  /scanQueue/summary:
+    get:
+      tags:
+        - ScanQueue
+      summary: How many quick scans wait
+      description: >-
+        Counts the quick scans of the households the caller reads receipts in. Any signed-in person may ask: the
+        count is filtered, never refused.
+      operationId: getScanQueueSummary
+      responses:
+        200:
+          description: The counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScanQueueSummary"
+        500:
+          $ref: "#/components/responses/Internal"
+  /scanQueue/{id}/rerun:
+    post:
+      tags:
+        - ScanQueue
+      summary: Run a failed scan again
+      description: >-
+        Queues a failed quick scan again with a fresh set of tries. Needs group.activities.rerun in the scan's
+        household. A scan that is not failed, or whose photo is gone, is a 400; an unknown id answers like a
+        refusal.
+      operationId: rerunQueuedScan
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the queued scan
+      responses:
+        200:
+          description: The scan is queued again
+        400:
+          $ref: "#/components/responses/BadRequest"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/Internal"
+  /scanQueue/{id}/file:
+    get:
+      tags:
+        - ScanQueue
+      summary: The photo of a queued scan
+      description: >-
+        Returns the upload behind a queued quick scan, converted for display. Needs group.activities.read in the
+        scan's household; an unknown id answers like a refusal.
+      operationId: getQueuedScanFile
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: Id of the queued scan
+      responses:
+        200:
+          description: The scan's photo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemTaskSourceFileView"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          description: The photo is no longer available
+        500:
+          $ref: "#/components/responses/Internal"
   /systemSettings:
     get:
       tags:
@@ -7638,6 +7732,126 @@ components:
                 Whether the upload behind this task is still on disk AND the caller may reach it.
                 Resolved per caller, since this listing is app-scoped and spans groups the caller
                 may not belong to.
+    ScanQueue:
+      type: object
+      description: What the AI has not read yet. Both lists are arrays, never null.
+      required:
+        - scans
+        - unreadReceipts
+        - unreadReceiptCount
+      properties:
+        scans:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScanQueueScan"
+        unreadReceipts:
+          type: array
+          description: The most recently touched receipts without a read (at most 50)
+          items:
+            $ref: "#/components/schemas/ScanQueueReceipt"
+        unreadReceiptCount:
+          type: integer
+          format: int64
+          description: How many receipts are without a read in all
+    ScanQueueScan:
+      type: object
+      description: A quick scan the queue holds, a photo that is not a receipt yet.
+      required:
+        - id
+        - status
+        - fileName
+        - groupId
+        - uploadedByUserId
+        - uploadedAt
+        - attempts
+        - maxAttempts
+        - lastError
+        - hasFile
+        - canRerun
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          description: WAITING, READING, RETRYING or FAILED (a plain string; others may follow)
+        fileName:
+          type: string
+          description: The upload's original file name
+        groupId:
+          type: integer
+        uploadedByUserId:
+          type: integer
+        uploadedAt:
+          type: string
+          format: date-time
+        attempts:
+          type: integer
+          description: How many tries failed so far
+        maxAttempts:
+          type: integer
+        nextAttemptAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When a RETRYING scan is tried again; null otherwise
+        lastError:
+          type: string
+          description: What the last failed try said; empty when none failed
+        hasFile:
+          type: boolean
+          description: Whether the caller can open the photo (GET /scanQueue/{id}/file)
+        canRerun:
+          type: boolean
+          description: Whether the caller can run it again (POST /scanQueue/{id}/rerun)
+    ScanQueueReceipt:
+      type: object
+      description: A receipt whose products the AI has not read.
+      required:
+        - receiptId
+        - name
+        - groupId
+        - date
+        - status
+        - attempts
+        - lastError
+        - updatedAt
+        - canReadAgain
+      properties:
+        receiptId:
+          type: integer
+        name:
+          type: string
+        groupId:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+          description: PENDING, RUNNING, UNAVAILABLE or FAILED (the read's own status, a plain string)
+        attempts:
+          type: integer
+          description: How many answers of the AI could not be read
+        lastError:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+        canReadAgain:
+          type: boolean
+          description: Whether the caller can ask for another read (POST /receiptProduct/receipt/{receiptId}/read)
+    ScanQueueSummary:
+      type: object
+      required:
+        - waiting
+        - failed
+      properties:
+        waiting:
+          type: integer
+          description: Quick scans waiting, being read or between tries
+        failed:
+          type: integer
+          description: Quick scans that used up their tries
     SystemTaskSourceFileView:
       type: object
       required:

@@ -15,6 +15,7 @@ import {
 } from "../../open-api";
 import { ProductCheckLauncher } from "../../product-check/product-check-launcher.service";
 import { QuickScanLauncher } from "../../receipts/quick-scan-dialog/quick-scan-launcher.service";
+import { QueuedScanService } from "../../services/queued-scan.service";
 import { FeatureConfigStore, GroupStore, AuthStore } from "../../store";
 import { SnackbarService } from "../../services";
 import { ShoppingListStore } from "../../store/shopping-list.store";
@@ -471,6 +472,9 @@ export class OverviewPageComponent {
   public readonly aiConfigured = computed(() => this.hasAiPoweredReceipts());
 
   private readonly quickScanLauncher = inject(QuickScanLauncher);
+
+  /** Quick Scans kept on this device until there is a connection: the button carries the count. */
+  protected readonly scansOnDevice = inject(QueuedScanService).waiting;
 
   /** The button shows whenever the member may scan; without the AI it asks for a key instead of opening the dialog. */
   public readonly canQuickScan = computed(() => hasAll(this.groupPermissions()[this.groupId()] ?? [], Permission.GroupReceiptsQuickScan));

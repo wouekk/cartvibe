@@ -224,24 +224,7 @@ func RerunActivity(w http.ResponseWriter, r *http.Request) {
 // memoized per group for the life of one request. It is the same gate the
 // source-file endpoints apply, so a flag can never promise a button that 403s.
 func groupSourceFileReader(userId uint) func(groupId uint) bool {
-	permissionService := services.NewPermissionService(nil)
-	cache := make(map[uint]bool)
-
-	return func(groupId uint) bool {
-		if allowed, ok := cache[groupId]; ok {
-			return allowed
-		}
-
-		allowed, err := permissionService.HasGroupPermissions(userId, groupId, permissions.GroupActivitiesRead)
-		if err != nil {
-			logging.LogStd(logging.LOG_LEVEL_ERROR, err.Error())
-			allowed = false
-		}
-
-		cache[groupId] = allowed
-
-		return allowed
-	}
+	return groupPermissionChecker(userId, permissions.GroupActivitiesRead)
 }
 
 // GetSystemTaskSourceFile returns the upload behind a failed activity, converted

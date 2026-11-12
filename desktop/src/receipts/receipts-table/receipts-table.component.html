@@ -138,6 +138,29 @@
   </div>
 </app-table-header>
 
+<!-- Quick Scan photos the server has not turned into receipts yet, for everyone in the household: a photo taken a
+     minute ago is not in the list below, and this says why. It goes away when nothing waits. -->
+@if (scansWaiting() > 0 || scansFailed() > 0) {
+  <p
+    class="mt-3 mb-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground"
+    role="status"
+    data-testid="receipts-scan-summary"
+  >
+    @if (scansWaiting() > 0) {
+      <span class="inline-flex items-center gap-1" data-testid="receipts-scans-waiting">
+        <app-icon name="hourglass_top"></app-icon>
+        {{ 'Quick Scan: {count} waiting to be read' | t: { count: scansWaiting() } }}
+      </span>
+    }
+    @if (scansFailed() > 0) {
+      <span data-testid="receipts-scans-failed">{{ 'Quick Scan: {count} could not be read' | t: { count: scansFailed() } }}</span>
+    }
+    @if (canOpenScanQueue()) {
+      <a class="cv-link underline-offset-4 hover:underline" data-testid="receipts-scan-queue-link" [routerLink]="['/ai']">{{ 'Scan queue' | t }}</a>
+    }
+  </p>
+}
+
 <!-- The same period row as the Dashboard: quick ranges plus From / To (they set the Receipt Date filter), then the
      filter and its reset (beside the search on a phone). It starts under the title, left-aligned, rather than
      wrapping on the right of the header. -->

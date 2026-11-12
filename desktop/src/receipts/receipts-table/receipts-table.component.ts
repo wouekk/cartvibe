@@ -1,6 +1,7 @@
 import { TranslationService } from "../../i18n/translation.service";
 import { CurrencyPipe, DatePipe, NgTemplateOutlet, NgIf } from "@angular/common";
-import { AfterViewInit, Component, computed, HostListener, inject, OnInit, signal, TemplateRef, viewChild, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { AfterViewInit, Component, computed, effect, HostListener, inject, OnInit, signal, TemplateRef, untracked, viewChild, ChangeDetectionStrategy, DestroyRef } from "@angular/core";
+import { ScanSummaryService } from "../../services/scan-summary.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { AppDialog } from "../../dialog/app-dialog";
 import { PageEvent, Sort, TableDataSource } from "../../table/table-types";
@@ -106,6 +107,30 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
   private readonly systemSettingsStore = inject(SystemSettingsStore);
 
   private readonly receiptTableStore = inject(ReceiptTableStore);
+
+  private readonly scanSummary = inject(ScanSummaryService);
+
+  /** Quick Scan photos the server has not read yet, for the line under the title. */
+  protected readonly scansWaiting = this.scanSummary.waiting;
+
+  /** Quick Scan photos that used up their tries. */
+  protected readonly scansFailed = this.scanSummary.failed;
+
+  /** Whoever may open the AI page gets a link to its scan queue beside the counts. */
+  protected readonly canOpenScanQueue = computed(() =>
+    this.authStore.hasAppPermission(Permission.AppReceiptProcessingSettingsUpdate)
+  );
+
+  private scansSettledSeen = this.scanSummary.settled();
+
+  /** A photo that left the queue is a receipt now (or failed): the list is read again, once per change. */
+  protected readonly reloadWhenScansSettle = effect(() => {
+    const settled = this.scanSummary.settled();
+    if (settled !== this.scansSettledSeen) {
+      this.scansSettledSeen = settled;
+      untracked(() => this.getFilteredReceipts());
+    }
+  });
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -282,6 +307,7 @@ export class ReceiptsTableComponent implements OnInit, AfterViewInit {
     this.setCanEdit();
 
     this.setHeaderText();
+    this.scanSummary.refresh();
 
     // Filter options come from the selected group's AppData catalog (filtered to
     // the user's grants), so a restricted user can't filter by a hidden one.

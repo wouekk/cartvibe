@@ -7,6 +7,7 @@ import { QUIET_ERRORS } from "../interceptors/http-interceptor";
 import { OfflineStorageService } from "../offline/offline-storage.service";
 import { isWorthRetrying, RetryWhenReachable } from "../offline/retry-when-reachable";
 import { ReceiptService, ReceiptStatus } from "../open-api";
+import { ScanSummaryService } from "./scan-summary.service";
 import { SnackbarService } from "./snackbar.service";
 import { TokenRefreshService } from "./token-refresh.service";
 
@@ -54,6 +55,7 @@ export class QueuedScanService implements OnDestroy {
   private readonly receiptService = inject(ReceiptService);
   private readonly tokenRefreshService = inject(TokenRefreshService);
   private readonly snackbarService = inject(SnackbarService);
+  private readonly scanSummary = inject(ScanSummaryService);
 
   private readonly retry = new RetryWhenReachable(inject(DOCUMENT), () => this.uploadAll());
 
@@ -122,6 +124,8 @@ export class QueuedScanService implements OnDestroy {
         this.snackbarService.success(
           marker("The receipt photos kept on this device are uploaded. You will get a notification once the AI has read them.")
         );
+        // The receipts page's line counts them from now on.
+        this.scanSummary.refresh();
       } catch (error) {
         if (isWorthRetrying(error)) {
           return false;
