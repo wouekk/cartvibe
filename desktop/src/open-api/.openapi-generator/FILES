@@ -21,6 +21,7 @@ api/receiptProcessingSettings.service.ts
 api/receiptProduct.service.ts
 api/report.service.ts
 api/role.service.ts
+api/scanQueue.service.ts
 api/shopLogo.service.ts
 api/shoppingList.service.ts
 api/systemSettings.service.ts
@@ -127,6 +128,10 @@ model/reportRequestCommand.ts
 model/reportTemplate.ts
 model/resetPasswordCommand.ts
 model/role.ts
+model/scanQueue.ts
+model/scanQueueReceipt.ts
+model/scanQueueScan.ts
+model/scanQueueSummary.ts
 model/setFoodClassificationCommand.ts
 model/setReceiptAmountCommand.ts
 model/setReceiptDateCommand.ts
