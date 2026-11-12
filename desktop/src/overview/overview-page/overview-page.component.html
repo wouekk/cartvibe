@@ -132,42 +132,47 @@
       [style.max-width.px]="previewWidth()"
       data-testid="dashboard-canvas"
     >
-      <!-- Rows of panels: a panel's size is its share of a row, and the panels of a row stretch to fill it (no holes). -->
+      <!-- A grid of cells: a panel takes the columns and rows it is set to, and panels float up into free cells. -->
       <section
         #panelGrid
         class="grid gap-4"
         [style.grid-template-columns]="'repeat(' + gridColumns() + ', minmax(0, 1fr))'"
+        [style.grid-auto-rows]="gridAutoRows()"
         [attr.aria-label]="'The period at a glance' | t"
         [attr.data-size-class]="sizeClass()"
         data-testid="dashboard-grid"
       >
         @for (panel of displayPanels(); track panel.id) {
           <div
-            class="relative flex min-w-0 flex-col gap-2"
+            class="group/panel relative flex min-w-0 flex-col rounded-xl data-[editing]:hover:ring-1 data-[editing]:hover:ring-ring/60 [@media(pointer:fine)]:data-[editing]:cursor-grab"
             [class.z-20]="draggingId() === panel.id"
             [class.opacity-90]="draggingId() === panel.id"
             [class.ring-1]="draggingId() === panel.id"
             [class.ring-border]="draggingId() === panel.id"
-            [class.rounded-xl]="draggingId() === panel.id"
+            [style.cursor]="draggingId() === panel.id ? 'grabbing' : null"
             [style.grid-column]="gridColumn(panel)"
             [style.grid-row]="gridRow(panel)"
             [style.min-height]="panelMinHeight(panel)"
             [attr.data-testid]="'dashboard-panel-' + panel.id"
             [attr.data-panel-id]="panel.id"
             [attr.data-span]="panel.span"
+            [attr.data-rows]="panel.height"
+            [attr.data-editing]="customising() ? '' : null"
+            (pointerdown)="grabPanel($event, panel)"
           >
             @if (customising()) {
-              <div class="flex h-control min-w-0 items-center gap-1 rounded-lg border border-border bg-muted/60 pr-1 pl-1.5 text-xs">
-                <button type="button" class="inline-flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing" [attr.data-testid]="'dashboard-panel-drag-' + panel.id" [attr.aria-label]="'Move {name}' | t: { name: panelLabel(panel.id) }" (pointerdown)="startDrag($event, panel)">
+              <!-- The edit controls are part of the panel: a small bar on its top edge, and the corner handle. A mouse also moves the panel by any part of it. -->
+              <div
+                class="absolute -top-3.5 left-1/2 z-10 flex -translate-x-1/2 cursor-default items-center gap-0.5 rounded-lg border border-border bg-card p-0.5 text-muted-foreground"
+                data-panel-control
+                [attr.data-testid]="'dashboard-panel-controls-' + panel.id"
+              >
+                <button type="button" class="inline-flex size-7 shrink-0 cursor-grab touch-none items-center justify-center rounded-md transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing" [attr.data-testid]="'dashboard-panel-drag-' + panel.id" [attr.aria-label]="'Move {name}' | t: { name: panelLabel(panel.id) }" [hlmTooltip]="'Move {name}' | t: { name: panelLabel(panel.id) }" (pointerdown)="startDrag($event, panel)">
                   <app-icon name="drag_handle"></app-icon>
                 </button>
-                <span class="min-w-0 flex-1 truncate font-medium" [attr.title]="panelLabel(panel.id)">{{ panelLabel(panel.id) }}</span>
-                @if (sizeClass() === 'wide' && panel.span > 1) {
-                  <span class="shrink-0 pr-1 text-muted-foreground tabular-nums" [attr.data-testid]="'dashboard-panel-size-' + panel.id">{{ sizeLabel(panel) }}</span>
-                }
                 <button
                   type="button"
-                  hlmBtn variant="ghost" size="icon-sm"
+                  hlmBtn variant="ghost" size="icon-xs" class="size-7"
                   [attr.aria-label]="'Panel options for {name}' | t: { name: panelLabel(panel.id) }"
                   [attr.data-testid]="'dashboard-panel-menu-' + panel.id"
                   [hlmDropdownMenuTrigger]="panelMenu"
@@ -175,7 +180,7 @@
                 >
                   <app-icon name="more_vert"></app-icon>
                 </button>
-                <button type="button" hlmBtn variant="ghost" size="icon-sm" [attr.aria-label]="'Hide {name}' | t: { name: panelLabel(panel.id) }" [attr.data-testid]="'dashboard-panel-hide-' + panel.id" (click)="setPanelVisible(panel.id, false)">
+                <button type="button" hlmBtn variant="ghost" size="icon-xs" class="size-7" [attr.aria-label]="'Hide {name}' | t: { name: panelLabel(panel.id) }" [hlmTooltip]="'Hide {name}' | t: { name: panelLabel(panel.id) }" [attr.data-testid]="'dashboard-panel-hide-' + panel.id" (click)="setPanelVisible(panel.id, false)">
                   <app-icon name="visibility_off"></app-icon>
                 </button>
               </div>
@@ -332,10 +337,16 @@
               }
             </div>
             @if (customising() && sizeClass() === 'wide') {
-              <!-- Drag to resize in the PC view: snaps to grid columns and height steps, within the panel's limits. -->
+              <!-- Drag to resize in the PC view: snaps to grid columns and rows, within the panel's limits. Its size shows beside it. -->
+              <span
+                class="pointer-events-none absolute right-10 bottom-1.5 z-10 rounded-md border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground tabular-nums transition-opacity duration-150 group-hover/panel:opacity-100 motion-reduce:transition-none"
+                [class.opacity-0]="resizingId() !== panel.id"
+                [attr.data-testid]="'dashboard-panel-size-' + panel.id"
+              >{{ sizeLabel(panel) }}</span>
               <span
                 class="absolute right-1.5 bottom-1.5 z-10 inline-flex size-7 cursor-se-resize touch-none items-center justify-center rounded-md border border-border bg-card text-muted-foreground transition-colors duration-150 before:absolute before:-inset-2 before:content-[''] hover:bg-accent hover:text-foreground"
                 aria-hidden="true"
+                data-panel-control
                 [attr.data-testid]="'dashboard-panel-resize-' + panel.id"
                 (pointerdown)="startResize($event, panel)"
               >
@@ -344,23 +355,11 @@
             }
           </div>
         }
-        @if (dragOrigin(); as origin) {
-          <!-- The place the dragged panel left: an empty box of its height, so its row stays open while it is dragged. -->
-          <div
-            class="pointer-events-none invisible"
-            [style.grid-column]="(origin.x + 1) + ' / span ' + origin.span"
-            [style.grid-row]="origin.row + 1"
-            [style.height.px]="origin.height"
-            aria-hidden="true"
-            data-drag-origin
-          ></div>
-        }
         @if (dropPreview(); as preview) {
           <div
             class="pointer-events-none rounded-xl border-2 border-dashed border-primary/60 bg-primary/5"
             [style.grid-column]="(preview.x + 1) + ' / span ' + preview.span"
-            [style.grid-row]="preview.row + 1"
-            [style.min-height.px]="72"
+            [style.grid-row]="gridRow(preview)"
             aria-hidden="true"
             data-testid="dashboard-drop-preview"
           ></div>
@@ -403,9 +402,12 @@
     <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-narrower" (click)="stepSize(panel.id, -1, 0)">
       <app-icon name="remove"></app-icon><span>{{ 'Narrower' | t }}</span>
     </button>
-    @if (canChangeHeight(panel)) {
-      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-height" (click)="toggleHeight(panel.id)">
-        <app-icon name="unfold_more"></app-icon><span>{{ (rowsOf(panel.id) === 1 ? 'Taller' : 'Shorter') | t }}</span>
+    @if (canSetHeight(panel)) {
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-taller" (click)="stepSize(panel.id, 0, 1)">
+        <app-icon name="expand_more"></app-icon><span>{{ 'Taller' | t }}</span>
+      </button>
+      <button hlmDropdownMenuItem type="button" data-testid="dashboard-panel-shorter" (click)="stepSize(panel.id, 0, -1)">
+        <app-icon name="expand_less"></app-icon><span>{{ 'Shorter' | t }}</span>
       </button>
     }
   </div>

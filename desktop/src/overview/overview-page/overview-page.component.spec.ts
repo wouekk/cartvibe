@@ -828,10 +828,39 @@ describe("OverviewPageComponent", () => {
       expect(component.panelLabel("tag:7")).toBe("Party");
     });
 
-    it("lists twelve receipts when the receipts panel is made taller", async () => {
+    it("lists two more receipts for each row the receipts panel is made taller, and fewer when it is shorter", async () => {
+      await save({ version: 2, panels: [{ id: "recentReceipts", visible: true, cols: 4, rows: 8 }] });
+      expect(receiptService.getReceiptsForGroup.mock.calls.at(-1)?.[1]).toMatchObject({ pageSize: 12 });
+
+      await save({ version: 2, panels: [{ id: "recentReceipts", visible: true, cols: 4, rows: 4 }] });
+      expect(receiptService.getReceiptsForGroup.mock.calls.at(-1)?.[1]).toMatchObject({ pageSize: 4 });
+    });
+
+    it("still draws a layout saved with the two height steps: the taller receipts panel lists ten", async () => {
       await save({ version: 1, panels: [{ id: "recentReceipts", visible: true, cols: 4, rows: 2 }] });
 
-      expect(receiptService.getReceiptsForGroup.mock.calls.at(-1)?.[1]).toMatchObject({ pageSize: 12 });
+      expect(component.panels().find((panel) => panel.id === "recentReceipts")?.rows).toBe(7);
+      expect(receiptService.getReceiptsForGroup.mock.calls.at(-1)?.[1]).toMatchObject({ pageSize: 10 });
+    });
+
+    it("draws a panel over the rows it is tall, and lets the content set the heights on a phone", async () => {
+      const element = (id: string) => fixture.nativeElement.querySelector(`[data-testid="dashboard-panel-${id}"]`) as HTMLElement;
+      const grid = fixture.nativeElement.querySelector('[data-testid="dashboard-grid"]') as HTMLElement;
+      expect(element("spent").style.gridRow).toBe("1 / span 2");
+      expect(element("categories").style.gridRow).toBe("3 / span 6");
+      expect(grid.style.gridAutoRows).toBe("minmax(4.25rem, auto)");
+
+      // A tablet: a chart keeps the height it is set to, a tile is as tall as the row it shares.
+      (component as unknown as { gridWidth: { set(width: number): void } }).gridWidth.set(744);
+      await fixture.whenStable();
+      expect(grid.style.gridAutoRows).toBe("");
+      expect(element("categories").style.minHeight).toBe("30.5rem");
+      expect(element("spent").style.minHeight).toBe("");
+
+      (component as unknown as { gridWidth: { set(width: number): void } }).gridWidth.set(375);
+      await fixture.whenStable();
+      expect(element("categories").style.minHeight).toBe("");
+      expect(component.panels().every((panel) => panel.height === 1)).toBe(true);
     });
 
     it("stacks every panel in one column on a phone-sized grid", async () => {
@@ -879,7 +908,7 @@ describe("OverviewPageComponent", () => {
         await fixture.whenStable();
 
         const sent = JSON.parse(dashboardLayoutService.updateDashboardLayout.mock.calls[0][0].layout);
-        expect(sent.version).toBe(1);
+        expect(sent.version).toBe(2);
         expect(sent.panels.find((panel: { id: string }) => panel.id === "unhealthy").visible).toBe(false);
         expect(navigate).toHaveBeenCalledWith(["/overview/group", "1"]);
         expect(component.layoutDirty()).toBe(false);
@@ -919,7 +948,73 @@ describe("OverviewPageComponent", () => {
       it("draws every panel in its own grid cell, exactly as wide as it is set", () => {
         const first = component.panels()[0];
         expect(component.gridColumn(first)).toBe(`${first.x + 1} / span ${first.span}`);
-        expect(component.gridRow(first)).toBe(first.row + 1);
+        expect(component.gridRow(first)).toBe(`${first.row + 1} / span ${first.height}`);
+      });
+
+      it("puts the edit controls inside each panel: grip, menu and hide on its top edge, the handle and size in its corner", () => {
+        const panel = fixture.nativeElement.querySelector('[data-testid="dashboard-panel-categories"]') as HTMLElement;
+        const controls = panel.querySelector('[data-testid="dashboard-panel-controls-categories"]') as HTMLElement;
+
+        expect(controls).not.toBeNull();
+        for (const id of ["dashboard-panel-drag-categories", "dashboard-panel-menu-categories", "dashboard-panel-hide-categories"]) {
+          expect(controls.querySelector(`[data-testid="${id}"]`)).not.toBeNull();
+        }
+        expect(panel.querySelector('[data-testid="dashboard-panel-resize-categories"]')).not.toBeNull();
+        expect(panel.querySelector('[data-testid="dashboard-panel-size-categories"]')?.textContent?.trim()).toBe("3 × 6");
+        // Nothing stands above the panel any more: its first child is the controls, laid over it.
+        expect(controls.className).toContain("absolute");
+      });
+
+      it("moves a panel by any part of it with a mouse, but not by its controls and not under a finger", () => {
+        const startDrag = vi.spyOn(component, "startDrag").mockImplementation(() => undefined);
+        const panel = component.panels().find((candidate) => candidate.id === "categories")!;
+        const element = fixture.nativeElement.querySelector('[data-testid="dashboard-panel-categories"]') as HTMLElement;
+        const press = (target: Element, pointerType: string) => component.grabPanel({ target, pointerType } as unknown as PointerEvent, panel);
+
+        press(element, "touch");
+        press(element.querySelector('[data-testid="dashboard-panel-menu-categories"]')!, "mouse");
+        press(element.querySelector('[data-testid="dashboard-panel-resize-categories"]')!, "mouse");
+        expect(startDrag).not.toHaveBeenCalled();
+
+        press(element, "mouse");
+        expect(startDrag).toHaveBeenCalledTimes(1);
+      });
+
+      it("makes a panel taller and shorter by a row, pushing down what is under it, and stops at its limits", async () => {
+        const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
+        const place = (id: string) => component.panels().find((panel) => panel.id === id)!;
+        const below = place("recentReceipts").row;
+
+        component.stepSize("categories", 0, 1);
+        await fixture.whenStable();
+        expect(place("categories")).toMatchObject({ rows: 7, height: 7 });
+        expect(place("recentReceipts").row).toBe(below + 1);
+        expect(noOverlap()).toBe(true);
+
+        component.stepSize("categories", 0, -1);
+        await fixture.whenStable();
+        expect(place("categories").rows).toBe(6);
+        expect(place("recentReceipts").row).toBe(below);
+
+        component.stepSize("categories", 0, -1);
+        expect(place("categories").rows).toBe(6);
+        expect(hint).toHaveBeenCalledTimes(1);
+      });
+
+      it("moves a panel below the one under it, and back up over it", async () => {
+        const place = (id: string) => component.panels().find((panel) => panel.id === id)!;
+        const before = cellsOf();
+
+        component.nudgePanel("categories", 0, 1);
+        await fixture.whenStable();
+        expect(place("categories").row).toBeGreaterThan(place("recentReceipts").row);
+        expect(noOverlap()).toBe(true);
+
+        component.nudgePanel("categories", 0, -1);
+        await fixture.whenStable();
+        expect(place("categories").row).toBeLessThan(place("recentReceipts").row);
+        expect(place("categories").row).toBe(before["categories"].row);
+        expect(noOverlap()).toBe(true);
       });
 
       it("moves a panel into empty columns and keeps the others where they were", async () => {
@@ -930,8 +1025,8 @@ describe("OverviewPageComponent", () => {
         await fixture.whenStable();
         const after = Object.fromEntries(component.panels().map((panel) => [panel.id, [panel.x, panel.row]]));
 
-        expect(before["categories"]).toEqual([0, 1]);
-        expect(after["categories"]).toEqual([1, 1]);
+        expect(before["categories"]).toEqual([0, 2]);
+        expect(after["categories"]).toEqual([1, 2]);
         for (const id of Object.keys(before).filter((key) => key !== "categories")) {
           expect(after[id]).toEqual(before[id]);
         }
@@ -940,7 +1035,9 @@ describe("OverviewPageComponent", () => {
       const cellsOf = () => Object.fromEntries(component.panels().map((panel) => [panel.id, { x: panel.x, row: panel.row, span: panel.span }]));
       const noOverlap = () => {
         const panels = component.panels();
-        return panels.every((a) => panels.every((b) => a.id === b.id || a.row !== b.row || a.x + a.span <= b.x || b.x + b.span <= a.x));
+        return panels.every((a) =>
+          panels.every((b) => a.id === b.id || a.x + a.span <= b.x || b.x + b.span <= a.x || a.row + a.height <= b.row || b.row + b.height <= a.row)
+        );
       };
 
       it("does not widen a panel past its own limit, and says so", () => {

@@ -101,10 +101,14 @@ it is doing.
   something changed, the page stays open after saving, and *Cancel* goes back to the receipts list. *Looks right*
   and *Duplicate* are still there. A receipt you may only look at, and a queue started in View Mode, stay read-only
   *(RCPT-17, RCPT-08)*.
-- **Dashboard panels make room for each other.** While you customise, a panel you drag takes the place it is over
-  and the others move aside as you go: two neighbours change places, a panel of the same size swaps with the one
-  you drop it on, and a row that gets too full passes what no longer fits to a new row below. Making a panel wider
-  now pushes its neighbours instead of being refused. Panels glide to their new places *(DASH-09)*.
+- **The Dashboard is arranged like a dashboard editor.** While you customise in the desktop view the panels sit
+  on a grid. Drag one anywhere: it takes that place and the others move aside as you go (two neighbours change
+  places, a panel swaps with the one you drop it on, the rest is pushed down). Pull its corner to make it wider
+  or taller, by as many rows as you like within its limits; the two fixed heights are gone. Panels move up into
+  any room left above them, so hiding or shrinking one leaves no hole. The controls are now on the panel itself
+  (a grip, a menu and Hide on its top edge, the handle in its corner) instead of in a bar above it, and with a
+  mouse a panel can be dragged by any part of it. The layout you saved before looks as it did
+  *(DASH-09, DASH-08)*.
 - **The web app keeps its state without a state library.** Nothing looks or works differently, and what your
   browser remembers (that you are signed in, page sizes, filters, the columns of the receipts list, the collapsed
   sidebar) is read as before, so nobody is signed out by this update. The app's first load is a little smaller.
@@ -132,7 +136,8 @@ it is doing.
   followed by the app for some time and are gone *(SCAN-14, SCAN-01)*.
 - **A receipt that is to check ends with *Looks right*.** Under the products of such a receipt there is one named
   button that settles it, in place of the small tick in the page's header. Until then the lines without an amount
-  are listed first, and the page says how many there are *(RCPT-07)*.
+  are listed first, and the page says how many there are. Otherwise the note beside the button asks you to
+  double-check the receipt and correct anything that looks wrong, and says when the AI read it *(RCPT-07)*.
 - **Receipt photos open faster and are kept by the browser.** A photo used to travel as text inside the page's
   data, a third larger than the file, on every visit, and a HEIC or PDF was converted each time. The server now
   keeps a ready copy and the browser keeps it too, so opening a receipt again shows its photo at once *(RCPT-02)*.

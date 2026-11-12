@@ -1,21 +1,34 @@
 import { marker } from "../../i18n/marker";
 
 /**
- * The Dashboard layout engine: which panels show, in what order and at what size, for each screen size. Pure and
- * tested; the Dashboard renders what `resolveLayout` returns and the customise screen edits a `DashboardLayout`.
+ * The Dashboard layout engine: which panels show, where and at what size, for each screen size. Pure and tested; the
+ * Dashboard renders what `resolveLayout` returns and the customise screen edits a `DashboardLayout`.
  *
  * The saved document (`GET/PUT /dashboardLayout`, a string on the API) is client-owned and versioned:
- * `{ version: 1, panels: [{ id, visible, cols, rows }], compactOrder?: [ids] }`. Panel ids are plain strings, never a
- * closed enum, and ids this version does not know are kept (a newer client's panels survive a save from an older one).
- * Sizes are in the widest grid's columns; screen sizes are named after Apple's size classes so a native app can map them.
+ * `{ version: 2, panels: [{ id, visible, cols, rows, x?, y? }], compactOrder?: [ids] }`. Panel ids are plain strings,
+ * never a closed enum, and ids this version does not know are kept (a newer client's panels survive a save from an
+ * older one). Sizes and cells are in the widest grid: `cols` of its six columns, `rows` of its rows (one row is
+ * `GRID_ROW_REM` tall), `x` and `y` the cell of the top left corner. Screen sizes are named after Apple's size classes
+ * so a native app can map them.
+ *
+ * Version 1 had two height steps and numbered whole rows of panels; `parseLayout` still reads it.
  */
 
-export const DASHBOARD_LAYOUT_VERSION = 1;
+export const DASHBOARD_LAYOUT_VERSION = 2;
 
 /** Phone (one column), tablet (four) and PC (six). */
 export type SizeClass = "compact" | "regular" | "wide";
 
 export const GRID_COLUMNS: Record<SizeClass, number> = { compact: 1, regular: 4, wide: 6 };
+
+/** One row of the PC grid, and the gap between rows and columns, in rem. A panel `rows` rows tall spans the gaps too. */
+export const GRID_ROW_REM = 4.25;
+export const GRID_GAP_REM = 1;
+
+/** How tall a panel of `rows` rows is at least, as a CSS length. */
+export function panelHeight(rows: number): string {
+  return `${rows * GRID_ROW_REM + (rows - 1) * GRID_GAP_REM}rem`;
+}
 
 /** The grid's own width (not the viewport) picks the size class, so the customise preview reflows like a device. */
 export function sizeClassFor(width: number): SizeClass {
@@ -38,9 +51,14 @@ export interface PanelDefinition {
   defaultCols: number;
   /** The fewest of the tablet grid's four columns it may take (charts and tables need the whole row there). */
   minRegularCols: number;
-  /** Height steps: 1 is the panel's natural height, 2 a taller one. */
+  /** Height in rows of the wide grid. The least is what the content needs, so a panel is never cut. */
+  minRows: number;
   maxRows: number;
+  defaultRows: number;
 }
+
+/** A tile may be as tall as a chart at its usual height, so one that stands beside a chart can fill the room under it. */
+const TILE_MAX_ROWS = 6;
 
 const kpi = (kind: string, label: string, defaultCols = 1): PanelDefinition => ({
   kind,
@@ -50,12 +68,17 @@ const kpi = (kind: string, label: string, defaultCols = 1): PanelDefinition => (
   maxCols: 2,
   defaultCols,
   minRegularCols: 1,
-  maxRows: 1,
+  minRows: 2,
+  maxRows: TILE_MAX_ROWS,
+  defaultRows: 2,
 });
+
+/** The tallest a chart, list or table may be made. */
+const MAX_ROWS = 12;
 
 /**
  * Every kind of panel, in the default order. The limits keep the content whole: the donut keeps its legend beside it
- * and twelve month bars fit (three of six columns, the whole row on a tablet).
+ * and twelve month bars fit (three of six columns, the whole row on a tablet); a key figure needs two rows, a chart six.
  */
 export const PANEL_CATALOGUE: readonly PanelDefinition[] = [
   kpi("spent", marker("Spent"), 2),
@@ -64,12 +87,12 @@ export const PANEL_CATALOGUE: readonly PanelDefinition[] = [
   kpi("unplanned", marker("Not on the list")),
   kpi("toBuy", marker("To buy")),
   kpi("warranties", marker("Warranties")),
-  { kind: "tag", group: "tags", label: marker("Tag"), minCols: 1, maxCols: 2, defaultCols: 1, minRegularCols: 1, maxRows: 1 },
-  { kind: "categories", group: "charts", label: marker("Spending by category"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
-  { kind: "trend", group: "charts", label: marker("Spending by month"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
-  { kind: "recentReceipts", group: "lists", label: marker("Recent receipts"), minCols: 3, maxCols: 6, defaultCols: 4, minRegularCols: 4, maxRows: 2 },
-  { kind: "shoppingList", group: "lists", label: marker("Shopping list"), minCols: 2, maxCols: 3, defaultCols: 2, minRegularCols: 2, maxRows: 2 },
-  { kind: "warrantiesEndingSoon", group: "lists", label: marker("Warranties ending soon"), minCols: 2, maxCols: 6, defaultCols: 3, minRegularCols: 4, maxRows: 2 },
+  { kind: "tag", group: "tags", label: marker("Tag"), minCols: 1, maxCols: 2, defaultCols: 1, minRegularCols: 1, minRows: 2, maxRows: TILE_MAX_ROWS, defaultRows: 2 },
+  { kind: "categories", group: "charts", label: marker("Spending by category"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, minRows: 6, maxRows: MAX_ROWS, defaultRows: 6 },
+  { kind: "trend", group: "charts", label: marker("Spending by month"), minCols: 3, maxCols: 6, defaultCols: 3, minRegularCols: 4, minRows: 6, maxRows: MAX_ROWS, defaultRows: 6 },
+  { kind: "recentReceipts", group: "lists", label: marker("Recent receipts"), minCols: 3, maxCols: 6, defaultCols: 4, minRegularCols: 4, minRows: 4, maxRows: MAX_ROWS, defaultRows: 5 },
+  { kind: "shoppingList", group: "lists", label: marker("Shopping list"), minCols: 2, maxCols: 3, defaultCols: 2, minRegularCols: 2, minRows: 5, maxRows: MAX_ROWS, defaultRows: 5 },
+  { kind: "warrantiesEndingSoon", group: "lists", label: marker("Warranties ending soon"), minCols: 2, maxCols: 6, defaultCols: 3, minRegularCols: 4, minRows: 3, maxRows: MAX_ROWS, defaultRows: 3 },
 ];
 
 const TAG_PREFIX = "tag:";
@@ -93,8 +116,9 @@ export interface PanelLayout {
   visible: boolean;
   /** Width in the wide grid's columns. */
   cols: number;
+  /** Height in the wide grid's rows. */
   rows: number;
-  /** Where the panel sits in the wide grid (0-based column and row), once it has been placed by hand. Unplaced panels flow. */
+  /** Where the panel's top left corner sits in the wide grid (0-based column and row), once it has been placed by hand. Unplaced panels flow. */
   x?: number;
   y?: number;
 }
@@ -107,25 +131,28 @@ export interface DashboardLayout {
   compactOrder?: string[];
 }
 
-/** A panel as drawn: its id and kind, and its span in the current grid. */
-export interface ResolvedPanel {
+/** A panel's place in a grid: its top left cell (both 0-based), its width in columns and its height in rows. */
+export interface Placement {
   id: string;
-  kind: string;
-  /** Columns in the current size class's grid. */
-  span: number;
-  /** Width and height as saved (wide-grid columns, height step). */
-  cols: number;
-  rows: number;
-  /** Where it is drawn in the current size class's grid: 0-based start column and row. */
   x: number;
   row: number;
+  span: number;
+  height: number;
+}
+
+/** A panel as drawn: its id and kind, and its place in the current size class's grid. */
+export interface ResolvedPanel extends Placement {
+  kind: string;
+  /** Width and height as saved (wide-grid columns and rows). */
+  cols: number;
+  rows: number;
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, Math.round(value)));
 
 function defaultPanel(id: string): PanelLayout | undefined {
   const definition = panelDefinition(id);
-  return definition ? { id, visible: true, cols: definition.defaultCols, rows: 1 } : undefined;
+  return definition ? { id, visible: true, cols: definition.defaultCols, rows: definition.defaultRows } : undefined;
 }
 
 /** Puts a panel the layout does not know yet after the last panel of its group (tags after the KPI tiles). */
@@ -155,22 +182,41 @@ export function defaultLayout(available: string[]): DashboardLayout {
   return { version: DASHBOARD_LAYOUT_VERSION, panels: fillRows(panels) };
 }
 
-/**
- * Packs panels into rows of the wide grid the way the Dashboard draws them (in order, a panel that does not fit starts a
- * new row) and widens the panels of each row, one column at a time, until the row is full or nothing can grow further.
- */
-export function fillRows(panels: PanelLayout[]): PanelLayout[] {
-  const widths = panels.map((panel) => panel.cols);
+/** Packs panels into rows of the wide grid in order (a panel that does not fit starts a new row): the indexes of each row's panels. */
+function flowRows(panels: PanelLayout[]): number[][] {
   const rows: number[][] = [];
   let used = 0;
   panels.forEach((panel, index) => {
-    if (rows.length === 0 || used + widths[index] > GRID_COLUMNS.wide) {
+    if (rows.length === 0 || used + panel.cols > GRID_COLUMNS.wide) {
       rows.push([]);
       used = 0;
     }
     rows[rows.length - 1].push(index);
-    used += widths[index];
+    used += panel.cols;
   });
+  return rows;
+}
+
+/** Makes the panels of each group as tall as the tallest of them, as far as each one's limit allows: a row with no holes under its shorter panels. */
+function levelHeights(panels: PanelLayout[], groups: number[][]): PanelLayout[] {
+  const heights = panels.map((panel) => panel.rows);
+  for (const group of groups) {
+    const tallest = Math.max(...group.map((index) => panels[index].rows));
+    for (const index of group) {
+      heights[index] = Math.min(panelDefinition(panels[index].id)?.maxRows ?? panels[index].rows, tallest);
+    }
+  }
+  return panels.map((panel, index) => ({ ...panel, rows: heights[index] }));
+}
+
+/**
+ * Packs panels into rows of the wide grid (in order, a panel that does not fit starts a new row) and fills each row:
+ * its panels are widened, one column at a time, until the row is full or nothing can grow further, and made as tall
+ * as the tallest of them (a tile beside a chart).
+ */
+export function fillRows(panels: PanelLayout[]): PanelLayout[] {
+  const widths = panels.map((panel) => panel.cols);
+  const rows = flowRows(panels);
 
   for (const row of rows) {
     let room = GRID_COLUMNS.wide - row.reduce((sum, index) => sum + widths[index], 0);
@@ -187,7 +233,10 @@ export function fillRows(panels: PanelLayout[]): PanelLayout[] {
       }
     }
   }
-  return panels.map((panel, index) => ({ ...panel, cols: widths[index] }));
+  return levelHeights(
+    panels.map((panel, index) => ({ ...panel, cols: widths[index] })),
+    rows
+  );
 }
 
 /** Key figures and tag tiles: small tiles, which keep to their own rows apart from charts and lists. */
@@ -207,7 +256,8 @@ export interface PanelRect {
 /**
  * The panel whose place a dragged panel takes when dropped at `point` (any direction, diagonals included): the nearest
  * other panel, by the distance from the point to its box (zero inside it, the box centre breaks ties). Empty space at the
- * end of a row or below the last row resolves to the closest panel, so a drop is never refused.
+ * end of a row or below the last row resolves to the closest panel, so a drop is never refused. For the phone and
+ * tablet views, where panels are in an order; the PC view places by cell (`makeRoom`).
  */
 export function dropTargetAt(rects: PanelRect[], point: { x: number; y: number }, draggedId: string): string | undefined {
   let best: { id: string; edge: number; centre: number } | undefined;
@@ -241,8 +291,8 @@ export function sizeLimitHit(id: string, size: { cols?: number; rows?: number })
   if (size.cols !== undefined && size.cols > definition.maxCols) {
     return { limit: "max-cols", value: definition.maxCols };
   }
-  if (size.rows !== undefined && size.rows < 1) {
-    return { limit: "min-rows", value: 1 };
+  if (size.rows !== undefined && size.rows < definition.minRows) {
+    return { limit: "min-rows", value: definition.minRows };
   }
   if (size.rows !== undefined && size.rows > definition.maxRows) {
     return { limit: "max-rows", value: definition.maxRows };
@@ -250,7 +300,13 @@ export function sizeLimitHit(id: string, size: { cols?: number; rows?: number })
   return undefined;
 }
 
-/** Reads a saved layout; anything unreadable (bad JSON, another version, a wrong shape) is no layout. */
+/** What the taller of version 1's two height steps was, in rows (its 34rem). */
+const VERSION_1_TALL_ROWS = 7;
+
+/**
+ * Reads a saved layout; anything unreadable (bad JSON, an unknown version, a wrong shape) is no layout. A version 1
+ * document is brought to today's: its two height steps become rows, and its whole rows of panels become cells.
+ */
 export function parseLayout(text: string | null | undefined): DashboardLayout | undefined {
   if (!text) {
     return undefined;
@@ -264,12 +320,13 @@ export function parseLayout(text: string | null | undefined): DashboardLayout | 
   }
 
   const candidate = value as Partial<DashboardLayout> | null;
-  if (!candidate || typeof candidate !== "object" || candidate.version !== DASHBOARD_LAYOUT_VERSION || !Array.isArray(candidate.panels)) {
+  if (!candidate || typeof candidate !== "object" || (candidate.version !== 1 && candidate.version !== DASHBOARD_LAYOUT_VERSION) || !Array.isArray(candidate.panels)) {
     return undefined;
   }
+  const older = candidate.version === 1;
 
   const seen = new Set<string>();
-  const panels: PanelLayout[] = [];
+  let panels: PanelLayout[] = [];
   for (const raw of candidate.panels as unknown[]) {
     const panel = raw as Partial<PanelLayout> | null;
     if (!panel || typeof panel.id !== "string" || seen.has(panel.id)) {
@@ -281,14 +338,47 @@ export function parseLayout(text: string | null | undefined): DashboardLayout | 
     const rows = Number(panel.rows);
     const x = Number(panel.x);
     const y = Number(panel.y);
+    // A panel this version does not know keeps its numbers as they are.
+    let height = rows;
+    if (definition && older) {
+      height = rows >= 2 ? clamp(Math.max(definition.defaultRows, VERSION_1_TALL_ROWS), definition.minRows, definition.maxRows) : definition.defaultRows;
+    } else if (definition) {
+      height = clamp(Number.isFinite(rows) ? rows : definition.defaultRows, definition.minRows, definition.maxRows);
+    }
     panels.push({
       id: panel.id,
       visible: panel.visible !== false,
-      // A panel this version does not know keeps its numbers as they are.
       cols: definition ? clamp(Number.isFinite(cols) ? cols : definition.defaultCols, definition.minCols, definition.maxCols) : cols,
-      rows: definition ? clamp(Number.isFinite(rows) ? rows : 1, 1, definition.maxRows) : rows,
+      rows: height,
       ...(panel.x !== undefined && panel.y !== undefined && Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0 ? { x, y } : {}),
     });
+  }
+
+  if (older) {
+    // The panels of a row stretched to the tallest of them, and a row of panels was one number: the panels of a row
+    // get one height, and each row starts where the rows before it end.
+    const shown = (panel: PanelLayout) => panel.visible && !!panelDefinition(panel.id);
+    const index = new Map(panels.map((panel, position) => [panel.id, position]));
+    const placed = panels.filter((panel) => panel.y !== undefined && shown(panel));
+    const ranks = [...new Set(placed.map((panel) => panel.y as number))].sort((a, b) => a - b);
+    if (ranks.length > 0) {
+      panels = levelHeights(
+        panels,
+        ranks.map((rank) => placed.filter((panel) => panel.y === rank).map((panel) => index.get(panel.id) as number))
+      );
+      const tops = new Map<number, number>();
+      let top = 0;
+      for (const rank of ranks) {
+        tops.set(rank, top);
+        top += Math.max(...panels.filter((panel) => panel.y === rank && shown(panel)).map((panel) => panel.rows));
+      }
+      panels = panels.map((panel) => (panel.y !== undefined && tops.has(panel.y) ? { ...panel, y: tops.get(panel.y) } : panel));
+    } else {
+      // Never arranged in the PC view: the panels flow, so their rows are the ones they pack into.
+      const flowing = panels.filter(shown);
+      const levelled = levelHeights(flowing, flowRows(flowing));
+      panels = panels.map((panel) => levelled.find((candidate) => candidate.id === panel.id) ?? panel);
+    }
   }
 
   const compactOrder = Array.isArray(candidate.compactOrder)
@@ -346,21 +436,36 @@ export function spanFor(panel: PanelLayout, sizeClass: SizeClass): number {
   return clamp(panel.cols, definition.minRegularCols, GRID_COLUMNS.regular);
 }
 
-/** A panel's place in a grid: start column and row, both 0-based. */
-export interface Placement {
-  id: string;
-  x: number;
-  row: number;
-  span: number;
+const overlaps = (a: Placement, b: Placement) => a.x < b.x + b.span && b.x < a.x + a.span && a.row < b.row + b.height && b.row < a.row + a.height;
+
+/**
+ * Lets every panel float up as far as it can go, top row first, as a dashboard editor does: no panel hangs below free
+ * space of its own width. Panels that were given the same cells are moved apart on the way.
+ */
+export function compact(placements: Placement[]): Placement[] {
+  const settled: Placement[] = [];
+  for (const item of [...placements].sort((a, b) => a.row - b.row || a.x - b.x)) {
+    const fits = (row: number) => settled.every((other) => !overlaps({ ...item, row }, other));
+    let row = Math.max(0, item.row);
+    while (!fits(row)) {
+      row++;
+    }
+    while (row > 0 && fits(row - 1)) {
+      row--;
+    }
+    settled.push({ ...item, row });
+  }
+  return placements.map((place) => settled.find((item) => item.id === place.id) as Placement);
 }
 
 /**
- * Places panels in a grid of `columns` columns, in order. A panel with a saved cell (`x`, `y`, wide grid only) takes it when the
- * cells are free; every other panel, and one whose cell is taken, goes to the first free spot after the previous one. Rows
- * are numbered without gaps, so an empty row leaves no space.
+ * Places panels in a grid of `columns` columns, in order. With `usePlaces` (the PC grid) a panel with a saved cell takes
+ * it when the cells are free, every other panel goes to the first free spot after the previous one, heights count, and
+ * at the end everything floats up (`compact`). Without it (phone and tablet) panels flow in whole rows, one row each,
+ * numbered without gaps: their heights are their content's there.
  */
 export function placePanels(
-  panels: { id: string; span: number; x?: number; y?: number }[],
+  panels: { id: string; span: number; height?: number; x?: number; y?: number }[],
   columns: number,
   usePlaces: boolean
 ): Placement[] {
@@ -371,41 +476,54 @@ export function placePanels(
     }
     return taken.get(row) as boolean[];
   };
-  const isFree = (row: number, x: number, span: number) => {
-    const cells = rowCells(row);
-    return x >= 0 && x + span <= columns && cells.slice(x, x + span).every((cell) => !cell);
+  const isFree = (row: number, x: number, span: number, height: number) => {
+    if (x < 0 || x + span > columns) {
+      return false;
+    }
+    for (let line = row; line < row + height; line++) {
+      if (!rowCells(line).slice(x, x + span).every((cell) => !cell)) {
+        return false;
+      }
+    }
+    return true;
   };
 
   let cursorRow = 0;
   let cursorX = 0;
-  const raw: { id: string; x: number; y: number; span: number }[] = [];
+  const placed: Placement[] = [];
   for (const panel of panels) {
     const span = Math.min(panel.span, columns);
+    const height = usePlaces ? Math.max(1, panel.height ?? 1) : 1;
     let spot: { x: number; y: number } | undefined;
-    if (usePlaces && panel.x !== undefined && panel.y !== undefined && isFree(panel.y, panel.x, span)) {
+    if (usePlaces && panel.x !== undefined && panel.y !== undefined && isFree(panel.y, panel.x, span, height)) {
       spot = { x: panel.x, y: panel.y };
     }
     for (let row = cursorRow; !spot; row++) {
       for (let x = row === cursorRow ? cursorX : 0; x + span <= columns; x++) {
-        if (isFree(row, x, span)) {
+        if (isFree(row, x, span, height)) {
           spot = { x, y: row };
           break;
         }
       }
     }
-    rowCells(spot.y).fill(true, spot.x, spot.x + span);
-    raw.push({ id: panel.id, x: spot.x, y: spot.y, span });
+    for (let line = spot.y; line < spot.y + height; line++) {
+      rowCells(line).fill(true, spot.x, spot.x + span);
+    }
+    placed.push({ id: panel.id, x: spot.x, row: spot.y, span, height });
     if (spot.y > cursorRow || (spot.y === cursorRow && spot.x + span > cursorX)) {
       cursorRow = spot.y;
       cursorX = spot.x + span;
     }
   }
 
-  const rowRank = new Map([...new Set(raw.map((item) => item.y))].sort((a, b) => a - b).map((y, rank) => [y, rank]));
-  return raw.map((item) => ({ id: item.id, x: item.x, row: rowRank.get(item.y) as number, span: item.span }));
+  if (usePlaces) {
+    return compact(placed);
+  }
+  const rowRank = new Map([...new Set(placed.map((item) => item.row))].sort((a, b) => a - b).map((row, rank) => [row, rank]));
+  return placed.map((item) => ({ ...item, row: rowRank.get(item.row) as number }));
 }
 
-/** What the Dashboard draws: the visible, available panels in the size class's order with their spans and places. */
+/** What the Dashboard draws: the visible, available panels in the size class's order with their places. */
 export function resolveLayout(saved: DashboardLayout | undefined, available: string[], sizeClass: SizeClass): ResolvedPanel[] {
   const layout = completeLayout(saved, available);
   const order = sizeClass === "compact" ? compactOrder(layout) : layout.panels.map((panel) => panel.id);
@@ -413,19 +531,11 @@ export function resolveLayout(saved: DashboardLayout | undefined, available: str
     .map((id) => layout.panels.find((panel) => panel.id === id) as PanelLayout)
     .filter((panel) => panel.visible && available.includes(panel.id) && !!panelDefinition(panel.id));
   const placed = placePanels(
-    shown.map((panel) => ({ id: panel.id, span: spanFor(panel, sizeClass), x: panel.x, y: panel.y })),
+    shown.map((panel) => ({ id: panel.id, span: spanFor(panel, sizeClass), height: panel.rows, x: panel.x, y: panel.y })),
     GRID_COLUMNS[sizeClass],
     sizeClass === "wide"
   );
-  return shown.map((panel, index) => ({
-    id: panel.id,
-    kind: panelKind(panel.id),
-    span: placed[index].span,
-    cols: panel.cols,
-    rows: panel.rows,
-    x: placed[index].x,
-    row: placed[index].row,
-  }));
+  return shown.map((panel, index) => ({ ...placed[index], kind: panelKind(panel.id), cols: panel.cols, rows: panel.rows }));
 }
 
 /** Saves where every shown panel is now, so editing one panel never makes the others move. */
@@ -442,162 +552,160 @@ export function pinPlacements(layout: DashboardLayout, placements: Placement[]):
 
 export interface RoomOptions {
   columns?: number;
+  /** The panel's new height in rows (a resize); without it the height it has. */
+  height?: number;
   /**
-   * Where the middle of the panel is, in columns. The panels of the row whose own middle lies before it end up on its
+   * Where the middle of the panel is, in columns. The panels of its row whose own middle lies before it end up on its
    * left, the others on its right. Without it: the middle of the cell the panel takes.
    */
   centre?: number;
-  /** A resize: the panel stays exactly at `x` and only the others give way. */
+  /** A resize: the panel stays exactly where it is and only the others give way. */
   fixed?: boolean;
-  /** While a panel is dragged: the row it came from keeps its number even when it is left empty, so nothing jumps under the pointer. */
-  keepOriginRow?: boolean;
-}
-
-export interface RoomResult {
-  /** Every panel's place afterwards, in the order they were given; rows are numbered without gaps. */
-  placements: Placement[];
-  /** The panels that left their row to make room. */
-  displaced: string[];
-  /** The number of the row the panel came from, when `keepOriginRow` kept it. */
-  originRow?: number;
 }
 
 const spanSum = (panels: Placement[]) => panels.reduce((total, panel) => total + panel.span, 0);
 
-/** The longest prefix of `panels` that fits in `room` columns. */
-function fitting(panels: Placement[], room: number): Placement[] {
-  let used = 0;
-  const kept: Placement[] = [];
-  for (const panel of panels) {
-    if (used + panel.span > room) {
-      break;
-    }
-    used += panel.span;
-    kept.push(panel);
-  }
-  return kept;
-}
-
 /**
- * Puts panel `id`, `span` columns wide, at cell (`row`, `x`) of the grid and moves the others out of its way, as a
- * dashboard editor does. The panel always gets the cell it was dropped on; what happens to the rest of that row:
+ * Puts panel `id` at cell (`row`, `x`) of the grid, `span` columns wide, and moves the others out of its way, as a
+ * dashboard editor does. The panel gets the cell it was put on; for the panels it lands on, the first rule that
+ * applies:
  *
- * 1. The cells are free: nothing else moves.
- * 2. The row has room for everyone: its panels slide aside, the ones before the panel to the left, the others to the
- *    right, each as little as needed. Moving a panel along its own row is always this, so two neighbours change places.
- * 3. The row is too full and the panel came from another row: the panels under it take the place it came from, when
- *    they fit there (a swap).
- * 4. Otherwise the panels that no longer fit drop into a new row right below, in their order.
+ * 1. They are its neighbours in a row of panels (same top row, same height) and that row has room for everyone: they
+ *    slide aside, the ones before the panel to the left, the others to the right, each as little as needed. Moving a
+ *    tile along its row is always this, so two neighbours change places.
+ * 2. They fit the place the panel came from: they go there (a swap).
+ * 3. A panel fits right above the moved one: it goes there (the two change places top to bottom).
+ * 4. Otherwise they are pushed down below it, and whatever they land on is pushed down in turn.
  *
- * Panels of other rows keep their cells. Below the last row the panel opens a new last row.
+ * Then every panel floats up as far as it can (`compact`), the moved one included: a panel put into empty space comes
+ * to rest under the panels above it. Returns every panel's place, in the order they were given.
  */
-export function makeRoom(placements: Placement[], id: string, span: number, row: number, x: number, options: RoomOptions = {}): RoomResult {
+export function makeRoom(placements: Placement[], id: string, span: number, row: number, x: number, options: RoomOptions = {}): Placement[] {
   const columns = options.columns ?? GRID_COLUMNS.wide;
   const origin = placements.find((place) => place.id === id);
   const others = placements.filter((place) => place.id !== id).map((place) => ({ ...place }));
   const width = Math.min(Math.max(1, Math.round(span)), columns);
-  const start = clamp(x, 0, columns - width);
-  const keptOrigin = options.keepOriginRow && origin ? origin.row : -1;
-  const rows = Math.max(-1, keptOrigin, ...others.map((place) => place.row)) + 1;
-  const targetRow = Math.min(Math.max(0, Math.round(row)), rows);
-  const displaced: string[] = [];
-  let ownX = start;
+  const own: Placement = {
+    id,
+    x: clamp(x, 0, columns - width),
+    row: Math.max(0, Math.round(row)),
+    span: width,
+    height: Math.max(1, Math.round(options.height ?? origin?.height ?? 1)),
+  };
+  const hit = others.filter((place) => overlaps(own, place)).sort((a, b) => a.row - b.row || a.x - b.x);
 
-  const inRow = others.filter((place) => place.row === targetRow).sort((a, b) => a.x - b.x);
-  const taken = inRow.some((place) => place.x < start + width && place.x + place.span > start);
-  if (taken) {
-    const centre = options.centre ?? start + width / 2;
-    const movedAlongRow = origin && origin.row === targetRow ? origin : undefined;
-    const isBefore = (place: Placement) => {
-      const middle = place.x + place.span / 2;
-      // A tie is a panel exactly under the moved one: it steps back to where the moved panel came from.
-      return middle === centre ? !!movedAlongRow && movedAlongRow.x < place.x : middle < centre;
-    };
-    const before = inRow.filter(isBefore);
-    const after = inRow.filter((place) => !isBefore(place));
-    const slideLeft = (panels: Placement[], edge: number) => {
-      let limit = edge;
-      for (const place of [...panels].reverse()) {
-        place.x = Math.min(place.x, limit - place.span);
-        limit = place.x;
-      }
-    };
-    const slideRight = (panels: Placement[], edge: number) => {
-      let limit = edge;
-      for (const place of panels) {
-        place.x = Math.max(place.x, limit);
-        limit = place.x + place.span;
-      }
-    };
-
-    const everyoneFits = spanSum(inRow) + width <= columns;
-    const fitsWhereItIs = spanSum(before) <= start && spanSum(after) <= columns - start - width;
-    if (everyoneFits && (!options.fixed || fitsWhereItIs)) {
-      ownX = options.fixed ? start : Math.min(Math.max(start, spanSum(before)), columns - width - spanSum(after));
-      slideLeft(before, ownX);
-      slideRight(after, ownX + width);
-    } else {
-      const under = inRow.filter((place) => place.x < start + width && place.x + place.span > start);
-      const room = origin && origin.row !== targetRow && !options.fixed ? freeRun(others, origin, columns) : undefined;
-      if (room && spanSum(under) <= room.to - room.from) {
-        let at = Math.min(Math.max(origin!.x, room.from), room.to - spanSum(under));
-        for (const place of under) {
-          place.row = origin!.row;
-          place.x = at;
-          at += place.span;
-          displaced.push(place.id);
-        }
+  if (hit.length > 0 && !slideAlongRow(own, others, hit, origin, columns, options) && !swapWithOrigin(own, hit, origin, options)) {
+    for (const place of hit) {
+      const above = { ...place, row: own.row - place.height };
+      if (!options.fixed && above.row >= 0 && others.every((other) => other === place || !overlaps(above, other))) {
+        place.row = above.row;
       } else {
-        const keptBefore = fitting(before, start);
-        const keptAfter = fitting(after, columns - start - width);
-        slideLeft(keptBefore, start);
-        slideRight(keptAfter, start + width);
-        let at = 0;
-        for (const place of [...before.slice(keptBefore.length), ...after.slice(keptAfter.length)]) {
-          // Half a row: after this row and before the next one, until the rows are numbered again below.
-          place.row = targetRow + 0.5;
-          place.x = at;
-          at += place.span;
-          displaced.push(place.id);
-        }
+        pushDown(place, own.row + own.height, others, 0);
       }
     }
   }
 
-  const own: Placement = { id, x: ownX, row: targetRow, span: width };
-  const all = [...others, own];
-  const rowKeys = new Set(all.map((place) => place.row));
-  if (keptOrigin >= 0) {
-    rowKeys.add(keptOrigin);
-  }
-  const rank = new Map([...rowKeys].sort((a, b) => a - b).map((key, index) => [key, index]));
-  const byId = new Map(all.map((place) => [place.id, { ...place, row: rank.get(place.row) as number }]));
-  const order = placements.some((place) => place.id === id) ? placements.map((place) => place.id) : [...placements.map((place) => place.id), id];
-
-  return {
-    placements: order.map((panelId) => byId.get(panelId) as Placement),
-    displaced,
-    ...(keptOrigin >= 0 ? { originRow: rank.get(keptOrigin) } : {}),
-  };
+  const settled = new Map(compact([...others, own]).map((place) => [place.id, place]));
+  const order = origin ? placements.map((place) => place.id) : [...placements.map((place) => place.id), id];
+  return order.map((panelId) => settled.get(panelId) as Placement);
 }
 
-/** The free cells around the place a panel left, in its row: from the first free column to the one after the last. */
-function freeRun(others: Placement[], origin: Placement, columns: number): { from: number; to: number } {
-  const taken = new Array(columns).fill(false);
+/** Rule 1 of `makeRoom`. Moves the row's panels and the panel itself (`own.x`), and says whether it applied. */
+function slideAlongRow(own: Placement, others: Placement[], hit: Placement[], origin: Placement | undefined, columns: number, options: RoomOptions): boolean {
+  const inBand = (place: Placement) => place.row === own.row && place.height === own.height;
+  if (!hit.every(inBand)) {
+    return false;
+  }
+
+  // The stretch of the row that is these panels' own: up to the grid's edges, or to a taller or lower panel that reaches into it.
+  const blocked = new Array(columns).fill(false);
   for (const place of others) {
-    if (place.row === origin.row) {
-      taken.fill(true, place.x, place.x + place.span);
+    if (!inBand(place) && place.row < own.row + own.height && own.row < place.row + place.height) {
+      blocked.fill(true, place.x, place.x + place.span);
     }
   }
-  let from = origin.x;
-  while (from > 0 && !taken[from - 1]) {
+  let from = own.x;
+  while (from > 0 && !blocked[from - 1]) {
     from--;
   }
-  let to = origin.x + origin.span;
-  while (to < columns && !taken[to]) {
+  let to = own.x + own.span;
+  while (to < columns && !blocked[to]) {
     to++;
   }
-  return { from, to };
+
+  const band = others.filter((place) => inBand(place) && place.x >= from && place.x + place.span <= to).sort((a, b) => a.x - b.x);
+  const centre = options.centre ?? own.x + own.span / 2;
+  const movedAlongRow = origin && origin.row === own.row && origin.height === own.height ? origin : undefined;
+  const isBefore = (place: Placement) => {
+    const middle = place.x + place.span / 2;
+    // A panel whose middle the moved one covers steps back to the side the moved panel came from, so a wide panel
+    // changes places with a narrow neighbour as well as the other way round. A caller that names the centre decides.
+    const under = options.centre === undefined ? middle > own.x && middle < own.x + own.span : middle === centre;
+    return under && movedAlongRow ? movedAlongRow.x < place.x : middle < centre;
+  };
+  const before = band.filter(isBefore);
+  const after = band.filter((place) => !isBefore(place));
+
+  const everyoneFits = spanSum(band) + own.span <= to - from;
+  const fitsWhereItIs = from + spanSum(before) <= own.x && own.x + own.span + spanSum(after) <= to;
+  if (!everyoneFits || (options.fixed && !fitsWhereItIs)) {
+    return false;
+  }
+
+  if (!options.fixed) {
+    own.x = Math.min(Math.max(own.x, from + spanSum(before)), to - own.span - spanSum(after));
+  }
+  let limit = own.x;
+  for (const place of [...before].reverse()) {
+    place.x = Math.min(place.x, limit - place.span);
+    limit = place.x;
+  }
+  limit = own.x + own.span;
+  for (const place of after) {
+    place.x = Math.max(place.x, limit);
+    limit = place.x + place.span;
+  }
+  return true;
+}
+
+/**
+ * Rule 2 of `makeRoom`: the panels the moved one lands on take the place it came from, side by side, when they fit
+ * there: in the corner of that place that the moved panel no longer covers (it may have moved by less than its size).
+ */
+function swapWithOrigin(own: Placement, hit: Placement[], origin: Placement | undefined, options: RoomOptions): boolean {
+  const width = spanSum(hit);
+  const tallest = Math.max(...hit.map((place) => place.height));
+  if (!origin || options.fixed || width > origin.span || tallest > origin.height) {
+    return false;
+  }
+  for (const row of [origin.row, origin.row + origin.height - tallest]) {
+    for (const x of [origin.x, origin.x + origin.span - width]) {
+      if (overlaps({ id: "", x, row, span: width, height: tallest }, own)) {
+        continue;
+      }
+      let at = x;
+      for (const place of [...hit].sort((a, b) => a.x - b.x)) {
+        place.row = row;
+        place.x = at;
+        at += place.span;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Rule 4 of `makeRoom`: moves a panel down to `row` and pushes whatever it then lands on below it, and so on. */
+function pushDown(place: Placement, row: number, others: Placement[], depth: number): void {
+  place.row = row;
+  if (depth > others.length) {
+    return; // `compact` moves apart whatever is left overlapping.
+  }
+  for (const other of others) {
+    if (other !== place && overlaps(place, other)) {
+      pushDown(other, place.row + place.height, others, depth + 1);
+    }
+  }
 }
 
 /** Saves a whole arrangement of the wide grid: every panel in it pinned to its cell, and the order following the grid. */
@@ -611,9 +719,12 @@ export function applyPlacements(layout: DashboardLayout, placements: Placement[]
   return { ...layout, panels: [...placed, ...layout.panels.filter((panel) => !place.has(panel.id))] };
 }
 
-/** Whether two arrangements put every panel in the same cell. */
+/** Whether two arrangements put every panel in the same cells. */
 export function samePlacements(a: Placement[], b: Placement[]): boolean {
-  return a.length === b.length && a.every((place) => b.some((other) => other.id === place.id && other.x === place.x && other.row === place.row && other.span === place.span));
+  return (
+    a.length === b.length &&
+    a.every((place) => b.some((other) => other.id === place.id && other.x === place.x && other.row === place.row && other.span === place.span && other.height === place.height))
+  );
 }
 
 /** Shows or hides a panel; a panel switched on that the layout lacks joins it next to its group. */
@@ -625,7 +736,7 @@ export function setVisible(layout: DashboardLayout, id: string, visible: boolean
   return { ...layout, panels: layout.panels.map((panel) => (panel.id === id ? { ...panel, visible } : panel)) };
 }
 
-/** Sets a panel's width (wide-grid columns) and height step, within its limits. */
+/** Sets a panel's width (wide-grid columns) and height (rows), within its limits. */
 export function resizePanel(layout: DashboardLayout, id: string, size: { cols?: number; rows?: number }): DashboardLayout {
   const definition = panelDefinition(id);
   if (!definition) {
@@ -638,7 +749,7 @@ export function resizePanel(layout: DashboardLayout, id: string, size: { cols?: 
         ? {
             ...panel,
             cols: size.cols === undefined ? panel.cols : clamp(size.cols, definition.minCols, definition.maxCols),
-            rows: size.rows === undefined ? panel.rows : clamp(size.rows, 1, definition.maxRows),
+            rows: size.rows === undefined ? panel.rows : clamp(size.rows, definition.minRows, definition.maxRows),
           }
         : panel
     ),

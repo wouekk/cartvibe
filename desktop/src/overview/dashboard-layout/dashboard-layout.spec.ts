@@ -12,7 +12,9 @@ import {
   sizeClassFor,
   spanFor,
   applyPlacements,
+  compact,
   makeRoom,
+  panelHeight,
   Placement,
   samePlacements,
   dropTargetAt,
@@ -99,13 +101,13 @@ describe("dashboard layout", () => {
   });
 
   describe("placePanels", () => {
-    const item = (id: string, span: number, x?: number, y?: number) => ({ id, span, x, y });
+    const item = (id: string, span: number, x?: number, y?: number, height?: number) => ({ id, span, x, y, height });
 
     it("flows unplaced panels row by row", () => {
       expect(placePanels([item("a", 4), item("b", 2), item("c", 3)], 6, true)).toEqual([
-        { id: "a", x: 0, row: 0, span: 4 },
-        { id: "b", x: 4, row: 0, span: 2 },
-        { id: "c", x: 0, row: 1, span: 3 },
+        { id: "a", x: 0, row: 0, span: 4, height: 1 },
+        { id: "b", x: 4, row: 0, span: 2, height: 1 },
+        { id: "c", x: 0, row: 1, span: 3, height: 1 },
       ]);
     });
 
@@ -113,142 +115,175 @@ describe("dashboard layout", () => {
       expect(placePanels([item("a", 2, 0, 0), item("b", 2, 4, 0)], 6, true).map((place) => place.x)).toEqual([0, 4]);
     });
 
-    it("sends a panel whose cell is taken to the next free spot, and numbers the rows without gaps", () => {
+    it("sends a panel whose cell is taken to the next free spot, and lets a panel saved far below float up", () => {
       const placed = placePanels([item("a", 3, 0, 0), item("b", 3, 1, 0), item("c", 2, 0, 5)], 6, true);
       expect(placed[1]).toMatchObject({ x: 3, row: 0 });
       expect(placed[2]).toMatchObject({ x: 0, row: 1 });
     });
 
-    it("ignores saved cells outside the wide grid", () => {
-      expect(placePanels([item("a", 1, 3, 0), item("b", 1, 5, 0)], 4, false).map((place) => place.x)).toEqual([0, 1]);
+    it("counts heights: the next panel goes beside a taller one, or below the shorter one", () => {
+      const placed = placePanels([item("tall", 3, undefined, undefined, 4), item("b", 3, undefined, undefined, 2), item("c", 3, undefined, undefined, 2)], 6, true);
+      expect(placed).toEqual([
+        { id: "tall", x: 0, row: 0, span: 3, height: 4 },
+        { id: "b", x: 3, row: 0, span: 3, height: 2 },
+        { id: "c", x: 3, row: 2, span: 3, height: 2 },
+      ]);
+    });
+
+    it("ignores saved cells and heights outside the wide grid", () => {
+      const placed = placePanels([item("a", 1, 3, 0, 4), item("b", 1, 5, 0, 2)], 4, false);
+      expect(placed.map((place) => place.x)).toEqual([0, 1]);
+      expect(placed.map((place) => place.height)).toEqual([1, 1]);
+    });
+  });
+
+  describe("compact", () => {
+    const at = (id: string, x: number, row: number, span: number, height = 1): Placement => ({ id, x, row, span, height });
+    const cells = (placements: Placement[]) => Object.fromEntries(placements.map((place) => [place.id, `${place.row}:${place.x}`]));
+
+    it("lets every panel float up as far as it can, and no further than the panel above it", () => {
+      expect(cells(compact([at("a", 0, 5, 3, 2), at("b", 3, 1, 3), at("c", 0, 9, 2)]))).toEqual({ a: "0:0", b: "0:3", c: "2:0" });
+    });
+
+    it("moves apart panels that were given the same cells", () => {
+      expect(cells(compact([at("x", 0, 0, 3, 2), at("y", 0, 1, 3, 2)]))).toEqual({ x: "0:0", y: "2:0" });
     });
   });
 
   describe("making room for a moved panel", () => {
-    const grid: Placement[] = [
-      { id: "a", x: 0, row: 0, span: 2 },
-      { id: "b", x: 2, row: 0, span: 2 },
-      { id: "c", x: 0, row: 1, span: 4 },
-    ];
-    const tiles: Placement[] = [0, 1, 2, 3, 4, 5].map((x) => ({ id: `t${x}`, x, row: 0, span: 1 }));
+    const at = (id: string, x: number, row: number, span: number, height = 1): Placement => ({ id, x, row, span, height });
+    const grid: Placement[] = [at("a", 0, 0, 2), at("b", 2, 0, 2), at("c", 0, 1, 4)];
+    const tiles: Placement[] = [0, 1, 2, 3, 4, 5].map((x) => at(`t${x}`, x, 0, 1));
     const cells = (placements: Placement[]) => Object.fromEntries(placements.map((place) => [place.id, `${place.row}:${place.x}`]));
 
     it("takes a free cell and moves nothing else, the empty last column included", () => {
-      const room = makeRoom(grid, "a", 2, 0, 5);
-
-      expect(cells(room.placements)).toEqual({ a: "0:4", b: "0:2", c: "1:0" });
-      expect(room.displaced).toEqual([]);
+      expect(cells(makeRoom(grid, "a", 2, 0, 5))).toEqual({ a: "0:4", b: "0:2", c: "1:0" });
     });
 
     it("lets two neighbours change places, whichever of them is moved", () => {
-      expect(cells(makeRoom(grid, "a", 2, 0, 2).placements)).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
-      expect(cells(makeRoom(grid, "b", 2, 0, 0).placements)).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
+      expect(cells(makeRoom(grid, "a", 2, 0, 2))).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
+      expect(cells(makeRoom(grid, "b", 2, 0, 0))).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
+    });
+
+    it("lets a wide panel change places with a narrow neighbour once it covers the neighbour's middle", () => {
+      const row: Placement[] = [at("tile", 0, 0, 2, 6), at("chart", 2, 0, 4, 6)];
+
+      // One column to the left is not enough; two are.
+      expect(cells(makeRoom(row, "chart", 4, 0, 1))).toEqual({ tile: "0:0", chart: "0:2" });
+      expect(cells(makeRoom(row, "chart", 4, 0, 0))).toEqual({ tile: "0:4", chart: "0:0" });
+      // And the tile over the chart: it has to pass the chart's middle.
+      expect(cells(makeRoom(row, "tile", 2, 0, 2))).toEqual({ tile: "0:0", chart: "0:2" });
+      expect(cells(makeRoom(row, "tile", 2, 0, 3))).toEqual({ tile: "0:4", chart: "0:0" });
     });
 
     it("slides a full row of tiles aside when one of them moves along it", () => {
-      const moved = makeRoom(tiles, "t0", 1, 0, 3).placements;
+      const moved = makeRoom(tiles, "t0", 1, 0, 3);
 
       expect([...moved].sort((a, b) => a.x - b.x).map((place) => place.id)).toEqual(["t1", "t2", "t3", "t0", "t4", "t5"]);
       expect(moved.every((place) => place.row === 0)).toBe(true);
     });
 
     it("moves the neighbours only as far as needed when the row has room", () => {
-      const loose: Placement[] = [
-        { id: "a", x: 0, row: 0, span: 1 },
-        { id: "b", x: 3, row: 0, span: 1 },
-        { id: "c", x: 0, row: 1, span: 2 },
-      ];
+      const loose: Placement[] = [at("a", 0, 0, 1), at("b", 3, 0, 1), at("c", 0, 1, 2)];
 
       // c lands on b: b steps one column to the right, a does not move.
-      expect(cells(makeRoom(loose, "c", 2, 0, 2).placements)).toEqual({ a: "0:0", b: "0:4", c: "0:2" });
+      expect(cells(makeRoom(loose, "c", 2, 0, 2))).toEqual({ a: "0:0", b: "0:4", c: "0:2" });
+    });
+
+    it("slides only within its own stretch of the row: a taller panel beside it is a wall", () => {
+      const walled: Placement[] = [at("t0", 0, 0, 1, 2), at("t1", 1, 0, 1, 2), at("tall", 2, 0, 2, 6), at("t4", 4, 0, 1, 2)];
+      const moved = makeRoom(walled, "t0", 1, 0, 1);
+
+      expect(cells(moved)).toEqual({ t0: "0:1", t1: "0:0", tall: "0:2", t4: "0:4" });
     });
 
     it("swaps with the panels under it when they fit where it came from", () => {
-      const charts: Placement[] = [
-        { id: "A", x: 0, row: 0, span: 3 },
-        { id: "D", x: 3, row: 0, span: 3 },
-        { id: "B", x: 0, row: 1, span: 3 },
-        { id: "C", x: 3, row: 1, span: 3 },
-      ];
-      const room = makeRoom(charts, "A", 3, 1, 0);
+      const charts: Placement[] = [at("A", 0, 0, 3), at("D", 3, 0, 3), at("B", 0, 1, 3), at("C", 3, 1, 3)];
 
-      expect(cells(room.placements)).toEqual({ A: "1:0", D: "0:3", B: "0:0", C: "1:3" });
-      expect(room.displaced).toEqual(["B"]);
+      expect(cells(makeRoom(charts, "A", 3, 1, 0))).toEqual({ A: "1:0", D: "0:3", B: "0:0", C: "1:3" });
     });
 
     it("swaps a wide panel with the whole row of tiles it is dropped on", () => {
-      const withChart: Placement[] = [...tiles, { id: "wide", x: 0, row: 1, span: 6 }];
-      const moved = makeRoom(withChart, "wide", 6, 0, 0).placements;
+      const moved = makeRoom([...tiles, at("wide", 0, 1, 6)], "wide", 6, 0, 0);
 
       expect(moved.find((place) => place.id === "wide")).toMatchObject({ row: 0, x: 0 });
       expect(moved.filter((place) => place.id !== "wide").every((place) => place.row === 1)).toBe(true);
       expect(moved.filter((place) => place.id !== "wide").map((place) => place.x)).toEqual([0, 1, 2, 3, 4, 5]);
     });
 
-    it("drops what no longer fits into a new row right below, in order, when a swap has no room", () => {
-      const full: Placement[] = [
-        { id: "a", x: 0, row: 0, span: 2 },
-        { id: "b", x: 2, row: 0, span: 2 },
-        { id: "e", x: 4, row: 0, span: 2 },
-        { id: "c", x: 0, row: 1, span: 4 },
-        { id: "d", x: 4, row: 1, span: 2 },
-      ];
-      const room = makeRoom(full, "d", 2, 0, 1);
+    it("changes places top to bottom with a panel of another height, either way round", () => {
+      const stack: Placement[] = [at("low", 0, 0, 3, 2), at("tall", 0, 2, 3, 4)];
 
-      // d takes the cell; b slides right beside it; a and e drop into a row of their own; c's row moves down.
-      expect(cells(room.placements)).toEqual({ d: "0:1", b: "0:3", a: "1:0", e: "1:2", c: "2:0" });
-      expect(room.displaced).toEqual(["a", "e"]);
+      // The low panel is put under the tall one: the tall one goes up into the place it left.
+      expect(cells(makeRoom(stack, "low", 3, 4, 0))).toEqual({ low: "4:0", tall: "0:0" });
+      // The tall panel is put on the low one: the low one takes the end of the place the tall one left.
+      expect(cells(makeRoom(stack, "tall", 3, 0, 0))).toEqual({ low: "4:0", tall: "0:0" });
     });
 
-    it("opens a new last row below the grid, and numbers the rows without gaps", () => {
-      expect(cells(makeRoom(grid, "a", 2, 9, 0).placements)).toEqual({ a: "2:0", b: "0:2", c: "1:0" });
-      // c was alone in its row: the row it left closes.
-      expect(cells(makeRoom(grid, "c", 2, 0, 4).placements)).toEqual({ a: "0:0", b: "0:2", c: "0:4" });
+    it("pushes down what it lands on when there is nowhere else for it, and what that lands on in turn", () => {
+      const full: Placement[] = [at("a", 0, 0, 2), at("b", 2, 0, 2), at("e", 4, 0, 2), at("c", 0, 1, 4), at("d", 4, 1, 2)];
+
+      // d takes the cell; a and b go below it, and c below them.
+      expect(cells(makeRoom(full, "d", 2, 0, 1))).toEqual({ d: "0:1", e: "0:4", a: "1:0", b: "1:2", c: "2:0" });
     });
 
-    it("keeps the row a dragged panel came from while it is dragged, so nothing jumps under the pointer", () => {
-      const lone: Placement[] = [
-        { id: "w", x: 0, row: 0, span: 6 },
-        { id: "c", x: 0, row: 1, span: 4 },
-      ];
-
-      const dragging = makeRoom(lone, "w", 6, 2, 0, { keepOriginRow: true });
-      expect(cells(dragging.placements)).toEqual({ w: "2:0", c: "1:0" });
-      expect(dragging.originRow).toBe(0);
-
-      const dropped = makeRoom(lone, "w", 6, 2, 0);
-      expect(cells(dropped.placements)).toEqual({ w: "1:0", c: "0:0" });
-      expect(dropped.originRow).toBeUndefined();
+    it("floats up: a panel put below the grid rests under the last one, and the place a panel left closes", () => {
+      expect(cells(makeRoom(grid, "a", 2, 9, 0))).toEqual({ a: "2:0", b: "0:2", c: "1:0" });
+      expect(cells(makeRoom(grid, "c", 2, 0, 4))).toEqual({ a: "0:0", b: "0:2", c: "0:4" });
+      // A panel that had the top to itself, put below: the other one comes up and it rests under it.
+      expect(cells(makeRoom([at("w", 0, 0, 6), at("c", 0, 1, 4)], "w", 6, 2, 0))).toEqual({ w: "1:0", c: "0:0" });
     });
 
-    it("widens a panel where it stands: the next one steps aside, or drops below when the row is full", () => {
-      expect(cells(makeRoom(grid, "a", 3, 0, 0, { fixed: true }).placements)).toEqual({ a: "0:0", b: "0:3", c: "1:0" });
+    it("widens a panel where it stands: the next one steps aside, or goes below when the row is full", () => {
+      expect(cells(makeRoom(grid, "a", 3, 0, 0, { fixed: true }))).toEqual({ a: "0:0", b: "0:3", c: "1:0" });
+      expect(cells(makeRoom(grid, "a", 5, 0, 0, { fixed: true }))).toEqual({ a: "0:0", b: "1:2", c: "2:0" });
+    });
 
-      const tooWide = makeRoom(grid, "a", 5, 0, 0, { fixed: true });
-      expect(cells(tooWide.placements)).toEqual({ a: "0:0", b: "1:0", c: "2:0" });
-      expect(tooWide.displaced).toEqual(["b"]);
+    it("makes a panel taller where it stands and pushes down what is under it; shorter, and that floats up again", () => {
+      const columns: Placement[] = [at("a", 0, 0, 3, 2), at("b", 0, 2, 3, 2), at("c", 3, 0, 3, 2)];
+      const taller = makeRoom(columns, "a", 3, 0, 0, { fixed: true, height: 4 });
+
+      expect(cells(taller)).toEqual({ a: "0:0", b: "4:0", c: "0:3" });
+      expect(taller.find((place) => place.id === "a")?.height).toBe(4);
+      expect(cells(makeRoom(taller, "a", 3, 0, 0, { fixed: true, height: 2 }))).toEqual(cells(columns));
     });
 
     it("puts a neighbour on the side the caller names, whatever their widths", () => {
-      const row: Placement[] = [
-        { id: "wide", x: 0, row: 0, span: 3 },
-        { id: "small", x: 3, row: 0, span: 1 },
-      ];
+      const row: Placement[] = [at("wide", 0, 0, 3), at("small", 3, 0, 1)];
 
       // Move right past the small one: it ends up on the left.
-      expect(cells(makeRoom(row, "wide", 3, 0, 1, { centre: 3.51 }).placements)).toEqual({ wide: "0:1", small: "0:0" });
+      expect(cells(makeRoom(row, "wide", 3, 0, 1, { centre: 3.51 }))).toEqual({ wide: "0:1", small: "0:0" });
     });
 
     it("leaves the arrangement alone when the panel is put back where it was", () => {
-      expect(samePlacements(makeRoom(grid, "b", 2, 0, 2).placements, grid)).toBe(true);
-      expect(samePlacements(makeRoom(grid, "b", 2, 0, 0).placements, grid)).toBe(false);
+      expect(samePlacements(makeRoom(grid, "b", 2, 0, 2), grid)).toBe(true);
+      expect(samePlacements(makeRoom(grid, "b", 2, 0, 0), grid)).toBe(false);
+    });
+
+    it("never leaves two panels in the same cells, wherever a panel is put", () => {
+      const available = [...ALL, "warrantiesEndingSoon"];
+      const start = resolveLayout(defaultLayout(available), available, "wide");
+      const clash = (placements: Placement[]) =>
+        placements.some((a) => placements.some((b) => a.id !== b.id && a.x < b.x + b.span && b.x < a.x + a.span && a.row < b.row + b.height && b.row < a.row + a.height));
+
+      for (const panel of start) {
+        for (let row = 0; row < 18; row++) {
+          for (let x = 0; x <= 6 - panel.span; x++) {
+            const moved = makeRoom(start, panel.id, panel.span, row, x);
+            expect(clash(moved), `${panel.id} to ${row}:${x}`).toBe(false);
+            expect(moved.every((place) => place.x >= 0 && place.x + place.span <= 6), `${panel.id} to ${row}:${x}`).toBe(true);
+            // Nothing hangs in the air: every panel rests on the top edge or on another panel.
+            expect(samePlacements(compact(moved), moved), `${panel.id} to ${row}:${x}`).toBe(true);
+          }
+        }
+      }
     });
 
     it("saves an arrangement: every panel pinned to its cell, and the order following the grid", () => {
       const available = ["spent", "receipts", "categories"];
       const layout = defaultLayout(available);
       const placements = resolveLayout(layout, available, "wide");
-      const moved = applyPlacements(layout, makeRoom(placements, "spent", placements[0].span, 0, 5).placements);
+      const moved = applyPlacements(layout, makeRoom(placements, "spent", placements[0].span, 0, 5));
 
       expect(moved.panels.every((panel) => panel.x !== undefined && panel.y !== undefined)).toBe(true);
       expect(resolveLayout(moved, available, "wide").map((panel) => panel.id)).toEqual(moved.panels.map((panel) => panel.id));
@@ -258,20 +293,86 @@ describe("dashboard layout", () => {
     });
   });
 
+  it("draws the starting layout in rows of the grid: tiles two rows tall, charts six, with nothing overlapping", () => {
+    const panels = resolveLayout(undefined, [...ALL, "warrantiesEndingSoon"], "wide");
+    const place = Object.fromEntries(panels.map((panel) => [panel.id, `${panel.row}:${panel.x} ${panel.span}x${panel.height}`]));
+
+    expect(place).toEqual({
+      spent: "0:0 2x2",
+      receipts: "0:2 1x2",
+      unhealthy: "0:3 1x2",
+      unplanned: "0:4 1x2",
+      toBuy: "0:5 1x2",
+      categories: "2:0 3x6",
+      trend: "2:3 3x6",
+      recentReceipts: "8:0 4x5",
+      shoppingList: "8:4 2x5",
+      warrantiesEndingSoon: "13:0 6x3",
+    });
+    expect(panelHeight(2)).toBe("9.5rem");
+  });
+
+  it("starts a tile that shares a row with a chart as tall as the chart, and reads an older layout the same way", () => {
+    const withTag = [...ALL, "warranties", tagPanelId(1)];
+    const start = Object.fromEntries(resolveLayout(undefined, withTag, "wide").map((panel) => [panel.id, `${panel.row}:${panel.x} ${panel.span}x${panel.height}`]));
+    expect(start["tag:1"]).toBe("2:0 2x6");
+    expect(start["categories"]).toBe("2:2 4x6");
+
+    // Saved before heights were free and never arranged in the PC view: the panels flow, and the tile stretched.
+    const older = parseLayout(
+      JSON.stringify({ version: 1, panels: defaultLayout(withTag).panels.map((panel) => ({ id: panel.id, visible: true, cols: panel.cols, rows: 1 })) })
+    )!;
+    expect(older.panels.find((panel) => panel.id === "tag:1")?.rows).toBe(6);
+    expect(older.panels.find((panel) => panel.id === "spent")?.rows).toBe(2);
+  });
+
   it("keeps a placed cell through parse and serialize, and drops a broken one", () => {
-    const text = JSON.stringify({ version: 1, panels: [{ id: "spent", visible: true, cols: 1, rows: 1, x: 3, y: 1 }, { id: "receipts", visible: true, cols: 1, rows: 1, x: -2, y: "no" }] });
+    const text = JSON.stringify({ version: 2, panels: [{ id: "spent", visible: true, cols: 1, rows: 2, x: 3, y: 1 }, { id: "receipts", visible: true, cols: 1, rows: 2, x: -2, y: "no" }] });
     const layout = parseLayout(text)!;
     expect(layout.panels[0]).toMatchObject({ x: 3, y: 1 });
     expect(layout.panels[1].x).toBeUndefined();
+  });
+
+  it("reads a layout saved before panels had free heights: height steps become rows, and rows of panels become cells", () => {
+    const layout = parseLayout(
+      JSON.stringify({
+        version: 1,
+        panels: [
+          { id: "spent", visible: true, cols: 2, rows: 1, x: 0, y: 0 },
+          { id: "categories", visible: true, cols: 3, rows: 2, x: 0, y: 1 },
+          { id: "trend", visible: true, cols: 3, rows: 1, x: 3, y: 1 },
+          { id: "recentReceipts", visible: true, cols: 4, rows: 1, x: 0, y: 2 },
+          { id: "shoppingList", visible: false, cols: 2, rows: 1 },
+        ],
+      })
+    )!;
+
+    expect(layout.version).toBe(2);
+    expect(layout.panels).toEqual([
+      { id: "spent", visible: true, cols: 2, rows: 2, x: 0, y: 0 },
+      // The taller step was 34rem: seven rows. Its row of panels is as tall as that.
+      { id: "categories", visible: true, cols: 3, rows: 7, x: 0, y: 2 },
+      // The panels of a row stretched to its tallest one, so the chart beside it is as tall.
+      { id: "trend", visible: true, cols: 3, rows: 7, x: 3, y: 2 },
+      { id: "recentReceipts", visible: true, cols: 4, rows: 5, x: 0, y: 9 },
+      { id: "shoppingList", visible: false, cols: 2, rows: 5 },
+    ]);
+    // Drawn where it was: the same panels side by side, in the same order from the top.
+    const drawn = resolveLayout(layout, ALL, "wide");
+    const rowOf = (id: string) => drawn.find((panel) => panel.id === id)!.row;
+    expect(rowOf("categories")).toBe(rowOf("trend"));
+    expect(rowOf("spent")).toBeLessThan(rowOf("categories"));
+    expect(rowOf("categories")).toBeLessThan(rowOf("recentReceipts"));
   });
 
   describe("sizeLimitHit", () => {
     it("reports which limit a size runs into", () => {
       expect(sizeLimitHit("spent", { cols: 0 })).toEqual({ limit: "min-cols", value: 1 });
       expect(sizeLimitHit("spent", { cols: 3 })).toEqual({ limit: "max-cols", value: 2 });
-      expect(sizeLimitHit("spent", { rows: 2 })).toEqual({ limit: "max-rows", value: 1 });
-      expect(sizeLimitHit("categories", { rows: 0 })).toEqual({ limit: "min-rows", value: 1 });
-      expect(sizeLimitHit("categories", { cols: 4, rows: 2 })).toBeUndefined();
+      expect(sizeLimitHit("spent", { rows: 7 })).toEqual({ limit: "max-rows", value: 6 });
+      expect(sizeLimitHit("spent", { rows: 1 })).toEqual({ limit: "min-rows", value: 2 });
+      expect(sizeLimitHit("categories", { rows: 5 })).toEqual({ limit: "min-rows", value: 6 });
+      expect(sizeLimitHit("categories", { cols: 4, rows: 9 })).toBeUndefined();
     });
   });
 
@@ -304,13 +405,14 @@ describe("dashboard layout", () => {
 
   it("keeps sizes within each panel's limits and clamps them per screen size", () => {
     let layout = defaultLayout(ALL);
-    layout = resizePanel(layout, "receipts", { cols: 5, rows: 2 });
-    layout = resizePanel(layout, "trend", { cols: 1, rows: 9 });
+    layout = resizePanel(layout, "receipts", { cols: 5, rows: 9 });
+    layout = resizePanel(layout, "trend", { cols: 1, rows: 40 });
     layout = resizePanel(layout, "shoppingList", { cols: 6 });
 
     const panel = (id: string) => layout.panels.find((candidate) => candidate.id === id)!;
-    expect(panel("receipts")).toMatchObject({ cols: 2, rows: 1 });
-    expect(panel("trend")).toMatchObject({ cols: 3, rows: 2 });
+    expect(panel("receipts")).toMatchObject({ cols: 2, rows: 6 });
+    expect(panel("trend")).toMatchObject({ cols: 3, rows: 12 });
+    expect(resizePanel(layout, "trend", { rows: 1 }).panels.find((candidate) => candidate.id === "trend")?.rows).toBe(6);
     expect(panel("shoppingList").cols).toBe(3);
 
     // On a tablet the charts take the whole row, a KPI tile keeps its width; on a phone everything is one column.
@@ -345,7 +447,7 @@ describe("dashboard layout", () => {
 
     expect(parseLayout("")).toBeUndefined();
     expect(parseLayout("{nope")).toBeUndefined();
-    expect(parseLayout('{"version":2,"panels":[]}')).toBeUndefined();
+    expect(parseLayout('{"version":3,"panels":[]}')).toBeUndefined();
     expect(parseLayout('{"version":1}')).toBeUndefined();
   });
 
@@ -354,8 +456,13 @@ describe("dashboard layout", () => {
       '{"version":1,"panels":[{"id":"spent","cols":40},{"id":"spent","cols":1},{"id":"trend","rows":0,"visible":false},{"cols":2}],"compactOrder":["trend","trend",3]}'
     );
     expect(parsed?.panels).toEqual([
-      { id: "spent", visible: true, cols: 2, rows: 1 },
-      { id: "trend", visible: false, cols: 3, rows: 1 },
+      { id: "spent", visible: true, cols: 2, rows: 2 },
+      { id: "trend", visible: false, cols: 3, rows: 6 },
+    ]);
+    // The same document as today's version: a height out of range comes back to the nearest the panel allows.
+    expect(parseLayout('{"version":2,"panels":[{"id":"trend","cols":3,"rows":99},{"id":"spent","cols":1,"rows":0}]}')?.panels).toEqual([
+      { id: "trend", visible: true, cols: 3, rows: 12 },
+      { id: "spent", visible: true, cols: 1, rows: 2 },
     ]);
     expect(parsed?.compactOrder).toEqual(["trend"]);
     expect(compactOrder(parsed!)).toEqual(["trend", "spent"]);

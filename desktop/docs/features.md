@@ -83,27 +83,47 @@ must respect are in `../CLAUDE.md`; the look is in `../../DESIGN.md`.
 - **Scrolling panels:** with a fine pointer (`finePointerSignal()`, `src/utils/fine-pointer.ts`) the shopping panel
   renders every item in a five-row `cv-scroll-y` box and the receipts panel loads up to 50 receipts of the period in a
   box its height (sticky header); on touch screens neither scrolls (a box under the thumb catches the page swipe): the
-  shopping panel shows `PANEL_ITEM_LIMIT` (5) and links to the rest, the receipts panel lists six per height step.
+  shopping panel shows `PANEL_ITEM_LIMIT` (5) and links to the rest, the receipts panel lists six at its usual height and two more per
+  grid row above that (`receiptsPanelVisible`).
 - **Layout and customise** (`src/overview/dashboard-layout/`): panels have plain-string ids (`spent`, `tag:<id>`,
-  `shoppingList`, …). `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE`, `defaultLayout` (`fillRows` leaves
-  no gaps), `parseLayout` (unreadable → default, unknown ids kept), `completeLayout`, `resolveLayout`, `placePanels`,
+  `shoppingList`, …). `dashboard-layout.ts` (pure, tested) holds `PANEL_CATALOGUE`, `defaultLayout`, `parseLayout`
+  (unreadable → default, unknown ids kept), `completeLayout`, `resolveLayout`, `placePanels`, `compact`,
   `pinPlacements`, `makeRoom` and `applyPlacements`. Size class comes from the grid's own width (ResizeObserver):
-  compact < 640px, regular < 1024, wide. Saved cells apply to the wide grid only. Dragging is pointer-driven on the
-  handle; keyboard moves are in the panel menu.
-  - **Moving and widening in the PC view go through `makeRoom`**: the panel gets the cell it is put on and the rest
-    of that row gives way, by the four rules at the function's head (free cell; the row slides; a swap with the place
-    it came from; a new row below). `nudgePanel` (the menu), `commitSize` (`fixed: true`, the panel stays put) and a
-    drag all call it, and `applyPlacements` saves the result with every panel pinned.
+  compact < 640px, regular < 1024, wide.
+  - **The PC view is a grid of cells**: six columns, and rows `GRID_ROW_REM` tall (`grid-auto-rows: minmax(…, auto)`,
+    so a row grows when a panel's content needs more and nothing is ever cut). A panel has `cols` × `rows` and a
+    cell (`x`, `y`), within `minCols…maxCols` and `minRows…maxRows` of its kind (the least height is what its
+    content needs). `placePanels` puts each on its saved cell, flows the others, and `compact` lets every panel
+    float up: there is never free room above a panel. Saved cells and heights apply to the wide grid only: on a
+    tablet panels flow in order, a chart or list keeps its height as a `min-height` (`panelMinHeight`) and a tile is as
+    tall as its row; on a phone the content sets every height.
+  - **Layout version 2.** Version 1 had two height steps (`rows` 1 or 2) and numbered whole rows of panels (`y`);
+    `parseLayout` reads it and turns the steps into rows, levels the panels of a row to its tallest (they used to
+    stretch) and turns row numbers into cells. The app saves version 2 only. A browser still running the older
+    app does not read version 2 and shows the default layout until it has updated itself.
+  - **The starting layout has no holes**: `fillRows` widens the panels of each row until it is full and makes them as
+    tall as the tallest of them (a tag tile beside a chart).
+  - **Moving and resizing in the PC view go through `makeRoom`**: the panel gets the cell it is put on and what it
+    lands on gives way, by the four rules at the function's head (neighbours of its row slide; a swap with the
+    place it came from; a swap top to bottom; pushed down), then everything is compacted. `nudgePanel` (the menu:
+    sideways past the neighbour, down below the panel under it, up to where the panel over it is), `commitSize`
+    (`fixed: true`, the panel stays put, with the new `height`) and a drag all call it, and `applyPlacements` saves
+    the result with every panel pinned.
   - **A drag is a live preview** (`startDrag`): each frame `makeRoom` runs on the placements the drag began with,
-    never on what is shown, so moving on puts a row back as it was; `dragPlaces` is drawn (`displayPanels`) and a
-    drop keeps exactly that. The row under the pointer is found from where the panels are now, keyed by the rows the
-    drag began with (`cellUnderPanel`): panels that dropped to another row are left out, and two boxes are added,
-    the cell the dragged panel is shown in and the empty box that holds its old place open (`dragOrigin`,
-    `data-drag-origin`). Without those a row whose panels all gave way has no place and the target flickers.
+    never on what is shown, so moving on puts things back as they were; `dragPlaces` is drawn (`displayPanels`) and
+    a drop keeps exactly that. The target cell is the one whose corner is nearest to the dragged panel's top left
+    corner (`cellAt`), with the rows read from the grid as drawn (`getComputedStyle(grid).gridTemplateRows`, which
+    lists the rows the grid made itself). A corner-handle resize (`startResize`) works from the grid as it was when
+    it began too, so dragging back restores it.
+  - **The edit controls are inside the panel** (no bar above it): a tab on its top edge with the grip
+    (`startDrag`, the only way to move under a finger, so a touch on the panel still scrolls the page), the menu and
+    Hide; the corner handle; and with a mouse the whole panel is the handle (`grabPanel`, which leaves out anything
+    marked `data-panel-control`). Keyboard moves and sizes are in the panel menu.
   - **Panels glide** (`glide`, 150 ms, FLIP with the Web Animations API, off under reduced motion): every layout
-    edit goes through it, and so does each step of a drag. The customise screen is the same page at `.../customize` (route data `customise: true`) so previews
-  show real figures; panel content is `inert` while editing. `DashboardLayoutStore` loads once per session (cleared on
-  `Logout`), `canCustomise` from the API shows the button.
+    edit goes through it, and so does each step of a drag.
+  - The customise screen is the same page at `.../customize` (route data `customise: true`) so previews show real
+    figures; panel content is `inert` while editing. `DashboardLayoutStore` loads once per session (cleared on
+    `Logout`), `canCustomise` from the API shows the button.
 - **Page width:** `--page-max` is set once on the wrapper around the router outlet; pages do not set their own max width.
 
 ## Receipts (`src/receipts/`)
