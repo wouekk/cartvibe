@@ -24,7 +24,8 @@ The owner approved carrying out everything in this report except S1. Where the r
 
 ## Progress
 
-One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 to 4 reached it together on 2026-11-10.
+One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 to 4 reached it together on 2026-11-10,
+sprint 5 the same day, and sprints 6 to 11 on 2026-11-12, released as 0.19.0.
 
 - [x] 1. Quick wins (`feature/audit-quick-wins`): S21, S3, S9, S14, compression, B4, S6, B2.1, S22, B5.1, B5.4, B5.5,
   B5.6, B5.8, sessions, F3, F4, B7, D3 to D5, D12 to D14, part of D17
@@ -101,7 +102,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     code still takes the writer).
   - Left as they are: the `task_queue_configurations` table and the `task_concurrency` column in existing
     databases (migrations are additive), and the column name `asynq_task_id` behind `SystemTask.JobId`.
-- [ ] 6. Releases, CI and hardening (`feature/sprint-6-releases-ci`; the first four items were made on
+- [x] 6. Releases, CI and hardening (`feature/sprint-6-releases-ci`; the first four items were made on
   `feature/releases-and-ci` in another session and merged in): B3, B7, B8, S4, S8, S12, S13, S16, S19, S20
   - Done on the branch on 2026-11-10. Sign-in backs off per account and a refused one answers 401 (S8); a new
     install refuses an `ENCRYPTION_KEY` under 32 characters (S12); CSP reports reach the log (S13); the refresh
@@ -120,7 +121,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     itself, as the publish does, and the layer cache already makes the second build cheap. No cache mounts in the
     Dockerfile (B7): the gha layer cache covers the dependency layers. arm64 waits for B9.
   - `:latest` stays on green `main` (the decisions table).
-- [ ] 7. AI and files (`feature/ai-and-files`, cut from sprint 6's branch): B5.2, B5.3, B5.5, B5.6, B5.7, B6, S18
+- [x] 7. AI and files (`feature/ai-and-files`, cut from sprint 6's branch): B5.2, B5.3, B5.5, B5.6, B5.7, B6, S18
   - Done on the branch on 2026-11-10. A receipt read and a product read carry a JSON Schema of the answer, sent
     through each provider's own setting, with one retry without it for a model that answers 400 and a memory of
     that until the restart (B5.2). Claude is asked at low effort (B5.3). Ollama is a provider on the AI page with
@@ -132,7 +133,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
   - Not verified against a live provider: no key is available here, so the structured settings are proved against
     fake servers only. The retry without them is what keeps a provider that refuses one from failing reads.
   - Left for sprint 11 (its own item there): storing files by id only.
-- [ ] 8. Fixed roles (`feature/fixed-roles`, cut from `preview` with sprints 6 and 7 in it): C14
+- [x] 8. Fixed roles (`feature/fixed-roles`, cut from `preview` with sprints 6 and 7 in it): C14
   - Done on the branch on 2026-11-11. Four roles, written from code at every start and brought to exactly their
     lists: Admin and User in the app, Owner and Member in a household (the app shows both pairs as Admin and User).
     A new account is a User, the person who creates a household its Owner. Removed from the API, the contract and
@@ -151,7 +152,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     needs the create permission; the privilege ceiling on roster changes; the read-only role preview.
   - Not verified: twelve Playwright specs whose subject is gone were deleted, and three were rewritten for the
     fixed roles without a run (`desktop/docs/e2e.md`); of the rewritten specs CI runs `shopping-list` only.
-- [ ] 9. Identity-provider screens (`feature/oidc-ui`, cut from `preview` with sprint 8 in it): D15
+- [x] 9. Identity-provider screens (`feature/oidc-ui`, cut from `preview` with sprint 8 in it): D15
   - Done on the branch on 2026-11-11, in the web app only (the API and the contract are unchanged): a
     *Sign-in providers* tab in System Settings on the five provider endpoints (list, add, change, delete, and the
     redirect address shown before the provider is saved, worked out from the Server Public URL and the name); one
@@ -164,8 +165,8 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     (`api/docs/oidc.md`).
   - Found on the way and fixed: the tab strip threw when its tabs were taken away, which happened for a moment
     after *Sign out everywhere*.
-- [ ] 10. App cleanup (`feature/app-cleanup`, cut from `preview`): C10, C11, C13, D6 to D11, F6, F8
-  - In `preview` in full since 2026-11-11 (green CI on `8eaf33af`); the box is ticked when it reaches `main`.
+- [x] 10. App cleanup (`feature/app-cleanup`, cut from `preview`): C10, C11, C13, D6 to D11, F6, F8
+  - In `preview` in full since 2026-11-11 (green CI on `8eaf33af`), on `main` since 2026-11-12.
   - Done on the branch on 2026-11-11, D6 to D9: two receipt statuses, *To check* and *Settled* (the three others
     are rewritten once and read as one of the two wherever they still arrive); one note per receipt in place of the
     comment thread (each thread is joined into the note once, a single comment as written, several as "Name: text"
@@ -225,7 +226,7 @@ One branch per sprint. A sprint is ticked when it has reached `main`. Sprints 1 
     warranties, a tag) stay as markup in the page. Each is ten lines over figures the page already holds and has
     no state of its own, so a component each would be a list of inputs. The overview is one request, so they
     load and fail together either way. Say so if a component per tile is wanted anyway.
-- [ ] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
+- [x] 11 onward. B9, id-only file paths, money as integers, a generated contract, aisle order per shop, C12
   - B9 and C6, step one (`feature/no-cgo`, cut from `preview`, 2026-11-11): the server has no C code. ImageMagick
     and Tesseract are programs it starts (`api/internal/imagetool`), with the same operations in the same order
     as the bindings ran; the two Go modules are gone and the image builds the API with `CGO_ENABLED=0`, as a

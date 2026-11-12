@@ -11,7 +11,11 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
-The first batch of work from the [audit of 9 November 2026](docs/AUDIT-REPORT.md).
+## [0.19.0] - 2026-11-12
+
+One container, a phone-first shell, lists that work without signal, two fixed roles, a scan queue and images for ARM.
+
+The work of the [audit of 9 November 2026](docs/AUDIT-REPORT.md), and what trying it on a NAS turned up.
 
 **When you update:** take the new `docker-compose.yml` from the README. CartVibe is now one container: the `valkey`
 service, the `depends_on` lines that waited for it and the `valkey-data` volume are gone, and after the update you
@@ -38,6 +42,11 @@ who wrote it), and makes every receipt either *To check* or *Settled*: *Needs at
 *To check*, *Declined* becomes *Settled*. The app has shown only those two for a long time, so the lists look the
 same. The header shortcuts a person could add under their preferences are deleted. Like the roles, this is undone
 only by restoring the copy the server makes before it updates.
+
+**Receipt photos move, once, and that cannot be taken back either.** At its first start this version renames
+every stored photo from a folder named after its household to `data/<household number>/<file number>` (see
+*Changed*). An older version cannot find them afterwards, and the copy the server makes of its database does not
+hold the photos: if you want a way back, copy your `data` folder before you update.
 
 Nothing else is needed by hand. The server copies its database before this version changes anything (see *Added*).
 Two things change by themselves: a sign-in now lasts 30 days instead of one (only if you never changed that setting),
