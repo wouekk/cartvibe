@@ -147,13 +147,17 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   list should open with the page size, filter and columns it had; the sidebar stays collapsed if it was. If a
   device does ask for the password or forgets these, tell the agent which. With push set up on the server
   (`VAPID` keys) and the app on HTTPS, adding a warranty date should now ask once to allow notifications.
-- The owner's two points from the NAS try of 2026-11-12 (`feature/preview-feedback`, `d0fc167d`, green CI, in
-  `:preview`), both seen working in the built demo only: a receipt opens ready to edit (Cancel and Save at the
-  end, Save lit once something changed, the page stays open after a save); on the Dashboard's customise screen
-  a dragged panel takes the place it is over and the others move aside, and widening pushes the neighbours.
-  Worth a look on the NAS: dragging on a touch screen, and whether the moves feel right on the real layout.
-  Not done from the owner's Kibana and Grafana comparison: panels cannot be made any height (two steps only)
-  and do not float up into free space above them; say so if those are wanted.
+- The owner's points from the NAS try of 2026-11-12 (`feature/preview-feedback` `d0fc167d` and
+  `feature/dashboard-grid` `bb68f6aa`, both green CI, in `:preview`), seen working in the built demo only: a
+  receipt opens ready to edit (Cancel and Save at the end, Save lit once something changed, the page stays open
+  after a save), and the note beside *Looks right* asks for a second look and says when the AI read the receipt.
+  The Dashboard's customise screen is a grid like Grafana's in the PC view: a panel is dragged anywhere and the
+  others slide, swap or are pushed down; its corner makes it wider and taller by whole rows; panels float up
+  into free room; and the controls sit on the panel itself (a tab on its top edge), with no bar above it. The
+  saved layout is read from the old format and saved in the new one (version 2) at the next save.
+  Worth a look on the NAS: that the Dashboard looks as it did before any change (the old layout converted),
+  dragging by the grip on a touch screen, the tab not covering a title on the real panels, and a 4K screen
+  (the rows scale with the interface size).
 - Behind the HTTPS proxy: install on iPhone/Android, Share, the barcode scanner, recipe import, Dashboard touch drag,
   upload size limit, opening the app with no connection. Try an import only on a spare empty server.
 - A restore drill of the NAS data (`docs/faq.md`). Search Console: verify `cartvibe.app`, submit the sitemap. Around
