@@ -937,11 +937,71 @@ describe("OverviewPageComponent", () => {
         }
       });
 
-      it("cannot widen a panel into its neighbour, and says so", () => {
+      const cellsOf = () => Object.fromEntries(component.panels().map((panel) => [panel.id, { x: panel.x, row: panel.row, span: panel.span }]));
+      const noOverlap = () => {
+        const panels = component.panels();
+        return panels.every((a) => panels.every((b) => a.id === b.id || a.row !== b.row || a.x + a.span <= b.x || b.x + b.span <= a.x));
+      };
+
+      it("does not widen a panel past its own limit, and says so", () => {
         const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
-        // Spent (2 columns) has Receipts right beside it.
+        // A key figure is two columns at most.
         expect(component.resize("spent", { cols: 3 })).toBe(false);
         expect(hint).toHaveBeenCalled();
+      });
+
+      it("changes places with the neighbour on Move right, and back on Move left", async () => {
+        const before = cellsOf();
+        const row = component.panels().filter((panel) => panel.row === before["spent"].row).sort((a, b) => a.x - b.x);
+        const neighbour = row[row.findIndex((panel) => panel.id === "spent") + 1];
+
+        component.nudgePanel("spent", 1, 0);
+        await fixture.whenStable();
+        expect(cellsOf()[neighbour.id].x).toBe(before["spent"].x);
+        expect(cellsOf()["spent"].x).toBe(before["spent"].x + neighbour.span);
+        expect(noOverlap()).toBe(true);
+
+        component.nudgePanel("spent", -1, 0);
+        await fixture.whenStable();
+        expect(cellsOf()["spent"].x).toBe(before["spent"].x);
+        expect(cellsOf()[neighbour.id].x).toBe(before[neighbour.id].x);
+      });
+
+      it("says so when a panel is at the edge and has nowhere to go", () => {
+        const hint = vi.spyOn(TestBed.inject(SnackbarService), "hint");
+        const first = component.panels().find((panel) => panel.row === 0 && panel.x === 0)!;
+        const before = cellsOf();
+
+        component.nudgePanel(first.id, -1, 0);
+
+        expect(hint).toHaveBeenCalledTimes(1);
+        expect(cellsOf()).toEqual(before);
+      });
+
+      it("widens a panel over its neighbour: the neighbours give way and nothing overlaps", async () => {
+        component.stepSize("spent", -1, 0);
+        await fixture.whenStable();
+        const narrow = cellsOf();
+        expect(narrow["spent"].span).toBe(1);
+
+        expect(component.resize("spent", { cols: 2 })).toBe(true);
+        await fixture.whenStable();
+
+        const wide = cellsOf();
+        expect(wide["spent"]).toMatchObject({ x: narrow["spent"].x, row: narrow["spent"].row, span: 2 });
+        expect(noOverlap()).toBe(true);
+        // Every panel is still on the Dashboard.
+        expect(Object.keys(wide).sort()).toEqual(Object.keys(narrow).sort());
+      });
+
+      it("moves a panel into the row below, where the panels make room", async () => {
+        const before = cellsOf();
+        component.nudgePanel("spent", 0, 1);
+        await fixture.whenStable();
+
+        expect(cellsOf()["spent"].row).toBeGreaterThanOrEqual(before["spent"].row);
+        expect(noOverlap()).toBe(true);
+        expect(component.layoutDirty()).toBe(true);
       });
 
       it("asks before leaving with unsaved changes, and leaves at once without any", async () => {

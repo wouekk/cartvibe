@@ -11,11 +11,12 @@ import {
   setVisible,
   sizeClassFor,
   spanFor,
-  applyDrop,
+  applyPlacements,
+  makeRoom,
+  Placement,
+  samePlacements,
   dropTargetAt,
   placePanels,
-  resolveDrop,
-  roomToTheRight,
   sizeLimitHit,
   tagPanelId,
 } from "./dashboard-layout";
@@ -123,41 +124,137 @@ describe("dashboard layout", () => {
     });
   });
 
-  describe("moving to a cell", () => {
-    const grid = [
+  describe("making room for a moved panel", () => {
+    const grid: Placement[] = [
       { id: "a", x: 0, row: 0, span: 2 },
       { id: "b", x: 2, row: 0, span: 2 },
       { id: "c", x: 0, row: 1, span: 4 },
     ];
+    const tiles: Placement[] = [0, 1, 2, 3, 4, 5].map((x) => ({ id: `t${x}`, x, row: 0, span: 1 }));
+    const cells = (placements: Placement[]) => Object.fromEntries(placements.map((place) => [place.id, `${place.row}:${place.x}`]));
 
-    it("takes a free cell, including the empty last column", () => {
-      expect(resolveDrop(grid, "a", 2, 0, 5)).toEqual({ x: 4, row: 0, newRow: false });
+    it("takes a free cell and moves nothing else, the empty last column included", () => {
+      const room = makeRoom(grid, "a", 2, 0, 5);
+
+      expect(cells(room.placements)).toEqual({ a: "0:4", b: "0:2", c: "1:0" });
+      expect(room.displaced).toEqual([]);
     });
 
-    it("uses the nearest free spot in the row when the cell is taken", () => {
-      expect(resolveDrop(grid, "c", 4, 0, 1)).toMatchObject({ newRow: true });
-      expect(resolveDrop(grid, "b", 2, 0, 0)).toEqual({ x: 2, row: 0, newRow: false });
-      expect(resolveDrop(grid, "a", 2, 0, 2)).toEqual({ x: 0, row: 0, newRow: false });
-      expect(resolveDrop(grid, "a", 2, 0, 5)).toEqual({ x: 4, row: 0, newRow: false });
+    it("lets two neighbours change places, whichever of them is moved", () => {
+      expect(cells(makeRoom(grid, "a", 2, 0, 2).placements)).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
+      expect(cells(makeRoom(grid, "b", 2, 0, 0).placements)).toEqual({ a: "0:2", b: "0:0", c: "1:0" });
     });
 
-    it("opens a new last row below the grid", () => {
-      expect(resolveDrop(grid, "a", 2, 9, 0)).toEqual({ x: 0, row: 2, newRow: false });
+    it("slides a full row of tiles aside when one of them moves along it", () => {
+      const moved = makeRoom(tiles, "t0", 1, 0, 3).placements;
+
+      expect([...moved].sort((a, b) => a.x - b.x).map((place) => place.id)).toEqual(["t1", "t2", "t3", "t0", "t4", "t5"]);
+      expect(moved.every((place) => place.row === 0)).toBe(true);
     });
 
-    it("applies the drop: every panel is pinned, rows below move down for a new row, and the order follows the grid", () => {
-      const layout = defaultLayout(["spent", "receipts", "categories"]);
-      const placements = resolveLayout(layout, ["spent", "receipts", "categories"], "wide");
-      const moved = applyDrop(layout, placements, "spent", { x: 5, row: 0, newRow: false });
-      const spent = moved.panels.find((panel) => panel.id === "spent")!;
-      expect([spent.x, spent.y]).toEqual([5, 0]);
+    it("moves the neighbours only as far as needed when the row has room", () => {
+      const loose: Placement[] = [
+        { id: "a", x: 0, row: 0, span: 1 },
+        { id: "b", x: 3, row: 0, span: 1 },
+        { id: "c", x: 0, row: 1, span: 2 },
+      ];
+
+      // c lands on b: b steps one column to the right, a does not move.
+      expect(cells(makeRoom(loose, "c", 2, 0, 2).placements)).toEqual({ a: "0:0", b: "0:4", c: "0:2" });
+    });
+
+    it("swaps with the panels under it when they fit where it came from", () => {
+      const charts: Placement[] = [
+        { id: "A", x: 0, row: 0, span: 3 },
+        { id: "D", x: 3, row: 0, span: 3 },
+        { id: "B", x: 0, row: 1, span: 3 },
+        { id: "C", x: 3, row: 1, span: 3 },
+      ];
+      const room = makeRoom(charts, "A", 3, 1, 0);
+
+      expect(cells(room.placements)).toEqual({ A: "1:0", D: "0:3", B: "0:0", C: "1:3" });
+      expect(room.displaced).toEqual(["B"]);
+    });
+
+    it("swaps a wide panel with the whole row of tiles it is dropped on", () => {
+      const withChart: Placement[] = [...tiles, { id: "wide", x: 0, row: 1, span: 6 }];
+      const moved = makeRoom(withChart, "wide", 6, 0, 0).placements;
+
+      expect(moved.find((place) => place.id === "wide")).toMatchObject({ row: 0, x: 0 });
+      expect(moved.filter((place) => place.id !== "wide").every((place) => place.row === 1)).toBe(true);
+      expect(moved.filter((place) => place.id !== "wide").map((place) => place.x)).toEqual([0, 1, 2, 3, 4, 5]);
+    });
+
+    it("drops what no longer fits into a new row right below, in order, when a swap has no room", () => {
+      const full: Placement[] = [
+        { id: "a", x: 0, row: 0, span: 2 },
+        { id: "b", x: 2, row: 0, span: 2 },
+        { id: "e", x: 4, row: 0, span: 2 },
+        { id: "c", x: 0, row: 1, span: 4 },
+        { id: "d", x: 4, row: 1, span: 2 },
+      ];
+      const room = makeRoom(full, "d", 2, 0, 1);
+
+      // d takes the cell; b slides right beside it; a and e drop into a row of their own; c's row moves down.
+      expect(cells(room.placements)).toEqual({ d: "0:1", b: "0:3", a: "1:0", e: "1:2", c: "2:0" });
+      expect(room.displaced).toEqual(["a", "e"]);
+    });
+
+    it("opens a new last row below the grid, and numbers the rows without gaps", () => {
+      expect(cells(makeRoom(grid, "a", 2, 9, 0).placements)).toEqual({ a: "2:0", b: "0:2", c: "1:0" });
+      // c was alone in its row: the row it left closes.
+      expect(cells(makeRoom(grid, "c", 2, 0, 4).placements)).toEqual({ a: "0:0", b: "0:2", c: "0:4" });
+    });
+
+    it("keeps the row a dragged panel came from while it is dragged, so nothing jumps under the pointer", () => {
+      const lone: Placement[] = [
+        { id: "w", x: 0, row: 0, span: 6 },
+        { id: "c", x: 0, row: 1, span: 4 },
+      ];
+
+      const dragging = makeRoom(lone, "w", 6, 2, 0, { keepOriginRow: true });
+      expect(cells(dragging.placements)).toEqual({ w: "2:0", c: "1:0" });
+      expect(dragging.originRow).toBe(0);
+
+      const dropped = makeRoom(lone, "w", 6, 2, 0);
+      expect(cells(dropped.placements)).toEqual({ w: "1:0", c: "0:0" });
+      expect(dropped.originRow).toBeUndefined();
+    });
+
+    it("widens a panel where it stands: the next one steps aside, or drops below when the row is full", () => {
+      expect(cells(makeRoom(grid, "a", 3, 0, 0, { fixed: true }).placements)).toEqual({ a: "0:0", b: "0:3", c: "1:0" });
+
+      const tooWide = makeRoom(grid, "a", 5, 0, 0, { fixed: true });
+      expect(cells(tooWide.placements)).toEqual({ a: "0:0", b: "1:0", c: "2:0" });
+      expect(tooWide.displaced).toEqual(["b"]);
+    });
+
+    it("puts a neighbour on the side the caller names, whatever their widths", () => {
+      const row: Placement[] = [
+        { id: "wide", x: 0, row: 0, span: 3 },
+        { id: "small", x: 3, row: 0, span: 1 },
+      ];
+
+      // Move right past the small one: it ends up on the left.
+      expect(cells(makeRoom(row, "wide", 3, 0, 1, { centre: 3.51 }).placements)).toEqual({ wide: "0:1", small: "0:0" });
+    });
+
+    it("leaves the arrangement alone when the panel is put back where it was", () => {
+      expect(samePlacements(makeRoom(grid, "b", 2, 0, 2).placements, grid)).toBe(true);
+      expect(samePlacements(makeRoom(grid, "b", 2, 0, 0).placements, grid)).toBe(false);
+    });
+
+    it("saves an arrangement: every panel pinned to its cell, and the order following the grid", () => {
+      const available = ["spent", "receipts", "categories"];
+      const layout = defaultLayout(available);
+      const placements = resolveLayout(layout, available, "wide");
+      const moved = applyPlacements(layout, makeRoom(placements, "spent", placements[0].span, 0, 5).placements);
+
       expect(moved.panels.every((panel) => panel.x !== undefined && panel.y !== undefined)).toBe(true);
-    });
-
-    it("shows how far a panel may grow before the next one in its row", () => {
-      expect(roomToTheRight(grid, "a")).toBe(2);
-      expect(roomToTheRight(grid, "b")).toBe(4);
-      expect(roomToTheRight(grid, "c")).toBe(6);
+      expect(resolveLayout(moved, available, "wide").map((panel) => panel.id)).toEqual(moved.panels.map((panel) => panel.id));
+      const spent = moved.panels.find((panel) => panel.id === "spent")!;
+      expect(spent.y).toBe(0);
+      expect(spent.x).toBeGreaterThan(moved.panels.find((panel) => panel.id === "receipts")!.x as number);
     });
   });
 

@@ -344,6 +344,17 @@
             }
           </div>
         }
+        @if (dragOrigin(); as origin) {
+          <!-- The place the dragged panel left: an empty box of its height, so its row stays open while it is dragged. -->
+          <div
+            class="pointer-events-none invisible"
+            [style.grid-column]="(origin.x + 1) + ' / span ' + origin.span"
+            [style.grid-row]="origin.row + 1"
+            [style.height.px]="origin.height"
+            aria-hidden="true"
+            data-drag-origin
+          ></div>
+        }
         @if (dropPreview(); as preview) {
           <div
             class="pointer-events-none rounded-xl border-2 border-dashed border-primary/60 bg-primary/5"

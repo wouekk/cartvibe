@@ -440,67 +440,180 @@ export function pinPlacements(layout: DashboardLayout, placements: Placement[]):
   };
 }
 
-export interface DropCell {
-  x: number;
-  row: number;
-  /** The drop opens a new row at `row` (the rows from there move down) instead of using a free spot in it. */
-  newRow: boolean;
+export interface RoomOptions {
+  columns?: number;
+  /**
+   * Where the middle of the panel is, in columns. The panels of the row whose own middle lies before it end up on its
+   * left, the others on its right. Without it: the middle of the cell the panel takes.
+   */
+  centre?: number;
+  /** A resize: the panel stays exactly at `x` and only the others give way. */
+  fixed?: boolean;
+  /** While a panel is dragged: the row it came from keeps its number even when it is left empty, so nothing jumps under the pointer. */
+  keepOriginRow?: boolean;
+}
+
+export interface RoomResult {
+  /** Every panel's place afterwards, in the order they were given; rows are numbered without gaps. */
+  placements: Placement[];
+  /** The panels that left their row to make room. */
+  displaced: string[];
+  /** The number of the row the panel came from, when `keepOriginRow` kept it. */
+  originRow?: number;
+}
+
+const spanSum = (panels: Placement[]) => panels.reduce((total, panel) => total + panel.span, 0);
+
+/** The longest prefix of `panels` that fits in `room` columns. */
+function fitting(panels: Placement[], room: number): Placement[] {
+  let used = 0;
+  const kept: Placement[] = [];
+  for (const panel of panels) {
+    if (used + panel.span > room) {
+      break;
+    }
+    used += panel.span;
+    kept.push(panel);
+  }
+  return kept;
 }
 
 /**
- * Where a panel dropped near cell (`row`, `x`) of the wide grid ends up: that spot when it is free, else the nearest free
- * spot in the row, else a new row below it. Below the last row it opens a new last row.
+ * Puts panel `id`, `span` columns wide, at cell (`row`, `x`) of the grid and moves the others out of its way, as a
+ * dashboard editor does. The panel always gets the cell it was dropped on; what happens to the rest of that row:
+ *
+ * 1. The cells are free: nothing else moves.
+ * 2. The row has room for everyone: its panels slide aside, the ones before the panel to the left, the others to the
+ *    right, each as little as needed. Moving a panel along its own row is always this, so two neighbours change places.
+ * 3. The row is too full and the panel came from another row: the panels under it take the place it came from, when
+ *    they fit there (a swap).
+ * 4. Otherwise the panels that no longer fit drop into a new row right below, in their order.
+ *
+ * Panels of other rows keep their cells. Below the last row the panel opens a new last row.
  */
-export function resolveDrop(placements: Placement[], id: string, span: number, row: number, x: number, columns = GRID_COLUMNS.wide): DropCell {
-  const others = placements.filter((place) => place.id !== id);
-  const rows = Math.max(-1, ...others.map((place) => place.row)) + 1;
-  const start = Math.min(Math.max(x, 0), columns - span);
-  if (row >= rows) {
-    return { x: start, row: rows, newRow: false };
-  }
-  const free = (candidate: number) =>
-    candidate >= 0 &&
-    candidate + span <= columns &&
-    others.every((place) => place.row !== row || candidate + span <= place.x || candidate >= place.x + place.span);
-  for (let offset = 0; offset < columns; offset++) {
-    for (const candidate of offset === 0 ? [start] : [start - offset, start + offset]) {
-      if (free(candidate)) {
-        return { x: candidate, row: Math.max(row, 0), newRow: false };
+export function makeRoom(placements: Placement[], id: string, span: number, row: number, x: number, options: RoomOptions = {}): RoomResult {
+  const columns = options.columns ?? GRID_COLUMNS.wide;
+  const origin = placements.find((place) => place.id === id);
+  const others = placements.filter((place) => place.id !== id).map((place) => ({ ...place }));
+  const width = Math.min(Math.max(1, Math.round(span)), columns);
+  const start = clamp(x, 0, columns - width);
+  const keptOrigin = options.keepOriginRow && origin ? origin.row : -1;
+  const rows = Math.max(-1, keptOrigin, ...others.map((place) => place.row)) + 1;
+  const targetRow = Math.min(Math.max(0, Math.round(row)), rows);
+  const displaced: string[] = [];
+  let ownX = start;
+
+  const inRow = others.filter((place) => place.row === targetRow).sort((a, b) => a.x - b.x);
+  const taken = inRow.some((place) => place.x < start + width && place.x + place.span > start);
+  if (taken) {
+    const centre = options.centre ?? start + width / 2;
+    const movedAlongRow = origin && origin.row === targetRow ? origin : undefined;
+    const isBefore = (place: Placement) => {
+      const middle = place.x + place.span / 2;
+      // A tie is a panel exactly under the moved one: it steps back to where the moved panel came from.
+      return middle === centre ? !!movedAlongRow && movedAlongRow.x < place.x : middle < centre;
+    };
+    const before = inRow.filter(isBefore);
+    const after = inRow.filter((place) => !isBefore(place));
+    const slideLeft = (panels: Placement[], edge: number) => {
+      let limit = edge;
+      for (const place of [...panels].reverse()) {
+        place.x = Math.min(place.x, limit - place.span);
+        limit = place.x;
+      }
+    };
+    const slideRight = (panels: Placement[], edge: number) => {
+      let limit = edge;
+      for (const place of panels) {
+        place.x = Math.max(place.x, limit);
+        limit = place.x + place.span;
+      }
+    };
+
+    const everyoneFits = spanSum(inRow) + width <= columns;
+    const fitsWhereItIs = spanSum(before) <= start && spanSum(after) <= columns - start - width;
+    if (everyoneFits && (!options.fixed || fitsWhereItIs)) {
+      ownX = options.fixed ? start : Math.min(Math.max(start, spanSum(before)), columns - width - spanSum(after));
+      slideLeft(before, ownX);
+      slideRight(after, ownX + width);
+    } else {
+      const under = inRow.filter((place) => place.x < start + width && place.x + place.span > start);
+      const room = origin && origin.row !== targetRow && !options.fixed ? freeRun(others, origin, columns) : undefined;
+      if (room && spanSum(under) <= room.to - room.from) {
+        let at = Math.min(Math.max(origin!.x, room.from), room.to - spanSum(under));
+        for (const place of under) {
+          place.row = origin!.row;
+          place.x = at;
+          at += place.span;
+          displaced.push(place.id);
+        }
+      } else {
+        const keptBefore = fitting(before, start);
+        const keptAfter = fitting(after, columns - start - width);
+        slideLeft(keptBefore, start);
+        slideRight(keptAfter, start + width);
+        let at = 0;
+        for (const place of [...before.slice(keptBefore.length), ...after.slice(keptAfter.length)]) {
+          // Half a row: after this row and before the next one, until the rows are numbered again below.
+          place.row = targetRow + 0.5;
+          place.x = at;
+          at += place.span;
+          displaced.push(place.id);
+        }
       }
     }
   }
-  return { x: start, row: Math.max(row, 0) + 1, newRow: true };
+
+  const own: Placement = { id, x: ownX, row: targetRow, span: width };
+  const all = [...others, own];
+  const rowKeys = new Set(all.map((place) => place.row));
+  if (keptOrigin >= 0) {
+    rowKeys.add(keptOrigin);
+  }
+  const rank = new Map([...rowKeys].sort((a, b) => a - b).map((key, index) => [key, index]));
+  const byId = new Map(all.map((place) => [place.id, { ...place, row: rank.get(place.row) as number }]));
+  const order = placements.some((place) => place.id === id) ? placements.map((place) => place.id) : [...placements.map((place) => place.id), id];
+
+  return {
+    placements: order.map((panelId) => byId.get(panelId) as Placement),
+    displaced,
+    ...(keptOrigin >= 0 ? { originRow: rank.get(keptOrigin) } : {}),
+  };
 }
 
-/** Moves a panel to a cell of the wide grid (see `resolveDrop`); every panel is pinned where it is, and the order follows the grid. */
-export function applyDrop(layout: DashboardLayout, placements: Placement[], id: string, cell: DropCell): DashboardLayout {
-  const place = new Map(placements.map((item) => [item.id, { x: item.x, y: item.row }]));
-  if (cell.newRow) {
-    for (const [other, spot] of place) {
-      if (other !== id && spot.y >= cell.row) {
-        place.set(other, { x: spot.x, y: spot.y + 1 });
-      }
+/** The free cells around the place a panel left, in its row: from the first free column to the one after the last. */
+function freeRun(others: Placement[], origin: Placement, columns: number): { from: number; to: number } {
+  const taken = new Array(columns).fill(false);
+  for (const place of others) {
+    if (place.row === origin.row) {
+      taken.fill(true, place.x, place.x + place.span);
     }
   }
-  place.set(id, { x: cell.x, y: cell.row });
+  let from = origin.x;
+  while (from > 0 && !taken[from - 1]) {
+    from--;
+  }
+  let to = origin.x + origin.span;
+  while (to < columns && !taken[to]) {
+    to++;
+  }
+  return { from, to };
+}
 
-  const gridOrder = [...place.entries()].sort((a, b) => a[1].y - b[1].y || a[1].x - b[1].x).map(([panelId]) => panelId);
-  const placed = gridOrder.map((panelId) => {
-    const panel = layout.panels.find((candidate) => candidate.id === panelId) as PanelLayout;
-    const spot = place.get(panelId) as { x: number; y: number };
-    return { ...panel, x: spot.x, y: spot.y };
-  });
+/** Saves a whole arrangement of the wide grid: every panel in it pinned to its cell, and the order following the grid. */
+export function applyPlacements(layout: DashboardLayout, placements: Placement[]): DashboardLayout {
+  const place = new Map(placements.map((item) => [item.id, item]));
+  const gridOrder = [...placements].sort((a, b) => a.row - b.row || a.x - b.x).map((item) => item.id);
+  const placed = gridOrder
+    .map((panelId) => layout.panels.find((candidate) => candidate.id === panelId))
+    .filter((panel): panel is PanelLayout => !!panel)
+    .map((panel) => ({ ...panel, x: (place.get(panel.id) as Placement).x, y: (place.get(panel.id) as Placement).row }));
   return { ...layout, panels: [...placed, ...layout.panels.filter((panel) => !place.has(panel.id))] };
 }
 
-/** The widest a panel may be where it stands: up to the next panel in its row, or the grid's edge. */
-export function roomToTheRight(placements: Placement[], id: string, columns = GRID_COLUMNS.wide): number {
-  const own = placements.find((place) => place.id === id);
-  if (!own) {
-    return 0;
-  }
-  const next = placements.filter((place) => place.id !== id && place.row === own.row && place.x >= own.x + own.span).map((place) => place.x);
-  return Math.min(columns, ...next) - own.x;
+/** Whether two arrangements put every panel in the same cell. */
+export function samePlacements(a: Placement[], b: Placement[]): boolean {
+  return a.length === b.length && a.every((place) => b.some((other) => other.id === place.id && other.x === place.x && other.row === place.row && other.span === place.span));
 }
 
 /** Shows or hides a panel; a panel switched on that the layout lacks joins it next to its group. */
