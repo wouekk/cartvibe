@@ -9,6 +9,7 @@ import { Group, ReceiptProductService, ScanQueue, ScanQueueReceipt, ScanQueueSca
 import { SnackbarService } from "../../services";
 import { SourceFileViewerDialogComponent } from "../../shared-ui/source-file-viewer-dialog/source-file-viewer-dialog.component";
 import { GroupStore, UserStore } from "../../store";
+import { observedResizes, restoreResizes, watchResizes } from "../../testing/resize-observer.stub";
 import { SCAN_QUEUE_REFRESH_MS, ScanQueueCardComponent } from "./scan-queue-card.component";
 
 import type { Mock } from "vitest";
@@ -91,7 +92,10 @@ describe("ScanQueueCardComponent", () => {
     fixture.detectChanges();
   };
 
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    restoreResizes();
+  });
 
   it("is there with nothing waiting, and says so", async () => {
     await create(queueOf());
@@ -282,5 +286,133 @@ describe("ScanQueueCardComponent", () => {
     expect(getScanQueue).toHaveBeenCalledTimes(2);
     expect(byTestId("scan-queue-error")).toHaveLength(0);
     expect(byTestId("scan-queue-scan")).toHaveLength(1);
+  });
+
+  describe("Read all again", () => {
+    /** The confirmation the card opens: what it was told, and the answer it gives. */
+    const confirmWith = (answer: boolean | undefined): { headerText?: string; confirmText?: string; dialogContent?: string } => {
+      const componentInstance = {};
+      dialog.open.mockReturnValue({ componentInstance, afterClosed: () => of(answer) });
+      return componentInstance;
+    };
+
+    const everything = (): ScanQueue =>
+      queueOf(
+        [scan(1, "WAITING"), scan(2, "FAILED", { attempts: 4, canRerun: true }), scan(3, "FAILED", { attempts: 4 })],
+        [
+          receipt(10, "PENDING"),
+          receipt(11, "RUNNING"),
+          receipt(12, "UNAVAILABLE"),
+          receipt(13, "FAILED"),
+          receipt(14, "FAILED", { canReadAgain: false }),
+        ]
+      );
+
+    it("is offered only when something can be sent again", async () => {
+      await create(queueOf([scan(1, "WAITING"), scan(3, "FAILED", { attempts: 4 })], [receipt(10, "PENDING"), receipt(11, "RUNNING")]));
+
+      expect(byTestId("scan-queue-read-all")).toHaveLength(0);
+    });
+
+    it("asks first with the numbers, then sends each failed photo and each receipt that is not in line, quietly", async () => {
+      await create(everything(), queueOf([scan(1, "WAITING"), scan(2, "WAITING")], [receipt(12, "PENDING"), receipt(13, "PENDING")]));
+      const confirmation = confirmWith(true);
+
+      byTestId("scan-queue-read-all")[0].click();
+      await fixture.whenStable();
+
+      expect(confirmation.headerText).toBe("Read all again");
+      expect(confirmation.confirmText).toBe("Read all again");
+      expect(confirmation.dialogContent).toBe(
+        "Send these to the AI again? Receipts: 2. Photos: 1. Each one is a read your AI provider counts."
+      );
+
+      // Not the photo that waits, the one without the right, the receipts in line or being read, or another's.
+      expect(rerunQueuedScan.mock.calls.map((call) => call[0])).toEqual([2]);
+      expect(readReceiptProducts.mock.calls.map((call) => call[0])).toEqual([12, 13]);
+      expect((rerunQueuedScan.mock.calls[0][3].context as HttpContext).get(QUIET_ERRORS)).toBe(true);
+      expect((readReceiptProducts.mock.calls[0][3].context as HttpContext).get(QUIET_ERRORS)).toBe(true);
+
+      expect(snackbar.success).toHaveBeenCalledWith("Everything is in line to be read again.");
+      expect(snackbar.error).not.toHaveBeenCalled();
+      expect(getScanQueue).toHaveBeenCalledTimes(2);
+      expect(byTestId("scan-queue-read-all")).toHaveLength(0);
+    });
+
+    it("sends nothing when the question is not confirmed", async () => {
+      await create(everything());
+      confirmWith(undefined);
+
+      byTestId("scan-queue-read-all")[0].click();
+      await fixture.whenStable();
+
+      expect(rerunQueuedScan).not.toHaveBeenCalled();
+      expect(readReceiptProducts).not.toHaveBeenCalled();
+      expect(getScanQueue).toHaveBeenCalledTimes(1);
+    });
+
+    it("goes on past a refusal and says how many were refused, in one message", async () => {
+      await create(everything());
+      confirmWith(true);
+      readReceiptProducts.mockImplementation((receiptId: number) =>
+        receiptId === 12 ? throwError(() => new Error("refused")) : of({})
+      );
+
+      byTestId("scan-queue-read-all")[0].click();
+      await fixture.whenStable();
+
+      expect(readReceiptProducts.mock.calls.map((call) => call[0])).toEqual([12, 13]);
+      expect(snackbar.error).toHaveBeenCalledTimes(1);
+      expect(snackbar.error).toHaveBeenCalledWith("Not everything could be put in line. Refused: 1 of 3.");
+      expect(snackbar.success).not.toHaveBeenCalled();
+      expect(getScanQueue).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("says when the queue is not what it was at the last look, never at the first", async () => {
+    vi.useFakeTimers();
+    await create(queueOf([scan(1, "READING")]), queueOf([scan(1, "READING")]), queueOf());
+    let changes = 0;
+    fixture.componentInstance.changed.subscribe(() => changes++);
+
+    // The same again: nothing to say.
+    await vi.advanceTimersByTimeAsync(SCAN_QUEUE_REFRESH_MS);
+    expect(getScanQueue).toHaveBeenCalledTimes(2);
+    expect(changes).toBe(0);
+
+    // The photo became a receipt.
+    await vi.advanceTimersByTimeAsync(SCAN_QUEUE_REFRESH_MS);
+    expect(getScanQueue).toHaveBeenCalledTimes(3);
+    expect(changes).toBe(1);
+  });
+
+  it("cuts a long reason short until it is asked for in full", async () => {
+    watchResizes();
+    const long = "Quota exceeded for this model. ".repeat(12).trim();
+    await create(queueOf([], [receipt(12, "UNAVAILABLE", { lastError: long }), receipt(13, "FAILED", { lastError: "no credit" })]));
+
+    const reasons = byTestId("scan-queue-receipt-error");
+    expect(text(reasons[0])).toBe(long);
+    expect(reasons.map((reason) => reason.classList.contains("line-clamp-3"))).toEqual([true, true]);
+    // Nothing is known to be cut yet, so nothing offers more.
+    expect(byTestId("scan-queue-reason-toggle")).toHaveLength(0);
+
+    // The long one does not fit its three lines; the short one does.
+    const measured = (reason: HTMLElement) => observedResizes().find((entry) => entry.element === reason);
+    measured(reasons[0])?.resize({ scrollHeight: 120, clientHeight: 60 });
+    measured(reasons[1])?.resize({ scrollHeight: 20, clientHeight: 20 });
+    fixture.detectChanges();
+
+    // Only the long one has the toggle.
+    const toggles = byTestId("scan-queue-reason-toggle");
+    expect(toggles).toHaveLength(1);
+    expect(toggles[0].getAttribute("aria-expanded")).toBe("false");
+
+    toggles[0].click();
+    fixture.detectChanges();
+
+    expect(byTestId("scan-queue-receipt-error")[0].classList.contains("line-clamp-3")).toBe(false);
+    expect(text(byTestId("scan-queue-reason-toggle")[0])).toBe("Show less");
+    expect(byTestId("scan-queue-reason-toggle")[0].getAttribute("aria-expanded")).toBe("true");
   });
 });

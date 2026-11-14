@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, DestroyRef, OnInit, computed, inject, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, DestroyRef, OnInit, computed, inject, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -91,6 +91,16 @@ export class AiSettingsPageComponent implements OnInit {
 
   private systemSettings?: SystemSettings;
 
+  private readonly usageCard = viewChild(AiUsageCardComponent);
+
+  /**
+   * The usage numbers are read again whenever they may have moved: a save (the model in use changes), a
+   * connection test (a call the provider counts) and a read the scan queue has seen finish.
+   */
+  protected reloadUsage(): void {
+    this.usageCard()?.reload();
+  }
+
   public ngOnInit(): void {
     watchProviderRules(this.form.controls, this.destroyRef);
 
@@ -168,6 +178,7 @@ export class AiSettingsPageComponent implements OnInit {
         this.form.markAsPristine();
         this.form.controls.key.reset("");
         this.snackbarService.success("AI settings saved");
+        this.reloadUsage();
       });
   }
 
@@ -193,7 +204,10 @@ export class AiSettingsPageComponent implements OnInit {
         map((task) => describeConnection(task.status, task.resultDescription)),
         finalize(() => this.testing.set(false))
       )
-      .subscribe((result) => this.connectionResult.set(result));
+      .subscribe((result) => {
+        this.connectionResult.set(result);
+        this.reloadUsage();
+      });
   }
 
   // The first processing settings there are: what a member who cannot read System Settings edits.

@@ -45,7 +45,7 @@
       <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
       <div class="max-h-[60vh] overflow-auto pr-2" data-testid="overview-detail-sections">
-        <table class="w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
+        <table class="cv-table w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
           <ng-container *ngTemplateOutlet="columns"></ng-container>
           @for (section of sections(); track section.name) {
             <!-- Each category opens with a shaded band (a surface step, not a rule) carrying its name and subtotal. -->
@@ -68,7 +68,7 @@
       <p class="text-muted-foreground" data-testid="overview-detail-empty">{{ 'Nothing here.' | t }}</p>
     } @else {
       <div class="max-h-[60vh] overflow-auto pr-2">
-        <table class="w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
+        <table class="cv-table w-full table-fixed border-collapse text-sm" [class]="tableClass" data-testid="overview-detail-products">
           <ng-container *ngTemplateOutlet="columns"></ng-container>
           <tbody>
             @for (product of products(); track product.id) {

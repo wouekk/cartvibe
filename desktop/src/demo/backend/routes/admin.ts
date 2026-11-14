@@ -90,9 +90,12 @@ export function registerAdmin(router: DemoRouter): void {
   }));
   router.post("/receiptProcessingSettings/aiModels", (): AiModel[] => [{ name: "demo", displayName: "Demo (scripted)" }]);
   // What the scripted reads of the sample receipts would have cost, so the usage card has something to show.
-  router.get("/receiptProcessingSettings/usage", (ctx): AiUsageMonth[] => [
-    { month: ctx.db.today.slice(0, 7), aiType: "GEMINI", model: "demo", calls: 4, inputTokens: 6120, outputTokens: 1480 },
-  ]);
+  router.get("/receiptProcessingSettings/usage", (ctx): AiUsageMonth[] => {
+    const reader = ctx.db.processingSettings[0];
+    return [
+      { month: ctx.db.today.slice(0, 7), aiType: reader?.aiType ?? "GEMINI", model: reader?.model ?? "demo", calls: 4, inputTokens: 6120, outputTokens: 1480 },
+    ];
+  });
   // The scan queue: the demo reads no photos, so one scripted photo that failed and one receipt without a read
   // stand in for what the card shows on a real server. Neither can be run or read again here.
   router.get("/scanQueue", (ctx): ScanQueue => {

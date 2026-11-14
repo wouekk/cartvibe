@@ -1,15 +1,19 @@
-import { HttpContext } from "@angular/common/http";
-import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from "@angular/core";
+import { NgTemplateOutlet } from "@angular/common";
+import { HttpContext, HttpErrorResponse } from "@angular/common/http";
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, output, signal } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { finalize, take } from "rxjs";
+import { Observable, catchError, concat, filter, finalize, map, of, retry, take, throwError, timer, toArray } from "rxjs";
 import { DEFAULT_DIALOG_CONFIG } from "../../constants/dialog.constant";
 import { AppDialog } from "../../dialog/app-dialog";
+import { ClippedDirective } from "../../directives/clipped.directive";
 import { marker } from "../../i18n/marker";
 import { TranslatePipe } from "../../i18n/translate.pipe";
+import { TranslationService } from "../../i18n/translation.service";
 import { QUIET_ERRORS } from "../../interceptors/http-interceptor";
 import { ReceiptProductService, ScanQueue, ScanQueueReceipt, ScanQueueScan, ScanQueueService } from "../../open-api";
 import { AppDatePipe } from "../../pipes/app-date.pipe";
 import { SnackbarService } from "../../services";
+import { ConfirmationDialogComponent } from "../../shared-ui/confirmation-dialog/confirmation-dialog.component";
 import { AppIconComponent } from "../../shared-ui/icon/icon.component";
 import { SharedUiModule } from "../../shared-ui/shared-ui.module";
 import {
@@ -45,6 +49,9 @@ const RECEIPT_STATUS: Record<string, StatusLook> = {
 /** How often the card asks again while something is on its way. */
 export const SCAN_QUEUE_REFRESH_MS = 5000;
 
+/** The receipts *Read all again* sends: the ones that wait out an outage or have given up, not the ones in line. */
+const READ_AGAIN_STATUSES = ["UNAVAILABLE", "FAILED"];
+
 interface ScanRow extends ScanQueueScan, StatusLook {
   who: string;
   household: string;
@@ -57,15 +64,17 @@ interface ReceiptRow extends ScanQueueReceipt, StatusLook {
 /**
  * What the AI has not read yet, in one place: the Quick Scan photos that are not receipts yet (waiting, being
  * read, between tries or failed, with *Run again* and the photo), and the receipts that were saved without a read
- * (with *Read again*). The card is always there, so "nothing is waiting" is something a person can see. While
- * anything is on its way it asks again every few seconds; those requests stay quiet when they fail.
+ * (with *Read again*). *Read all again* sends every failed photo and every receipt that waits out an outage or
+ * has given up, one request after another, after a confirmation that says how many. The card is always there, so
+ * "nothing is waiting" is something a person can see. While anything is on its way it asks again every few
+ * seconds; those requests stay quiet when they fail.
  */
 @Component({
   selector: "app-scan-queue-card",
   host: { class: "block" },
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AppDatePipe, AppIconComponent, HlmButton, RouterLink, SharedUiModule, TranslatePipe],
+  imports: [AppDatePipe, AppIconComponent, ClippedDirective, HlmButton, NgTemplateOutlet, RouterLink, SharedUiModule, TranslatePipe],
   templateUrl: "./scan-queue-card.component.html",
 })
 export class ScanQueueCardComponent implements OnInit {
@@ -75,8 +84,14 @@ export class ScanQueueCardComponent implements OnInit {
   private readonly dialog = inject(AppDialog);
   private readonly userStore = inject(UserStore);
   private readonly groupStore = inject(GroupStore);
+  private readonly translation = inject(TranslationService);
+
+  /** The queue is not what it was at the last look: something was read, failed or joined (the usage follows it). */
+  public readonly changed = output<void>();
 
   private readonly queue = signal<ScanQueue | null>(null);
+
+  private lastLook: string | undefined;
 
   /** True until the first answer, and while a refresh the person asked for is on its way. */
   protected readonly loading = signal(true);
@@ -85,6 +100,12 @@ export class ScanQueueCardComponent implements OnInit {
 
   /** The row an action is running for, so its button cannot be pressed twice. */
   protected readonly busy = signal<string | null>(null);
+
+  /** True while *Read all again* is sending its requests. */
+  protected readonly readingAll = signal(false);
+
+  /** The reasons opened in full, by row (a reason is cut to three lines until then). */
+  protected readonly expanded = signal<ReadonlySet<string>>(new Set());
 
   /** Receipts asked to be read again in this visit: the card keeps asking until each is read or has given up. */
   private readonly askedAgain = signal<ReadonlySet<number>>(new Set());
@@ -117,6 +138,15 @@ export class ScanQueueCardComponent implements OnInit {
   );
 
   protected readonly receiptCount = computed(() => this.queue()?.unreadReceiptCount ?? 0);
+
+  /** What *Read all again* would send: the failed photos and the receipts that are not already in line. */
+  private readonly readAllScans = computed(() => this.scans().filter((scan) => scan.canRerun));
+
+  private readonly readAllReceipts = computed(() =>
+    this.receipts().filter((receipt) => receipt.canReadAgain && READ_AGAIN_STATUSES.includes(receipt.status))
+  );
+
+  protected readonly readAllCount = computed(() => this.readAllScans().length + this.readAllReceipts().length);
 
   constructor() {
     inject(DestroyRef).onDestroy(() => clearTimeout(this.refreshTimer));
@@ -185,6 +215,98 @@ export class ScanQueueCardComponent implements OnInit {
       });
   }
 
+  protected toggleReason(key: string): void {
+    this.expanded.update((open) => {
+      const next = new Set(open);
+      if (!next.delete(key)) {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  /** Asks first, with the numbers: every read is a call the provider counts. */
+  protected readAllAgain(): void {
+    const scans = this.readAllScans();
+    const receipts = this.readAllReceipts();
+    if (scans.length + receipts.length === 0 || this.readingAll()) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmationDialogComponent);
+    dialogRef.componentInstance.headerText = marker("Read all again");
+    dialogRef.componentInstance.confirmText = marker("Read all again");
+    dialogRef.componentInstance.dialogContent = this.translation.t(
+      marker("Send these to the AI again? Receipts: {receipts}. Photos: {photos}. Each one is a read your AI provider counts."),
+      { receipts: receipts.length, photos: scans.length }
+    );
+
+    dialogRef
+      .afterClosed()
+      .pipe(
+        take(1),
+        // Truthiness, not === true: a backdrop click or ESC closes with undefined.
+        filter((confirmed) => !!confirmed)
+      )
+      .subscribe(() => this.sendAll(scans, receipts));
+  }
+
+  /**
+   * One request after another, so the server's request limit is not met head-on; each stays quiet when it fails and
+   * one message at the end says how it went.
+   */
+  private sendAll(scans: ScanQueueScan[], receipts: ScanQueueReceipt[]): void {
+    const quiet = { context: new HttpContext().set(QUIET_ERRORS, true) };
+    const requests: Observable<number | null | undefined>[] = [
+      ...scans.map((scan) => this.sent(this.scanQueueService.rerunQueuedScan(scan.id, "body", false, quiet), null)),
+      ...receipts.map((receipt) =>
+        this.sent(this.receiptProductService.readReceiptProducts(receipt.receiptId, "body", false, quiet), receipt.receiptId)
+      ),
+    ];
+
+    this.readingAll.set(true);
+    concat(...requests)
+      .pipe(
+        toArray(),
+        finalize(() => this.readingAll.set(false))
+      )
+      .subscribe((results) => {
+        const refused = results.filter((result) => result === undefined).length;
+        const asked = results.filter((result): result is number => typeof result === "number");
+        if (asked.length > 0) {
+          this.askedAgain.update((before) => new Set([...before, ...asked]));
+        }
+
+        if (refused === 0) {
+          this.snackbarService.success(marker("Everything is in line to be read again."));
+        } else {
+          this.snackbarService.error(
+            this.translation.t(marker("Not everything could be put in line. Refused: {refused} of {count}."), {
+              refused,
+              count: results.length,
+            })
+          );
+        }
+        this.load(true);
+      });
+  }
+
+  /**
+   * One request of *Read all again*: `done` when it went through, undefined when it was refused. The server's
+   * request limit (a 429) is waited out and tried twice more, since a quiet request has no retry of its own.
+   */
+  private sent<T>(request: Observable<unknown>, done: T): Observable<T | undefined> {
+    return request.pipe(
+      retry({
+        count: 2,
+        delay: (error: unknown) =>
+          error instanceof HttpErrorResponse && error.status === 429 ? timer(1000) : throwError(() => error),
+      }),
+      map(() => done),
+      catchError(() => of(undefined))
+    );
+  }
+
   /** Reads the queue. A quiet read (the card's own, every few seconds) says nothing when it fails. */
   private load(quiet: boolean): void {
     clearTimeout(this.refreshTimer);
@@ -193,7 +315,9 @@ export class ScanQueueCardComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: (queue) => {
-          this.queue.set(queue ?? { scans: [], unreadReceipts: [], unreadReceiptCount: 0 });
+          const current = queue ?? { scans: [], unreadReceipts: [], unreadReceiptCount: 0 };
+          this.queue.set(current);
+          this.noteChange(current);
           this.failedToLoad.set(false);
           this.loading.set(false);
           this.scheduleRefresh();
@@ -227,6 +351,19 @@ export class ScanQueueCardComponent implements OnInit {
     if (onItsWay) {
       this.refreshTimer = setTimeout(() => this.load(true), SCAN_QUEUE_REFRESH_MS);
     }
+  }
+
+  /** Says so when the queue differs from the last look (never on the first one). */
+  private noteChange(queue: ScanQueue): void {
+    const look = JSON.stringify([
+      queue.scans.map((scan) => [scan.id, scan.status, scan.attempts]),
+      queue.unreadReceipts.map((receipt) => [receipt.receiptId, receipt.status]),
+      queue.unreadReceiptCount,
+    ]);
+    if (this.lastLook !== undefined && this.lastLook !== look) {
+      this.changed.emit();
+    }
+    this.lastLook = look;
   }
 
   private householdName(groupId: number): string {

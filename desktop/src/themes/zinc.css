@@ -154,8 +154,10 @@
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.274 0.006 286.033); /* zinc-800 */
-  --input: oklch(0.274 0.006 286.033);
+  /* A step lighter than the muted surface (zinc-800), so a hairline shows on a card and on a table's header band;
+     a field's frame is one step lighter again (zinc-700). At zinc-800 both vanished into the card at night. */
+  --border: oklch(0.33 0.006 286.033);
+  --input: oklch(0.37 0.013 285.805);
   --ring: oklch(0.552 0.016 285.938);
   --chart-1: oklch(0.68 0.17 259);
   --chart-2: oklch(0.74 0.16 162);

@@ -571,6 +571,23 @@ Category, Tag, Health and Planned are read off product lines (a receipt counts o
   asked to be read again in this visit, the card reads the queue again every `SCAN_QUEUE_REFRESH_MS` with
   `QUIET_ERRORS`; a failed later read keeps what is shown, a failed first one says so and Refresh tries again.
   A row has the name as its link and at most one button, so a phone never gets a row of icon buttons.
+  *Read all again* (shown when something can be sent) walks the rows the card holds, one request after another
+  through the same two endpoints, with `QUIET_ERRORS` and its own wait for the server's request limit (a 429 is
+  tried twice more after a second): the failed scans with `canRerun`, and the receipts with `canReadAgain` whose
+  status is UNAVAILABLE or FAILED (PENDING and RUNNING are in line already). It asks first through
+  `ConfirmationDialogComponent` with both counts and ends in one toast (how many were refused, if any). It sends
+  what the list shows, so with more than fifty unread receipts a second press takes the next ones; there is no
+  server endpoint for it on purpose (a contract change was not worth one button). The card emits `changed`
+  whenever a look at the queue differs from the one before, which the AI page uses to read the usage again. A
+  reason (`lastError`) is clamped to three lines; `ClippedDirective` (`src/directives/`) measures whether the
+  clamp cut anything, and only then is *Show all of it* drawn.
+- **Usage** (`src/ai-settings/ai-usage-card/`): `GET /receiptProcessingSettings/usage`, always with
+  `QUIET_ERRORS`. The API counts a call only when the provider answered (a 429 is not a read), per day, provider
+  and model, so a model that was just chosen has no numbers: the card adds a zero row for the main AI's saved
+  provider and model (`inUse`, from the page's `saved()`) in the running month (UTC, like the server's days) and
+  marks that month's row *In use*. `reload()` is called by the page after a save, after a connection test of
+  either card (a successful test is a counted call) and on the scan queue's `changed`; a failed reload keeps
+  what is shown. On a phone the rows are cards.
 - **The receipts page's Quick Scan line** (`ScanSummaryService`, root): `GET /scanQueue/summary`, read when the
   page opens, after a Quick Scan upload and after the photos kept on the device went up, then every
   `SCAN_SUMMARY_REFRESH_MS` while photos wait. `settled` goes up when photos left the queue and the receipts

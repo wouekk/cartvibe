@@ -35,7 +35,7 @@
   @let layout = cardLayout();
   <ul class="m-0 list-none p-0 text-sm" data-testid="table-cards">
     @for (element of dataSource().data; track $index) {
-      <li class="data-row border-b border-border/40 px-4 py-3 last:border-b-0" data-testid="table-card">
+      <li class="data-row border-b border-border px-4 py-3 last:border-b-0" data-testid="table-card">
         <div class="flex items-start gap-3">
           @if (selectionCheckboxes() && displayedColumns().includes("select")) {
             <hlm-checkbox
@@ -131,7 +131,8 @@
               @if (column.sortable) {
                 <button
                   type="button"
-                  class="group/sort -ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground motion-reduce:transition-none"
+                  class="group/sort inline-flex cursor-pointer items-center gap-1 rounded-sm text-inherit uppercase transition-colors hover:text-foreground motion-reduce:transition-none"
+                  [class.text-foreground]="sortState().active === column.columnDef"
                   [attr.data-testid]="'sort-' + column.columnDef"
                   (click)="toggleSort(column)"
                 >

@@ -100,7 +100,8 @@ feature.
   the real module or standalone component, never a `NO_ERRORS_SCHEMA`. An unhandled RxJS error fails the whole run
   (give a `subscribe` on a `throwError` mock a handler). `vi.mock` takes package specifiers only (`chart.js`), not
   relative paths: drive the real function through the globals it reads. No `done` callbacks (return a promise); a mock
-  used with `new` must be a `function`; `vi.fn<(a: string) => Promise<void>>()` takes one function type.
+  used with `new` must be a `function`; `vi.fn<(a: string) => Promise<void>>()` takes one function type. jsdom lays
+  nothing out: a spec that needs an element to have a size drives `src/testing/resize-observer.stub.ts`.
 
 ## Shared patterns (reuse; confirm with the user before inventing a divergent one)
 
@@ -124,6 +125,8 @@ feature.
 - **Lists:** `app-table` with `BaseTableComponent` + a table service + a `PagedTableStore` for server paging; row
   mutations refetch with `getTableData()`. Pass `emptyText` only once loaded. List pages use `app-table-header` and
   `app-add-button`; settings pages `app-settings-page` / `-section` / `-tabs` / `-entity-list` (`../DESIGN.md`).
+- **Tables** have one look, `cv-table` (`../DESIGN.md` → Tables): `hlmTable` carries it, and a table written by hand
+  puts the class on its `<table>` and writes no header colours, weights or backgrounds of its own.
 - **Small pieces:** `app-badge`, `app-filter-bar`, `app-breadcrumb`, `app-status-chip`, `app-money`, `app-copy-button`
   (silent on failure by design; hand-roll a toasting copy where the value matters).
 - **Chip pickers** (`app-autocomplete [multiple]`) push onto the control, so it must be a `FormArray` (a `FormControl`

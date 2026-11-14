@@ -22,7 +22,7 @@ export class HlmTableContainer {
 })
 export class HlmTable {
 	constructor() {
-		classes(() => 'w-full caption-bottom text-sm');
+		classes(() => 'cv-table w-full caption-bottom text-sm');
 	}
 }
 
@@ -97,7 +97,7 @@ export class HlmTr {
 })
 export class HlmTh {
 	constructor() {
-		classes(() => 'text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pe-0');
+		classes(() => 'h-10 px-2 text-start align-middle whitespace-nowrap [&:has([role=checkbox])]:pe-0');
 	}
 }
 
