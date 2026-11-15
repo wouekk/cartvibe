@@ -9,14 +9,13 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   holds the whole audit of 2026-11-09 (`docs/AUDIT-REPORT.md`, every sprint ticked) and what the owner's NAS try
   turned up; `CHANGELOG.md` has it all, with the update notes. New work is a `feature/<name>` branch from `main`,
   merged into `preview` and published as `:preview`; `main` waits for the owner's go again.
-- **On `main` since 2026-11-12, after the release** (the owner's go; in `:latest`, in no tagged version, under
-  *Unreleased* in the changelog): the Dashboard's sentence leads in bold, colours how far the month is from the
-  goal (red over, green under or on it), and says neither the days left nor what a day may cost (DASH-12).
-- **In `preview` and `:preview` since 2026-11-15, not on `main`** (`main` waits for the owner's go; the feature
-  branch is deleted): one table look (`cv-table`, a header band; lighter frames at night, APP-20), the scan
-  queue as framed rows with *Read all again* (SCAN-15), and the Usage card's row for the model in use, its
-  padding and phone cards (ADM-18). CI was green on the branch (desktop tests and the smoke suite; no API
-  change, no contract change). Under *Unreleased* in the changelog.
+- **On `main` after the release** (the owner's go each time; in `:latest`, in no tagged version, under
+  *Unreleased* in the changelog). Since 2026-11-12: the Dashboard's sentence leads in bold, colours how far the
+  month is from the goal (red over, green under or on it), and says neither the days left nor what a day may
+  cost (DASH-12). Since 2026-11-15: one table look (`cv-table`, a header band; lighter frames at night,
+  APP-20), the scan queue as framed rows with *Read all again* (SCAN-15), and the Usage card's row for the
+  model in use, its padding and phone cards (ADM-18); no API or contract change. `main` and `preview` are the
+  same commit again.
 - **Left out of the release on purpose:** a GitHub Release page for v0.19.0 (0.18.0 has none either; the tag and
   the images are the release), and the upgrade fixture `api/internal/repositories/testdata/schema-v0.19.0.sql`
   (add it with the next API change; the header of `release_upgrade_test.go` says how).
@@ -72,7 +71,7 @@ amounts as whole cents) have already happened there. None of the checks below ha
   sheets with the keyboard not hiding their buttons; in flight mode a list takes adds and cross-offs and a Quick
   Scan puts a number on the Scan button and uploads later; the usual shop order on a later list; nobody has to
   sign in again after the update.
-- **On `:preview` (2026-11-15), the AI page and tables:** the tables and night frames read well everywhere
+- **The AI page and tables (on `main` since 2026-11-15, not yet tried on the NAS):** the tables and night frames read well everywhere
   (uppercase column titles and lighter night borders are app-wide: say if either should be toned down); *Read
   all again* puts the failed photos and receipts in line; after changing the model and saving, Usage shows it
   as *In use* at once.
