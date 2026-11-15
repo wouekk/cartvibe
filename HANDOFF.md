@@ -5,20 +5,18 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 
 ## Current state
 
-- **v0.19.0 was released on 2026-11-12** (the owner's go). `main` and `preview` are the same commit. The release
+- **v0.19.0 was released on 2026-11-12** (the owner's go). The release
   holds the whole audit of 2026-11-09 (`docs/AUDIT-REPORT.md`, every sprint ticked) and what the owner's NAS try
   turned up; `CHANGELOG.md` has it all, with the update notes. New work is a `feature/<name>` branch from `main`,
   merged into `preview` and published as `:preview`; `main` waits for the owner's go again.
 - **On `main` since 2026-11-12, after the release** (the owner's go; in `:latest`, in no tagged version, under
   *Unreleased* in the changelog): the Dashboard's sentence leads in bold, colours how far the month is from the
   goal (red over, green under or on it), and says neither the days left nor what a day may cost (DASH-12).
-  `main` and `preview` are the same commit again.
-- **Local only, not pushed: `feature/scan-queue-and-tables`** (from `main`, in the working worktree, 2026-11-14).
-  The owner said not to push until the rest of their remarks are in, so CI has not run on it and it is in no
-  image. It holds: one table look (`cv-table`, a header band; lighter frames at night), the scan queue as framed
-  rows with *Read all again* (SCAN-15), and the Usage card's row for the model in use, padding and phone cards
-  (ADM-18, APP-20). On the PC the whole spec suite, the build, the demo build and the demo checks passed. No
-  contract change. When the owner says so: push, green CI, merge into `preview`, publish `:preview`.
+- **In `preview` and `:preview` since 2026-11-15, not on `main`** (`main` waits for the owner's go; the feature
+  branch is deleted): one table look (`cv-table`, a header band; lighter frames at night, APP-20), the scan
+  queue as framed rows with *Read all again* (SCAN-15), and the Usage card's row for the model in use, its
+  padding and phone cards (ADM-18). CI was green on the branch (desktop tests and the smoke suite; no API
+  change, no contract change). Under *Unreleased* in the changelog.
 - **Left out of the release on purpose:** a GitHub Release page for v0.19.0 (0.18.0 has none either; the tag and
   the images are the release), and the upgrade fixture `api/internal/repositories/testdata/schema-v0.19.0.sql`
   (add it with the next API change; the header of `release_upgrade_test.go` says how).
@@ -36,8 +34,9 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
 - The project is on Node 26.13 (in `tools\node-v26.13.0-win-x64` on the PC; **the Mac needs Node 26 before work
   there**).
 - The main checkout is on `feature/releases-and-ci`, another session's: leave it alone. `i18n-audit-en-pl.md` and
-  `docs/plans/` there (untracked) are the owner's. The working worktree is `.claude/worktrees/dependency-updates`;
-  `.claude/worktrees/preview-merge` holds `preview`.
+  `docs/plans/` there (untracked) are the owner's. The working worktree is `.claude/worktrees/dependency-updates`
+  (a session there may not run git in another worktree: merge into `preview` on a detached `origin/preview` and
+  push `HEAD:preview`); `.claude/worktrees/preview-merge` holds a local `preview` that is behind `origin/preview`.
 - On the PC the picture tests are skipped (no `magick`, `tesseract`, `gs`) and the race detector cannot run, so
   only CI proves them. The real server runs there in production mode with the built app (`api.exe --env prod`
   with `WEB_ROOT`, `LISTEN_ADDRESS`, `DB_ENGINE=sqlite`, `SECRET_KEY`, `ENCRYPTION_KEY`, `BASE_PATH`); a
@@ -73,6 +72,10 @@ amounts as whole cents) have already happened there. None of the checks below ha
   sheets with the keyboard not hiding their buttons; in flight mode a list takes adds and cross-offs and a Quick
   Scan puts a number on the Scan button and uploads later; the usual shop order on a later list; nobody has to
   sign in again after the update.
+- **On `:preview` (2026-11-15), the AI page and tables:** the tables and night frames read well everywhere
+  (uppercase column titles and lighter night borders are app-wide: say if either should be toned down); *Read
+  all again* puts the failed photos and receipts in line; after changing the model and saving, Usage shows it
+  as *In use* at once.
 - **Dashboard:** it looks as it did before any change (the old layout converted); dragging by the grip on a touch
   screen; the controls tab not covering a title; the 4K screen (Interface size above *Standard*).
 - **Other:** a report as PDF and Excel; a household rename is instant; *Sign out everywhere* makes another
