@@ -3,6 +3,19 @@
   title="Scan queue"
   description="What the AI has not read yet: photos that are not receipts yet, and receipts that were saved without a read."
 >
+  @if (readAllCount() > 0) {
+    <button
+      sectionActions
+      hlmBtn
+      type="button"
+      data-testid="scan-queue-read-all"
+      [disabled]="readingAll()"
+      (click)="readAllAgain()"
+    >
+      <app-icon name="restart_alt"></app-icon>
+      <span class="font-medium">{{ (readingAll() ? 'Putting them in line…' : 'Read all again') | t }}</span>
+    </button>
+  }
   <button
     sectionActions
     hlmBtn
@@ -15,6 +28,32 @@
     <app-icon name="refresh"></app-icon>
     <span class="font-medium">{{ 'Refresh' | t }}</span>
   </button>
+
+  <!-- What went wrong, as the provider or the server said it: three lines, and the rest on request. -->
+  <ng-template #reason let-text="text" let-key="key" let-testId="testId">
+    <div class="flex flex-col items-start gap-1">
+      <p
+        appClipped
+        #shown="appClipped"
+        class="m-0 text-[0.8125rem] leading-relaxed break-words text-foreground/80"
+        [class.line-clamp-3]="!expanded().has(key)"
+        [attr.data-testid]="testId"
+      >
+        {{ text }}
+      </p>
+      @if (shown.clipped()) {
+        <button
+          type="button"
+          class="cursor-pointer border-0 bg-transparent p-0 text-[0.8125rem] font-medium text-foreground underline underline-offset-4"
+          data-testid="scan-queue-reason-toggle"
+          [attr.aria-expanded]="expanded().has(key)"
+          (click)="toggleReason(key)"
+        >
+          {{ (expanded().has(key) ? 'Show less' : 'Show all of it') | t }}
+        </button>
+      }
+    </div>
+  </ng-template>
 
   @if (failedToLoad()) {
     <div class="cv-section">
@@ -31,23 +70,19 @@
         </p>
       </div>
       @if (scans().length === 0) {
-        <p class="m-0 text-sm text-muted-foreground" data-testid="scan-queue-scans-empty">
+        <p class="cv-item-empty" data-testid="scan-queue-scans-empty">
           {{ (loading() ? 'Loading…' : 'No photo is waiting.') | t }}
         </p>
       } @else {
-        <ul class="m-0 flex list-none flex-col p-0">
+        <ul class="m-0 flex list-none flex-col gap-2 p-0">
           @for (scan of scans(); track scan.id) {
-            <li
-              class="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/40 py-3 first:border-t-0 first:pt-0 last:pb-0"
-              data-testid="scan-queue-scan"
-              [attr.data-status]="scan.status"
-            >
-              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1">
+            <li class="cv-item" data-testid="scan-queue-scan" [attr.data-status]="scan.status">
+              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1.5">
                 <div class="flex flex-wrap items-center gap-2">
                   @if (scan.hasFile) {
                     <button
                       type="button"
-                      class="cv-link min-w-0 cursor-pointer border-0 bg-transparent p-0 text-left break-all underline-offset-4 hover:underline"
+                      class="min-w-0 cursor-pointer border-0 bg-transparent p-0 text-left text-sm font-semibold break-all text-foreground underline-offset-4 hover:underline"
                       data-testid="scan-queue-photo"
                       [disabled]="busy() === 'photo-' + scan.id"
                       [attr.aria-label]="'Show the photo: {name}' | t: { name: scan.fileName }"
@@ -56,11 +91,11 @@
                       {{ scan.fileName }}
                     </button>
                   } @else {
-                    <span class="min-w-0 font-medium break-all">{{ scan.fileName }}</span>
+                    <span class="min-w-0 text-sm font-semibold break-all">{{ scan.fileName }}</span>
                   }
                   <app-status-chip [customStatus]="scan.label | t" [customStatusColor]="scan.color"></app-status-chip>
                 </div>
-                <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-meta">
+                <p class="m-0 text-[0.8125rem] text-muted-foreground" data-testid="scan-queue-scan-meta">
                   @if (scan.who) {
                     {{ scan.who }} ·
                   }
@@ -70,16 +105,19 @@
                   }
                 </p>
                 @if (scan.status === 'RETRYING') {
-                  <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-detail">
+                  <p class="m-0 text-[0.8125rem] text-muted-foreground" data-testid="scan-queue-scan-detail">
                     {{ 'Try {attempt} of {max} failed. The next one is at {time}.' | t: { attempt: scan.attempts, max: scan.maxAttempts, time: (scan.nextAttemptAt | appDate: 'shortTime') } }}
                   </p>
                 } @else if (scan.status === 'FAILED') {
-                  <p class="m-0 text-xs text-muted-foreground" data-testid="scan-queue-scan-detail">
+                  <p class="m-0 text-[0.8125rem] text-muted-foreground" data-testid="scan-queue-scan-detail">
                     {{ 'Not read after {attempt} of {max} tries.' | t: { attempt: scan.attempts, max: scan.maxAttempts } }}
                   </p>
                 }
                 @if (scan.lastError) {
-                  <p class="m-0 text-xs break-words text-muted-foreground" data-testid="scan-queue-scan-error">{{ scan.lastError }}</p>
+                  <ng-container
+                    [ngTemplateOutlet]="reason"
+                    [ngTemplateOutletContext]="{ text: scan.lastError, key: 'scan-' + scan.id, testId: 'scan-queue-scan-error' }"
+                  ></ng-container>
                 }
               </div>
               @if (scan.canRerun) {
@@ -87,8 +125,9 @@
                   hlmBtn
                   type="button"
                   variant="outline"
+                  class="shrink-0"
                   data-testid="scan-queue-rerun"
-                  [disabled]="busy() === 'scan-' + scan.id"
+                  [disabled]="readingAll() || busy() === 'scan-' + scan.id"
                   (click)="runAgain(scan)"
                 >
                   <span class="font-medium">{{ 'Run again' | t }}</span>
@@ -108,21 +147,17 @@
         </p>
       </div>
       @if (receipts().length === 0) {
-        <p class="m-0 text-sm text-muted-foreground" data-testid="scan-queue-receipts-empty">
+        <p class="cv-item-empty" data-testid="scan-queue-receipts-empty">
           {{ (loading() ? 'Loading…' : 'Every receipt with a photo has been read.') | t }}
         </p>
       } @else {
-        <ul class="m-0 flex list-none flex-col p-0">
+        <ul class="m-0 flex list-none flex-col gap-2 p-0">
           @for (receipt of receipts(); track receipt.receiptId) {
-            <li
-              class="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border/40 py-3 first:border-t-0 first:pt-0 last:pb-0"
-              data-testid="scan-queue-receipt"
-              [attr.data-status]="receipt.status"
-            >
-              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1">
+            <li class="cv-item" data-testid="scan-queue-receipt" [attr.data-status]="receipt.status">
+              <div class="flex min-w-0 flex-1 basis-64 flex-col gap-1.5">
                 <div class="flex flex-wrap items-center gap-2">
                   <a
-                    class="cv-link min-w-0 break-words underline-offset-4 hover:underline"
+                    class="min-w-0 text-sm font-semibold break-words text-foreground no-underline underline-offset-4 hover:underline"
                     data-testid="scan-queue-receipt-link"
                     [routerLink]="['/receipts', receipt.receiptId, 'view']"
                   >
@@ -130,14 +165,17 @@
                   </a>
                   <app-status-chip [customStatus]="receipt.label | t" [customStatusColor]="receipt.color"></app-status-chip>
                 </div>
-                <p class="m-0 text-xs text-muted-foreground">
+                <p class="m-0 text-[0.8125rem] text-muted-foreground">
                   {{ receipt.date | appDate: 'mediumDate' : 'calendar' }}
                   @if (receipt.household) {
                     · {{ receipt.household }}
                   }
                 </p>
                 @if (receipt.lastError) {
-                  <p class="m-0 text-xs break-words text-muted-foreground" data-testid="scan-queue-receipt-error">{{ receipt.lastError }}</p>
+                  <ng-container
+                    [ngTemplateOutlet]="reason"
+                    [ngTemplateOutletContext]="{ text: receipt.lastError, key: 'receipt-' + receipt.receiptId, testId: 'scan-queue-receipt-error' }"
+                  ></ng-container>
                 }
               </div>
               @if (receipt.canReadAgain && receipt.status !== 'RUNNING') {
@@ -145,8 +183,9 @@
                   hlmBtn
                   type="button"
                   variant="outline"
+                  class="shrink-0"
                   data-testid="scan-queue-read-again"
-                  [disabled]="busy() === 'receipt-' + receipt.receiptId"
+                  [disabled]="readingAll() || busy() === 'receipt-' + receipt.receiptId"
                   (click)="readAgain(receipt)"
                 >
                   <span class="font-medium">{{ 'Read again' | t }}</span>
@@ -156,7 +195,7 @@
           }
         </ul>
         @if (receiptsNotShown() > 0) {
-          <p class="mt-3 mb-0 text-xs text-muted-foreground" data-testid="scan-queue-receipts-more">
+          <p class="m-0 text-[0.8125rem] text-muted-foreground" data-testid="scan-queue-receipts-more">
             {{ 'These are the newest {shown} of {count}.' | t: { shown: receipts().length, count: receiptCount() } }}
           </p>
         }

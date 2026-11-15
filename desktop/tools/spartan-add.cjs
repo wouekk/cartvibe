@@ -135,6 +135,10 @@ const patches = [
     () => "this.saveState(open);",
   ],
   ["sidebar/lib/hlm-sidebar.service.ts", "\tprivate restoreStateFromCookie(): void {", () => SIDEBAR_STORAGE],
+  // Every table takes the app's one table look (`cv-table` in tailwind.css: the header is a band with overline
+  // labels), so the helm's header cell leaves its own colour and weight out.
+  ["table/lib/hlm-table.ts", "classes(() => 'w-full caption-bottom text-sm');", "classes(() => 'cv-table w-full caption-bottom text-sm');"],
+  ["table/lib/hlm-table.ts", "'text-foreground h-10 px-2 text-start align-middle font-medium whitespace-nowrap", "'h-10 px-2 text-start align-middle whitespace-nowrap"],
 ];
 for (const [file, from, to] of patches) {
   const target = path.join(outRoot, file);

@@ -442,16 +442,37 @@
   .cv-card .cv-section__footer {
     @apply border-t-0 pt-0;
   }
+  /* The one look of every table (DESIGN.md, Tables): the column header is a band, a surface step with overline
+     labels, so it reads as the table's top edge by day and at night. `hlmTable` carries the class; a table written
+     by hand takes it on its <table>. Row lines stay the table's own, at the full hairline. */
+  .cv-table thead th {
+    @apply h-10 bg-muted px-2 text-start align-middle text-[0.6875rem] font-semibold tracking-[0.08em] whitespace-nowrap text-muted-foreground uppercase;
+  }
   /* A table inside a card is part of the card: no second border, radius or shadow of its own. */
   .cv-card app-table {
     @apply rounded-none! border-0! shadow-none!;
   }
-  /* The table's first and last cells line up with the card's own 24px padding (title, description, rows). */
-  .cv-card app-table :is(th, td):first-child {
+  /* The table's first and last cells line up with the card's own 24px padding (title, description, rows).
+     `cv-card__table` is the wrapper of a table written by hand straight in a card's body. */
+  .cv-card :is(app-table, .cv-card__table) :is(th, td):first-child {
     @apply ps-6!;
   }
-  .cv-card app-table :is(th, td):last-child {
+  .cv-card :is(app-table, .cv-card__table) :is(th, td):last-child {
     @apply pe-6!;
+  }
+  /* Under a card's title the band needs air above it and a hairline to sit on. */
+  .cv-card__head + .cv-card__body > .cv-card__table:first-child {
+    @apply mt-3 border-t border-border;
+  }
+  /* A framed entry of a list inside a settings card (the scan queue): its own hairline and an inset surface step,
+     so each entry reads as one thing by day and at night. Text on the left, its one action on the right; they wrap
+     on a phone. */
+  .cv-item {
+    @apply flex flex-wrap items-start gap-x-4 gap-y-3 rounded-lg border border-border bg-muted/40 px-4 py-3;
+  }
+  /* "Nothing here" where such a list is empty: the same frame, dashed and quiet. */
+  .cv-item-empty {
+    @apply m-0 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground;
   }
   /* A read-only block that keeps the muted step (previews). */
   .cv-inset {

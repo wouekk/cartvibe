@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, input, OnInit, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, DestroyRef, computed, inject, input, OnInit, output, signal, ChangeDetectionStrategy } from "@angular/core";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
 import { HlmButton } from "@spartan-ng/helm/button";
@@ -60,6 +60,9 @@ export class AiFallbackCardComponent implements OnInit {
 
   /** The main AI's settings id: a backup only makes sense next to a saved main AI. */
   public readonly primaryId = input<number | undefined>(undefined);
+
+  /** A connection test has answered: it is a call the provider counted, so the usage numbers have moved. */
+  public readonly tested = output<void>();
 
   public readonly form = this.formBuilder.group({
     enabled: this.formBuilder.control<boolean | null>(false),
@@ -189,7 +192,10 @@ export class AiFallbackCardComponent implements OnInit {
         map((task) => describeConnection(task.status as SystemTaskStatus | undefined, task.resultDescription)),
         finalize(() => this.testing.set(false))
       )
-      .subscribe((result) => this.connectionResult.set(result));
+      .subscribe((result) => {
+        this.connectionResult.set(result);
+        this.tested.emit();
+      });
   }
 
   // Turning the backup off only unlinks it; the saved settings stay for the next time it is switched on.

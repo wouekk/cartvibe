@@ -15,17 +15,17 @@
         [label]="'Spending by category, {period}' | t: { period: periodLabel() }"
       ></app-chart>
     </div>
-    <table class="donut__legend min-w-52 flex-1 text-sm">
+    <table class="donut__legend cv-table min-w-52 flex-1 text-sm">
       <thead hlmTHead>
         <tr>
-          <th hlmTh scope="col" class="pb-2 text-left text-xs font-medium text-muted-foreground">{{ 'Category' | t }}</th>
-          <th hlmTh scope="col" class="pb-2 pl-3 text-right text-xs font-medium text-muted-foreground">{{ 'Spent' | t }}</th>
+          <th hlmTh scope="col">{{ 'Category' | t }}</th>
+          <th hlmTh scope="col" class="text-right">{{ 'Spent' | t }}</th>
         </tr>
       </thead>
       <tbody>
         @for (segment of segments(); track segment.name) {
           <tr
-            class="cursor-pointer border-t border-border/60 transition-opacity duration-150 ease-[ease] motion-reduce:transition-none"
+            class="cursor-pointer border-b border-border transition-opacity duration-150 ease-[ease] last:border-b-0 motion-reduce:transition-none"
             [class.opacity-45]="isDimmed(segment.name)"
             [attr.data-testid]="'overview-donut-row-' + segment.name"
             [attr.data-dimmed]="isDimmed(segment.name)"
@@ -35,7 +35,7 @@
             (focusout)="hoverSegment(null)"
             (click)="open.emit(segment)"
           >
-            <td class="py-2.5">
+            <td class="py-2.5 pl-2">
               <!-- Dot, share, name: the share leads so the name gets the room, and the dot stays beside a wrapping name. -->
               <div class="flex items-center gap-2">
               <button
@@ -59,7 +59,7 @@
               </button>
               </div>
             </td>
-            <td class="py-2.5 pl-3 text-right font-semibold whitespace-nowrap tabular-nums"><app-money [value]="segment.total" [display]="true"></app-money></td>
+            <td class="py-2.5 pr-2 pl-3 text-right font-semibold whitespace-nowrap tabular-nums"><app-money [value]="segment.total" [display]="true"></app-money></td>
           </tr>
         }
       </tbody>

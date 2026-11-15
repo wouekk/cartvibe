@@ -13,6 +13,12 @@ Session state only, read by every session: keep it under about 3 KB. Delete an e
   *Unreleased* in the changelog): the Dashboard's sentence leads in bold, colours how far the month is from the
   goal (red over, green under or on it), and says neither the days left nor what a day may cost (DASH-12).
   `main` and `preview` are the same commit again.
+- **Local only, not pushed: `feature/scan-queue-and-tables`** (from `main`, in the working worktree, 2026-11-14).
+  The owner said not to push until the rest of their remarks are in, so CI has not run on it and it is in no
+  image. It holds: one table look (`cv-table`, a header band; lighter frames at night), the scan queue as framed
+  rows with *Read all again* (SCAN-15), and the Usage card's row for the model in use, padding and phone cards
+  (ADM-18, APP-20). On the PC the whole spec suite, the build, the demo build and the demo checks passed. No
+  contract change. When the owner says so: push, green CI, merge into `preview`, publish `:preview`.
 - **Left out of the release on purpose:** a GitHub Release page for v0.19.0 (0.18.0 has none either; the tag and
   the images are the release), and the upgrade fixture `api/internal/repositories/testdata/schema-v0.19.0.sql`
   (add it with the next API change; the header of `release_upgrade_test.go` says how).

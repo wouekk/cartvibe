@@ -11,10 +11,26 @@ From the first release after 0.16.0, every user-visible entry names the feature 
 
 ## [Unreleased]
 
+### Added
+- **Read all again.** The scan queue on the AI page has one button that sends everything in it to the AI again:
+  every failed photo and every receipt the AI could not be reached for or gave up on. It asks first, with the
+  numbers, and leaves out what is already in line *(SCAN-15)*.
+
 ### Changed
+- **Tables read the same everywhere, by day and at night.** Column titles sit on a shaded band, rows are split
+  by a clear line, and in Night the lines around cards, tables and fields are light enough to see *(APP-20)*.
+- **The scan queue is easier to read.** Each photo and receipt is its own framed row with larger text, and a long
+  explanation of what went wrong shows three lines with the rest on request *(SCAN-15)*.
 - **The Dashboard's sentence shows at a glance where the month stands.** What was spent is in bold, and how far
   that is from the goal is coloured: red over the goal, green under it or on it. The days left in the month and
   what a day may cost are no longer part of it *(DASH-12)*.
+
+### Fixed
+- **Usage on the AI page follows the model.** After another model was saved the table kept showing only the old
+  one until the page was opened again and the new model had answered. The model in use now has its row at once,
+  marked *In use*, and the numbers follow a save, a test and each read *(ADM-18)*.
+- The Usage table ran to the edges of its card, and on a phone off its side; it has the card's padding and is a
+  card per row on a phone *(ADM-18)*.
 
 ## [0.19.0] - 2026-11-12
 
