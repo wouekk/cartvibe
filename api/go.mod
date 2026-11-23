@@ -6,8 +6,8 @@ require (
 	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/anthropics/anthropic-sdk-go v1.84.0
 	github.com/auth0/go-jwt-middleware/v2 v2.3.1
-	github.com/chromedp/cdproto v0.159.2
-	github.com/chromedp/chromedp v0.23.0
+	github.com/chromedp/cdproto v0.160.6
+	github.com/chromedp/chromedp v0.24.0
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/expr-lang/expr v1.17.8
 	github.com/gabriel-vasile/mimetype v1.4.16
@@ -20,10 +20,10 @@ require (
 	github.com/sashabaranov/go-openai v1.43.0
 	github.com/shopspring/decimal v1.6.0
 	github.com/xuri/excelize/v2 v2.11.1
-	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.62.0
+	golang.org/x/crypto v0.59.0
+	golang.org/x/net v0.63.0
 	golang.org/x/oauth2 v0.38.0
-	google.golang.org/genai v1.77.0
+	google.golang.org/genai v1.79.1
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.31.2
 )
@@ -77,9 +77,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.2 // indirect
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/grpc v1.83.2 // indirect
